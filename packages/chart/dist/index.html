@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="chartContainer" style="width: 100%; height: 100vh; background-color: red;"></div>
+  <script src="main.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      console.log('All assets are loaded')
+      const chart = new Chart({
+        container: document.getElementById("chartContainer"),
+        config: { // not required
+        },
+        model: { // not required
+        }
+      });
+      chart.init();
+      chart.setMainSeriesData([{
+            "stamp": 1374796800000,
+            "o": 1.32729,
+            "h": 1.32963,
+            "l": 1.32519,
+            "c": 1.32771,
+            "v": 0,
+            "i": 0
+        },
+        {
+            "stamp": 1375056000000,
+            "o": 1.32848,
+            "h": 1.32947,
+            "l": 1.32395,
+            "c": 1.32624,
+            "v": 0,
+            "i": 0
+        }]);
+
+      
+      let i = 1;
+      let multiplier = 100000000;
+      setInterval(() => {
+        chart.appendTick({
+            "stamp": 1375056000000 + i*multiplier,
+            "price": 1.32849,
+            "volume": 1000,
+            "dailyVolume": 101938
+        });
+
+        i++;
+        }, 3000);
+    });
+  </script>
+</body>
+</html>
