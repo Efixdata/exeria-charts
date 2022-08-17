@@ -1,3 +1,4 @@
-const Chart = require("./Chart").default;
+// const Chart = require("./Chart").default;
+import Chart from "./Chart";
 
 export default Chart;

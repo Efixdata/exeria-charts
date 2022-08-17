@@ -1,13 +1,12 @@
 {
   "name": "chart",
   "version": "1.0.0",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "description": "",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "dev": "webpack serve"
+    "dev": "webpack"
   },
   "author": "",
   "license": "ISC",

@@ -3,12 +3,12 @@ const path = require("path");
 module.exports = {
   entry: "./src/Chart.js",
   output: {
-    filename: "index.js",
+    filename: "chart.js",
     path: path.resolve(__dirname, "dist"),
     library: {
       type: 'umd'
     },
-    globalObject: 'this'
+    // globalObject: 'this'
   },
   optimization: {
     minimize: false

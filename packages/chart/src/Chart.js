@@ -17,6 +17,7 @@ export default class Chart {
   initialized;
 
   constructor(options) {
+	if (typeof window == undefined) return;
 	this.config = {
 		mouseWheelZoomEnabled: true,
 		multiInstrumentChart: true,
@@ -33,6 +34,7 @@ export default class Chart {
   }
 
   init() {
+	debugger;
 	if (!document) return;
 	if (this.initialized) return;
 	
@@ -292,6 +294,7 @@ export default class Chart {
 	}
 	
 	setMainSeriesData(data) {
+		debugger;
 		if (!this.fusion) return;
 		const mainSeries = this.fusion.getMainSeries();
 		mainSeries.data = data;

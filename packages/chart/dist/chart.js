@@ -7,7 +7,7 @@
 		var a = factory();
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
-})(this, () => {
+})(self, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -34528,6 +34528,7 @@ class Chart {
   initialized;
 
   constructor(options) {
+	if (typeof window == undefined) return;
 	this.config = {
 		mouseWheelZoomEnabled: true,
 		multiInstrumentChart: true,
@@ -34544,6 +34545,7 @@ class Chart {
   }
 
   init() {
+	if (typeof window == undefined) return;
 	if (!document) return;
 	if (this.initialized) return;
 	

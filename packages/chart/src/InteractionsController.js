@@ -77,10 +77,10 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			self.hammer = new Hammer(self.topLayer, {});
 
-			// self.hammer.get('press').set({ time: 500 });
-			// self.hammer.on('press', function (evt) {
-			// 	self.onContextMenu(evt);
-			// });
+			self.hammer.get('press').set({ time: 500 });
+			self.hammer.on('press', function (evt) {
+				self.onContextMenu(evt);
+			});
 
 			self.hammer.on('touch', self.onTouchEvent);
 
@@ -103,10 +103,10 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			// self.topLayer.on('contextmenu', function (evt) {evt.preventDefault(); return true;});
 
-			// self.hammer = new Hammer(self.topLayer[0], {});
-			// self.hammer.on('swipe', function (evt) {
-			// 	self.onSwipe(evt);
-			// });
+			self.hammer = new Hammer(self.topLayer, {});
+			self.hammer.on('swipe', function (evt) {
+				self.onSwipe(evt);
+			});
 		}
 
 		// $(document).keyup(function(e){

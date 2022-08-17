@@ -1,6 +1,7 @@
 import React, {useLayoutEffect } from "react";
 import data from "./data";
 import Chart from "chart";
+import {Button} from "ui";
 
 
 const ChartComponent = () => {
@@ -18,15 +19,19 @@ const ChartComponent = () => {
       const chart = new Chart({
         container: containerElement,
       });
-  
-      chart.setMainSeriesData(data);
       chart.init();
+      chart.setMainSeriesData(data.candles);
     });
 
 
   return (
-      <div ref={objectRef} />
+  <div style={{ position: "relative" }}>
+    <div ref={objectRef} />
+    <div style={{ position: "absolute", top: 0 }}>
+    <Button />
+    </div>
+  </div>
   );
 };
 
-export default ChartComponent;
+export { ChartComponent };
