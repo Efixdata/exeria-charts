@@ -93,6 +93,19 @@ export default class Chart {
     this.initialized = true;
   }
 
+  async recalculateScripts() {
+    try {
+      this.fusion.fullSynchronization();
+      this.fusion.configureScripts();
+      await this.fusion.initAll();
+      this.fusion.calculateAll();
+  
+      this.rerender();
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
   rerender() {
     this.fit();
     this.renderOverlay();
@@ -355,7 +368,7 @@ export default class Chart {
     const mainSeries = this.fusion.getMainSeries();
     mainSeries.data = data;
     try {
-      this.render(this.objectOnlyOnOverlay);
+      this.recalculateScripts();
     } catch (_) {}
   }
 
@@ -365,7 +378,7 @@ export default class Chart {
     mainSeries.data = mainSeries.data.concat(data);
 
     try {
-      this.render(this.objectOnlyOnOverlay);
+      this.recalculateScripts();
     } catch (_) {}
   }
 
@@ -375,7 +388,8 @@ export default class Chart {
     ).update(tick);
 
     try {
-      this.render(this.objectOnlyOnOverlay);
+      // TODO: short synchronization instead of full
+      this.recalculateScripts();
     } catch (_) {}
 
     return newCandleAdded;

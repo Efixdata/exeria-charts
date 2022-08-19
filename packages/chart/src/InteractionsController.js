@@ -1088,7 +1088,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		for (var i=0; i<this.model.panels.length; i++) {
 			if(this.model.panels[i]._visible){
-				b = 100* this.model.panels[i]._height/H;
+				var b = 100* this.model.panels[i]._height/H;
 				B +=b;
 				this.model.panels[i].basis = b;
 			}
