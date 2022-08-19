@@ -22,6 +22,8 @@
     "npm": ">=7.0.0",
     "node": ">=14.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@changesets/cli": "^2.24.3"
+  },
   "packageManager": "yarn@1.22.17"
 }

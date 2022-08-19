@@ -1,7 +1,19 @@
 {
-  "name": "ui",
+  "name": "@dexer-io/react-chart",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "description": "React chart component",
+  "author": {
+    "name": "Dexer",
+    "email": "kubakorecki@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/dexer-io/chart-repo.git",
+    "directory": "packages/react-chart"
+  },
   "version": "0.0.0",
-  "private": true,
   "module": "./index.tsx",
   "types": "./index.tsx",
   "license": "UNLICENSED",

@@ -22,16 +22,13 @@ const ChartComponent = () => {
       chart.init();
       chart.setMainSeriesData(data.candles);
     });
-
-
-  return (
-  <div style={{ position: "relative" }}>
+    
+    return   (<div style={{ position: "relative" }}>
     <div ref={objectRef} />
     <div style={{ position: "absolute", top: 0 }}>
     <Button />
     </div>
-  </div>
-  );
+  </div>);
 };
 
 export { ChartComponent };

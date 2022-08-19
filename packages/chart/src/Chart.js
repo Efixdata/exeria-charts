@@ -34,7 +34,6 @@ export default class Chart {
   }
 
   init() {
-	debugger;
 	if (!document) return;
 	if (this.initialized) return;
 	
@@ -294,7 +293,6 @@ export default class Chart {
 	}
 	
 	setMainSeriesData(data) {
-		debugger;
 		if (!this.fusion) return;
 		const mainSeries = this.fusion.getMainSeries();
 		mainSeries.data = data;
