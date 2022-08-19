@@ -1,4 +1,4 @@
-export default {
+export default instrument = {
   id: "QS05:EUR%2FCAD",
   symbol: "EUR/CAD",
   name: "EUR/CAD,EURCAD",

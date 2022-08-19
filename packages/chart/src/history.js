@@ -1,4 +1,4 @@
-export default {
+export default history = {
   instrument: {
     id: "QS05:EUR%2FUSD",
     symbol: "EUR/USD",

@@ -4,7 +4,7 @@ import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatte
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 
 
-export default function (settings) {
+export default Renderer = function (settings) {
 	this.settings = settings;
 	this.objects	=	new Array();
 	this.timeTicks	=	new Array();

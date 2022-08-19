@@ -1,6 +1,6 @@
 import WEBRCP from "./WebRCP";
 
-export default {
+export default model = {
   mainSeries:	null,
   instrumentsSeries: [],
   autoScale: true,

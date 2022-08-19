@@ -1,6 +1,7 @@
-export default {
+export default model2 = {
   mainSeries: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb", // daata model
-  instrumentsSeries: [ // data model
+  instrumentsSeries: [
+    // data model
     {
       seriesId: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb",
       title: "EUR/USD",
@@ -65,7 +66,8 @@ export default {
   legendLabelFont: "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
   legendValueFont: "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
   mode: "normal", // configuration settings
-  scripts: [ // data model
+  scripts: [
+    // data model
     // {
     //   id: "1498208907822@4b74d76c-07ee-e7fd-ce56-601839eb42f7",
     //   key: "MACD",
