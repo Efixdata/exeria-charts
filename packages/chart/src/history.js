@@ -1,4 +1,4 @@
-export default history = {
+const history = {
   instrument: {
     id: "QS05:EUR%2FUSD",
     symbol: "EUR/USD",
@@ -9085,3 +9085,5 @@ export default history = {
     },
   ],
 };
+
+export default history;

@@ -3,8 +3,7 @@ import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 
-
-export default Renderer = function (settings) {
+const Renderer = function (settings) {
 	this.settings = settings;
 	this.objects	=	new Array();
 	this.timeTicks	=	new Array();
@@ -1149,5 +1148,7 @@ export default Renderer = function (settings) {
 	}
 
 };
+
+export default Renderer;
 
 //# sourceURL=./platform/components/newchart/js/renderer.js

@@ -1,4 +1,4 @@
-export default instrument = {
+const instrument = {
   id: "QS05:EUR%2FCAD",
   symbol: "EUR/CAD",
   name: "EUR/CAD,EURCAD",
@@ -44,3 +44,5 @@ export default instrument = {
   ],
   related: [],
 };
+
+export default instrument;

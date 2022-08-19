@@ -1,4 +1,4 @@
-export default theme = {
+const theme = {
   font: "normal 11px Roboto, Tahoma, Arial, sans-serif",
   valueFont: "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
   timeFont: "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
@@ -46,3 +46,5 @@ export default theme = {
   defaultToolTextColor: "",
   defaultToolTextSize: "",
 };
+
+export default theme;

@@ -1,4 +1,4 @@
-export default rednererSettings = {
+const rendererSettings = {
   orders: {
     bar: {
       color: "#FF8D02",
@@ -52,3 +52,5 @@ export default rednererSettings = {
     },
   },
 };
+
+export default rendererSettings;

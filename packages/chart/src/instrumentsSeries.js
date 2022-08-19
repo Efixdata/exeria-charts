@@ -1,4 +1,4 @@
-export default instrumentsSeries = [
+const instrumentsSeries = [
   {
     seriesId: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb",
     title: "EUR/USD",
@@ -88,3 +88,5 @@ export default instrumentsSeries = [
     },
   },
 ];
+
+export default instrumentsSeries;

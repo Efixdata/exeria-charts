@@ -1,4 +1,4 @@
-export default data = {
+const data = {
     "instrument": {
         "id": "QS05:EUR%2FUSD",
         "symbol": "EUR/USD",
@@ -9074,3 +9074,5 @@ export default data = {
         }
     ]
 }
+
+export default data;

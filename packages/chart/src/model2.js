@@ -1,4 +1,4 @@
-export default model2 = {
+const model2 = {
   mainSeries: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb", // daata model
   instrumentsSeries: [
     // data model
@@ -337,3 +337,5 @@ export default model2 = {
   _rightIndex: 871, // view model
   _midOffset: 3, // view model
 };
+
+export default model2;
