@@ -489,6 +489,8 @@ var SeriesObject	=	function () {
 			var r = 5;
 			var field = forceField || o.dataField;
 
+			if (!seriesManager[o.dataLink].data[index]) return;
+
 			if (this.getRenderMode(o, model) == 'Line' || this.getRenderMode(o, model) == 'ChartShape' || this.getRenderMode(o, model) == 'Line and Histogram' || this.getRenderMode(o, model) == 'Histogram') {
 				var y = renderer.getValuePoint(
 						seriesManager[o.dataLink].data[index][field],
@@ -525,7 +527,7 @@ var SeriesObject	=	function () {
 			}
 
 		} catch (e) {
-			console.log("Cant render series hit point", e);
+			console.log("Cant render series hit point", e, index);
 		}
 
 		function renderPoint(ctx, x, y ,r , color){
@@ -553,7 +555,7 @@ var SeriesObject	=	function () {
 
 	this.renderAsLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
 
-		var indexX = 0; var valueY = 0; var midX = 0; var lastX = 0;
+		var indexX = 0; var valueY = 0; var midX = 0; var lastX = 0; let value = 0;
 
 		var stroke = o.color;
 

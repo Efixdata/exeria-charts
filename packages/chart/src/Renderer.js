@@ -700,8 +700,8 @@ export default function (settings) {
 			var labelY = (y1 + h / 2) + 8;
 			var bottomOffset = panel._height - (y2 - panel._offset);
 
-			x = model._width-model.valueAxisWidth;
-			xL = model._width;
+			const x = model._width-model.valueAxisWidth;
+			const xL = model._width;
 
 			ctx.fillStyle = color;
 			ctx.beginPath();
@@ -714,7 +714,7 @@ export default function (settings) {
 			ctx.fill();
 
 			ctx.fillStyle = textColor;
-			vp1 = v1;
+			const vp1 = v1;
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = LIB._converterLog.axisToReal(v1,1);
 			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
 			ctx.fillText(vs1, model._width-model.valueAxisWidth+8, y1+3)
@@ -795,7 +795,7 @@ export default function (settings) {
 			var labelUp = (Math.abs((rv1-rv2)/v2)*100).toFixed(2)+"%";
 			var label = (Math.abs(rv1-rv2)).toFixed(this.getPrecision(model, panel));
 
-			vp2 = v2
+			const vp2 = v2
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = LIB._converterLog.axisToReal(v2,1);
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
 			ctx.fillText(vs2, model._width-model.valueAxisWidth+8, y2+3)

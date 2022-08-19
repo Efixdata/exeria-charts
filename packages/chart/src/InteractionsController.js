@@ -791,7 +791,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if (self.controller.isChartEmpty(self.chart)) return;
 
 		if (e.which === 2) {
-			self.chart.onCrosshair();
+			self.controller.onCrosshair();
 			self.currentMode.onMouseMove(e);
 			self.controller.renderOverlay();
 			return;
@@ -861,7 +861,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
 
 		if(e.which === 2){
-			self.chart.onCrosshair();
+			self.controller.onCrosshair();
 			self.currentMode.onMouseUp(e);
 			self.controller.renderOverlay();
 			return;
@@ -2057,10 +2057,6 @@ function CrosshairTool(interactor){
 	this.cursorOverObject = 'pointer';
 	this.cursorOnDrag = 'crosshair';
 
-	var path = Efix.options.root+"/platform/components/newchart/img/"
-	this.vCross =	$('<img src="'+path+'vcross.png"></img>');
-	this.hCross =	$('<img src="'+path+'hcross.png"></img>');
-
 	this.onMouseDown = function(e){
 		this.startEvent = e;
 		this.finishEvent = null;
@@ -2073,7 +2069,7 @@ function CrosshairTool(interactor){
 			}
 		} else {
 			this.interactor.deselectAll();
-			this.interactor.chart.repaint(false);
+			this.interactor.controller.repaint(false);
 		}
 	}
 
@@ -2137,24 +2133,34 @@ function CrosshairTool(interactor){
 	};
 
 	this.renderUp = function(ctx, e){
-		if(!e) return;
-		var self = this;
+		if (!e) return;
 
+		var self = this;
 		var panel = this.interactor.getPanel(e.offsetY);
 		var model = this.interactor.model;
 		var valueY = undefined;
 		var eo = this.interactor.getEventOffset(e);
 		var y = eo.offsetY;
 
-		if(panel){
+		if (panel){
 			valueY = this.interactor.controller.renderer.getPointValue(eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 		}
-		ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 12, eo.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
-		ctx.drawImage(self.hCross[0], 0, eo.offsetY);
-		if(panel && valueY && y){
+		
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('accent');
+		ctx.setLineDash([5, 5]);
+		ctx.lineWidth = 1;
+		
+		ctx.moveTo(0, eo.offsetY);
+		ctx.lineTo(model._width - model.valueAxisWidth, eo.offsetY);
+		ctx.moveTo(eo.offsetX, 0);
+		ctx.lineTo(eo.offsetX, model._height - model.timeAxisHeight);
+		ctx.stroke();
+
+		if (panel && valueY && y) {
 			self.interactor.controller.renderer.drawPriceTag (ctx, self.interactor.model, panel, y, self.color, self.textColor, valueY);
 		}
-		self.interactor.controller.renderer.drawTimeTag(ctx, self.interactor.model, eo.offsetX, self.color, self.textColor, self.interactor.chart.fusion);
+
+		self.interactor.controller.renderer.drawTimeTag(ctx, self.interactor.model, eo.offsetX, self.color, self.textColor, self.interactor.fusion);
 	}
 
 	this.renderDn = function(ctx, i, e) {
@@ -2177,14 +2183,29 @@ function CrosshairTool(interactor){
 			v2 = this.interactor.controller.renderer.getPointValue(eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 		}
 
-		ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 8, io.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
-		ctx.drawImage(self.hCross[0], 0, io.offsetY);
-		ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 8, eo.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
-		ctx.drawImage(self.hCross[0], 0, eo.offsetY);
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('accent');
+		ctx.setLineDash([5, 5]);
+		ctx.lineWidth = 1;
+		
+		ctx.moveTo(0, eo.offsetY);
+		ctx.lineTo(model._width - model.valueAxisWidth, eo.offsetY);
+		ctx.moveTo(eo.offsetX, 0);
+		ctx.lineTo(eo.offsetX, model._height - model.timeAxisHeight);
+
+		ctx.moveTo(0, io.offsetY);
+		ctx.lineTo(model._width - model.valueAxisWidth, io.offsetY);
+		ctx.moveTo(io.offsetX, 0);
+		ctx.lineTo(io.offsetX, model._height - model.timeAxisHeight);
+		ctx.stroke();
+
+		// ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 8, io.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
+		// ctx.drawImage(self.hCross[0], 0, io.offsetY);
+		// ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 8, eo.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
+		// ctx.drawImage(self.hCross[0], 0, eo.offsetY);
 		if(panel && panel2 && panel.id==panel2.id && y1 && y2 && v1 && v2){
-			self.interactor.controller.renderer.drawDoublePriceTag (ctx, self.interactor.model, panel, y1, y2, self.color, self.textColor, self.innerColor, v1, v2);
+			self.interactor.controller.renderer.drawDoublePriceTag (ctx, model, panel, y1, y2, self.color, self.textColor, self.innerColor, v1, v2);
 		}
-		self.interactor.controller.renderer.drawDoubleTimeTag(ctx, self.interactor.model, io.offsetX, eo.offsetX, self.color,self.textColor, self.interactor.chart.fusion);
+		self.interactor.controller.renderer.drawDoubleTimeTag(ctx, model, io.offsetX, eo.offsetX, self.color,self.textColor, self.interactor.fusion);
 
 	};
 }
