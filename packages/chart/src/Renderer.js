@@ -93,7 +93,7 @@ const Renderer = function (settings) {
 		}
 	}
 
-	this.render		=	function (ctx, model, colorTheme, fusion, translate, omitObject) {
+	this.render		=	function (ctx, model, fusion, translate, omitObject) {
 
 		try {
 			ctx.translate(0.5, 0.5);
@@ -101,7 +101,7 @@ const Renderer = function (settings) {
 			
 			this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
 
-			ctx.font = model.font;
+			ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
 			this.calculateTimeTicks(model, seriesManager);
 
@@ -110,17 +110,17 @@ const Renderer = function (settings) {
 			for (var i=0; i<model.panels.length; i++) {
 				panel = model.panels[i];
 				if(panel._visible)
-					this.renderPanel(ctx, model, colorTheme, panel, fusion, omitObject);
+					this.renderPanel(ctx, model, panel, fusion, omitObject);
 			}
 
 			//## Render time axis
-			this.renderTimeAxis(ctx, model, colorTheme, this.timeTicks, fusion);
+			this.renderTimeAxis(ctx, model, this.timeTicks, fusion);
 
 			//## Render handlers
 			for (var i=0; i<model.panels.length; i++) {
 				panel = model.panels[i];
 				if(panel._visible)
-					this.renderHandler(ctx, model, colorTheme, panel);
+					this.renderHandler(ctx, model, panel);
 			}
 
 			//## Post rendering - all objects have the possibility to draw something on whole chart after rendering
@@ -140,21 +140,21 @@ const Renderer = function (settings) {
 		}
 	};
 
-	this.renderPanel		=	function (ctx, model, colorTheme, panel, fusion, omitObject) {
+	this.renderPanel		=	function (ctx, model, panel, fusion, omitObject) {
 		const seriesManager = fusion.getSeriesManager();
 		const valueTick = this.calculateNiceTick(model, panel);
 		
 		try { this.validateSeriesBeforeRender(seriesManager[model.mainSeries]); }
 		catch(e) { this.onErrorWhileRendering(e) }
 
-		ctx.fillStyle = this.getColor(colorTheme.backgroundColor);
+		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("backgroundColor");
 		ctx.fillRect(0, panel._offset, panel._width-model.valueAxisWidth, panel._height);
 
-		if (panel.hGrid) this.renderHGrid (ctx, model, colorTheme, panel, valueTick);
-		if (panel.vGrid) this.renderVGrid (ctx, model, colorTheme, panel, this.timeTicks);
+		if (panel.hGrid) this.renderHGrid (ctx, model, panel, valueTick);
+		if (panel.vGrid) this.renderVGrid (ctx, model, panel, this.timeTicks);
 
 		this.renderPlotPane(ctx, model, panel, seriesManager, omitObject);
-		this.renderValueAxis(ctx, model, colorTheme, panel, valueTick);
+		this.renderValueAxis(ctx, model, panel, valueTick);
 
 		if (model.mode === 'normal') {
 			try { this.renderLegend(ctx, model, panel, fusion); }
@@ -168,7 +168,7 @@ const Renderer = function (settings) {
 		ctx.save();
 		ctx.rect(0, panel._offset, panel._width-model.valueAxisWidth, panel._height);
 		ctx.clip();
-		ctx.font = model.font;
+		ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
 		if (panel.zeroLine) {
 			var y = this.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
@@ -282,7 +282,7 @@ const Renderer = function (settings) {
 
 	this.renderOverlay		=	function (octx, model, fusion) {
 		var seriesManager = fusion.getSeriesManager();
-		octx.font = model.font;
+		octx.font = WEBRCP.utils.colorManager.getFont("text");
 
 		//## fire render overlay on all objects!
 		for (var pi = 0; pi < model.panels.length; pi++) {
@@ -293,7 +293,7 @@ const Renderer = function (settings) {
 				octx.translate (0.5, 0.5);
 				octx.rect(0, panel._offset, panel._width - model.valueAxisWidth, panel._height);
 				octx.clip();
-				octx.font = model.font;
+				octx.font = WEBRCP.utils.colorManager.getFont("text");
 
 				for (var oi = 0; oi < panel.objects.length; oi++) {
 					var o = panel.objects[oi];
@@ -394,11 +394,11 @@ const Renderer = function (settings) {
 
 
 
-	this.renderValueAxis	=	function (ctx, model, colorTheme, panel, tick) {
+	this.renderValueAxis	=	function (ctx, model, panel, tick) {
 		var mode = panel.valueAxisMode;
 		try{
 			ctx.save();
-			ctx.fillStyle = this.getColor(colorTheme.backgroundColor);
+			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisBackground");
 			ctx.fillRect (panel._width - model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
 			ctx.rect(panel._width - model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
 			ctx.clip();
@@ -407,8 +407,8 @@ const Renderer = function (settings) {
 			var tickPoint = 0;
 			var x = panel._width - model.valueAxisWidth;
 
-			ctx.strokeStyle = this.getColor(colorTheme.gridColor);
-			ctx.fillStyle = this.getColor(colorTheme.priceAxisTextColor);
+			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
 			ctx.lineWidth = 1;
 
 			while (tickValue<tick.niceMax) {
@@ -418,7 +418,7 @@ const Renderer = function (settings) {
 				tickPoint = this.getValuePoint(tickValue, panel._height, panel.vMin, panel.vMax)+panel._offset;
 				if (tickPoint<panel._offset) continue;
 
-				ctx.font = model.valueFont;
+				ctx.font = WEBRCP.utils.colorManager.getFont("price");
 				var v = tickValue;
 				if(mode=='log'){
 					v = LIB._converterLog.axisToReal(tickValue,1);
@@ -443,12 +443,12 @@ const Renderer = function (settings) {
 
 
 
-	this.renderHGrid		=	function (ctx, model, colorTheme, panel, tick) {
+	this.renderHGrid		=	function (ctx, model, panel, tick) {
 
 		var tickValue = tick.niceMin;
 		var tickPoint = 0;
 
-		ctx.strokeStyle = this.getColor(colorTheme.gridColor);
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
 		ctx.lineWidth = 1;
 
 		while (tickValue<tick.niceMax) {
@@ -468,12 +468,12 @@ const Renderer = function (settings) {
 
 	};
 
-	this.renderVGrid		=	function (ctx, model, colorTheme, panel, ticks) {
+	this.renderVGrid		=	function (ctx, model, panel, ticks) {
 
 		var tickIndex = 0;
 		var tickX = 0;
 
-		ctx.strokeStyle = this.getColor(colorTheme.gridColor);
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
 		ctx.lineWidth = 1;
 
 		for (var i=0; i<ticks.length; i++) {
@@ -495,9 +495,9 @@ const Renderer = function (settings) {
 
 	};
 
-	this.renderTimeAxis		=	function (ctx, model, colorTheme, ticks, fusion) {
+	this.renderTimeAxis		=	function (ctx, model, ticks, fusion) {
 
-		ctx.fillStyle = this.getColor(colorTheme.backgroundColor);
+		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
 		ctx.fillRect (0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight);
 
 		var tickIndex = 0;
@@ -505,10 +505,10 @@ const Renderer = function (settings) {
 		var tickY = model._height-model.timeAxisHeight;
 		var stamp = 0;
 
-		ctx.strokeStyle = this.getColor(colorTheme.gridColor);
-		ctx.fillStyle = this.getColor(colorTheme.timeAxisTextColor);
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisTextColor");
 		ctx.lineWidth = 1;
-		ctx.font = model.timeFont;
+		ctx.font = WEBRCP.utils.colorManager.getFont("time");
 
 		for (var i=0; i<ticks.length; i++) {
 
@@ -529,13 +529,13 @@ const Renderer = function (settings) {
 
 	};
 
-	this.renderHandler		=	function (ctx, model, colorTheme, panel) {
+	this.renderHandler		=	function (ctx, model, panel) {
 
 		//## Don't draw last one
 		if (panel._index == model.panels.length-1) return;
 
 		ctx.beginPath();
-		ctx.strokeStyle = this.getColor(colorTheme.handlerColor);
+		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
 		ctx.lineWidth = 1;
 		ctx.moveTo(0, panel._height+panel._offset);
 		ctx.lineTo(panel._width, panel._height+panel._offset);
@@ -618,7 +618,7 @@ const Renderer = function (settings) {
 			name += " (" + formattedInputs.join(", ") + ")";
 		}
 
-		const color = object.color || model.legendLabelColor;
+		const color = object.color || WEBRCP.utils.colorManager.getColor("legendLabelColor");
 		let str = name + ': ';
 
 		for (var i = 0; i < series.fields.length; i++) {
@@ -632,7 +632,7 @@ const Renderer = function (settings) {
 		var add = 0;
 
 		ctx.fillStyle = color;
-		ctx.font = model.legendValueFont;
+		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
 		ctx.fillText(str, 12, panel._offset + 24 + add + count * 18);
 
 		return true;
@@ -648,6 +648,7 @@ const Renderer = function (settings) {
 			ctx.clip();
 
 			ctx.fillStyle = color;
+			ctx.font = WEBRCP.utils.colorManager.getFont("price");
 
 			ctx.beginPath();
 			ctx.moveTo(model._width - model.valueAxisWidth, y);
@@ -1032,13 +1033,6 @@ const Renderer = function (settings) {
 			//return Math.floor(nv*100000)/100000;
 			return nv;
 	};
-
-	this.getColor = function(value) {
-		if (value.indexOf('#') > -1 || value.indexOf('rgb') > -1 || value.indexOf('RGB') > -1) return value;
-		else return WEBRCP.utils.colorManager.getColor(value);
-	}
-
-
 
 	this.calculateTimeTicks	=	function (model, seriesManager) {
 

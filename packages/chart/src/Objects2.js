@@ -10,7 +10,7 @@ function Shape(){
 	this.anchorPointArrowSize = 6;
 	this.anchorColor = WEBRCP.utils.colorManager.getColor('accent');
 	this.anchorColorHover = WEBRCP.utils.colorManager.getColor('chartZeroColor');
-	this.defaultFont = '11px Roboto';
+	this.defaultFont = WEBRCP.utils.colorManager.getFont("text");
 	this.allowedStickyKeys = {'o': true, 'h': true, 'l': true, 'c': true};
 	this.hitTolerance = 5;
 
@@ -3777,7 +3777,7 @@ function TextObject(){
 		var x = pts[0].x;
 		var y = pts[0].y;
 
-		this.font = (o.fontSize || this.cfg.fontSize) + 'px Roboto';
+		this.font = (o.fontSize || this.cfg.fontSize) + 'px' + WEBRCP.utils.colorManager.getFont("fontName");
 		this.lineHeight = o.fontSize ? o.fontSize * this.cfg.lineMultiplier : this.cfg.lineHeight;
 
 		ctx.fillStyle = o.color;

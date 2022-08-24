@@ -1389,7 +1389,8 @@ var IndicatorObject	=	function () {
 		var valueY = 0;
 		var color = o.color;
 		var textColor = '#ffffff';
-		var red = WEBRCP.utils.colorManager.getColor("chartRed"); var green = WEBRCP.utils.colorManager.getColor("chartGreen");
+		var red = WEBRCP.utils.colorManager.getColor("chartRed");
+		var green = WEBRCP.utils.colorManager.getColor("chartGreen");
 
 		var dfO = o.openDataField ? o.openDataField : o.dataField;
 		var dfC = o.closeDataField ? o.closeDataField : o.dataField;

@@ -2,6 +2,7 @@
 /* exported WebRCPUtils*/
 
 import { isSmallScreen } from "./environment";
+import theme from "../themes/dexer";
 
 export default function WebRCPUtils () {
   // UTLIS GET ISTANCE IS CALLED AFTER COMPONENTS ARE LOADED
@@ -9,7 +10,7 @@ export default function WebRCPUtils () {
   this.assignColor = assignColor;
   this.getContrastColor = getContrastColor;
   this.openWindowWithUrl = openWindowWithUrl;
-  this.colorManager = new ColorManager();
+  this.colorManager = new ColorManager(theme, "dark");
   this.currencyFormatter = new CurrencyFormatter();
   this.textTransformer = new TextTransformer();
 //   this.storage = new StorageUtils();
@@ -325,106 +326,9 @@ export default function WebRCPUtils () {
           }).rcpDialog('showDialog');
   }
 
-  function ColorManager(theme) {
-      const self = this;
-
-      this.theme = theme || "dark";
-
-      this.bw = false;
-      var blue = "#2196f3";
-      var orange = "#ff9800";
-      var black = "#000000";
-      var white = "#ffffff";
-      var gray = 	"#666666";
-
-      // DARK COLORS
-      var d_dividerColor = "rgb(51, 53, 63)";
-      var d_componentBackground = "#282B38";
-      var d_componentDarkGrayD = "#1f2029";
-      // -- CHART
-      var d_gridColor = '#353741';
-      var d_chartRed = '#e51c23'; var d_chartGreen = "#259b24";
-      var d_chartGray = "#757578";
-      var d_chartGrayLight = "#adadad";
-      var d_chartRedStroke = "#ea494f"; var d_chartGreenStroke = "#51af50";
-      var d_buyColor = "#229021";
-      var d_sellColor = "#e11920";
-      var d_border = '#1c1d25';
-
-
-      // LIGHT COLORS
-      var l_accentColor = "#1e6cab";//"#536e79";
-      var l_opaqueAccentColor = "rgba(83, 110, 121, 0.1)";
-      var l_primaryTextColor = "rgba(0, 0, 0, 0.87)";
-      var l_secondaryTextColor = "rgba(0, 0, 0, 0.54)";
-      var l_disabledTextColor = "rgba(0, 0, 0, 0.38)";
-      var l_chartStroke = "#666";
-      var l_chartFill = "rgba(0, 0, 0, 0.06)";
-      var l_dividerColor = "#e0e0e0";
-      var l_componentBackground = "#f1f1f1";
-      var l_dots = "rgba(0, 0, 0, 0.24)";
-      var l_border = '#c2c2c2';
-      var l_red = "#e53c42";//#f95151";
-      var l_green = "#00b05d";//#34c772";
-      var l_menu_color = "#666";
-
-      // -- CHART
-      var l_chartRed = l_red; var l_chartGreen = l_green;
-
-      this.colors = {
-          divider: {light: l_dividerColor, dark: d_dividerColor},
-          accent: {light: l_accentColor, dark: blue},
-          componentBackground: {light: l_componentBackground, dark: d_componentBackground},
-          primaryTextColor: {light: l_primaryTextColor, dark: white},
-          secondaryTextColor: {light: l_secondaryTextColor, dark: "rgba(255, 255, 255, 0.7)"},
-          disabledTextColor: {light: l_disabledTextColor, dark: "rgba(255, 255, 255, 0.5)"},
-          handlerColor: {light: l_border, dark: d_border},
-          iconColor: {light: black, dark: white},
-          timeAxisBackground: {light: l_componentBackground, dark: d_componentBackground},
-          priceAxisBackground: {light: l_componentBackground, dark: d_componentBackground},
-          timeAxisTextColor: {light: l_secondaryTextColor, dark: blue},
-          priceAxisTextColor: {light: l_secondaryTextColor, dark: white},
-          gridColor: {light: l_dividerColor, dark: d_gridColor},
-          chartZeroColor: {light: "#dd7423", dark: "#ffff00"},
-          chartRed: {light: l_chartRed, dark: d_chartRed, bw: black},
-          chartGreen: {light: l_chartGreen, dark: d_chartGreen, bw: white},
-          chartGray: {light: gray, dark: d_chartGray},
-          chartGrayPrimary: {light: l_chartStroke, dark: d_chartGrayLight},
-          chartRedStroke: {light: "#800000", dark: d_chartRedStroke, bw: black},
-          chartGreenStroke: {light: "#134d2c", dark: d_chartGreenStroke, bw: black},
-          chartFill: {light: l_chartFill, dark: "rgba(45,86,109,.3)"},
-          chartStroke: {light: l_chartStroke, dark: "#2d566d"},
-          chartAccentStroke: {light: orange, dark: orange},
-          symbolFill: {light: l_opaqueAccentColor, dark: "rgba(33,150,243,.2)"},
-          symbolStroke: {light: l_chartStroke, dark: blue},
-          buyColor: {light: l_green, dark: d_buyColor},
-          sellColor: {light: l_red, dark: d_sellColor},
-          exitAllColor: {light: gray, dark: "#aaaaaa"},
-          defaultToolColor: {light: "#465054", dark: "#fafafa"},
-          defaultToolTextColor: {light: white, dark: "#001122"},
-          crosshairColor: {light: "#465054", dark: blue},
-          crosshairTextColor: {light: white, dark: white},
-          crosshairInnerColor: {light: "#465054", dark: '#246197'},
-          tipBackground: {light: l_menu_color, dark: d_componentDarkGrayD},
-          tipTextColor: {light: white, dark: "#e3e3e3"},
-          tipUnderline: {light: "rgba(255, 255, 255, 0.12)", dark: d_componentBackground},
-          indicatorMarker: {light: l_accentColor, dark: d_componentDarkGrayD},
-          defaultPlotterColor: {light: '#3e535b', dark: "#00bcd4"},
-          defaultChartToolColor: {light: "#ff9800", dark: "#ff9800"},
-          equitySumPlotter: {light: l_accentColor, dark: "#2d566d"},
-          defaultTileColor: {light: l_accentColor, dark: "#1e202a"},
-          searchBarDotsColor: {light: l_dots, dark: blue},
-          timeline: {light: "#888", dark: blue},
-          hitColor: {light: "rgba(0, 0, 0, 0.54)", dark: "rgba(255, 255, 255, 0.7)"},
-          defaultRetracementColor: {light: "#000000", dark: "#ffffff"},
-          fibonacciRetracementLine: {light: "rgba(0, 0, 0, 0.06)", dark: "rgba(255, 255, 255, 0.12)"},
-          fibonacciRetracement1: {light: l_red, dark: "#ff2f2f"},
-          fibonacciRetracement2: {light: "#9c27b0", dark: "#dd2fff"},
-          timeRangeColor: {light: l_secondaryTextColor, dark: blue},
-          darkTextColor: {light: l_primaryTextColor, dark: l_primaryTextColor},
-          depthChartCrosshairColor: {light: "#666", dark: white},
-          overlay: {light: l_dividerColor, dark: d_componentDarkGrayD}
-      };
+  function ColorManager(theme, variant) {
+      this.theme = theme;
+      this.variant = variant || "dark";
 
       this.images = {
           exeriaWatermark: {light: "exeria_watermark.png", dark: "exeria_watermark_white.png"}
@@ -442,67 +346,43 @@ export default function WebRCPUtils () {
           }
       };
 
-    //   this.getTheme = function(){
-    //       if (this.theme === 'light') {
-    //           return "webrcp-theme-light";
-    //       }
-    //       else
-    //           return "webrcp-theme-dark";
-    //   };
-
-      this.getColor = function(element){
-          if (element.indexOf('#') > -1 || element.indexOf('rgb') > -1 || element.indexOf('RGB') > -1) return element;
+      this.getColor = function(colorName){
+          if (colorName.indexOf('#') > -1 || colorName.indexOf('rgb') > -1 || colorName.indexOf('RGB') > -1) return colorName;
 
           if(this.bw){
-              var color = this.colors[element].bw;
+              var color = this.theme.colors[colorName].bw;
               if(color != null)
                   return color;
           }
-          if (this.theme === 'light') {
-              return this.colors[element].light;
+          if (this.variant === 'light') {
+              return this.theme.colors[colorName].light;
           }
           else
-              return this.colors[element].dark;
+              return this.theme.colors[colorName].dark;
       }.bind(this);
 
-      this.getImage = function(element){
+      this.getFont = function(key){
+        if (key.indexOf('#') > -1 || key.indexOf('rgb') > -1 || key.indexOf('RGB') > -1) return key;
+
+        if(this.bw){
+            var color = this.theme.fonts[key].bw;
+            if(color != null)
+                return color;
+        }
+        if (this.variant === 'light') {
+            return this.theme.fonts[key].light;
+        }
+        else
+            return this.theme.fonts[key].dark;
+    }.bind(this);
+
+      this.getImage = function(imageName){
           if (this.theme === 'light') {
-              return this.images[element].light;
+              return this.images[imageName].light;
           }
           else
-              return this.images[element].dark;
+              return this.images[imageName].dark;
       };
-
-    //   this.changeTheme = function(theme){
-    //       if (theme == null) {
-    //           if (self.themeComponent.classList.contains("webrcp-theme-light")) {
-    //               WEBRCP.userSettings.theme = "webrcp-theme-dark";
-    //               self.themeComponent.removeClass("webrcp-theme-light").addClass("webrcp-theme-dark");
-    //           }
-    //           else {
-    //               self.themeComponent.removeClass("webrcp-theme-dark").addClass("webrcp-theme-light");
-    //               WEBRCP.userSettings.theme = "webrcp-theme-light";
-    //           }
-    //       }
-    //       else {
-    //           if (theme === "webrcp-theme-light") {
-    //               self.themeComponent.removeClass("webrcp-theme-dark").addClass("webrcp-theme-light");
-    //               WEBRCP.userSettings.theme = "webrcp-theme-light";
-    //           }
-    //           else {
-    //               self.themeComponent.removeClass("webrcp-theme-light").addClass("webrcp-theme-dark");
-    //               WEBRCP.userSettings.theme = "webrcp-theme-dark";
-    //           }
-    //       }
-    //       if (WEBRCP != null){
-    //           WEBRCP.triggerQueueEvent('WEBRCP_THEME_CHANGED', null);
-    //           WEBRCP.onChangeUI();
-    //       }
-
-    //       const settings = JSON.parse(window.localStorage.getItem('userSettings')) || {};
-    //       settings.theme = WEBRCP.userSettings.theme;
-    //       window.localStorage.setItem('userSettings', JSON.stringify(settings));
-    //   };
   };
 
   function DateTimeFormatter() {

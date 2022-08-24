@@ -48,23 +48,11 @@ const model2 = {
   timeAxisHeight: 24, // configuration settings
   minValueTickHeight: 30, // configuration settings
   minTimeTickWidth: 120, // configuration settings
-  handlerColor: "#000000", // configuration settings
-  font: "normal 11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
-  valueFont: "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
-  timeFont: "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
-  ordersAndPositionsFont: "10px normal Roboto, Tahoma, Arial, sans-serif", // configuration settings
-  timeAxisBackground: "#282B38", // configuration settings
-  valueColor: "#ffffff", // configuration settings
-  timeColor: "#2196F3", // configuration settings
-  gridColor: "#353741", // configuration settings
   periodWidth: 6, // view model
   viewportLeft: 4506, // view model
   endMargin: 100, // configuration settings
   extremesMargin: 0.1, // configuration settings
   minPanelHeight: 24, // configuration settings
-  legendLabelColor: "#ffffff", // configuration settings
-  legendLabelFont: "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
-  legendValueFont: "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif", // configuration settings
   mode: "normal", // configuration settings
   scripts: [
     // data model

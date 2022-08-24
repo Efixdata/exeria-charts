@@ -1938,8 +1938,8 @@ function DefaultTool(interactor){
 
 			valueOffset: 50
 		}
-		ctx.font = 'bold 12px Roboto, Tahoma, Arial, sans-serif';
-		var fontSize = /(\d*)px/.exec(ctx.font) ? /(\d*)px/.exec(ctx.font)[1]:14 ;
+		ctx.font = WEBRCP.utils.colorManager.getFont("title");
+		var fontSize = /(\d*)px/.exec(ctx.font) ? /(\d*)px/.exec(ctx.font)[1]:14;
 		cfg.lineHeight = parseInt(fontSize);
 		var lc = tip.values.length;
 		cfg.height = 2*cfg.margin + lc*(cfg.lineHeight+cfg.lineSpacing) + 3*cfg.lineHeight+ 3*cfg.lineSpacing;
@@ -1982,7 +1982,7 @@ function DefaultTool(interactor){
 		var txtY = y+cfg.offsetY+cfg.margin+cfg.lineHeight ;
 		ctx.fillText(tip.title, txtX, txtY);
 		ctx.fillStyle = tipTextColor
-		ctx.font = 'normal 11px Roboto, Tahoma, Arial, sans-serif';
+		ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
 		txtY += cfg.lineSpacing+cfg.lineHeight/2;
 		ctx.moveTo(txtX, txtY);

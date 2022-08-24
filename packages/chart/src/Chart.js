@@ -1,10 +1,8 @@
 import rendererSettings from "./rendererSettings";
 import ChartRenderer from "./Renderer";
 import model from "./model2";
-import theme from "./theme";
 import FUSION from "./fusion";
 import instrumentsSeries from "./instrumentsSeries";
-import data from "./data";
 import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
 
@@ -71,7 +69,6 @@ export default class Chart {
     this.renderer.render(
       this.ctx,
       this.model,
-      theme,
       this.fusion,
       false,
       this.objectOnlyOnOverlay
@@ -82,7 +79,6 @@ export default class Chart {
       this.renderer.render(
         this.ctx,
         this.model,
-        theme,
         this.fusion,
         false,
         this.objectOnlyOnOverlay
@@ -127,7 +123,6 @@ export default class Chart {
       this.renderer.render(
         this.ctx,
         this.model,
-        theme,
         this.fusion,
         false,
         objectOnlyOnOverlay
