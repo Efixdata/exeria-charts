@@ -676,7 +676,7 @@ const Renderer = function (settings) {
 		}
 	};
 
-	this.drawDoublePriceTag		=	function (ctx, model, panel, y1, y2, color, textColor, innerColor, v1, v2, valueType) {
+	this.drawDoublePriceTag		=	function (ctx, model, panel, y1, y2, color, textColor, innerColor, innerTextColor, v1, v2, valueType) {
 		try{
 			ctx.save();
 			ctx.rect(model._width-model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
@@ -704,6 +704,7 @@ const Renderer = function (settings) {
 			const xL = model._width;
 
 			ctx.fillStyle = color;
+			ctx.font = WEBRCP.utils.colorManager.getFont("price");
 			ctx.beginPath();
 			ctx.moveTo(x, y1);
 			ctx.lineTo(x+5, y1-10);
@@ -773,17 +774,17 @@ const Renderer = function (settings) {
 				rv2 = LIB._converterLog.axisToReal(v2);
 			}
 
-			ctx.fillStyle = textColor;
-
 			// arrows
 
 			ctx.beginPath();
+			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor")
 			ctx.moveTo(model._width-model.valueAxisWidth+12, labelY - 0.5 * fontSize - 4);
 			ctx.lineTo(model._width-model.valueAxisWidth+18, labelY - 0.5 * fontSize - 4);
 			ctx.lineTo(model._width-model.valueAxisWidth+15, labelY - 0.5 * fontSize - 8);
 			ctx.fill();
 
 			ctx.beginPath();
+			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor")
 			ctx.moveTo(model._width-model.valueAxisWidth+12, labelY + 1.5 * fontSize - 4);
 			ctx.lineTo(model._width-model.valueAxisWidth+18, labelY + 1.5 * fontSize - 4);
 			ctx.lineTo(model._width-model.valueAxisWidth+15, labelY + 1.5 * fontSize);
@@ -798,8 +799,12 @@ const Renderer = function (settings) {
 			const vp2 = v2
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = LIB._converterLog.axisToReal(v2,1);
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
+
+			ctx.fillStyle = textColor;
 			ctx.fillText(vs2, model._width-model.valueAxisWidth+8, y2+3)
 
+			ctx.fillStyle = innerTextColor;
+			ctx.font = WEBRCP.utils.colorManager.getFont("text");
 			ctx.fillText(labelUp, model._width-model.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
 			ctx.fillText(label, model._width-model.valueAxisWidth+12, labelY + fontSize / 2);
 			ctx.fillText(labelDn, model._width-model.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
@@ -844,6 +849,7 @@ const Renderer = function (settings) {
 			ctx.fill();
 
 			ctx.fillStyle = textColor;
+			ctx.font = WEBRCP.utils.colorManager.getFont("time");
 
 			var tw =  ctx.measureText(prettyDate).width;
 			var txtX = x + w/2 -tw/2;
@@ -907,6 +913,7 @@ const Renderer = function (settings) {
 			ctx.fill();
 
 			ctx.fillStyle = textColor;
+			ctx.font = WEBRCP.utils.colorManager.getFont("time");
 
 			var label="";
 			if(withDateDiff){

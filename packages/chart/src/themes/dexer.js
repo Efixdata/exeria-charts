@@ -42,7 +42,7 @@ const l_chartGreen = l_green;
 
 const theme = {
   colors: {
-    accent: { light: l_accentColor, dark: blue },
+    accent: { light: l_accentColor, dark: "#13f899" },
     primaryTextColor: { light: l_primaryTextColor, dark: white },
     disabledTextColor: {
       light: l_disabledTextColor,
@@ -70,9 +70,10 @@ const theme = {
     exitAllColor: { light: gray, dark: "#aaaaaa" },
     defaultToolColor: { light: "#465054", dark: "#fafafa" },
     defaultToolTextColor: { light: white, dark: "#001122" },
-    crosshairColor: { light: "#465054", dark: blue },
-    crosshairTextColor: { light: white, dark: white },
-    crosshairInnerColor: { light: "#465054", dark: "#246197" },
+    crosshairColor: { light: "#465054", dark: "#13f899" },
+    crosshairTextColor: { light: white, dark: "#080821" },
+    crosshairInnerColor: { light: "#465054", dark: "#080821" },
+    crosshairInnerTextColor: { light: "#465054", dark: white },
     tipBackground: { light: l_menu_color, dark: "#201E3E" },
     tipTextColor: { light: white, dark: "#e3e3e3" },
     tipUnderline: {

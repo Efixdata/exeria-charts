@@ -2050,6 +2050,7 @@ function CrosshairTool(interactor){
 	this.interactor = interactor;
 	this.color = WEBRCP.utils.colorManager.getColor("crosshairColor");
 	this.textColor = WEBRCP.utils.colorManager.getColor("crosshairTextColor");
+	this.innerTextColor = WEBRCP.utils.colorManager.getColor("crosshairInnerTextColor");
 	this.innerColor = WEBRCP.utils.colorManager.getColor("crosshairInnerColor");
 	this.allowSwipe = false;
 
@@ -2203,7 +2204,7 @@ function CrosshairTool(interactor){
 		// ctx.drawImage(self.vCross[0], 0, 0, 1, model._height - model.timeAxisHeight + 8, eo.offsetX, 0, 1, model._height - model.timeAxisHeight/2 - 2);
 		// ctx.drawImage(self.hCross[0], 0, eo.offsetY);
 		if(panel && panel2 && panel.id==panel2.id && y1 && y2 && v1 && v2){
-			self.interactor.controller.renderer.drawDoublePriceTag (ctx, model, panel, y1, y2, self.color, self.textColor, self.innerColor, v1, v2);
+			self.interactor.controller.renderer.drawDoublePriceTag (ctx, model, panel, y1, y2, self.color, self.textColor, self.innerColor, self.innerTextColor, v1, v2);
 		}
 		self.interactor.controller.renderer.drawDoubleTimeTag(ctx, model, io.offsetX, eo.offsetX, self.color,self.textColor, self.interactor.fusion);
 
