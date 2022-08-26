@@ -416,15 +416,15 @@ export default class Chart {
   }
 
   repaint() {
-    // window.cancelAnimationFrame(this.currentAnimationFrame);
-		// var self = this;
+    window.cancelAnimationFrame(this.currentAnimationFrame);
+		var self = this;
 
-		// this.currentAnimationFrame = window.requestAnimationFrame(function () {
-		// 	if (!self.isChartEmpty()) {
-		// 		self.renderNotEmpty();
-		// 	}else{
-		// 		self.renderEmpty();
-		// 	}
-		// });
+		this.currentAnimationFrame = window.requestAnimationFrame(function () {
+			self.render();
+		});
+  }
+
+  setAutoScale(autoScale) {
+    this.model.autoScale = autoScale;
   }
 }

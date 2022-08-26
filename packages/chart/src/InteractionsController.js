@@ -101,7 +101,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.body.addEventListener('mouseout', self.onBodyMouseOut);
 			self.body.addEventListener('mousemove', self.onBodyMouseMove);
 
-			// self.topLayer.on('contextmenu', function (evt) {evt.preventDefault(); return true;});
+			self.topLayer.addEventListener('contextmenu', function (evt) {evt.preventDefault(); return true;});
 
 			self.hammer = new Hammer(self.topLayer, {});
 			self.hammer.on('swipe', function (evt) {
@@ -880,7 +880,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.controller.renderOverlay();
 		self.controller.render();
 
-		// if (ctxMenu && self.chart.options.allow.contextMenu === true)
+		// if (ctxMenu && self.allowContextMenu === true)
 		// 	self.onContextMenu(e);
 
 		self.controller.saveInstance();
@@ -1013,20 +1013,23 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				}
 			}
 
+			var panel = this.getPanel(io.offsetY);
+			const isAboveValueAxis = e.offsetX > (panel._width - this.model.valueAxisWidth);
+
+			if (isAboveValueAxis) {
+				if (this.model.autoScale == true) this.controller.setAutoScale(false);
+				this.chart.style.cursor = "ns-resize";
+			}
+
 			if(this.model.autoScale == false){
-				var panel = this.getPanel(io.offsetY);
 				var panel2 = this.getPanel(eo.offsetY);
 				if(panel == panel2 && this.initialMinMax){
 					if(!this.initialMinMax.value)
 						this.initialMinMax.value =  this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 
-					if (this.isMouseDown && this.isRightButton===false){
-						var valueY1 = this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
-						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
-						var delta = valueY2-valueY1;
-						panel.vMax = this.initialMinMax.max-delta;
-						panel.vMin = this.initialMinMax.min-delta;
-					}else if (this.isMouseDown && this.isRightButton===true){
+					
+
+					if ((this.isMouseDown && this.isRightButton===true) || isAboveValueAxis){
 						var valueY1 = this.initialMinMax.value;
 						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 						var delta = valueY2-valueY1;
@@ -1034,6 +1037,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 							panel.vMax = this.initialMinMax.max+delta;
 							panel.vMin = this.initialMinMax.min-delta;
 						}
+					} else if (this.isMouseDown && this.isRightButton===false) {
+						var valueY1 = this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+						var delta = valueY2-valueY1;
+						panel.vMax = this.initialMinMax.max-delta;
+						panel.vMin = this.initialMinMax.min-delta;
 					}
 
 				}
@@ -1779,7 +1788,12 @@ function DefaultTool(interactor){
 				this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
 			}
 		}else{
-			if (this.interactor.chart.style.cursor!=this.cursor) {
+			let isAboveValueAxis;
+			if(this.interactor.currentPanel)
+				isAboveValueAxis = e.offsetX > (this.interactor.currentPanel._width - this.interactor.model.valueAxisWidth);
+			if (isAboveValueAxis)
+				this.interactor.chart.style.cursor = "ns-resize";
+			else if (this.interactor.chart.style.cursor!=this.cursor) {
 				this.interactor.chart.style.cursor = this.cursor;
 			}
 		}
