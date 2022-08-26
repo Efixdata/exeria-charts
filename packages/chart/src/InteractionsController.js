@@ -2066,7 +2066,7 @@ function CrosshairTool(interactor){
 			this.interactor.select(this.interactor.currentHitObject);
 			this.interactor.currentAnchor = this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseDown(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
 			if (this.interactor.currentAnchor==null) {
-				this.interactor.chart.repaint();
+				this.interactor.controller.repaint();
 			}
 		} else {
 			this.interactor.deselectAll();
