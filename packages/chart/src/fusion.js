@@ -1735,7 +1735,7 @@ FUSION.scripts['VOLUME'] = {
     title: 'volumeTitle',
     description: 'volumeDescription',
     type: 'indicators',
-    newPane: true,
+    newPane: false,
     inputs: {
         'CLOSE': {type: 'series', name: 'price', properties: {def:'v'}, value: null},
     },
@@ -1756,7 +1756,7 @@ FUSION.scripts['VOLUME'] = {
 
     plotters: [
 
-        {type:'SeriesObject', dataLink: 'VOLUME', renderAs: 'Histogram', dataField: 'VOLUME', color: '#f44336', width: 1.5, dash:[]}
+        {type:'SeriesObject', dataLink: 'VOLUME', renderAs: 'Volume Histogram', dataField: 'VOLUME', color: '#f44336', width: 1.5, dash:[]}
 
 
     ],

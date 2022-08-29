@@ -233,6 +233,7 @@ var SeriesObject	=	function () {
 		if (renderMode === 'line') return this.renderAsLine(o, ctx, renderer, model, panel, seriesManager);
 		if (renderMode === 'chartshape') return this.renderAsChartShape(o, ctx, renderer, model, panel, seriesManager);
 		if (renderMode === 'histogram') return this.renderAsHistogram(o, ctx, renderer, model, panel, seriesManager);
+		if (renderMode === 'volume histogram') return this.renderAsVolumeHistogram(o, ctx, renderer, model, panel, seriesManager);
 		if (renderMode === 'line and histogram') {
 			this.renderAsHistogram(o, ctx, renderer, model, panel, seriesManager);
 			this.renderAsLine(o, ctx, renderer, model, panel, seriesManager);
@@ -260,7 +261,7 @@ var SeriesObject	=	function () {
 						this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager, o.highDataField);
 						this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager, o.lowDataField);
 					} else
-						if (this.getRenderMode(o, model)=='Line and Histogram' || this.getRenderMode(o, model)=='Histogram') {
+						if (this.getRenderMode(o, model)=='Line and Histogram' || this.getRenderMode(o, model)=='Histogram' || this.getRenderMode(o, model) == 'Volume Histogram') {
 							this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager);
 						}
 		}
@@ -366,6 +367,68 @@ var SeriesObject	=	function () {
 
 	}
 
+	this.renderAsVolumeHistogram = function (o, ctx, renderer, model, panel, seriesManager) {
+		if (o.localExtremes.max == 0) return;
+
+		var indexX = 0; var valueY = 0;
+
+		const getColor = (i) => {
+			const close = seriesManager[model.mainSeries].data[i]["c"];
+			const open = seriesManager[model.mainSeries].data[i]["o"];
+			if(close > open)
+				return WEBRCP.utils.colorManager.getColor("buyColor");
+			else if(close == open)
+				return WEBRCP.utils.colorManager.getColor("exitAllColor");
+			else
+				return WEBRCP.utils.colorManager.getColor("sellColor");
+		}
+
+		ctx.globalAlpha = 0.2;
+		const maxHeight = Math.round(panel._height * 0.25);
+
+		var field = o.dataField;
+		var fV = LIB.getReferenceValue(o, model, seriesManager);
+
+		for (var i=model._leftIndex; i<=model._rightIndex; i++) {
+
+			if (i>seriesManager[o.dataLink].data.length-1) continue;
+
+			let value = seriesManager[o.dataLink].data[i][o.dataField];
+			if (value === null) continue;
+		
+			indexX 	= renderer.getIndexPoint(i, model);
+			valueY 	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+
+			let width = 1;
+
+			if (model.periodWidth > 2) {
+				width = model.periodWidth - 2;
+				indexX += 1;
+			}
+
+			ctx.fillStyle = getColor(i);
+			ctx.beginPath();
+			
+			ctx.rect(indexX, panel._height, width, value / o.localExtremes.max * maxHeight * (-1));
+			ctx.fill();
+			ctx.closePath();
+		}
+
+		if (o.priceLine) {
+			value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
+			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(0, valueY);
+			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.stroke();
+			ctx.closePath();
+		}
+
+		ctx.globalAlpha = 1;
+		return true;
+	}
+
 	this.renderAsBand	=	function (o, ctx, renderer, model, panel, seriesManager) {
 
 		var indexX = 0; var valueY = 0; var midX = 0;
@@ -466,6 +529,11 @@ var SeriesObject	=	function () {
 				indexX = renderer.getIndexPoint(i, model);
 				valueY = renderer.getValuePoint(data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
 
+				if (this.getRenderMode(o, model) == 'Volume Histogram') {
+					if (!data[i][field]) continue;
+					valueY = panel._height + panel._offset - 10;
+				}
+
 				if (model.periodWidth == 1) {
 					midX = indexX;
 				} else {
@@ -524,6 +592,9 @@ var SeriesObject	=	function () {
 						+ panel._offset;
 
 				renderPoint(ctx, x, (yC + yO) / 2, r);
+			} else if (this.getRenderMode(o, model) == 'Volume Histogram') {
+				var y = panel._height + panel._offset - 10;
+				renderPoint(ctx, x, y, r);
 			}
 
 		} catch (e) {
@@ -1029,13 +1100,33 @@ var SeriesObject	=	function () {
 	}
 
 	this.updateExtremesLine	=	function (o, extremes, model, seriesManager) {
-		for (var i=model._leftIndex; i<model._rightIndex; i++) {
-			if (seriesManager[o.dataLink]==undefined || i>seriesManager[o.dataLink].data.length-1) {
-				return;
+		const renderMode = this.getRenderMode(o, model).toLowerCase();
+
+		if (renderMode == "volume histogram") {
+			const localExtremes = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
+			
+			for (var i=model._leftIndex; i<model._rightIndex; i++) {
+				if (seriesManager[o.dataLink]==undefined || i>seriesManager[o.dataLink].data.length-1) {
+					o.localExtremes = localExtremes;
+					return;
+				}
+				if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
+
+				if (seriesManager[o.dataLink].data[i][o.dataField]>localExtremes.max) localExtremes.max = seriesManager[o.dataLink].data[i][o.dataField];
+				if (seriesManager[o.dataLink].data[i][o.dataField]<localExtremes.min) localExtremes.min = seriesManager[o.dataLink].data[i][o.dataField];
 			}
-			if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
-			if (seriesManager[o.dataLink].data[i][o.dataField]>extremes.max) extremes.max = seriesManager[o.dataLink].data[i][o.dataField];
-			if (seriesManager[o.dataLink].data[i][o.dataField]<extremes.min) extremes.min = seriesManager[o.dataLink].data[i][o.dataField];
+
+			o.localExtremes = localExtremes;
+		} else {
+			for (var i=model._leftIndex; i<model._rightIndex; i++) {
+				if (seriesManager[o.dataLink]==undefined || i>seriesManager[o.dataLink].data.length-1) {
+					return;
+				}
+				if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
+
+				if (seriesManager[o.dataLink].data[i][o.dataField]>extremes.max) extremes.max = seriesManager[o.dataLink].data[i][o.dataField];
+				if (seriesManager[o.dataLink].data[i][o.dataField]<extremes.min) extremes.min = seriesManager[o.dataLink].data[i][o.dataField];
+			}
 		}
 	}
 
@@ -1069,13 +1160,16 @@ var SeriesObject	=	function () {
 
 		if(o.hidden == true) return false;
 
-		if (this.getRenderMode(o, model)=='OHLC') return this.hitOHLC (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='Bars') return this.hitBars (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='Line') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='ChartShape') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='Band') return this.hitBand (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='Line and Histogram') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
-		if (this.getRenderMode(o, model)=='Histogram') return this.hitHistogram (x, y, o, renderer, interactor, model, panel, seriesManager);
+		const renderMode = this.getRenderMode(o, model).toLowerCase();
+
+		if (renderMode=='ohlc') return this.hitOHLC (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='line') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='bars') return this.hitBars (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='chartshape') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='band') return this.hitBand (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='line and histogram') return this.hitLine (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='histogram') return this.hitHistogram (x, y, o, renderer, interactor, model, panel, seriesManager);
+		if (renderMode=='volume histogram') return this.hitVolumeHistogram (x, y, o, renderer, interactor, model, panel, seriesManager);
 
 		return false;
 	}
@@ -1231,6 +1325,29 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
 
 	}
 
+	this.hitVolumeHistogram	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+		if (this.isHitEmpty.apply(this, arguments)) return false;
+
+		var index = renderer.getPointIndex(x, model);
+
+		var hitResult =  false;
+		var fV = LIB.getReferenceValue(o, model, seriesManager);
+
+		// var indexY = renderer.getValuePoint(seriesManager[o.dataLink].data[index][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		const maxHeight = Math.round(panel._height * 0.25);
+		var indexY = panel._height + panel._offset - seriesManager[o.dataLink].data[index][o.dataField] / o.localExtremes.max * maxHeight;
+		var indexX = renderer.getIndexPoint(index, model);
+
+		if (between(indexX, x, indexX + model.periodWidth, this.hitTolerance) && 
+			between(indexY, y, panel._height + panel._offset, this.hitTolerance)) {
+			hitResult = true;
+			console.log("hit");
+		}
+
+		o._hit = hitResult==true ? {x:x, y:y} : false;
+		return hitResult;
+	}
+
 
 	this.hitBand	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
 		const upperHitResult = this.getLineHitResult(x, y, o, renderer, interactor, model, panel, seriesManager, o.upperField);
@@ -1374,9 +1491,9 @@ var IndicatorObject	=	function () {
 				if (o.renderAs=='Band') {
 					this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager, o.upperField);
 					this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager, o.lowerField);
-				} else if (o.renderAs=='Line and Histogram' || o.renderAs=='Histogram') {
-							this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager);
-						}
+				} else if (o.renderAs=='Line and Histogram' || o.renderAs=='Histogram' || o.renderAs == 'Volume Histogram') {
+					this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager);
+				} 
 		}
 
 	}

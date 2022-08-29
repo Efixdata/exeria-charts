@@ -1,10 +1,11 @@
 import rendererSettings from "./rendererSettings";
 import ChartRenderer from "./Renderer";
-import model from "./model2";
+import model from "./model";
 import FUSION from "./fusion";
 import instrumentsSeries from "./instrumentsSeries";
 import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
+import WEBRCP from "./WebRCP";
 
 export default class Chart {
   containerId;
@@ -65,6 +66,8 @@ export default class Chart {
       this
     );
 
+    this.addScript("VOLUME");
+
     this.fit();
     this.renderer.render(
       this.ctx,
@@ -103,6 +106,8 @@ export default class Chart {
   }
 
   rerender() {
+    if (!this.initialized) return;
+
     this.fit();
     this.renderOverlay();
     this.render(this.objectOnlyOnOverlay);
@@ -427,4 +432,112 @@ export default class Chart {
   setAutoScale(autoScale) {
     this.model.autoScale = autoScale;
   }
+
+  addScript(scriptKey) {
+		if (scriptKey === "VOLUME") {
+			const config = {
+				id: null,
+				inputs: {
+					CLOSE: this.fusion.getMainSeries().seriesId + ":v"
+				},
+				key: "VOLUME",
+				pane: 0,
+				userName: "VOLUME",
+				visible: true
+			};
+
+			this.onScriptEditorApply(config);
+		}
+	}
+
+  async onScriptEditorApply(config){
+		var proto = FUSION.getScript(config.key);
+
+		if(config.id){
+			await this.fusion.modifyScript(config);
+
+		}else{
+			await this.fusion.addScript(config);
+
+			var pane=this.interactor.getMainPanel();
+			if(config.pane){
+				if(config.pane=='new'){
+					pane = this.addPanelToModel();
+					config.pane = pane.id;
+					if(proto.centerZero && proto.centerZero==true)
+						pane.centerZero = true;
+					else
+						pane.centerZero = false;
+				}else{
+					for(var i=0 ; i < this.model.panels.length; i++){
+						if(this.model.panels[i].id==config.pane){
+							pane = this.model.panels[i];
+							break;
+						}
+					}
+				}
+			}
+
+
+			for (var i=0; i<proto.plotters.length; i++) {
+
+				let plotter = JSON.parse(JSON.stringify(proto.plotters[i]));
+				plotter['id']=FUSION.uniqueId();
+				var link = plotter.dataLink;
+				plotter.dataLink = config.outputs[link];
+				plotter.reference = config.reference;
+				plotter.hidden = !config.visible && proto.permHide;
+				pane.objects.push(plotter);
+			}
+		}
+
+		var s = config;
+    const seriesManager = this.fusion.getSeriesManager();
+		for (var key in s.outputs) {
+			if(seriesManager[s.outputs[key]])
+				seriesManager[s.outputs[key]].userName = s.userName;
+
+			for(var pi in this.model.panels){
+				for(var oi in this.model.panels[pi].objects){
+					var o = this.model.panels[pi].objects[oi];
+					if(o.dataLink && o.dataLink == s.outputs[key])
+							o.hidden = s.visible==true && !s.permHide ? false : true;
+				}
+			}
+		}
+
+		await this.rerender();
+		// this.onResize();
+		// if(this.options.controller)
+		// 	this.options.controller.chartStructureChanged();
+	}
+
+  addPanelToModel () {
+
+		var panel = {
+				valueAxisMode: "lin",
+				hGrid: true,
+				vGrid: true,
+				basis: 25,
+				vMax: 100,
+				vMin: 0,
+				precision: 4,
+				centerZero: false,
+				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
+				objects: []
+		}
+		panel.id = LIB.getUniqueId();
+
+		//make room
+		var sub = parseInt(25/this.model.panels.length);
+		for (var i=0; i<this.model.panels.length; i++){
+			if(this.model.panels[i].basis > sub)
+				this.model.panels[i].basis-=sub;
+
+			if(this.model.panels[i].basis <0 )
+				this.model.panels[i].basis = 25;
+		}
+		this.model.panels.push(panel);
+		return panel;
+	}
 }
