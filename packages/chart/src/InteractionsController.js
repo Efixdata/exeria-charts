@@ -1014,6 +1014,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 
 			var panel = this.getPanel(io.offsetY);
+			if (!panel) return;
 			const isAboveValueAxis = e.offsetX > (panel._width - this.model.valueAxisWidth);
 
 			if (isAboveValueAxis) {
@@ -1023,6 +1024,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			if(this.model.autoScale == false){
 				var panel2 = this.getPanel(eo.offsetY);
+				if (!panel2) return;
 				if(panel == panel2 && this.initialMinMax){
 					if(!this.initialMinMax.value)
 						this.initialMinMax.value =  this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
