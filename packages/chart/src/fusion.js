@@ -1756,7 +1756,7 @@ FUSION.scripts['VOLUME'] = {
 
     plotters: [
 
-        {type:'SeriesObject', dataLink: 'VOLUME', renderAs: 'Volume Histogram', dataField: 'VOLUME', color: '#f44336', width: 1.5, dash:[]}
+        {type:'SeriesObject', dataLink: 'VOLUME', renderAs: 'Volume Histogram', renderLegend: false, dataField: 'VOLUME', color: '#f44336', width: 1.5, dash:[]}
 
 
     ],

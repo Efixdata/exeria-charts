@@ -552,13 +552,9 @@ const Renderer = function (settings) {
 		var idx = fusion.getMainSeriesLastIndex();
 
 		for (var i=0; i<panel.objects.length; i++) {
-
 			if (panel.objects[i].hidden!=true && panel.objects[i].dataLink) {
-
 				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) legendCount++;
-
 			}
-
 		};
 
 	};
@@ -581,7 +577,7 @@ const Renderer = function (settings) {
 			}
 			return null;
 		}
-		
+		if (object.renderLegend === false) return true;
 		const seriesManager = fusion.getSeriesManager();
 		const series = seriesManager[object.dataLink];
 		const script = isThisSeriesOutputOfScript(object.dataLink);
@@ -592,8 +588,6 @@ const Renderer = function (settings) {
 
 		if (legendsRendered.indexOf(object.dataLink) > -1) return false;
 		legendsRendered.push(object.dataLink);
-		if (panel._offset == 0 && count == 0) return true;
-		if (panel._offset == 0) count -= 1;
 		
 		let name = series.userName || WEBRCP.locale.fusion.getMessage(series.title, series.title, true);
 		if (series.instrument && series.instrument.relatedKey) {
@@ -618,14 +612,23 @@ const Renderer = function (settings) {
 			name += " (" + formattedInputs.join(", ") + ")";
 		}
 
-		const color = object.color || WEBRCP.utils.colorManager.getColor("legendLabelColor");
+		let color = object.color;
+		if (object.renderAs == "OHLC" && series && series.data && series.data[series.data.length - 1].o) {
+			const o = series.data[series.data.length - 1].o;
+			const c = series.data[series.data.length - 1].c;
+			if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");
+			else if (o <= c) color = WEBRCP.utils.colorManager.getColor("chartGreen");
+		} else if (!color) color = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+
 		let str = name + ': ';
 
 		for (var i = 0; i < series.fields.length; i++) {
 			const field = series.data[index][series.fields[i]];
 			if (!field) continue;
 			var v = LIB.nFormatter(field, this.getPrecision(model, panel));
-			str += WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ' + v;
+			var label = WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ';
+			if (series.fields.length == 1 && series.labels[i] == 'value') label = '';
+			str += label + v;
 			if (i < series.fields.length - 1) str += ', ';
 		};
 
