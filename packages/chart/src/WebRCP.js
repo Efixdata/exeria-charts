@@ -1,12 +1,12 @@
 import WebRCPUtils from "./utils/webrcp.utils";
+import locale from "./locale/en-US";
 
 const utils = new WebRCPUtils();
-const localeData = "en";
 
 const webRCP = {
   utils,
   locale: {
-    fusion: utils.getMessages(localeData)
+    fusion: utils.getMessages(locale)
   }
 }
 
