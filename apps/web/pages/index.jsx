@@ -1,14 +1,62 @@
 // import { Button } from "ui";
-import dynamic from 'next/dynamic'
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
+import BTCUSD from "../BTCUSD.json";
+import data from "../data";
 const ChartComponent = dynamic(() => import('@dexer-io/react-chart').then((mod) => mod.ChartComponent), {ssr: false})
 
 
 export default function Web() {
+  const [instrument, setInstrument] = useState({
+    id: "BTCUSD",
+    symbol: "BTC/USD",
+    name: "BTC/USD",
+    currency: "USD",
+    precision: 2,
+    chart: "ohlc",
+    availableIntervals: [{ symbol: "1m" }, { symbol: "5m" }, { symbol: "15m" }, { symbol: "1h" }, { symbol: "1D" }, { symbol: "1M" }],
+    interval: { symbol: "1h" }
+  });
+  const [candles, setCandles] = useState(BTCUSD.candles);
+
+  // instrument = {
+  //   id: "BTCUSD",
+  //   symbol: "BTC/USD",
+  //   name: "BTC/USD",
+  //   currency: "USD",
+  //   precision: 2,
+  //   chart: "ohlc",
+  //   availableIntervals: [{ symbol: "1m" }, { symbol: "5m" }, { symbol: "15m" }, { symbol: "1h" }, { symbol: "1D" }, { symbol: "1M" }],
+  //   interval: { symbol: "1h" }
+  // };
+
+  // candles = BTCUSD.candles;
+
+  let eurusd = {
+    id: "EURUSD",
+    symbol: "EUR/USD",
+    name: "EUR/USD",
+    currency: "USD",
+    precision: 4,
+    chart: "ohlc",
+    availableIntervals: [{ symbol: "1m" }, { symbol: "5m" }, { symbol: "15m" }, { symbol: "1h" }, { symbol: "1D" }, { symbol: "1M" }],
+    interval: { symbol: "1h" }
+  }
+
+  setTimeout(() => {
+    setInstrument(eurusd);
+    setCandles(data.candles);
+  }, 3000)
+
   return (
     <div>
-      <h1>Web</h1>
+      {/* <h1>Web</h1> */}
       {/* <Button /> */}
-      <ChartComponent />
+      
+      
+      <div style={{ height: 'calc(100vh - 15px)' }}>
+        <ChartComponent instrument={instrument} candles={candles}/>
+      </div>
     </div>
-  );
+);
 }

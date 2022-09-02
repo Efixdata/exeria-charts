@@ -24,12 +24,20 @@ export default class Chart {
     };
 
     this.model = model;
-    this.model.instrumentsSeries = instrumentsSeries;
-    this.model.mainSeries = instrumentsSeries[0].seriesId;
+    // this.model.instrumentsSeries = instrumentsSeries;
+    // this.model.mainSeries = instrumentsSeries[0].seriesId;
 
     this.container = options.container;
     this.config = { ...this.config, ...options.config };
     this.model = { ...model, ...options.model };
+    this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...options.instrument };
+    if (options.instrument) {
+      if (options.instrument.symbol)
+        this.model.instrumentsSeries[0].title = options.instrument.symbol;
+
+      if (options.instrument.precision)
+        this.model.panels[0].precision = options.instrument.precision;
+    }
   }
 
   init() {
@@ -521,7 +529,7 @@ export default class Chart {
 				basis: 25,
 				vMax: 100,
 				vMin: 0,
-				precision: 4,
+				precision: options?.instrument?.precision || 4,
 				centerZero: false,
 				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
 				objects: []

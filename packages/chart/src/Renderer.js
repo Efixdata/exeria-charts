@@ -1146,7 +1146,7 @@ const Renderer = function (settings) {
 		if(panel.valueAxisMode == 'perc'){
 			p = 2;
 		}else if(model.instrumentsSeries && model.instrumentsSeries.length > 0){
-				p = model.instrumentsSeries[0].instrument.precision > 4 ? model.instrumentsSeries[0].instrument.precision : 4 //model.instrumentsSeries[0].instrument.precision
+				p = model.instrumentsSeries[0].instrument.precision > 4 ? model.instrumentsSeries[0].instrument.precision : model.instrumentsSeries[0].instrument.precision
 		}
 		return p;
 	}

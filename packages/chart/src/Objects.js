@@ -208,6 +208,9 @@ var SeriesObject	=	function () {
 				case 'histogram':
 					return 'Histogram';
 					break;
+				case 'volume histogram':
+					return 'Volume Histogram';
+					break;
 				case 'line and histogram':
 					return 'ChartShape';
 					break;
@@ -376,11 +379,11 @@ var SeriesObject	=	function () {
 			const close = seriesManager[model.mainSeries].data[i]["c"];
 			const open = seriesManager[model.mainSeries].data[i]["o"];
 			if(close > open)
-				return WEBRCP.utils.colorManager.getColor("buyColor");
+				return WEBRCP.utils.colorManager.getColor("chartGreen");
 			else if(close == open)
 				return WEBRCP.utils.colorManager.getColor("exitAllColor");
 			else
-				return WEBRCP.utils.colorManager.getColor("sellColor");
+				return WEBRCP.utils.colorManager.getColor("chartRed");
 		}
 
 		ctx.globalAlpha = 0.2;
@@ -1184,6 +1187,7 @@ var SeriesObject	=	function () {
 		let field = null;
 
 		for (field in value.fields) {
+			if (index == NaN || !value.data[index]) return true;
 			const fieldValue = value.data[index][value.fields[field]];
 			if (
 				fieldValue !== null &&
