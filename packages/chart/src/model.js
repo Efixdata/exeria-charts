@@ -36,7 +36,7 @@ const model2 = {
   minValueTickHeight: 30, // configuration settings
   minTimeTickWidth: 120, // configuration settings
   periodWidth: 6, // view model
-  viewportLeft: 4506, // view model
+  viewportLeft: 0, // view model
   endMargin: 100, // configuration settings
   extremesMargin: 0.1, // configuration settings
   minPanelHeight: 24, // configuration settings
@@ -89,12 +89,6 @@ const model2 = {
     }
   ],
   id: "1498208873150@989ae815-e237-249e-23d7-47d488777f46", // data model
-  _width: 800, // view model
-  _height: 600, // view model
-  _timeAxisWidth: 720, // view model
-  _leftIndex: 751, // view model
-  _rightIndex: 871, // view model
-  _midOffset: 3, // view model
 };
 
 export default model2;

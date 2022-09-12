@@ -1254,23 +1254,23 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				}else if(this.currentSelectedObject){
 					this.chart.detachObject(this.currentSelectedObject.id);
 				}
-				refresh(this.chart);
+				refresh();
 				break;
 
 			case "Home":
 				this.moveIndexToPoint(0,0);
-				refresh(this.chart);
+				refresh();
 				break;
 
 			case "End":
-				this.chart.moveToEnd();
-				refresh(this.chart);
+				this.controller.moveToEnd();
+				refresh();
 				break;
 			}
 
 		};
 
-		function refresh(chart){
+		function refresh(){
 			if(self.controller)
 			self.controller.chartStructureChanged();
 		// chart.fit();

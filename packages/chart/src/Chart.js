@@ -371,13 +371,15 @@ export default class Chart {
     });
   }
 
-  setMainSeriesData(data) {
+  async setMainSeriesData(data) {
     if (!this.fusion) return;
     const mainSeries = this.fusion.getMainSeries();
     mainSeries.data = data;
     try {
-      this.recalculateScripts();
+      await this.recalculateScripts();
+      this.moveToEnd();
     } catch (_) {}
+    
   }
 
   appendMainSeriesData(data) {
@@ -547,5 +549,14 @@ export default class Chart {
 		}
 		this.model.panels.push(panel);
 		return panel;
+	}
+
+  moveToEnd() {
+		if(!this.isChartEmpty()){
+			this.doMoveToEnd = (this.canvasWidth==0);
+			var vpl = (this.model.periodWidth * this.fusion.getMainSeries().data.length)-(this.canvasWidth-this.model.valueAxisWidth)+this.model.endMargin;
+			if (vpl<0) vpl = 0;
+			this.model.viewportLeft = vpl;
+		}
 	}
 }
