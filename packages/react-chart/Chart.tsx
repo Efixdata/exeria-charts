@@ -1,6 +1,6 @@
 import React, {useLayoutEffect, useState } from "react";
 // @ts-ignore
-import data from "./data";
+import data from "./BTCUSD.json";
 // @ts-ignore
 import Chart from "chart";
 import {Button} from "ui";

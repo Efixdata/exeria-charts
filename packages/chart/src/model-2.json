@@ -1,0 +1,662 @@
+{
+  "mainSeries": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9",
+  "instrumentsSeries": [
+    {
+      "seriesId": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9",
+      "title": "BTC-USD",
+      "labels": ["O", "H", "L", "C", "V", "I"],
+      "fields": ["o", "h", "l", "c", "v", "i"],
+      "instrument": {
+        "id": "QS08:BTC-USD",
+        "symbol": "BTC-USD",
+        "name": "Bitcoin USD",
+        "type": "OTC",
+        "broker": "dragon",
+        "tradable": false,
+        "avaliableIntevals": [
+          { "id": 0, "symbol": "5m", "desc": "5m", "milis": 300000 },
+          { "id": 1, "symbol": "15m", "desc": "15m", "milis": 900000 },
+          { "id": 2, "symbol": "30m", "desc": "30m", "milis": 1800000 },
+          { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 },
+          { "id": 4, "symbol": "4h", "desc": "4h", "milis": 14400000 },
+          { "id": 5, "symbol": "1D", "desc": "1D", "milis": 86400000 },
+          { "id": 6, "symbol": "1W", "desc": "1W", "milis": 604800000 },
+          { "id": 7, "symbol": "1M", "desc": "1M", "milis": 2592000000 }
+        ],
+        "precision": 2,
+        "minSize": null,
+        "maxSize": null,
+        "quantityMultiplier": 1,
+        "priceChangeStep": null,
+        "lotSizeStep": null,
+        "pipSize": null,
+        "currency": "USD",
+        "related": null,
+        "optionType": null,
+        "optionStrike": null,
+        "optionExpiration": null,
+        "optionRootSymbol": null,
+        "category": {
+          "key": "CRYPTO",
+          "title": "CRYPTO",
+          "description": "CRYPTO"
+        },
+        "isLeveraged": null,
+        "maxLeverage": null,
+        "hasOptions": false
+      },
+      "interval": { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 }
+    }
+  ],
+  "autoScale": true,
+  "orders": { "list": [], "visible": true, "selected": false },
+  "positions": { "list": [], "visible": true, "selected": false },
+  "interval": { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 },
+  "valueAxisWidth": 80,
+  "timeAxisHeight": 24,
+  "minValueTickHeight": 30,
+  "minTimeTickWidth": 120,
+  "handlerColor": "#c2c2c2",
+  "font": "normal 11px Roboto, Tahoma, Arial, sans-serif",
+  "valueFont": "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "timeFont": "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "ordersAndPositionsFont": "10px normal Roboto, Tahoma, Arial, sans-serif",
+  "timeAxisBackground": "#f1f1f1",
+  "valueColor": "rgba(0, 0, 0, 0.54)",
+  "timeColor": "rgba(0, 0, 0, 0.54)",
+  "gridColor": "#e0e0e0",
+  "periodWidth": 1.1682000000000001,
+  "viewportLeft": 534.9645000000002,
+  "endMargin": 100,
+  "extremesMargin": 0.1,
+  "minPanelHeight": 24,
+  "legendLabelColor": "#ffffff",
+  "legendLabelFont": "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "legendValueFont": "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "mode": "normal",
+  "scripts": [
+    {
+      "id": "1522230393728@95e72240-5f43-eb11-305c-2a4efb28dea1",
+      "key": "LOWEST",
+      "inputs": {
+        "LOW": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+        "PERIODS": 24
+      },
+      "pane": "1",
+      "userName": "Lowest 24",
+      "visible": true,
+      "outputs": {
+        "LOWEST": "1522230393728@962a8d36-8da7-5e3b-24df-ab0e28cdf7ec"
+      },
+      "scriptType": "functions",
+      "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+      "title": "lowestTitle"
+    },
+    {
+      "id": "1522230420721@c6d5f3b2-58c8-1499-9348-2412ad00a33d",
+      "key": "HIGHEST",
+      "inputs": {
+        "HIGH": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+        "PERIODS": 24
+      },
+      "pane": "1",
+      "userName": "Highest 24",
+      "visible": true,
+      "outputs": {
+        "HIGHEST": "1522230420721@9026c8e7-78ad-b80b-d772-2169fd7964fa"
+      },
+      "scriptType": "functions",
+      "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+      "title": "highestTitle"
+    },
+    {
+      "id": "1522230793108@a37c3460-de0d-83ae-4c5f-47f38a826f09",
+      "key": "HIGHEST",
+      "inputs": {
+        "HIGH": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:h",
+        "PERIODS": 120
+      },
+      "pane": "1",
+      "userName": "Highest 120",
+      "visible": false,
+      "outputs": {
+        "HIGHEST": "1522230793108@2fe36bfb-f8e1-998c-40e3-e4c8ff5ee1ec"
+      },
+      "scriptType": "functions",
+      "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:h",
+      "title": "highestTitle"
+    },
+    {
+      "id": "1522230811860@69517030-8153-b717-a2f9-5f01b14dd8c1",
+      "key": "LOWEST",
+      "inputs": {
+        "LOW": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:l",
+        "PERIODS": 120
+      },
+      "pane": "1",
+      "userName": "Lowest 120",
+      "visible": false,
+      "outputs": {
+        "LOWEST": "1522230811860@0343da94-4f18-be19-4f33-3f294fe40a9f"
+      },
+      "scriptType": "functions",
+      "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:l",
+      "title": "lowestTitle"
+    },
+    {
+      "id": "1522230918660@5af8175b-2484-dcae-7636-622f34962453",
+      "key": "IGLUE",
+      "inputs": {
+        "IN1": "1522230793108@2fe36bfb-f8e1-998c-40e3-e4c8ff5ee1ec:HIGHEST",
+        "IN2": "1522230420721@9026c8e7-78ad-b80b-d772-2169fd7964fa:HIGHEST",
+        "OPERATION": "Substract"
+      },
+      "pane": "1",
+      "userName": "H120-H24",
+      "visible": true,
+      "outputs": {
+        "IGLUE": "1522230918660@f68f30b9-c1ed-448e-2736-9873620f0d93"
+      },
+      "scriptType": "functions",
+      "reference": "1522230793108@2fe36bfb-f8e1-998c-40e3-e4c8ff5ee1ec:HIGHEST",
+      "title": "iglueTitle"
+    },
+    {
+      "id": "1522231025864@92dc1ed7-06a6-88d8-c1ec-0ff2726271d9",
+      "key": "IGLUE",
+      "inputs": {
+        "IN1": "1522230811860@0343da94-4f18-be19-4f33-3f294fe40a9f:LOWEST",
+        "IN2": "1522230393728@962a8d36-8da7-5e3b-24df-ab0e28cdf7ec:LOWEST",
+        "OPERATION": "Substract"
+      },
+      "pane": "1",
+      "userName": "L120-L24",
+      "visible": false,
+      "outputs": {
+        "IGLUE": "1522231025864@9052c7c1-bc2c-b26e-09ec-af191175ad2c"
+      },
+      "scriptType": "functions",
+      "reference": "1522230811860@0343da94-4f18-be19-4f33-3f294fe40a9f:LOWEST",
+      "title": "iglueTitle"
+    },
+    {
+      "id": "1522231491537@ec62152e-6877-2656-2e33-796251324dcc",
+      "key": "IGLUE",
+      "inputs": {
+        "IN1": "1522230918660@f68f30b9-c1ed-448e-2736-9873620f0d93:IGLUE",
+        "IN2": "1522231025864@9052c7c1-bc2c-b26e-09ec-af191175ad2c:IGLUE",
+        "OPERATION": "Add"
+      },
+      "pane": "1",
+      "userName": "HH+LL",
+      "visible": false,
+      "outputs": {
+        "IGLUE": "1522231491537@268a1b39-ac52-9a39-4b08-021da51bb14a"
+      },
+      "scriptType": "functions",
+      "reference": "1522230918660@f68f30b9-c1ed-448e-2736-9873620f0d93:IGLUE",
+      "title": "iglueTitle"
+    },
+    {
+      "id": "1522235380306@0e6f7f13-6475-79fd-f820-7cba068fe6f2",
+      "key": "IMOD",
+      "inputs": {
+        "IN1": "1522231491537@268a1b39-ac52-9a39-4b08-021da51bb14a:IGLUE",
+        "IN2": -1,
+        "OPERATION": "Multiply"
+      },
+      "pane": "1522230918661@29d2de85-5871-d98e-ae4d-42c9e13d6711",
+      "userName": "HiLo Indicator",
+      "visible": true,
+      "outputs": {
+        "IMOD": "1522235380306@9d6e0f8b-f59c-d8ad-b3f0-49aa13b286ee"
+      },
+      "scriptType": "functions",
+      "reference": "1522231491537@268a1b39-ac52-9a39-4b08-021da51bb14a:IGLUE",
+      "title": "imodTitle"
+    },
+    {
+      "id": "1522237036247@41dcffd6-0e1c-b8a3-4a8e-6fbf533a055b",
+      "key": "OBJECT",
+      "inputs": {
+        "OBJECT": {
+          "id": "1522236995131@d65951fb-60e3-2f4d-40fe-89286aceb57f",
+          "type": "hLine",
+          "name": "hLine",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "canBeIndicator": true,
+          "isIndicator": true,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 1662102000000,
+              "offset": 0,
+              "value": 0.01,
+              "_index": 999,
+              "prawilnyStamp": 1510012800000
+            }
+          ],
+          "color": "#ff9800",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null
+        }
+      },
+      "userName": "Line up",
+      "visible": false,
+      "outputs": {
+        "LINE_SERIES": "1522237036247@72188bb1-cc1f-c1ee-65c6-78e8fe92badd"
+      },
+      "permHide": true,
+      "scriptType": "hidden",
+      "title": "lineSeries"
+    },
+    {
+      "id": "1522237047684@3bffb12f-aadb-df59-357e-7c72521908c2",
+      "key": "OBJECT",
+      "inputs": {
+        "OBJECT": {
+          "id": "1522237009108@b37e2750-f04f-5c4e-b47b-d02e25855e18",
+          "type": "hLine",
+          "name": "hLine",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "canBeIndicator": true,
+          "isIndicator": true,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 1662102000000,
+              "offset": 0,
+              "value": -0.01,
+              "_index": 999,
+              "prawilnyStamp": 1513900800000
+            }
+          ],
+          "color": "#ff9800",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null
+        }
+      },
+      "userName": "Line down",
+      "visible": false,
+      "outputs": {
+        "LINE_SERIES": "1522237047684@28d00dc6-19f2-55b1-fba6-068d69c70845"
+      },
+      "permHide": true,
+      "scriptType": "hidden",
+      "title": "lineSeries"
+    },
+    {
+      "id": "1522237094602@3317c14a-9d5c-fa71-f6d6-7abfad5a3839",
+      "key": "EXCEED",
+      "inputs": {
+        "UPPER": "1522237036247@72188bb1-cc1f-c1ee-65c6-78e8fe92badd:Value",
+        "LOWER": "1522237047684@28d00dc6-19f2-55b1-fba6-068d69c70845:Value",
+        "HIGH": "1522235380306@9d6e0f8b-f59c-d8ad-b3f0-49aa13b286ee:IMOD",
+        "LOW": "1522235380306@9d6e0f8b-f59c-d8ad-b3f0-49aa13b286ee:IMOD",
+        "ONDN": "Sell",
+        "ONUP": "Buy",
+        "SINGLE": false
+      },
+      "pane": "1",
+      "userName": "Exceed",
+      "visible": false,
+      "outputs": {
+        "EXCEED": "1522237094602@bc2476cf-8dbf-2373-a216-8904ad8b5624"
+      },
+      "scriptType": "strategies",
+      "title": "exceedTitle"
+    },
+    {
+      "id": "1522237183282@abc2f4e6-4ae5-1afd-565e-0c626b52abbf",
+      "key": "SINGLE",
+      "inputs": {
+        "STRATEGY": "1522237094602@bc2476cf-8dbf-2373-a216-8904ad8b5624:ExceedValue",
+        "TYPE": "Reverse"
+      },
+      "pane": "1522237183284@09310a28-5cc5-d339-15d8-aa19a4cf0ea0",
+      "userName": "Single signals",
+      "visible": true,
+      "outputs": {
+        "SINGLE": "1522237183282@b5f6d25c-f536-ad43-bb4b-c12b197c1ef3"
+      },
+      "scriptType": "strategies",
+      "unfolded": false,
+      "title": "singleSignalsTitle"
+    }
+  ],
+  "panels": [
+    {
+      "id": "1",
+      "valueAxisMode": "lin",
+      "main": true,
+      "hGrid": true,
+      "vGrid": true,
+      "basis": 65.14880952380952,
+      "backgroundColor": "#f1f1f1",
+      "gridColor": "#e0e0e0",
+      "vMax": 25771.5,
+      "vMin": 18973.5,
+      "precision": 5,
+      "centerZero": false,
+      "zeroLine": { "color": "#dd7423", "width": 1, "dash": [3, 3] },
+      "objects": [
+        {
+          "id": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9",
+          "type": "SeriesObject",
+          "dataLink": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9",
+          "renderAs": "Bars",
+          "color": "#3e535b",
+          "stroke": [1],
+          "dash": [],
+          "width": 1,
+          "priceTag": true,
+          "priceLine": true,
+          "openDataField": "o",
+          "highDataField": "h",
+          "lowDataField": "l",
+          "closeDataField": "c",
+          "dataField": "c",
+          "strokeStyle": "#3e535b",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false,
+          "isBeingDragged": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522230393728@962a8d36-8da7-5e3b-24df-ab0e28cdf7ec",
+          "renderAs": "Line",
+          "dataField": "LOWEST",
+          "color": "#00bcd4",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522230393730@c466cd03-8ed0-c69a-e214-75fc4b09cf83",
+          "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+          "hidden": false,
+          "strokeStyle": "#00bcd4",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false,
+          "isBeingDragged": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522230420721@9026c8e7-78ad-b80b-d772-2169fd7964fa",
+          "renderAs": "Line",
+          "dataField": "HIGHEST",
+          "color": "#FFEB3B",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522230420724@9e9eea48-b574-52e8-6065-f76213462083",
+          "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:c",
+          "hidden": false,
+          "strokeStyle": "#FFEB3B",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false,
+          "isBeingDragged": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522230793108@2fe36bfb-f8e1-998c-40e3-e4c8ff5ee1ec",
+          "renderAs": "Line",
+          "dataField": "HIGHEST",
+          "color": "#8bc34a",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522230793108@4a5249ea-61b4-6190-e5ec-49148278627c",
+          "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:h",
+          "hidden": true,
+          "strokeStyle": "#8bc34a",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522230811860@0343da94-4f18-be19-4f33-3f294fe40a9f",
+          "renderAs": "Line",
+          "dataField": "LOWEST",
+          "color": "#ff5722",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522230811860@70a1256e-f81d-9509-06f9-a19ddb96b077",
+          "reference": "1522230322786@d94409ea-eaa6-1563-0fc5-b9675bc0cff9:l",
+          "hidden": true,
+          "strokeStyle": "#ff5722",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522237036247@72188bb1-cc1f-c1ee-65c6-78e8fe92badd",
+          "renderAs": "Line",
+          "dataField": "Value",
+          "color": "#ffc107",
+          "width": 1,
+          "dash": [],
+          "id": "1522237036250@aa8fbaf0-99d3-9472-1b4b-7454b424c241",
+          "hidden": true,
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522237047684@28d00dc6-19f2-55b1-fba6-068d69c70845",
+          "renderAs": "Line",
+          "dataField": "Value",
+          "color": "#ffc107",
+          "width": 1,
+          "dash": [],
+          "id": "1522237047686@29cd75c6-e5e6-e34e-a649-67c5115dba82",
+          "hidden": true,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "StrategyObject",
+          "dataLink": "1522237094602@bc2476cf-8dbf-2373-a216-8904ad8b5624",
+          "renderAs": "",
+          "dataField": "ExceedValue",
+          "color": "#ff0000",
+          "width": 1,
+          "dash": [],
+          "id": "1522237094606@32509ad6-c9cb-fb03-a76c-4c50321869a8",
+          "hidden": true,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "StrategyObject",
+          "dataLink": "1522237183282@b5f6d25c-f536-ad43-bb4b-c12b197c1ef3",
+          "renderAs": "",
+          "dataField": "Single",
+          "color": "#ff0000",
+          "width": 1,
+          "dash": [],
+          "id": "1522237183284@fd74ee8c-6b88-8732-b93e-f5def05a5554",
+          "hidden": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        }
+      ],
+      "_visible": true,
+      "_height": 370,
+      "_index": 0,
+      "_width": 783,
+      "_offset": 0
+    },
+    {
+      "valueAxisMode": "lin",
+      "hGrid": true,
+      "vGrid": true,
+      "basis": 34.79166666666667,
+      "backgroundColor": "#f1f1f1",
+      "gridColor": "#e0e0e0",
+      "vMax": 3733.8,
+      "vMin": -3715.8,
+      "precision": 4,
+      "centerZero": false,
+      "zeroLine": { "color": "#dd7423", "width": 1, "dash": [3, 3] },
+      "objects": [
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522230918660@f68f30b9-c1ed-448e-2736-9873620f0d93",
+          "renderAs": "Line and Histogram",
+          "dataField": "IGLUE",
+          "color": "#8bc34a",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522230918662@74ea96b9-11d5-6e32-55a9-9ba00804267a",
+          "reference": "1522230793108@2fe36bfb-f8e1-998c-40e3-e4c8ff5ee1ec:HIGHEST",
+          "hidden": false,
+          "strokeStyle": "#8bc34a",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522231025864@9052c7c1-bc2c-b26e-09ec-af191175ad2c",
+          "renderAs": "Line and Histogram",
+          "dataField": "IGLUE",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522231025865@8fb2857c-dda8-6442-ccdb-96853f1dc69a",
+          "reference": "1522230811860@0343da94-4f18-be19-4f33-3f294fe40a9f:LOWEST",
+          "hidden": true,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522231491537@268a1b39-ac52-9a39-4b08-021da51bb14a",
+          "renderAs": "Line",
+          "dataField": "IGLUE",
+          "color": "#ffc107",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522231491540@a03bae0e-cbd1-adaf-dbe0-5b04e39ad2b9",
+          "reference": "1522230918660@f68f30b9-c1ed-448e-2736-9873620f0d93:IGLUE",
+          "hidden": true,
+          "strokeStyle": "#ffc107",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1522235380306@9d6e0f8b-f59c-d8ad-b3f0-49aa13b286ee",
+          "renderAs": "Line and Histogram",
+          "dataField": "IMOD",
+          "color": "#00bcd4",
+          "width": 1.5,
+          "dash": [],
+          "id": "1522235380323@a85430cb-b713-63c4-9bf2-63fb664433cb",
+          "reference": "1522231491537@268a1b39-ac52-9a39-4b08-021da51bb14a:IGLUE",
+          "hidden": false,
+          "strokeStyle": "#00bcd4",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "id": "1522236995131@d65951fb-60e3-2f4d-40fe-89286aceb57f",
+          "type": "hLine",
+          "name": "hLine",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "canBeIndicator": true,
+          "isIndicator": true,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 1662102000000,
+              "offset": 0,
+              "value": 0.01,
+              "_index": 999,
+              "prawilnyStamp": 1510012800000
+            }
+          ],
+          "color": "#ff9800",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null
+        },
+        {
+          "id": "1522237009108@b37e2750-f04f-5c4e-b47b-d02e25855e18",
+          "type": "hLine",
+          "name": "hLine",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "canBeIndicator": true,
+          "isIndicator": true,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 1662102000000,
+              "offset": 0,
+              "value": -0.01,
+              "_index": 999,
+              "prawilnyStamp": 1513900800000
+            }
+          ],
+          "color": "#ff9800",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null
+        }
+      ],
+      "id": "1522230918661@29d2de85-5871-d98e-ae4d-42c9e13d6711",
+      "_visible": true,
+      "_height": 197,
+      "_index": 1,
+      "_width": 783,
+      "_offset": 370
+    }
+  ],
+  "id": "1522230322784@72b1be83-7a56-5b78-7064-f46c1ee92e1a",
+  "_width": 783,
+  "_height": 591,
+  "_timeAxisWidth": 703,
+  "_leftIndex": 457,
+  "_rightIndex": 1059,
+  "_midOffset": 0
+}

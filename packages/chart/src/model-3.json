@@ -1,0 +1,735 @@
+{
+  "mainSeries": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3",
+  "instrumentsSeries": [
+    {
+      "seriesId": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3",
+      "title": "BTC-USD",
+      "labels": ["O", "H", "L", "C", "V", "I"],
+      "fields": ["o", "h", "l", "c", "v", "i"],
+      "instrument": {
+        "id": "QS08:BTC-USD",
+        "symbol": "BTC-USD",
+        "name": "Bitcoin USD",
+        "type": "OTC",
+        "broker": "dragon",
+        "tradable": false,
+        "avaliableIntevals": [
+          { "id": 0, "symbol": "5m", "desc": "5m", "milis": 300000 },
+          { "id": 1, "symbol": "15m", "desc": "15m", "milis": 900000 },
+          { "id": 2, "symbol": "30m", "desc": "30m", "milis": 1800000 },
+          { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 },
+          { "id": 4, "symbol": "4h", "desc": "4h", "milis": 14400000 },
+          { "id": 5, "symbol": "1D", "desc": "1D", "milis": 86400000 },
+          { "id": 6, "symbol": "1W", "desc": "1W", "milis": 604800000 },
+          { "id": 7, "symbol": "1M", "desc": "1M", "milis": 2592000000 }
+        ],
+        "precision": 2,
+        "minSize": null,
+        "maxSize": null,
+        "quantityMultiplier": 1,
+        "priceChangeStep": null,
+        "lotSizeStep": null,
+        "pipSize": null,
+        "currency": "USD",
+        "related": null,
+        "optionType": null,
+        "optionStrike": null,
+        "optionExpiration": null,
+        "optionRootSymbol": null,
+        "category": {
+          "key": "CRYPTO",
+          "title": "CRYPTO",
+          "description": "CRYPTO"
+        },
+        "isLeveraged": null,
+        "maxLeverage": null,
+        "hasOptions": false
+      },
+      "interval": { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 }
+    }
+  ],
+  "autoScale": true,
+  "orders": { "list": [], "visible": true, "selected": false },
+  "positions": { "list": [], "visible": true, "selected": false },
+  "interval": { "id": 3, "symbol": "1h", "desc": "1h", "milis": 3600000 },
+  "valueAxisWidth": 80,
+  "timeAxisHeight": 24,
+  "minValueTickHeight": 30,
+  "minTimeTickWidth": 120,
+  "handlerColor": "#c2c2c2",
+  "font": "normal 11px Roboto, Tahoma, Arial, sans-serif",
+  "valueFont": "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "timeFont": "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "ordersAndPositionsFont": "10px normal Roboto, Tahoma, Arial, sans-serif",
+  "timeAxisBackground": "#f1f1f1",
+  "valueColor": "rgba(0, 0, 0, 0.54)",
+  "timeColor": "rgba(0, 0, 0, 0.54)",
+  "gridColor": "#e0e0e0",
+  "periodWidth": 0.6327,
+  "viewportLeft": 0,
+  "endMargin": 100,
+  "extremesMargin": 0.1,
+  "minPanelHeight": 24,
+  "legendLabelColor": "#ffffff",
+  "legendLabelFont": "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "legendValueFont": "normal 300 11px/11px Roboto, Tahoma, Arial, sans-serif",
+  "mode": "normal",
+  "scripts": [
+    {
+      "id": "1538054689945@17d63d41-2e10-76bd-098e-4b0d909eece8",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 60
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054689945@1b34fed1-908b-63b6-abd0-79cd8ab0995d"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538054710662@651dfce8-8791-e47b-9700-1906633768ca",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 50
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054710662@9dfc7a1e-a022-ee8b-570e-999af2054f4d"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538054740140@d68d27a6-412e-0f80-538f-75971d532a16",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 45
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054740140@ca8d1956-65cc-169f-94ca-e784232071af"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538054763032@95f3c7ef-8708-9f57-ef1d-7250abb1cf66",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 40
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054763032@d4167cce-ae90-7cac-6b95-54d1cadf976f"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538054808697@bac5caf1-f78c-2a71-1329-c87cb214f99d",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 35
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054808698@a7bd90e5-e28d-40c3-7094-2612b69d7845"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538054901874@08b1b82a-6775-7d5f-854b-3f8fa126492f",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 30
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538054901874@24b1f7f5-9169-861d-0fc9-78c2a360c247"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055006412@21579aca-7b12-5063-a732-4cddff6db322",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 15
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055006412@3de296cf-3575-8edf-a3aa-d8a3b9f04247"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055115665@0cfde48d-90ff-bf45-1e67-c7f785cc6eba",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 12
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055115665@62e320f9-5d51-3541-dc49-493f9e14ef5d"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055154549@5ea6bf13-4b95-0a6f-46e5-0d9f85421921",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 10
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055154549@77e06ab4-e8d9-11bf-9f0a-6ba5a294d897"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055183960@8885c3fb-fce1-6ba6-23ce-a7a0e4230caa",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 8
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055183960@f7767c56-290f-f53d-8964-43eedd6e7189"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055202021@01215320-c0a0-7caa-2383-c1fb2025da0b",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 5
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055202021@7ab93055-fbd9-52db-ed90-36b118656031"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    },
+    {
+      "id": "1538055219545@d0a56667-4f85-6465-2494-60ad1903d16e",
+      "key": "EMA",
+      "inputs": {
+        "CLOSE": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+        "PERIODS": 3
+      },
+      "pane": "1",
+      "userName": "EMA",
+      "visible": true,
+      "outputs": {
+        "EMA": "1538055219545@9f5fdfa9-8e18-38ee-64a5-cb5de2abd9cf"
+      },
+      "scriptType": "indicators",
+      "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+      "title": "emaTitle"
+    }
+  ],
+  "panels": [
+    {
+      "id": "1",
+      "valueAxisMode": "lin",
+      "main": true,
+      "hGrid": true,
+      "vGrid": true,
+      "basis": 98.13595933926302,
+      "backgroundColor": "#f1f1f1",
+      "gridColor": "#e0e0e0",
+      "vMax": 25456.131437471,
+      "vMin": 19035.988051139,
+      "precision": 5,
+      "centerZero": false,
+      "zeroLine": { "color": "#dd7423", "width": 1, "dash": [3, 3] },
+      "objects": [
+        {
+          "id": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3",
+          "type": "SeriesObject",
+          "dataLink": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3",
+          "renderAs": "Line",
+          "color": "#ffffff",
+          "stroke": [1],
+          "dash": [],
+          "width": 1,
+          "priceTag": true,
+          "priceLine": false,
+          "openDataField": "o",
+          "highDataField": "h",
+          "lowDataField": "l",
+          "closeDataField": "c",
+          "dataField": "c",
+          "strokeStyle": "#ffffff",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false,
+          "isBeingDragged": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054689945@1b34fed1-908b-63b6-abd0-79cd8ab0995d",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054689946@064584a1-5e27-680a-0ea7-161b51ec76b4",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054710662@9dfc7a1e-a022-ee8b-570e-999af2054f4d",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054710662@d95be902-58a6-023c-66f0-2f7f902ec473",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054740140@ca8d1956-65cc-169f-94ca-e784232071af",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054740140@ec7247f5-637f-25ba-5cdf-2b3971c28a2f",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054763032@d4167cce-ae90-7cac-6b95-54d1cadf976f",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054763033@a32eb138-3e41-c03b-7701-d75f53a51285",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054808698@a7bd90e5-e28d-40c3-7094-2612b69d7845",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054808698@dfc0bca1-edc6-1bdd-ba44-53a6fc27c87f",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538054901874@24b1f7f5-9169-861d-0fc9-78c2a360c247",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#f44336",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538054901874@2ab2c0fb-2f0c-a603-a685-7d0997854590",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#f44336",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055006412@3de296cf-3575-8edf-a3aa-d8a3b9f04247",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055006412@17046aac-b245-dc7e-bc3f-925c37dac26f",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055115665@62e320f9-5d51-3541-dc49-493f9e14ef5d",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055115666@d4b8895d-4709-5f1c-3bbd-94bec7832b12",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055154549@77e06ab4-e8d9-11bf-9f0a-6ba5a294d897",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055154549@319abd3e-ad26-84f6-45c9-2595e4ca7aee",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055183960@f7767c56-290f-f53d-8964-43eedd6e7189",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055183960@faa19c49-1d5c-1159-d5da-8d7df7c98b11",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055202021@7ab93055-fbd9-52db-ed90-36b118656031",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055202022@b50c405c-23c2-4646-3bed-f6d6edc311a4",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "type": "SeriesObject",
+          "dataLink": "1538055219545@9f5fdfa9-8e18-38ee-64a5-cb5de2abd9cf",
+          "renderAs": "Line",
+          "dataField": "EMA",
+          "color": "#ff9800",
+          "width": 1.5,
+          "dash": [],
+          "id": "1538055219546@96585e5f-8556-5c3b-1971-a2cc47303d91",
+          "reference": "1538052949085@0c7c68f3-b910-352b-dbdf-f16466a1cdc3:c",
+          "hidden": false,
+          "strokeStyle": "#ff9800",
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "selected": false
+        },
+        {
+          "id": "1662099796805@c772f523-2511-9897-ebd6-902a0c5ad561",
+          "type": "fibonLines",
+          "name": "Fibonacci Levels",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "values": [0, 23.6, 38.2, 50, 61.8, 78.6, 100, 161.8, 261.8, 423.6],
+          "valuesState": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "valuesCanDelete": true,
+          "valuesCanAdd": true,
+          "fillBg": false,
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 21746,
+              "_index": -1,
+              "expandable": true,
+              "expanded": false,
+              "defaultDirection": "left",
+              "prawilnyStamp": 1661518800000
+            },
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 19564.113,
+              "_index": -1,
+              "expandable": true,
+              "expanded": false,
+              "defaultDirection": "right",
+              "prawilnyStamp": 1662112800000
+            }
+          ],
+          "order": 6,
+          "color": "#03a9f4",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        },
+        {
+          "id": "1662099891407@6da43f46-ae51-bc99-7900-38ed022fdc41",
+          "type": "arrow",
+          "name": "Arrow",
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 22523.47337,
+              "_index": -1,
+              "prawilnyStamp": 1661522400000
+            },
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 22047.90717,
+              "_index": -1,
+              "prawilnyStamp": 1661522400000
+            }
+          ],
+          "order": 8,
+          "color": "#e91e63",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        },
+        {
+          "id": "1662099924466@36567e9c-bfd4-271f-2707-8893cdd23770",
+          "type": "priceTag",
+          "name": "priceTag",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "flipped": false,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 24921.1195,
+              "_index": -1,
+              "prawilnyStamp": 1660528800000
+            }
+          ],
+          "order": 16,
+          "color": "#4caf50",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        },
+        {
+          "id": "1662099960580@e8c7f179-8844-6c57-1f3e-58b5981a8849",
+          "type": "priceTag",
+          "name": "priceTag",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "flipped": false,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 20808,
+              "_index": -1,
+              "prawilnyStamp": 1661025600000
+            }
+          ],
+          "order": 16,
+          "color": "#4caf50",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        },
+        {
+          "id": "1662099968846@a3942341-880f-6907-fd63-bd2486d86ff6",
+          "type": "priceTag",
+          "name": "priceTag",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "flipped": false,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 24921.1195,
+              "_index": -1,
+              "prawilnyStamp": 1660528800000
+            }
+          ],
+          "order": 16,
+          "color": "#4caf50",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        },
+        {
+          "id": "1662099985596@e02c1f92-0520-12cb-c949-0306082f8b70",
+          "type": "priceTag",
+          "name": "priceTag",
+          "sticky": true,
+          "defaultColor": "defaultChartToolColor",
+          "width": 1,
+          "dash": [],
+          "flipped": false,
+          "setAnchorValue": [0],
+          "anchors": [
+            {
+              "stamp": 0,
+              "offset": 0,
+              "value": 20738,
+              "_index": -1,
+              "prawilnyStamp": 1658851200000
+            }
+          ],
+          "order": 16,
+          "color": "#4caf50",
+          "selected": false,
+          "_hit": false,
+          "_hitAnchor": null,
+          "_hitArrow": null,
+          "isBeingDragged": false
+        }
+      ],
+      "_visible": true,
+      "_height": 567,
+      "_index": 0,
+      "_width": 783,
+      "_offset": 0,
+      "sortNb": "0"
+    }
+  ],
+  "id": "1538052949081@8f484805-22a9-56dd-5b85-5fb60a4365b0",
+  "_width": 783,
+  "_height": 591,
+  "_timeAxisWidth": 703,
+  "_leftIndex": 0,
+  "_rightIndex": 1111,
+  "_midOffset": 0
+}
