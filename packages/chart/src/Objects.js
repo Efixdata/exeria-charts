@@ -1,7 +1,9 @@
 import WEBRCP from "./WebRCP";
+import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { between, isPointInCircle, pointsDistance, getLinePointNearestMouse } from './utils/objects-lib';
 import { hitTolerance } from "./utils/environment";
+import imageCandleChartWhite from "./img/icons/candle_chart_white.svg";
 
 function Series() {
 	this.hitTolerance 	= hitTolerance; //2;
@@ -1908,7 +1910,7 @@ var StrategyObject	=	function () {
 
 			indexX 	= renderer.getIndexPoint(i, model);
 			//valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][field], panel._height, panel.vMin, panel.vMax)+panel._offset;
-			valuesY 	= this.getPointY4StrategyValue(o, i, strategyValue, panel, renderer, model, seriesManager);
+			const valuesY 	= this.getPointY4StrategyValue(o, i, strategyValue, panel, renderer, model, seriesManager);
 
 			if (model.periodWidth==1) {
 				midX = indexX;
@@ -1949,7 +1951,7 @@ var StrategyObject	=	function () {
 	this.renderPriceTag	=	function (o, ctx, renderer, model, panel, seriesManager) {}
 
 	this.getToolTip = function(o, index, model, seriesManager, scriptManager) {
-			values = [];
+			const values = [];
 			const fields = seriesManager[o.dataLink].fields;
 			const labels = seriesManager[o.dataLink].labels;
 
@@ -2278,13 +2280,13 @@ var StrategyObject	=	function () {
 var CandlestickPatternStrategyObject = function() {
 	var candleStickPatternStrategyObject = new StrategyObject();
 	candleStickPatternStrategyObject.candleChartImage = new Image();
-	candleStickPatternStrategyObject.candleChartImage.src = "/chartwidget/platform/core/img/icons/candle_chart_white.svg";
+	candleStickPatternStrategyObject.candleChartImage.src = imageCandleChartWhite.src;
 	candleStickPatternStrategyObject.candleChartImage.onload = function() {
 		candleStickPatternStrategyObject.candleChartImage.width = 18;
 		candleStickPatternStrategyObject.candleChartImage.height = 18;
 	}
 	candleStickPatternStrategyObject.getToolTip = function(o, index, model, seriesManager, scriptManager) {
-		values = [];
+		const values = [];
 		for(var tooltip in seriesManager[o.dataLink].data[index].tooltips){
 			values.push({
 				label: WEBRCP.locale.fusion.getMessage(tooltip, tooltip).toUpperCase(),
