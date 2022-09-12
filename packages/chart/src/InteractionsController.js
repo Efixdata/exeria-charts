@@ -931,7 +931,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		if (this.isMouseDown && (this.isRightButton === false)) return this.onMouseDrag(e);
 		if (this.isMouseDown && this.isRightButton) return this.onRightMouseDrag(e);
-
+		if (e?.path[0] !== this.topLayer) return;
 		this.currentHandler = this.isOverHandler(e);
 
 		if (this.currentHandler >- 1 && !this.currentStagingObject) {
@@ -1774,7 +1774,15 @@ function DefaultTool(interactor){
 		var eo = this.interactor.getEventOffset(e);
 		
 		this.interactor.currentHitObject = this.interactor.getCurrentHitObject(eo.offsetX, eo.offsetY);
-		if (this.interactor.currentHitObject!=null && this.interactor.currentHitObject._hit) {
+		let isAboveValueAxis;
+		if (this.interactor.currentPanel)
+			isAboveValueAxis = e.offsetX > (this.interactor.currentPanel._width - this.interactor.model.valueAxisWidth);
+		
+		if (isAboveValueAxis) {
+			this.interactor.currentHitObject = null;
+			this.interactor.chart.style.cursor = "ns-resize";
+		}
+		else if (this.interactor.currentHitObject!=null && this.interactor.currentHitObject._hit) {
 
 			if (e.ctrlKey && this.canBeCloned(this.interactor.currentHitObject)) {
 				if (this.interactor.chart.style.cursor!= this.cursorOnCopyMode) {
@@ -1789,15 +1797,9 @@ function DefaultTool(interactor){
 			if (this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove) {
 				this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
 			}
-		}else{
-			let isAboveValueAxis;
-			if(this.interactor.currentPanel)
-				isAboveValueAxis = e.offsetX > (this.interactor.currentPanel._width - this.interactor.model.valueAxisWidth);
-			if (isAboveValueAxis)
-				this.interactor.chart.style.cursor = "ns-resize";
-			else if (this.interactor.chart.style.cursor!=this.cursor) {
-				this.interactor.chart.style.cursor = this.cursor;
-			}
+		}
+		else if (this.interactor.chart.style.cursor!=this.cursor) {
+			this.interactor.chart.style.cursor = this.cursor;
 		}
 	}
 
