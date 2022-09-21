@@ -1,5 +1,5 @@
 import React, {useLayoutEffect, useState } from "react";
-import {ChartComponent} from '@dexer-io/react-chart';
+import {ChartUI} from '@dexer-io/react-chart-ui';
 import Chart from "@dexer-io/chart";
 import skyrocketData from "../data/BNBUSD.json";
 
@@ -71,9 +71,9 @@ export function WebChartComponent() {
     <div>
       <div style={{ display: "flex", gap: "10px" }}>
         <div style={{ width: '800px', height: '600px', backgroundColor: '#100c22' }}>
-          <ChartComponent chart={chart}>
+          <ChartUI chart={chart}>
             <div ref={objectRef} />
-          </ChartComponent>
+          </ChartUI>
           
         </div>
       </div>

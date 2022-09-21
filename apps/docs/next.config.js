@@ -1,4 +1,4 @@
-const withTM = require("next-transpile-modules")(["ui", "react-chart"]);
+const withTM = require("next-transpile-modules")(["ui"]);
 
 module.exports = withTM({
   reactStrictMode: true,

@@ -3,14 +3,14 @@ import React, {useLayoutEffect, useState } from "react";
 import {Button} from "ui";
 import { LeftMenu } from "./src/LeftMenu";
 import { TopMenu } from "./src/TopMenu";
-interface ChartComponentProps {
+interface ChartUIProps {
   chart: any
   children?: JSX.Element,
   leftMenuWidth?: string,
   topMenuHeight?: string
 }
 
-const ChartComponent = (props: ChartComponentProps) => {
+const ChartUI = (props: ChartUIProps) => {
 
   const leftMenuWidth = props.leftMenuWidth ? props.leftMenuWidth : "50px";
   const topMenuHeight = props.topMenuHeight ? props.topMenuHeight : "50px";
@@ -26,4 +26,4 @@ const ChartComponent = (props: ChartComponentProps) => {
   </div>);
 };
 
-export { ChartComponent };
+export { ChartUI };
