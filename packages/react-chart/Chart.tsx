@@ -2,7 +2,7 @@ import React, {useLayoutEffect, useState } from "react";
 // @ts-ignore
 import data from "./BTCUSD.json";
 // @ts-ignore
-import Chart from "chart";
+import Chart from "@dexer-io/chart";
 import {Button} from "ui";
 
 interface Interval {
