@@ -14,6 +14,7 @@ export default class Chart {
   container;
   renderer;
   initialized;
+  instrument;
 
   constructor(options) {
     if (typeof window == undefined) return;
@@ -32,6 +33,7 @@ export default class Chart {
     this.model = { ...model, ...options.model };
     this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...options.instrument };
     if (options.instrument) {
+      this.instrument = instrument;
       if (options.instrument.symbol)
         this.model.instrumentsSeries[0].title = options.instrument.symbol;
 
@@ -559,4 +561,12 @@ export default class Chart {
 			this.model.viewportLeft = vpl;
 		}
 	}
+
+  setInstrument(instrument) {
+    this.instrument = instrument;
+  }
+
+  getInstrument() {
+    return this.instrument;
+  }
 }
