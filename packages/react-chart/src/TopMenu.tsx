@@ -1,21 +1,28 @@
 import * as React from "react";
 import { ButtonSelect } from "ui";
+import styled from "styled-components";
 
 interface TopMenuProps {
-    chart: any;
+  chart: any;
+  style?: React.CSSProperties;
 }
 
+const Container = styled.div`
+  background-color: #100c22
+`
+
 export const TopMenu = (props: TopMenuProps) => {
-    const instrument = props?.chart?.getInstrument();
-    console.log(props.chart);
-    const getAvailableIntervalsSymbols = () => {
-        if (!instrument) return [];
-        return instrument.availableIntervals.map((interval: any) => {
-          return interval.symbol;
-        });
-      }
+  const instrument = props?.chart?.getInstrument();
+
+  const getAvailableIntervalsSymbols = () => {
+    if (!instrument) return [];
+    return instrument.availableIntervals.map((interval: any) => {
+      return interval.symbol;
+    });
+  };
+  
   return (
-    <div>
+    <Container style={props.style}>
       <ButtonSelect
         options={getAvailableIntervalsSymbols()}
         onSelect={(option) => {
@@ -23,6 +30,6 @@ export const TopMenu = (props: TopMenuProps) => {
         }}
         selectedOption={instrument?.interval?.symbol}
       />
-    </div>
+    </Container>
   );
 };

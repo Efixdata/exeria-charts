@@ -6,14 +6,23 @@ import { TopMenu } from "./src/TopMenu";
 interface ChartComponentProps {
   chart: any
   children?: JSX.Element,
+  leftMenuWidth?: string,
+  topMenuHeight?: string
 }
 
 const ChartComponent = (props: ChartComponentProps) => {
 
-    return   (<div style={{ position: "relative", width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%" }}>
-      <TopMenu chart={props.chart} />
-      <LeftMenu chart={props.chart} />
-      {props.children}
+  const leftMenuWidth = props.leftMenuWidth ? props.leftMenuWidth : "50px";
+  const topMenuHeight = props.topMenuHeight ? props.topMenuHeight : "50px";
+
+    return   (<div style={{ position: "relative", width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%", display: "flex", flexDirection: "column" }}>
+      <TopMenu chart={props.chart} style={{ height: topMenuHeight }}/>
+      <div style={{ display: "flex", flexDirection: "row", flexGrow: "1", maxHeight: `calc(100% - ${topMenuHeight}`}}>
+        <LeftMenu chart={props.chart} />
+        <div style={{ flexGrow: "1" }}>
+          {props.children}
+        </div>
+      </div>
   </div>);
 };
 

@@ -70,7 +70,7 @@ export function WebChartComponent() {
   return (
     <div>
       <div style={{ display: "flex", gap: "10px" }}>
-        <div style={{ width: '800px', height: '600px', backgroundColor: 'red' }}>
+        <div style={{ width: '800px', height: '600px', backgroundColor: '#100c22' }}>
           <ChartComponent chart={chart}>
             <div ref={objectRef} />
           </ChartComponent>
