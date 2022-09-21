@@ -1,72 +1,19 @@
 import React, {useLayoutEffect, useState } from "react";
-// @ts-ignore
-import data from "./BTCUSD.json";
-// @ts-ignore
-import Chart from "@dexer-io/chart";
+
 import {Button} from "ui";
-
-interface Interval {
-  symbol: string
-}
-
-interface Instrument {
-  id: string
-  symbol: string
-  title: string
-  name: string
-  currency: string
-  precision?: number
-  chart?: string
-  availableIntervals?: Interval[],
-  interval?: Interval
-}
-
+import { LeftMenu } from "./src/LeftMenu";
+import { TopMenu } from "./src/TopMenu";
 interface ChartComponentProps {
-  width?: string,
-  maxWidth?:string,
-  height?: string,
-  maxHeight?: string,
-  instrument?: Instrument
-  candles?: any
+  chart: any
+  children?: JSX.Element,
 }
 
 const ChartComponent = (props: ChartComponentProps) => {
-  let objectRef = React.createRef();
 
-  let width = props.width ? props.width : "100%";
-  let height = props.height ? props.height : "100%";
-  let maxHeight = props.maxHeight ? props.maxHeight : "100%";
-  let maxWidth = props.maxWidth ? props.maxWidth : "100%";
-
-  useLayoutEffect(() => {
-      const containerElement = objectRef.current;
-
-      // @ts-ignore
-      containerElement.style.width = width;
-      // @ts-ignore
-      containerElement.style.height = height;
-      // @ts-ignore
-      containerElement.style.maxHeight = maxHeight;
-      // @ts-ignore
-      containerElement.style.maxWidth = maxWidth;
-      // @ts-ignore
-      containerElement.style.position = "relative";
-  
-      const chart = new Chart({
-        container: containerElement,
-        instrument: props.instrument
-      });
-
-      chart.init();
-      chart.setMainSeriesData(data.candles);
-    });
-    
-    return   (<div style={{ position: "relative", width, height, maxHeight, maxWidth }}>
-    {/* @ts-ignore */}  
-    <div ref={objectRef} />
-    <div style={{ position: "absolute", top: 0 }}>
-    {/* <Button /> */}
-    </div>
+    return   (<div style={{ position: "relative", width: "100%", height: "100%", maxHeight: "100%", maxWidth: "100%" }}>
+      <TopMenu chart={props.chart} />
+      <LeftMenu chart={props.chart} />
+      {props.children}
   </div>);
 };
 

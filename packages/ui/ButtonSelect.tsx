@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, {useState } from "react";
 
 interface ButtonSelectProps {
   options: string[];
@@ -10,12 +10,10 @@ export const ButtonSelect = (props: ButtonSelectProps) => {
   const renderOptions = () => {
     const elements = [];
     for (let option of props.options) {
-      if (option == props.selectedOption)
-        elements.push(<option selected>{option}</option>);
-      else elements.push(<option>{option}</option>);
+      elements.push(<option key={option}>{option}</option>);
     }
     return elements;
   };
 
-  return <select>{renderOptions()}</select>;
+  return <select value={props.selectedOption}>{renderOptions()}</select>;
 };

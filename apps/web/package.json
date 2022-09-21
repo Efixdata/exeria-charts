@@ -13,7 +13,8 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "ui": "*",
-    "react-chart": "*"
+    "react-chart": "*",
+    "@dexer-io/chart": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
