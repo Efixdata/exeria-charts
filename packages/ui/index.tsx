@@ -1,3 +1,4 @@
 import * as React from "react";
-export * from "./Button";
-export * from "./ButtonSelect";
+export * from "./src/Button";
+export * from "./src/IconButton";
+export * from "./src/ButtonSelect";

@@ -981,6 +981,7 @@ const Renderer = function (settings) {
 
 	this.getIndexStamp = function(index, model, seriesManager){
 		var seriesLength = seriesManager[model.mainSeries].data.length;
+		if (isNaN(index)) index = 0;
 		if(index >= seriesLength){
 			let stamp = seriesManager[model.mainSeries].data[seriesLength - 1].stamp;
 			let leftOver = (index-seriesLength)*seriesManager[model.mainSeries].interval.milis;

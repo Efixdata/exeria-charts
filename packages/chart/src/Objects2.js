@@ -20,6 +20,8 @@ function Shape(){
 	}
 
 	this.getPoints = function (o, renderer, panel, model, seriesManager) {
+		if (!panel) return;
+		
 		const anchors = o.anchors;
 		const pts = [];
 		const fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -478,7 +480,7 @@ function TrendLineObject(){
 		var rPoint = pts[0].x > pts[1].x ? pts[0] : pts[1];
 
 		ctx.beginPath();
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -816,12 +818,12 @@ var FibonLinesObject	=	function () {
 			}
 		}
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
 		//fill
-		ctx.fillStyle = o.color;
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		if(o.fillBg && o.color!==null && o.color!==undefined){
 			for(var i =0; i< valuesPoints.length-1;i++){
 				var vp = valuesPoints[i];
@@ -1120,7 +1122,7 @@ var ParallelChannelObject	=	function () {
 		var hh = pointsDistance(mid,pts[2]);
 		var h = pts[2].y-mid.y;
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -1143,11 +1145,11 @@ var ParallelChannelObject	=	function () {
 			var p4 = movePointByDistance(p4,d, line1);
 		}
 
+		o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 
-
-		if(o.color){
+		// if(o.color){
 			ctx.beginPath();
-			ctx.fillStyle = o.color;
+			ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.globalAlpha = 0.2
 			ctx.moveTo(p1.x, p1.y);
 			ctx.lineTo(p2.x, p2.y);
@@ -1157,7 +1159,7 @@ var ParallelChannelObject	=	function () {
 			if(o.fillBg== true)
 				ctx.fill();
 			ctx.globalAlpha = 1;
-		}
+		// }
 		ctx.beginPath();
 		ctx.moveTo(p1.x, p1.y);
 		ctx.lineTo(p2.x, p2.y);
@@ -1458,7 +1460,7 @@ var ArrowObject	=	function () {
 		drawPoints.push(calcPointOnPerpendicularLine(baseLine,pts[0], distance/4));
 		drawPoints.push(pts[0]);
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -1467,7 +1469,7 @@ var ArrowObject	=	function () {
 			ctx.lineTo(drawPoints[i].x,drawPoints[i].y);
 		}
 
-		ctx.fillStyle = o.color;
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.globalAlpha = 0.2;
 		ctx.fill();
 		ctx.globalAlpha = 1;
@@ -1634,7 +1636,7 @@ function HorizontalLineObject(){
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -1676,8 +1678,9 @@ function HorizontalLineObject(){
 	this.postRenderOverlay = function (o, ctx, renderer, model, panel, seriesManager) {
 		if (o.priceTag) {
 			var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-			var textColor = WEBRCP.utils.getContrastColor(o.color);
-			renderer.drawPriceTag(ctx, model, panel, pts[0].y, o.color, textColor, o.anchors[0].value, 'real');
+			const color = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+			var textColor = WEBRCP.utils.getContrastColor(color);
+			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
 		}
 	}
 
@@ -1750,9 +1753,7 @@ function HorizontalLineObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" HORIZONTALLINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
-
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
 
@@ -1760,7 +1761,6 @@ function HorizontalLineObject(){
 			interactor.currentAnchor = null;
 			return true;
 		}
-
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1772,6 +1772,7 @@ function HorizontalLineObject(){
 
 function VerticalLineObject(){
 	this.getPoints = function(o, renderer, panel, model, seriesManager){
+		if (!panel) return;
 		var index = renderer.getStampIndex(o.anchors[0].prawilnyStamp, model, seriesManager);
 		var x = renderer.getIndexPoint(index, model)+ model._midOffset;
 		//var x = renderer.getIndexPoint(o.anchors[0]._index, model)+ model._midOffset;
@@ -1782,7 +1783,7 @@ function VerticalLineObject(){
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -1900,9 +1901,7 @@ function VerticalLineObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" VERTICALLINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
-
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
 
@@ -1910,7 +1909,6 @@ function VerticalLineObject(){
 			interactor.currentAnchor = null;
 			return true;
 		}
-
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1993,8 +1991,8 @@ function DiNapoliLevels(){
 				valuesPoints.push({y:y, v:v, p:o.values[i]});
 		}
 
-		ctx.strokeStyle = o.color;
-		ctx.fillStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -2217,7 +2215,7 @@ function MultiLineObject(){
 	this.render = function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -2438,8 +2436,8 @@ function AbcdObject(){
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
-		ctx.fillStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.beginPath();
@@ -2628,9 +2626,7 @@ function AbcdObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" ABCD stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
-
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
 
@@ -2970,7 +2966,7 @@ function EllipseObject(){
 	this.render = function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -2983,7 +2979,7 @@ function EllipseObject(){
 		ctx.ellipse(ellipseX, ellipseY, Math.abs(r1), Math.abs(r2), 1 * Math.PI/180, 0, 2 * Math.PI);
 
 		if (o.fillBg==true) {
-			ctx.fillStyle = o.color;
+			ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.globalAlpha = 0.2;
 			ctx.fill();
 		}
@@ -3010,7 +3006,7 @@ function EllipseObject(){
 
 
 		function drawDiagonal(o, ctx, pts){
-			ctx.strokeStyle = o.color;
+			ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.beginPath();
 			ctx.moveTo(pts[0].x, pts[0].y);
 			ctx.setLineDash([2,5]);
@@ -3129,7 +3125,6 @@ function EllipseObject(){
 	// };
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" ELLIPSE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 		if (interactor.currentAnchor && interactor.currentAnchor.drag) {
@@ -3181,8 +3176,8 @@ function HorizontalRangeObject(){
 		var off = -6;
 		var off2 = 0;
 
-		ctx.strokeStyle = o.color;
-		ctx.fillStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -3234,7 +3229,7 @@ function HorizontalRangeObject(){
 		if(o._hit || o.selected){
 			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 			octx.setLineDash([2,5]);
-			octx.strokeStyle = o.color;
+			octx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			if(!o.flipped){
 				octx.beginPath();
 				octx.moveTo(x1,y);
@@ -3333,9 +3328,7 @@ function HorizontalRangeObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" HRANGE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
-
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
 
@@ -3343,7 +3336,6 @@ function HorizontalRangeObject(){
 			interactor.currentAnchor = null;
 			return true;
 		}
-
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -3371,8 +3363,8 @@ function VerticalRangeObject(){
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
-		ctx.strokeStyle = o.color;
-		ctx.fillStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -3431,7 +3423,7 @@ function VerticalRangeObject(){
 
 		if(o._hit || o.selected){
 			octx.setLineDash([2,5]);
-			octx.strokeStyle = o.color;
+			octx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			if(!o.flipped){
 				octx.beginPath();
 				octx.moveTo(x,y1);
@@ -3536,9 +3528,7 @@ function VerticalRangeObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" TRENDLINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
-
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
 
@@ -3546,7 +3536,6 @@ function VerticalRangeObject(){
 			interactor.currentAnchor = null;
 			return true;
 		}
-
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -3603,15 +3592,15 @@ function CycleObject(){
 	}
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
-
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		if (!pts || !pts[0] || !pts[1]) return;
 
 		var x1 = pts[0].x;
 		var x2 = pts[1].x
 		var y1 = pts[0].y;
 		var y2 = pts[1].y
 
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -3780,7 +3769,7 @@ function TextObject(){
 		this.font = (o.fontSize || this.cfg.fontSize) + 'px' + WEBRCP.utils.colorManager.getFont("fontName");
 		this.lineHeight = o.fontSize ? o.fontSize * this.cfg.lineMultiplier : this.cfg.lineHeight;
 
-		ctx.fillStyle = o.color;
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.font = this.font;
 
 		var w = ctx.measureText(o.text).width;
@@ -3838,8 +3827,8 @@ function TextObject(){
 			}
 			ctx.fill();
 		}
-
-		ctx.fillStyle = o.fillBg ? WEBRCP.utils.getContrastColor(o.color, WEBRCP.utils.colorManager.getColor("darkTextColor"), '#ffffff') : o.color;
+		const color = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillStyle = o.fillBg ? WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("darkTextColor"), '#ffffff') : color;
 
 		for (var i in wrapped.text) {
 			ctx.fillText(
@@ -3944,13 +3933,13 @@ function TextObject(){
 
 	this.lastClickStamp = 0;
 	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-
-		if($.now() < this.lastClickStamp + 600){
+		const now = new Date().milis;
+		if(now < this.lastClickStamp + 600){
 			this.lastClickStamp = 0;
 			interactor.chart.requestObjectText(o, 'text', o.text);
 		}
 		else
-			this.lastClickStamp = $.now();
+			this.lastClickStamp = now;
 
 		var self = this;
 		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
@@ -4030,7 +4019,6 @@ function TextObject(){
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" TEXT ANNOTATION stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
@@ -4039,7 +4027,6 @@ function TextObject(){
 			interactor.currentAnchor = null;
 			return true;
 		}
-
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -4068,11 +4055,11 @@ function BoxObject(){
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		ctx.beginPath();
-		ctx.strokeStyle = o.color;
+		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		if(o.fillBg==true){
-			ctx.fillStyle = o.color;
+			ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.globalAlpha = 0.2;
 			ctx.fillRect(pts[0].x, pts[0].y, pts[1].x-pts[0].x, pts[1].y-pts[0].y)
 		}
@@ -4109,7 +4096,7 @@ function BoxObject(){
 		}
 
 		function drawDiagonal(o, ctx, pts){
-			ctx.strokeStyle = o.color;
+			ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.beginPath();
 			ctx.moveTo(pts[0].x, pts[0].y);
 			ctx.setLineDash([2,5]);
@@ -4259,7 +4246,7 @@ var TriangleObject	=	function () {
 		
 				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 				ctx.beginPath();
-				ctx.strokeStyle = o.color;
+				ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 				ctx.lineWidth = o.width;
 				ctx.setLineDash(o.dash ? o.dash : []);
 				ctx.globalAlpha = 1;
@@ -4269,7 +4256,7 @@ var TriangleObject	=	function () {
 				ctx.lineTo(pts[0].x, pts[0].y);
 				if(o.fillBg==true){
 					ctx.globalAlpha = 0.2;
-					ctx.fillStyle = o.color;
+					ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 					ctx.fill();
 				}
 				ctx.globalAlpha = 1;
@@ -4303,7 +4290,7 @@ var TriangleObject	=	function () {
 				}
 		
 				function drawDiagonal(o, ctx, pts){
-					ctx.strokeStyle = o.color;
+					ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 					ctx.beginPath();
 					ctx.moveTo(pts[0].x, pts[0].y);
 					ctx.setLineDash([2,5]);
@@ -4498,9 +4485,10 @@ var TriangleObject	=	function () {
 		
 				var x = pts[0].x;
 				var y = pts[0].y;
-		
-				ctx.strokeStyle = o.color;
-				ctx.fillStyle = o.color;
+
+				const color = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+				ctx.strokeStyle = color;
+				ctx.fillStyle = color;
 				ctx.lineWidth = o.width;
 				ctx.setLineDash(o.dash ? o.dash : []);
 
@@ -4521,7 +4509,7 @@ var TriangleObject	=	function () {
 					ctx.lineTo(x, y);
 					ctx.stroke();
 					ctx.closePath();
-					ctx.fillStyle = WEBRCP.utils.getContrastColor(o.color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
+					ctx.fillStyle = WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
 					ctx.fillText(valueS, x+this.defaultLineLen+10, y+3);
 				}else{
 					ctx.beginPath();
@@ -4535,7 +4523,7 @@ var TriangleObject	=	function () {
 					ctx.lineTo(x, y);
 					ctx.stroke();
 					ctx.closePath();
-					ctx.fillStyle = WEBRCP.utils.getContrastColor(o.color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
+					ctx.fillStyle = WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
 					ctx.fillText(valueS, x-w+10, y+3);
 				}
 			}

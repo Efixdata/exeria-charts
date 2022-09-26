@@ -373,9 +373,10 @@ export default class Chart {
     });
   }
 
-  async setMainSeriesData(data) {
+  async setMainSeriesData(data, interval) {
     if (!this.fusion) return;
     const mainSeries = this.fusion.getMainSeries();
+    if (interval) mainSeries.interval = interval;
     mainSeries.data = data;
     try {
       await this.recalculateScripts();
@@ -569,4 +570,18 @@ export default class Chart {
   getInstrument() {
     return this.instrument;
   }
+
+  getInteractor() {
+    return this.interactor;
+  }
+
+  onCancelTool() {
+		this.interactor.currentMode.onCancel();
+	}
+
+	onDrawingDone() {
+    // TODO: fire subscription for
+		// this.setActiveTool();
+    console.log(this.interactor.model);
+	}
 }

@@ -88,6 +88,7 @@ const theme = {
     darkTextColor: { light: l_primaryTextColor, dark: l_primaryTextColor },
     overlay: { light: l_dividerColor, dark: d_componentDarkGrayD },
     legendLabelColor: { light: white, dark: white },
+    fibonacciRetracementLine: {light: "rgba(0, 0, 0, 0.06)", dark: "rgba(255, 255, 255, 0.12)"},
   },
 
   fonts: {

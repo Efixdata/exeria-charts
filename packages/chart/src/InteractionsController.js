@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { Shape } from './Objects2'
 import { Series } from './Objects'
@@ -1669,7 +1670,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	}
 
-	this.setMode = function(symbol, o){
+	this.setMode = function(symbol, o, onFinished){
 		this.clearOverlay();
 
 		switch(symbol) {
@@ -1680,7 +1681,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				this.currentMode = new ZoomBoxTool(this);
 				break;
 			case 'STAGE':
-				this.currentMode = new StageTool(this, o);
+				this.currentMode = new StageTool(this, o, onFinished);
 				break;
 			default:
 				this.currentMode = new DefaultTool(this);
@@ -2333,13 +2334,13 @@ function ZoomBoxTool(interactor){
 // ************************************************** //
 
 
-function StageTool (interactor, tool) {
+function StageTool (interactor, tool, onFinished) {
 	this.symbol = 'STAGING';
 	this.cursor = 'pointer';
 	this.cursorOverObject = 'crosshair';
 	this.cursorOnDrag = 'crosshair';
 	this.allowSwipe = false;
-	this.color = WEBRCP.utils.colorManager.getColor("defaultToolColor");;
+	this.color = WEBRCP.utils.colorManager.getColor("defaultToolColor");
 	this.textColor = WEBRCP.utils.colorManager.getColor("defaultToolTextColor");
 
 	this.interactor = interactor;
@@ -2348,7 +2349,7 @@ function StageTool (interactor, tool) {
 	this.tool = this.renderer.objects[tool.type];
 	this.currentStep = 0
 
-	this.interactor.currentStagingObject = jQuery.extend(true, {}, tool);
+	this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
 	this.interactor.currentStagingObject.id = FUSION.uniqueId();
 	this.interactor.currentAnchor = null;
 	this.interactor.select(this.interactor.currentStagingObject);
@@ -2372,7 +2373,7 @@ function StageTool (interactor, tool) {
 			this.interactor.currentPanel = this.interactor.getPanel(eventOffset);
 		}
 
-		if (this.tool.stageDown) {
+		if (this.tool && this.tool.stageDown) {
 			this.currentStep++;
 
 			this.interactor.currentAnchor = this.tool.stageDown(
@@ -2393,7 +2394,7 @@ function StageTool (interactor, tool) {
 		if (this.interactor.isRightMouseButton(e))
 			this.interactor.allowContextMenu = false;
 
-		if (this.tool.stageUp) {
+		if (this.tool && this.tool.stageUp) {
 			const isStageCompleted = this.tool.stageUp(
 				e, 
 				this.interactor.currentStagingObject, 
@@ -2409,7 +2410,8 @@ function StageTool (interactor, tool) {
 				this.interactor.currentStagingObject = null;
 				this.currentStep = 0;
 				this.interactor.setMode('DEFAULT');
-				this.interactor.chart.onDrawingDone();
+				this.interactor.controller.onDrawingDone();
+				if (onFinished) onFinished();
 			};
 		}
 		
@@ -2419,7 +2421,7 @@ function StageTool (interactor, tool) {
 	this.onMouseMove = function(e){
 		if (this.cancelled) return;
 
-		if (this.tool.stageMove) {
+		if (this.tool && this.tool.stageMove) {
 			this.tool.stageMove(
 				e,
 				this.interactor.currentStagingObject,
@@ -2435,7 +2437,7 @@ function StageTool (interactor, tool) {
 	this.onMouseDrag = function(e) {
 		if (this.cancelled) return;
 
-		if (this.tool.stageDrag) {
+		if (this.tool && this.tool.stageDrag) {
 			this.tool.stageDrag(
 				e,
 				this.interactor.currentStagingObject,
@@ -2451,7 +2453,7 @@ function StageTool (interactor, tool) {
 	this.onMouseOut = function(e) {
 		if (this.cancelled) return;
 
-		if (this.tool.stageOut) {
+		if (this.tool && this.tool.stageOut) {
 			this.tool.stageOut(
 				e,
 				this.interactor.currentStagingObject,
@@ -2465,6 +2467,7 @@ function StageTool (interactor, tool) {
 	};
 
 	this.renderOverlay = function(context) {
+		if (!this.tool) return;
 		this.tool.render(
 			this.interactor.currentStagingObject,
 			context,

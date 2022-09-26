@@ -11,8 +11,14 @@ const getChartLibrary = (containerElement) => {
       currency: "USD",
       precision: 2,
       chart: "ohlc",
-      availableIntervals: [{ symbol: "1m" }, { symbol: "5m" }, { symbol: "15m" }, { symbol: "1h" }, { symbol: "1D" }, { symbol: "1M" }],
-      interval: { symbol: "1h" }
+      availableIntervals: [
+        { symbol: "1m" },
+        { symbol: "5m", milis: 60000 },
+        { symbol: "15m", milis: 900000 },
+        { symbol: "1h", milis: 2700000 },
+        { symbol: "1D", milis: 86400000 },
+        { symbol: "1M", milis: -1 }],
+    interval: { symbol: "1h", milis: 2700000 }
       };
       
       const chart = new Chart({
@@ -34,7 +40,7 @@ const getChartLibrary = (containerElement) => {
       }
   
       chart.init();
-      chart.setMainSeriesData(candles);
+      chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
   
       return chart;
   }
