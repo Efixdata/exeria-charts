@@ -32,6 +32,7 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
     for (let mode of modes) {
       buttons.push(
         <TextButton
+          key={mode}
           onClick={() => {
             changeMode(mode);
           }}
