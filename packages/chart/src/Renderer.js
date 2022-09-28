@@ -441,7 +441,7 @@ const Renderer = function (settings) {
 	};
 
 	this.renderPriceText = function(text, ctx, x, y) {
-		if (value >= 0.0001) {
+		if (text >= 0.0001) {
 			ctx.fillText(text, x, y);
 			return;
 		}
