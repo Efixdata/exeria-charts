@@ -593,4 +593,41 @@ export default class Chart {
     // console.log("asd", this.fusion.getMainSeries());
     return this.instrument.currency;
   }
+
+  getValueAxisMode() {
+    return this.model.panels[0].valueAxisMode;
+  }
+
+  setValueAxisMode (mode){
+    if (mode === '%') mode = "perc";
+    if (this.model.panels[0].valueAxisMode == mode) return;
+
+		if (mode === 'perc') {
+      this.model.panels[0].valueAxisMode =  "perc";
+    }
+			
+		else if (mode === 'lin') {
+      this.model.panels[0].valueAxisMode =  "lin";
+    }
+			
+		else if (mode === 'log') {
+      this.model.panels[0].valueAxisMode =  "log";
+    }
+    
+    this.rerender();
+		// this.refreshTools();
+	}
+
+  getAutoScale() {
+    return this.model.autoScale;
+  }
+
+  setAutoScale (autoScale){
+    if (this.model.autoScale == autoScale) return;
+
+		this.model.autoScale = autoScale;
+		this.rerender();
+
+		// this.refreshTools();
+	}
 }

@@ -7,6 +7,7 @@ const Button = styled.button`
   outline: none;
   margin: 0;
   padding: 0;
+  color: #7f9dcc;
 
   &:hover {
     cursor: pointer;
@@ -20,7 +21,7 @@ const Button = styled.button`
 interface TextButtonProps {
   children?: React.ReactNode
   style?: React.CSSProperties
-  onClick?: () => void
+  onClick: () => void
   active?: boolean
 }
 

@@ -2,11 +2,19 @@ import * as React from "react";
 import { ButtonSelect } from "ui";
 import styled from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
+import { AutoScaleSwitch } from "./AutoScaleSwitch";
 
 interface TopMenuProps {
   chart: any;
   style?: React.CSSProperties;
 }
+
+const RightSection = styled.div`
+display: flex;
+flex-direction: row;
+margin-left: auto;
+gap: 16px;
+`
 
 const Container = styled.div`
   background-color: #100c22;
@@ -32,7 +40,6 @@ export const TopMenu = (props: TopMenuProps) => {
   };
 
   let valueAxisWidth = props.chart ? props.chart.getValueAxisWidth() : 10;
-  console.log(props.chart?.getCurrency())
   
   return (
     <Container style={props.style}>
@@ -44,7 +51,10 @@ export const TopMenu = (props: TopMenuProps) => {
           }}
           selectedOption={instrument?.interval?.symbol}
         />
-        <ChartScaleSwitch chart={props.chart} style={{ marginLeft: "auto" }}/>
+        <RightSection>
+          <AutoScaleSwitch chart={props.chart} />
+          <ChartScaleSwitch chart={props.chart} />
+        </RightSection>
       </LeftSection>
       <div style={{ width: valueAxisWidth, borderLeft: "1px solid rgba(255, 255, 255, 0.1)", display: "flex", alignItems: "center"}}>
         <div style={{ color: "#7f9dcc", marginLeft: "auto", marginRight: "8px" }}>{props?.chart?.getCurrency()}</div>
