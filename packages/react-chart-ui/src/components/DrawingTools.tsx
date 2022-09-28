@@ -28,7 +28,12 @@ interface DrawingToolsProps {
   }
   
   const Container = styled.div`
-    background-color: #100c22
+    background-color: #100c22;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
   `
   
   export const DrawingTools = (props: DrawingToolsProps) => {

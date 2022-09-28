@@ -584,4 +584,13 @@ export default class Chart {
 		// this.setActiveTool();
     console.log(this.interactor.model);
 	}
+
+  getValueAxisWidth() {
+    return this.model.valueAxisWidth;
+  }
+
+  getCurrency() {
+    // console.log("asd", this.fusion.getMainSeries());
+    return this.instrument.currency;
+  }
 }
