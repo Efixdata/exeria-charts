@@ -2,6 +2,9 @@ import WEBRCP from "./../WebRCP";
 
 const LIB = {};
 
+LIB.getNumberMagnitude = function(num) {
+	return -Math.floor( Math.log10(num) + 1);
+}
 
 LIB.nFormatter = function(num, digits) {
 	  var si = [

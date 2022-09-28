@@ -9,7 +9,7 @@ const getChartLibrary = (containerElement) => {
       symbol: "BTC/USD",
       name: "BTC/USD",
       currency: "USD",
-      precision: 2,
+      precision: 10,
       chart: "ohlc",
       availableIntervals: [
         { symbol: "1m" },
@@ -30,10 +30,10 @@ const getChartLibrary = (containerElement) => {
   
       for (let i=0; i < skyrocketData.t.length; ++i) {
       candles.push({
-          o: skyrocketData.o[i],
-          h: skyrocketData.h[i],
-          l: skyrocketData.l[i],
-          c: skyrocketData.c[i],
+          o: skyrocketData.o[i] * 0.000000001,
+          h: skyrocketData.h[i] * 0.000000001,
+          l: skyrocketData.l[i] * 0.000000001,
+          c: skyrocketData.c[i] * 0.000000001,
           v: skyrocketData.v[i],
           stamp: skyrocketData.t[i]
       })

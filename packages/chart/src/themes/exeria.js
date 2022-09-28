@@ -100,6 +100,10 @@ const theme = {
       light: "bold 11px Roboto, Tahoma, Arial, sans-serif",
       dark: "bold 11px Roboto, Tahoma, Arial, sans-serif",
     },
+    priceSubscript: {
+      light: "bold 10px Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 10px Roboto, Tahoma, Arial, sans-serif",
+    },
     time: {
       light: "bold 11px Roboto, Tahoma, Arial, sans-serif",
       dark: "bold 11px Roboto, Tahoma, Arial, sans-serif",
