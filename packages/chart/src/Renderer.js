@@ -2,6 +2,7 @@ import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
+import { renderPriceText } from "./utils/objects-lib";
 
 const Renderer = function (settings) {
 	this.settings = settings;
@@ -430,7 +431,7 @@ const Renderer = function (settings) {
 								
 				if(panel.valueAxisMode=="perc")	text +="%";
 				
-				this.renderPriceText(text, ctx, x + 6, tickPoint + 2);
+				renderPriceText(text, ctx, x + 6, tickPoint + 2);
 			}
 
 		}catch(e){
@@ -439,26 +440,6 @@ const Renderer = function (settings) {
 			ctx.restore();
 		}
 	};
-
-	this.renderPriceText = function(text, ctx, x, y) {
-		if (text >= 0.0001) {
-			ctx.fillText(text, x, y);
-			return;
-		}
-
-		ctx.font = WEBRCP.utils.colorManager.getFont("price");
-		const magnitude = LIB.getNumberMagnitude(text);
-		let currentText = "0.(0";
-		ctx.fillText(currentText, x, y);
-		let currentX = x + ctx.measureText(currentText).width + 1;
-
-		ctx.font = WEBRCP.utils.colorManager.getFont("priceSubscript");
-		ctx.fillText(magnitude, currentX, y + 2);
-		currentX += ctx.measureText(magnitude).width + 1;
-		ctx.font = WEBRCP.utils.colorManager.getFont("price");
-		currentText = ")" + text.substring(magnitude + 2);
-		ctx.fillText(currentText, currentX, y);
-	}
 
 	this.renderHGrid = function (ctx, model, panel, tick) {
 
@@ -687,7 +668,7 @@ const Renderer = function (settings) {
 					v = LIB._converterLog.axisToReal(value, 1);
 				}
 				var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
-				this.renderPriceText(vs, ctx, model._width - model.valueAxisWidth + 8, y + 3);
+				renderPriceText(vs, ctx, model._width - model.valueAxisWidth + 8, y + 3);
 			}
 		} catch (e) {
 			console.error(e, e.stack);
@@ -738,7 +719,7 @@ const Renderer = function (settings) {
 			const vp1 = v1;
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = LIB._converterLog.axisToReal(v1,1);
 			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
-			this.renderPriceText(vs1, ctx, model._width-model.valueAxisWidth+8, y1+3)
+			renderPriceText(vs1, ctx, model._width-model.valueAxisWidth+8, y1+3)
 
 			ctx.fillStyle = innerColor;
 			ctx.beginPath();
@@ -821,12 +802,12 @@ const Renderer = function (settings) {
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
 
 			ctx.fillStyle = textColor;
-			this.renderPriceText(vs2, ctx, model._width-model.valueAxisWidth+8, y2+3);
+			renderPriceText(vs2, ctx, model._width-model.valueAxisWidth+8, y2+3);
 
 			ctx.fillStyle = innerTextColor;
 			ctx.font = WEBRCP.utils.colorManager.getFont("text");
 			ctx.fillText(labelUp, model._width-model.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
-			this.renderPriceText(label, ctx, model._width-model.valueAxisWidth+12, labelY + fontSize / 2);
+			renderPriceText(label, ctx, model._width-model.valueAxisWidth+12, labelY + fontSize / 2);
 			ctx.fillText(labelDn, model._width-model.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
 
 		}catch(e){

@@ -5,6 +5,7 @@ import { Shape } from './Objects2'
 import { Series } from './Objects'
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js"
+import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
 
 var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
 	var self = this;
@@ -1930,7 +1931,6 @@ function DefaultTool(interactor){
 	}
 
 	function drawTip(tip, x, y, ctx, model){
-
 		const getValue = (value) => {
 			if (value !== undefined && value !== null) {
 				return value.toFixed ? formatNumber(value) : value;
@@ -1976,7 +1976,7 @@ function DefaultTool(interactor){
 			lw = _lw > lw ? _lw : lw;
 			var v = getValue(tip.values[i].value);
 
-			var _vw = ctx.measureText(v).width;
+			var _vw = measurePriceTextWidth(v, ctx);
 			vw = _vw > vw ? _vw : vw;
 		}
 		var valueWidth = lw + ctx.measureText(" : ").width+vw;
@@ -2020,12 +2020,13 @@ function DefaultTool(interactor){
 		ctx.strokeStyle = tipTextColor;
 
 		for(var i in tip.values){
+			ctx.font = WEBRCP.utils.colorManager.getFont("text");
 			txtY += cfg.lineSpacing+cfg.lineHeight;
 			ctx.fillText(tip.values[i].label+" : ",  txtX, txtY);
 			
 			var v = getValue(tip.values[i].value);
-			var x = txtX+cfg.width-2*cfg.margin-ctx.measureText(v).width;
-			ctx.fillText(v, x, txtY);
+			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth(v, ctx);
+			renderPriceText(v, ctx, x, txtY);
 		}
 
 		ctx.closePath();

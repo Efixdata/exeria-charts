@@ -1,3 +1,6 @@
+import LIB from "./chartingCommons";
+import WEBRCP from "../WebRCP";
+
 /**
  * 
  * @param circle - {x,y,r}
@@ -271,6 +274,50 @@ export function drawIndicatorMarker(ctx, panel, point, radius, color, alpha ) {
 		ctx.globalAlpha = 1;
 	}
 
+}
+
+export function renderPriceText(text, ctx, x, y) {
+	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+
+	if (text >= 0.0001) {
+		ctx.fillText(text, x, y);
+		return;
+	}
+
+	const magnitude = LIB.getNumberMagnitude(text);
+	let currentText = "0.(0";
+	ctx.fillText(currentText, x, y);
+	console.log(currentText);
+	let currentX = x + ctx.measureText(currentText).width + 1;
+
+	ctx.font = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	ctx.fillText(magnitude, currentX, y + 2);
+	console.log(currentText);
+	currentX += ctx.measureText(magnitude).width + 1;
+	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	currentText = ")" + text.substring(magnitude + 2);
+	ctx.fillText(currentText, currentX, y);
+	console.log(currentText);
+}
+
+export function measurePriceTextWidth(text, ctx) {
+	if (text >= 0.0001) {
+		return ctx.measureText(text).width;
+	}
+
+	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	const magnitude = LIB.getNumberMagnitude(text);
+	let currentText = "0.(0";
+
+	let width = ctx.measureText(currentText).width + 1;
+
+	ctx.font = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	width += ctx.measureText(magnitude).width + 1;
+	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	currentText = ")" + text.substring(magnitude + 2);
+	width += ctx.measureText(currentText).width;
+
+	return width;
 }
 
 //# sourceURL=./platform/components/newchart/js/objects-lib.js
