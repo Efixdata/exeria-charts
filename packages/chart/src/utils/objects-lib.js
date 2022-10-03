@@ -276,8 +276,10 @@ export function drawIndicatorMarker(ctx, panel, point, radius, color, alpha ) {
 
 }
 
-export function renderPriceText(text, ctx, x, y) {
-	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+export function renderPriceText(text, ctx, x, y, priceFont, subscriptFont) {
+	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
+	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	ctx.font = priceFont;
 
 	if (text >= 0.0001) {
 		ctx.fillText(text, x, y);
@@ -287,33 +289,34 @@ export function renderPriceText(text, ctx, x, y) {
 	const magnitude = LIB.getNumberMagnitude(text);
 	let currentText = "0.(0";
 	ctx.fillText(currentText, x, y);
-	console.log(currentText);
 	let currentX = x + ctx.measureText(currentText).width + 1;
 
-	ctx.font = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	ctx.font = subscriptFont;
 	ctx.fillText(magnitude, currentX, y + 2);
-	console.log(currentText);
 	currentX += ctx.measureText(magnitude).width + 1;
-	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	ctx.font = priceFont;
 	currentText = ")" + text.substring(magnitude + 2);
 	ctx.fillText(currentText, currentX, y);
-	console.log(currentText);
 }
 
-export function measurePriceTextWidth(text, ctx) {
+export function measurePriceTextWidth(text, ctx, priceFont, subscriptFont) {
+	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
+	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	ctx.font = priceFont;
+
 	if (text >= 0.0001) {
 		return ctx.measureText(text).width;
 	}
 
-	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	ctx.font = priceFont;
 	const magnitude = LIB.getNumberMagnitude(text);
 	let currentText = "0.(0";
 
 	let width = ctx.measureText(currentText).width + 1;
 
-	ctx.font = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	ctx.font = subscriptFont;
 	width += ctx.measureText(magnitude).width + 1;
-	ctx.font = WEBRCP.utils.colorManager.getFont("price");
+	ctx.font = priceFont;
 	currentText = ")" + text.substring(magnitude + 2);
 	width += ctx.measureText(currentText).width;
 

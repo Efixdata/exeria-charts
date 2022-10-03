@@ -2,7 +2,7 @@ import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
-import { renderPriceText } from "./utils/objects-lib";
+import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 
 const Renderer = function (settings) {
 	this.settings = settings;
@@ -402,6 +402,8 @@ const Renderer = function (settings) {
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisBackground");
 			ctx.fillRect (panel._width - model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
 			ctx.rect(panel._width - model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
+			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
+			ctx.fillRect(panel._width - model.valueAxisWidth - 1.5, panel._offset - 0.5, 1, panel._height);
 			ctx.clip();
 
 			var tickValue = tick.niceMin;
@@ -497,6 +499,8 @@ const Renderer = function (settings) {
 
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
 		ctx.fillRect (0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight);
+		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
+		ctx.fillRect (-0.5, model._height-model.timeAxisHeight -0.5, model._width, 1);
 
 		var tickIndex = 0;
 		var tickX = 0;
@@ -616,25 +620,84 @@ const Renderer = function (settings) {
 			const c = series.data[series.data.length - 1].c;
 			if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");
 			else if (o <= c) color = WEBRCP.utils.colorManager.getColor("chartGreen");
-		} else if (!color) color = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+		} else if (!color) color = WEBRCP.utils.colorManager.getColor("legendValueColor");
 
-		let str = name + ': ';
+		let objectTitle = name + '  ';
+
+		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
+
+		let lineWidth = 0;
+		const startX = 12;
+		let x = startX;
+		const y = panel._offset + 24 + count * 18;
+
+		x += ctx.measureText(objectTitle).width;
+
+		const valuesToRender = [];
 
 		for (var i = 0; i < series.fields.length; i++) {
 			const field = series.data[index][series.fields[i]];
 			if (!field) continue;
+			
+			const valueToRender = {
+				label: {},
+				value: {},
+				separator: {}
+			};
+
 			var v = LIB.nFormatter(field, this.getPrecision(model, panel));
-			var label = WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ';
-			if (series.fields.length == 1 && series.labels[i] == 'value') label = '';
-			str += label + v;
-			if (i < series.fields.length - 1) str += ', ';
+
+			valueToRender.label.text= WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ';
+			if (series.fields.length == 1 && series.labels[i] == 'value') valueToRender.label.text = '';
+			else {
+				valueToRender.label.x = x;
+				valueToRender.label.y = y;
+				x += ctx.measureText(valueToRender.label.text).width;
+			}
+
+			valueToRender.value.x = x;
+			valueToRender.value.y = y;
+			valueToRender.value.text = v;
+			x += measurePriceTextWidth(v, ctx, WEBRCP.utils.colorManager.getFont("legend"), WEBRCP.utils.colorManager.getFont("legendSubscript"));
+
+			if (i < series.fields.length - 1) {
+				const comma = ', ';
+				valueToRender.separator.text = comma;
+				valueToRender.separator.x = x;
+				valueToRender.separator.y = y;
+				x += ctx.measureText(comma).width
+			}
+
+			valuesToRender.push(valueToRender);
 		};
 
-		var add = 0;
+		ctx.save();
+		ctx.beginPath();
+		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
+		ctx.roundRect(startX - 4, y-11, x - 4, 16, [4]);
+		ctx.fill();
 
 		ctx.fillStyle = color;
 		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
-		ctx.fillText(str, 12, panel._offset + 24 + add + count * 18);
+		ctx.fillText(objectTitle, startX, y);
+
+		for (i in valuesToRender) {
+			const valueToRender = valuesToRender[i];
+			if (valueToRender.label.text) {
+				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+				ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
+			}
+
+			ctx.fillStyle = color;
+			renderPriceText(valueToRender.value.text, ctx, valueToRender.value.x, valueToRender.value.y, WEBRCP.utils.colorManager.getFont("legend"), WEBRCP.utils.colorManager.getFont("legendSubscript"));
+
+			if (valueToRender.separator.text) {
+				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+				ctx.fillText(", ", valueToRender.separator.x, valueToRender.separator.y);
+			}
+		}
+
+		ctx.restore();
 
 		return true;
 	};

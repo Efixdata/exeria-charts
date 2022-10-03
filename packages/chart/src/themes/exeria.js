@@ -83,7 +83,9 @@ const theme = {
     },
     darkTextColor: {light: l_primaryTextColor, dark: l_primaryTextColor},
     overlay: {light: l_dividerColor, dark: d_componentDarkGrayD},
-    legendLabelColor: { light: white, dark: white },
+    legendLabelColor: { light: "rgba(0, 0, 0, 0.5", dark: "rgba(255, 255, 255, 0.5)" },
+    legendValueColor: { light: white, dark: white },
+    legendLineBackground: { light: "rgba(0, 0, 0, 0.1)", dark: "rgba(0, 0, 0, 0.1)" },
     fibonacciRetracementLine: {light: "rgba(0, 0, 0, 0.06)", dark: "rgba(255, 255, 255, 0.12)"},
   },
 
@@ -111,6 +113,10 @@ const theme = {
     legend: {
       light: "11px Roboto, Tahoma, Arial, sans-serif",
       dark: "11px Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendSubscript: {
+      light: "9px Roboto, Tahoma, Arial, sans-serif",
+      dark: "9px Roboto, Tahoma, Arial, sans-serif",
     },
     fontName: { light: "Roboto", dark: "Roboto" },
   },
