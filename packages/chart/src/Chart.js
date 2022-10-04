@@ -7,6 +7,7 @@ import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import ObjectsManager from "./ObjectsManager";
+import SubscriptionManager from "./SubscriptionManager";
 
 export default class Chart {
   containerId;
@@ -17,6 +18,7 @@ export default class Chart {
   initialized;
   instrument;
   objectsManager;
+  subscriptionManager;
 
   constructor(options) {
     if (typeof window == undefined) return;
@@ -64,6 +66,7 @@ export default class Chart {
     this.objectOnlyOnOverlay = false;
     this.renderer = new ChartRenderer(rendererSettings);
     this.objectsManager = new ObjectsManager(this);
+    this.subscriptionManager = new SubscriptionManager(this);
 
     this.fusion = new FUSION.builder().setModel(this.model).build();
 
@@ -639,5 +642,28 @@ export default class Chart {
 
     this.objectsManager.detachObject(objectId);
     this.rerender();
+  }
+
+  setCursor(mode) {
+    if (this.interactor.currentMode.symbol === mode) return;
+
+		this.interactor.setMode(mode);
+		// this.refreshTools();
+  }
+
+  getScriptsManager() {
+    return this.fusion.getScriptsManager();
+  }
+
+  getSeriesManager() {
+    return this.fusion.getSeriesManager();
+  }
+
+  subscribe(topic, callback) {
+    this.subscriptionManager.subscribe(topic, callback);
+  }
+
+  emitEvent(event) {
+    this.subscriptionManager.onEvent(event);
   }
 }

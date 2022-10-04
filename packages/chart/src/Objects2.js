@@ -2164,7 +2164,7 @@ function DiNapoliLevels(){
 	}
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
+		// console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 
@@ -2368,7 +2368,7 @@ function MultiLineObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
+		// console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 
@@ -2927,7 +2927,7 @@ function DiNapoliAbcObject(){
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log(" ABCD stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
+		// console.log(" ABCD stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 

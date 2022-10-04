@@ -1671,9 +1671,19 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			case 'STAGE':
 				this.currentMode = new StageTool(this, o, onFinished);
 				break;
+			case 'ERASER':
+				this.currentMode = new EraserTool(this);
+				break;
 			default:
 				this.currentMode = new DefaultTool(this);
 		}
+
+		this.controller.emitEvent({
+			topic: "CURSOR_CHANGE",
+			data: {
+				cursor: symbol
+			}
+		})
 	}
 
 	this.movePanelUpDn = function(panel, o){
@@ -2470,6 +2480,93 @@ function StageTool (interactor, tool, onFinished) {
 	this.onRightMouseDrag	=	function(e) {};
 	this.render	=	function(ctx) {};
 }
+
+// ****************************************************** //
+// ******************* ERASER TOOL ********************** //
+// ****************************************************** //
+
+
+function EraserTool(interactor){
+	this.symbol = 'ERASER';
+	this.interactor = interactor;
+	this.allowSwipe = true;
+
+	this.cursor = 'not-allowed';
+	this.cursorOverObject = 'pointer';
+	this.cursorOnDrag = 'not-allowed';
+
+	this.onMouseDown = function(e){
+		this.startEvent = e;
+		this.finishEvent = null;
+
+		if (this.interactor.currentHitObject!=null) {
+			this.interactor.controller.onDelete(this.interactor.currentHitObject.id);
+			// this.interactor.select(this.interactor.currentHitObject);
+			// this.interactor.currentAnchor = this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseDown(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
+			// if (this.interactor.currentAnchor==null) {
+			// 	this.interactor.controller.repaint();
+			// }
+		} else {
+			this.interactor.deselectAll();
+			this.interactor.controller.repaint(false);
+		}
+	}
+
+	this.onMouseUp = function(e){
+		this.finishEvent = null;
+
+		if (this.interactor.currentHitObject!=null) {
+			this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseUp(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
+		} else {
+			this.interactor.chart.style.cursor = '';
+		}
+	}
+
+	this.onMouseMove = function(e){
+		this.finishEvent = e;
+		var eo = this.interactor.getEventOffset(e);
+		
+		this.interactor.currentHitObject = this.interactor.getCurrentHitObject(eo.offsetX, eo.offsetY);
+		if (this.interactor.currentHitObject!=null) {
+
+			if (this.interactor.chart.style.cursor!= this.interactor.currentMode.cursorOverObject) {
+				this.interactor.chart.style.cursor = this.interactor.currentMode.cursorOverObject;
+			}
+
+			if (this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove) {
+				this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
+			}
+		}else{
+			if (this.interactor.chart.style.cursor!=this.cursor) {
+				this.interactor.chart.style.cursor = this.cursor;
+			}
+		}
+	}
+
+	this.onMouseDrag	=	function (e) {
+		this.startEvent = this.interactor.initialMouseEvent;
+		this.finishEvent = e;
+	};
+
+
+	this.onRightMouseDrag	=	function (e) {
+		this.startEvent = this.interactor.initialMouseEvent;
+		this.finishEvent = e;
+	};
+
+	this.onMouseOut = function(e){
+		if (this.interactor.currentHitObject!=null) {
+			this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseOut(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
+		}
+	};
+
+	this.keyDown = function(key){}
+	this.render	=	function (ctx) {};
+	this.renderOverlay	=	function (octx) {};
+	this.renderUp = function(ctx, e){}
+	this.renderDn = function(ctx, i, e) {};
+}
+
 
 export default InteractionsController;
 

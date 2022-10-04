@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Cursors } from "./Cursors";
 import { DrawingTools } from "./DrawingTools";
 
 const Container = styled.div`
@@ -21,6 +22,7 @@ interface LeftMenuProps {
 
 export const LeftMenu = (props: LeftMenuProps) => {
   return <Container style={props.style}>
+    <Cursors chart={props.chart}/>
     <DrawingTools chart={props.chart}/>
   </Container>;
 };
