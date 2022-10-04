@@ -1,7 +1,8 @@
 import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
+import { Shape } from "./Objects2";
 
-function ObjectsManager(chart){
+export default function ObjectsManager(chart){
 	this.chart = chart;
 	var self = this;
 	
@@ -38,7 +39,7 @@ function ObjectsManager(chart){
 
 	this.detachObject = function(objectId){
 		if(objectId){
-			var o = LIB.getObjectById(self.chart.model,objectId);
+			var o = LIB.getObjectById(self.chart.model, objectId);
 			if( this.chart.renderer.objects[o.type] instanceof Shape){
 				detachToolObject(o.id);
 				var relatedScript = findRelatedScript(o);
@@ -61,7 +62,7 @@ function ObjectsManager(chart){
 			for(var k in self.chart.model.scripts){
 				var s = self.chart.model.scripts[k];
 				if(s.inputs){
-					for(i in s.inputs){
+					for(let i in s.inputs){
 						if(s.inputs[i].id == o.id)
 							return s;
 					}

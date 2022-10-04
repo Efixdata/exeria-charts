@@ -111,9 +111,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			});
 		}
 
-		// $(document).keyup(function(e){
-		// 	self.onKeyUp(e);
-		// });
+		self.body.addEventListener("keyup", (event) => {
+			self.onKeyUp(event);
+		});
+
+		self.body.addEventListener("keydown", (event) => {
+			self.onKeyDown(event);
+		});
 
 		// $(document).keydown(function(e){
 		// 	self.onKeyDown(e);
@@ -1240,46 +1244,29 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.onKeyUp	=	function (e) {
 		if(this.controller.isChartEmpty(this.chart)) return;
 
-		if(WEBRCP.newChartLastFocus === this.chart) {
-			if(!document.activeElement.className.startsWith("webrcp-new-chart-top-layer"))
-				return;
+		// if(WEBRCP.newChartLastFocus === this.chart) {
+		// 	if(!document.activeElement.className.startsWith("webrcp-new-chart-top-layer"))
+		// 		return;
 				
-			switch (e.key)
-			{
-			case "Delete":
-				if(e.shiftKey){
-					if(this.model.scripts.length>0)
-						this.chart.detachScript(this.model.scripts[this.model.scripts.length-1].id);
-				}else if(e.altKey){
-					if(this.model.panels.length>0)
-						this.chart.detachPanel(this.model.panels[this.model.panels.length-1].id);
-				}else if(this.currentSelectedObject){
-					this.chart.detachObject(this.currentSelectedObject.id);
-				}
-				refresh();
-				break;
+			switch (e.key) {
+			
+				case "Backspace":
+				case "Delete":
+					if (!this.currentSelectedObject) break;
 
-			case "Home":
-				this.moveIndexToPoint(0,0);
-				refresh();
-				break;
+					this.controller.onDelete(this.currentSelectedObject.id);
+					break;
 
-			case "End":
-				this.controller.moveToEnd();
-				refresh();
-				break;
+				case "Home":
+					this.moveIndexToPoint(0,0);
+					this.controller.rerender();
+					break;
+
+				case "End":
+					this.controller.moveToEnd();
+					this.controller.rerender();
+					break;
 			}
-
-		};
-
-		function refresh(){
-			if(self.controller)
-			self.controller.chartStructureChanged();
-		// chart.fit();
-		// controller.renderOverlay();
-		// controller.render();
-		self.controller.rerender();
-		}
 	};
 
 	this.onKeyDown	=	function (e) {

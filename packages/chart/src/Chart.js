@@ -6,6 +6,7 @@ import instrumentsSeries from "./instrumentsSeries";
 import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
+import ObjectsManager from "./ObjectsManager";
 
 export default class Chart {
   containerId;
@@ -15,6 +16,7 @@ export default class Chart {
   renderer;
   initialized;
   instrument;
+  objectsManager;
 
   constructor(options) {
     if (typeof window == undefined) return;
@@ -61,6 +63,7 @@ export default class Chart {
 
     this.objectOnlyOnOverlay = false;
     this.renderer = new ChartRenderer(rendererSettings);
+    this.objectsManager = new ObjectsManager(this);
 
     this.fusion = new FUSION.builder().setModel(this.model).build();
 
@@ -630,4 +633,11 @@ export default class Chart {
 
 		// this.refreshTools();
 	}
+
+  onDelete(objectId) {
+    if (!objectId) return;
+
+    this.objectsManager.detachObject(objectId);
+    this.rerender();
+  }
 }
