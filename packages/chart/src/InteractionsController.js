@@ -33,6 +33,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.currentPanel = null;
 	this.currentAnchor = null;
 	this.currentSelectedObject = null;
+	this.valueAxisClicked = false;
 	this.currentStagingObject = null;
 	this.model = model;
 	this.renderer = renderer;
@@ -831,8 +832,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		if (self.controller) self.controller.chartStructureChanged();
 
-		self.currentMode.onMouseDown(e);
-		self.controller.renderOverlay();
+		if (self.isAboveValueAxis(e)) self.valueAxisClicked = true;
+		else {
+			self.valueAxisClicked = false;
+			self.currentMode.onMouseDown(e);
+			self.controller.renderOverlay();
+		}
 	};
 
 
@@ -1021,9 +1026,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			var panel = this.getPanel(io.offsetY);
 			if (!panel) return;
-			const isAboveValueAxis = e.offsetX > (panel._width - this.model.valueAxisWidth);
-
-			if (isAboveValueAxis) {
+			const isAboveValueAxis = this.isAboveValueAxis(e);
+			if (isAboveValueAxis && this.valueAxisClicked) {
 				if (this.model.autoScale == true) this.controller.setAutoScale(false);
 				this.chart.style.cursor = "ns-resize";
 			}
@@ -1037,7 +1041,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 					
 
-					if ((this.isMouseDown && this.isRightButton===true) || isAboveValueAxis){
+					if ((this.isMouseDown && this.isRightButton===true) || (isAboveValueAxis && this.valueAxisClicked)){
 						var valueY1 = this.initialMinMax.value;
 						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 						var delta = valueY2-valueY1;
@@ -1710,6 +1714,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		return {offsetX:x,offsetY:y}
 	}
 
+	this.isAboveValueAxis = function(e) {
+		if (this.currentPanel)
+			return e.offsetX > (this.currentPanel._width - this.model.valueAxisWidth);
+		return false;
+	}
+
 	bindDomEvents();
 };
 
@@ -1773,11 +1783,8 @@ function DefaultTool(interactor){
 		var eo = this.interactor.getEventOffset(e);
 		
 		this.interactor.currentHitObject = this.interactor.getCurrentHitObject(eo.offsetX, eo.offsetY);
-		let isAboveValueAxis;
-		if (this.interactor.currentPanel)
-			isAboveValueAxis = e.offsetX > (this.interactor.currentPanel._width - this.interactor.model.valueAxisWidth);
 		
-		if (isAboveValueAxis) {
+		if (this.interactor.isAboveValueAxis(e)) {
 			this.interactor.currentHitObject = null;
 			this.interactor.chart.style.cursor = "ns-resize";
 		}

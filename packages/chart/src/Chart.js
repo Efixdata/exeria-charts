@@ -258,7 +258,7 @@ export default class Chart {
         this.model._height - this.model.timeAxisHeight - panel._offset;
     }
 
-    if (this.model.autoScale == true && panel.objects.length > 0) {
+    if (panel.objects.length > 0) {
       var extremes = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
 
       for (var i = 0; i < panel.objects.length; i++) {
@@ -282,6 +282,8 @@ export default class Chart {
           this.renderer
         );
 
+        if (this.model.autoScale == false) continue;
+
         var fV = LIB.getReferenceValue(
           panel.objects[i],
           this.model,
@@ -299,32 +301,35 @@ export default class Chart {
         }
       }
 
-      if (
-        Math.abs(extremes.max) == Number.MAX_VALUE &&
-        Math.abs(extremes.min) == Number.MAX_VALUE
-      ) {
-        //wtf? no extremes?
-        extremes.max = 1;
-        extremes.min = -1;
-      }
+      if (this.model.autoScale == true) {
 
-      if (extremes.max == extremes.min) {
-        extremes.max += 1;
-        extremes.min -= 1;
-      }
+        if (
+          Math.abs(extremes.max) == Number.MAX_VALUE &&
+          Math.abs(extremes.min) == Number.MAX_VALUE
+        ) {
+          //wtf? no extremes?
+          extremes.max = 1;
+          extremes.min = -1;
+        }
 
-      extremesOffset = extremes.max - extremes.min;
-      extremesMargin = extremesOffset * this.model.extremesMargin;
+        if (extremes.max == extremes.min) {
+          extremes.max += 1;
+          extremes.min -= 1;
+        }
 
-      if (panel.centerZero == true) {
-        var range = Math.abs(extremes.max + extremesMargin);
-        if (Math.abs(extremes.min - extremesMargin) > range)
-          range = Math.abs(extremes.min - extremesMargin);
-        panel.vMax = range;
-        panel.vMin = -range;
-      } else {
-        panel.vMax = extremes.max + extremesMargin;
-        panel.vMin = extremes.min - extremesMargin;
+        extremesOffset = extremes.max - extremes.min;
+        extremesMargin = extremesOffset * this.model.extremesMargin;
+
+        if (panel.centerZero == true) {
+          var range = Math.abs(extremes.max + extremesMargin);
+          if (Math.abs(extremes.min - extremesMargin) > range)
+            range = Math.abs(extremes.min - extremesMargin);
+          panel.vMax = range;
+          panel.vMin = -range;
+        } else {
+          panel.vMax = extremes.max + extremesMargin;
+          panel.vMin = extremes.min - extremesMargin;
+        }
       }
     }
 
