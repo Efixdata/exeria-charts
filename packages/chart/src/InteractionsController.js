@@ -1041,7 +1041,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 						var valueY1 = this.initialMinMax.value;
 						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 						var delta = valueY2-valueY1;
-						if(delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max+delta - this.initialMinMax.min-delta) > 0.00005)){
+						if(delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max+delta - this.initialMinMax.min-delta) > 0.000000000000000001)){
 							panel.vMax = this.initialMinMax.max+delta;
 							panel.vMin = this.initialMinMax.min-delta;
 						}
