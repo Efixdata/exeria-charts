@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TextButton } from "ui";
 
 interface AutoScaleSwitchProps {
@@ -8,14 +8,23 @@ interface AutoScaleSwitchProps {
 }
 
 export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
+
   const defaultAutoScaleValue = props.chart ? props.chart.getAutoScale() : true;
-
   const [autoScale, setAutoScale] = useState(defaultAutoScaleValue);
-
   const changeMode = () => {
     props.chart.setAutoScale(!autoScale);
     setAutoScale(!autoScale);
   };
+
+  useEffect(() => {
+    const subscription = props?.chart?.subscribe('AUTOSCALE', (data: any) => {
+      setAutoScale(data.autoScale);
+    })
+
+    return () => {
+      subscription?.unsubscribe();
+    }
+  });
 
   return (
     <TextButton

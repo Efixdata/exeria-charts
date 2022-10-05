@@ -634,6 +634,13 @@ export default class Chart {
 		this.model.autoScale = autoScale;
 		this.rerender();
 
+    this.emitEvent({
+      topic: "AUTOSCALE",
+      data: {
+        autoScale: autoScale
+      }
+    });
+
 		// this.refreshTools();
 	}
 
