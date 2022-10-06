@@ -2534,7 +2534,10 @@ function EraserTool(interactor){
 		var eo = this.interactor.getEventOffset(e);
 		
 		this.interactor.currentHitObject = this.interactor.getCurrentHitObject(eo.offsetX, eo.offsetY);
-		if (this.interactor.currentHitObject!=null) {
+		if (this.interactor.isAboveValueAxis(e)) {
+			this.interactor.currentHitObject = null;
+			this.interactor.chart.style.cursor = "ns-resize";
+		} else if (this.interactor.currentHitObject!=null) {
 
 			if (this.interactor.chart.style.cursor!= this.interactor.currentMode.cursorOverObject) {
 				this.interactor.chart.style.cursor = this.interactor.currentMode.cursorOverObject;
@@ -2543,7 +2546,7 @@ function EraserTool(interactor){
 			if (this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove) {
 				this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseMove(e, this.interactor.currentHitObject, this.interactor.controller.renderer, this.interactor, this.interactor.model, this.interactor.currentPanel, this.interactor.fusion.getSeriesManager());
 			}
-		}else{
+		} else {
 			if (this.interactor.chart.style.cursor!=this.cursor) {
 				this.interactor.chart.style.cursor = this.cursor;
 			}
@@ -2553,6 +2556,12 @@ function EraserTool(interactor){
 	this.onMouseDrag	=	function (e) {
 		this.startEvent = this.interactor.initialMouseEvent;
 		this.finishEvent = e;
+
+
+		if (this.interactor.currentHandler >-1) return this.interactor.onDragHandler(e);
+		if (this.interactor.currentHitObject != null) return this.interactor.onDragObject(e);
+
+		return this.interactor.onPan(e);
 	};
 
 
