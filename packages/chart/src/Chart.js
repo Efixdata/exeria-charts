@@ -672,10 +672,49 @@ export default class Chart {
   }
 
   subscribe(topic, callback) {
+    // TOPICS: AUTOSCALE, CURSOR_CHANGE
     this.subscriptionManager.subscribe(topic, callback);
   }
 
   emitEvent(event) {
     this.subscriptionManager.onEvent(event);
   }
+
+  setMainDrawMode(mode) {
+    // mode: OHLC, Bars, Line, Histogram, Line and Histogram
+    this.onDrawModeSelected({
+      type: mode,
+      object: 'main@link',
+			selected: false
+    })
+  }
+
+  onDrawModeSelected(data) {
+		var object 		= data.object;
+		var drawMode 	= data.type;
+		var selected 	= data.selected;
+
+		if (object === 'main@link' || (object && object.id === 'main@link')) {
+			var objects = this.model.panels[0].objects;
+			var mainInstrumentSeries = this.model.instrumentsSeries[0];
+			var length = objects.length,
+			i = 0;
+
+			for (var i; i < length; i++) {
+				if (objects[i].dataLink === mainInstrumentSeries.seriesId) {
+					var object = objects[i];
+					break;
+				}
+			}
+		}
+
+		object.renderAs = drawMode;
+
+		if (selected) {
+			var mode = (drawMode === 'OHLC' || drawMode === 'Bars')? 'candles' : 'series';
+			this.updateToolsOptions({mode: mode, object: object});
+		}
+
+		this.rerender();
+	}
 }

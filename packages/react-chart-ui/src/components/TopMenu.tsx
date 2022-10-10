@@ -3,6 +3,7 @@ import { ButtonSelect } from "ui";
 import styled from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
+import { MainChartTypeSelect } from "./MainChartTypeSelect";
 
 interface TopMenuProps {
   chart: any;
@@ -44,6 +45,7 @@ export const TopMenu = (props: TopMenuProps) => {
   return (
     <Container style={props.style}>
       <LeftSection>
+        <MainChartTypeSelect chart={props.chart} />
         <ButtonSelect
           options={getAvailableIntervalsSymbols()}
           onSelect={(option) => {

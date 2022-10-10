@@ -358,7 +358,7 @@ var SeriesObject	=	function () {
 
 		if (o.priceLine) {
 
-			value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
@@ -420,7 +420,7 @@ var SeriesObject	=	function () {
 		}
 
 		if (o.priceLine) {
-			value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
@@ -683,7 +683,7 @@ var SeriesObject	=	function () {
 
 		if (o.priceLine) {
 			ctx.setLineDash([]);
-			value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
@@ -1045,7 +1045,7 @@ var SeriesObject	=	function () {
 		ctx.fill();
 
 		if (o.priceLine) {
-			value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][field];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][field];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
@@ -1582,7 +1582,7 @@ var IndicatorObject	=	function () {
 
 		if (o.priceLine) {
 
-			value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
@@ -1773,7 +1773,7 @@ var IndicatorObject	=	function () {
 
 		if (o.priceLine) {
 
-			value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
+			const value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
 			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
