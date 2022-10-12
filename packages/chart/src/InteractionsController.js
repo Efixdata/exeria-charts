@@ -61,7 +61,16 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	
 	function bindDomEvents(){
 		self.eventId = LIB.getUniqueId();
-		self.topLayer.addEventListener('wheel', self.onMouseWheel);
+		self.topLayer.addEventListener('wheel', function(evt){
+
+				if (evt.wheelDelta > 0 || evt.detail < 0 || evt.deltaY < 0) {
+					self.onMouseWheelUp(evt, self.config);
+				}
+				else {
+					self.onMouseWheelDown(evt, self.config);
+				}
+			});
+
 		self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
 		if (isTouchDevice()) {
@@ -88,8 +97,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 
 		if (!isTouchDevice()) {
-			// self.topLayer.addEventListener('mousedown', self.onMouseDown);
-			// self.topLayer.addEventListener('mouseup', self.onMouseLeftUp);
+			self.topLayer.addEventListener('mousedown', self.onMouseDown);
+			self.topLayer.addEventListener('mouseup', self.onMouseLeftUp);
 
 			self.body.addEventListener('mouseup', self.onBodyMouseUp);
 			self.body.addEventListener('mouseout', self.onBodyMouseOut);
@@ -117,7 +126,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.offDOMEvents = function(){
-		self.topLayer.removeEventListener('wheel', self.onMouseWheel);
+		// $("body").off("." + self.eventId);
+		// self.topLayer.off("." + self.eventId);
 
 		if (!isTouchDevice()) {
 			self.topLayer.removeEventListener('mouseDown', self.onMouseDown);
@@ -248,6 +258,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				// this refers to chart
 				const minPeriodWidth = this.getMinPeriodWidth();
 				const maxPeriodWidth = this.model._width / 2;
+
 				const trackedPoint = event.center.offsetX;
 				if (self.pinch.trackedIndex == null)
 					self.pinch.trackedIndex = this.renderer.getPointIndex(trackedPoint, this.model);
@@ -847,7 +858,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 
 	this.onBodyMouseUp = function(evt) {
-		if (evt.which !== 2) {
+		if(evt.which !== 2){
 			var eventElement = evt.toElement || evt.target || evt.target;
 
 			// TODO: check if following code works properly
@@ -983,6 +994,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onPan				=	function (e) {
+
 		if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
@@ -1129,73 +1141,59 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	}
 
-	this.onMouseWheel = function (event) {
-		let zoomFactor = 0.75;
+	this.onMouseWheelUp 	=	function (e, config) {
+		if(config.mouseWheelZoomEnabled===false) return;
+		if(this.controller.isChartEmpty(this.chart)) return;
 
-		// check if zooming with touchpad
-		if (event.ctrlKey) {
-			zoomFactor = 0.95;
-		}
-
-		if (event.wheelDelta > 0 || event.detail < 0 || event.deltaY < 0) {
-			self.onMouseWheelUp(event, self.config, zoomFactor);
-		}
-		else {
-			self.onMouseWheelDown(event, self.config, 1 / zoomFactor);
-		}
-	}
-
-	this.onMouseWheelUp = function (e, config, zoomFactor) {
-		if (config.mouseWheelZoomEnabled === false) return;
-		if (this.controller.isChartEmpty(this.chart)) return;
-
-		const eventOffset = this.getEventOffset(e);
-
+		var eo = this.getEventOffset(e);
+		
 		clearInterval(this.swipe.hook);
+
 		e.preventDefault();
 
 		self.doFrame(function () {
-			const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
-			const len = this.fusion.getMainSeries().data.length;
-			const x = this.renderer.getIndexPoint(len - 1, this.model);
 
-			// stop enlarging if zoom is too big
-			const currentHorizon = this.model._rightIndex - this.model._leftIndex;
-			const newHorizon = Math.round(currentHorizon * zoomFactor) - 1;
-			if (newHorizon < 6) return;
+			var index = this.renderer.getPointIndex(eo.offsetX, this.model);
+			var len = this.fusion.getMainSeries().data.length;
+			var x = this.renderer.getIndexPoint(len-1, this.model);
 
-			let periodWidth = this.model._width / newHorizon > 1 ? Math.round(this.model._width / newHorizon) : this.model._width / newHorizon ;
+			var _w = this.model._rightIndex - this.model._leftIndex;
+			var _d = Math.round(_w*0.75)-1;
+			if(_d < 6) return;
 
-			if (periodWidth <= this.model.periodWidth)
-				periodWidth = periodWidth + 20;
+			var _pw = this.model._width/_d > 1 ? Math.round(this.model._width/_d) : this.model._width/_d ;
 
-			if (periodWidth < 0.01) periodWidth = 0.01;
+			if(_pw <= this.model.periodWidth)
+				_pw = _pw+2;
 
-			// setting the actual zoom
-			this.model.periodWidth = periodWidth;
+			if (_pw < 0.01) _pw =0.01;
 
-			if (index > len - 1) {
-				if (this.model._leftIndex > 0) { this.moveIndexToPoint (len - 1, x); }
-			} else
-				this.moveIndexToPoint (index, eventOffset.offsetX);
+			this.model.periodWidth = _pw;
+
+			if(index > len-1){
+				if(this.model._leftIndex >0)
+					this.moveIndexToPoint (len-1, x);
+			}else
+				this.moveIndexToPoint (index, eo.offsetX);
 
 			// this.fit();
 			// this.renderOverlay();
 			// this.render();
 			self.controller.rerender();
+
 		});
 
 	};
 
-	this.onMouseWheelDown = function (event, config, zoomFactor) {
+	this.onMouseWheelDown	=	function (event, config) {
 		if (config.mouseWheelZoomEnabled === false) return;
 		if (this.controller.isChartEmpty(this.chart)) return;
-
 		const eventOffset = this.getEventOffset(event);
 		
 		clearInterval(this.swipe.hook);
 		event.preventDefault();
 		
+
 		self.doFrame(function () {
 			// this refers to chart
 			const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
@@ -1206,7 +1204,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			const canvasWidth = this.model._width - this.model.valueAxisWidth;
 			const minPeriodWidth = this.getMinPeriodWidth();
 
-			const _d = Math.round(visibleIndexesNum * zoomFactor) + 1;
+			const _d = Math.round(visibleIndexesNum * 1.25) + 1;
 			
 			let periodWidth = canvasWidth / _d > 1 ? Math.round(canvasWidth / _d) : canvasWidth / _d;
 
