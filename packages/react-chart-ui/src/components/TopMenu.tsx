@@ -4,10 +4,12 @@ import styled from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
+import { FullScreenButton } from "./FullScreenButton";
 
 interface TopMenuProps {
   chart: any;
   style?: React.CSSProperties;
+  mainContainer: React.RefObject<unknown>;
 }
 
 const RightSection = styled.div`
@@ -15,6 +17,7 @@ display: flex;
 flex-direction: row;
 margin-left: auto;
 gap: 16px;
+align-items: center;
 `
 
 const Container = styled.div`
@@ -56,6 +59,7 @@ export const TopMenu = (props: TopMenuProps) => {
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />
+          <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
         </RightSection>
       </LeftSection>
       <div style={{ width: valueAxisWidth, borderLeft: "1px solid rgba(255, 255, 255, 0.1)", display: "flex", alignItems: "center"}}>

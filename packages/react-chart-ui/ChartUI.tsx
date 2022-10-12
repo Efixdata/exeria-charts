@@ -1,8 +1,8 @@
-import React, { useLayoutEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import { Button } from "ui";
 import { LeftMenu } from "./src/components/LeftMenu";
 import { TopMenu } from "./src/components/TopMenu";
+
 interface ChartUIProps {
   chart: any;
   children?: React.ReactNode;
@@ -22,26 +22,38 @@ const Container = styled.div`
   font-size: 13px;
 `;
 
-const ChartUI = (props: ChartUIProps) => {
-  const leftMenuWidth = props.leftMenuWidth ? props.leftMenuWidth : "50px";
-  const topMenuHeight = props.topMenuHeight ? props.topMenuHeight : "50px";
+class ChartUI extends React.Component {
+  containerRef;
+  props: ChartUIProps;
 
-  return (
-    <Container>
-      <TopMenu chart={props.chart} style={{ height: topMenuHeight }} />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          flexGrow: "1",
-          maxHeight: `calc(100% - ${topMenuHeight}`,
-        }}
-      >
-        <LeftMenu chart={props.chart} style={{ width: leftMenuWidth }} />
-        <div style={{ flexGrow: "1" }}>{props.children}</div>
-      </div>
-    </Container>
-  );
-};
+  constructor(props: ChartUIProps) {
+    super(props);
+    this.props = props;
+    this.containerRef = React.createRef();
+  }
+
+  render() {
+    const leftMenuWidth = this.props.leftMenuWidth ? this.props.leftMenuWidth : "50px";
+    const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "50px";
+
+    return (
+      <Container ref={this.containerRef}>
+        <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef}/>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexGrow: "1",
+            maxHeight: `calc(100% - ${topMenuHeight}`,
+            maxWidth: '100%'
+          }}
+        >
+          <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
+          <div style={{ flexGrow: "1", maxWidth: `calc(100% - ${leftMenuWidth})` }}>{this.props.children}</div>
+        </div>
+      </Container>
+    );
+  }
+}
 
 export { ChartUI };
