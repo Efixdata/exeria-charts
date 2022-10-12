@@ -6,6 +6,7 @@ import { Series } from './Objects'
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js"
 import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
+import _ from 'lodash';
 
 var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
 	var self = this;
@@ -61,15 +62,35 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	
 	function bindDomEvents(){
 		self.eventId = LIB.getUniqueId();
+		let accumulated1 = 0;
+		let accumulated2 = 0;
+		// const throttled = _.throttle(, 100)
 		self.topLayer.addEventListener('wheel', function(evt){
+			if (evt.deltaY < 0) {
+				accumulated1 += evt.deltaY;
+				accumulated2 = 0;
 
-				if (evt.wheelDelta > 0 || evt.detail < 0 || evt.deltaY < 0) {
+				//console.log(accumulated1);
+
+				if (accumulated1 <= -10) {
 					self.onMouseWheelUp(evt, self.config);
-				}
-				else {
+					//console.log(accumulated1, 'up!')
+					accumulated1 = 0;
+				}	
+			}
+			else {
+				accumulated2 += evt.deltaY;
+				accumulated1 = 0
+
+				if (accumulated2 >= 10) {
 					self.onMouseWheelDown(evt, self.config);
+					accumulated2 = 0;
 				}
-			});
+			}
+		});
+		self.topLayer.addEventListener('wheel', e => {
+			e.preventDefault();
+		});
 
 		self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
@@ -1155,26 +1176,32 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			var index = this.renderer.getPointIndex(eo.offsetX, this.model);
 			var len = this.fusion.getMainSeries().data.length;
+			const canvasWidth = this.model._width - this.model.valueAxisWidth;
 			var x = this.renderer.getIndexPoint(len-1, this.model);
 
-			var _w = this.model._rightIndex - this.model._leftIndex;
-			var _d = Math.round(_w*0.75)-1;
-			if(_d < 6) return;
+			var _w = this.model._rightIndex - this.model._leftIndex; // current amount of candles
+			var _d = Math.round(_w * 0.9); // new amount of candles
+			if (_d < 6) return; // if less than 6 candles, abort
 
-			var _pw = this.model._width/_d > 1 ? Math.round(this.model._width/_d) : this.model._width/_d ;
+			if (canvasWidth/_d > 5) { // candle width > 1px
+				var _pw =  Math.round(canvasWidth/_d);
+			} else {
+				var _pw = canvasWidth/_d;
+			}
+			
+			if (_pw <= this.model.periodWidth)
+				_pw = _pw + 2;
 
-			if(_pw <= this.model.periodWidth)
-				_pw = _pw+2;
+			if (_pw < 0.01) _pw = 0.01;
 
-			if (_pw < 0.01) _pw =0.01;
-
+			console.log('ZOOM', this.model.periodWidth, '====>', _pw)
 			this.model.periodWidth = _pw;
 
-			if(index > len-1){
-				if(this.model._leftIndex >0)
-					this.moveIndexToPoint (len-1, x);
-			}else
-				this.moveIndexToPoint (index, eo.offsetX);
+			if (index > len - 1) {
+				if (this.model._leftIndex > 0)
+					this.moveIndexToPoint(len - 1, x);
+			} else
+				this.moveIndexToPoint(index, eo.offsetX);
 
 			// this.fit();
 			// this.renderOverlay();
@@ -1196,6 +1223,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		self.doFrame(function () {
 			// this refers to chart
+			let periodWidth;
 			const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
 			const dataLength = this.fusion.getMainSeries().data.length;
 			const x = this.renderer.getIndexPoint(dataLength - 1, this.model);
@@ -1204,14 +1232,23 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			const canvasWidth = this.model._width - this.model.valueAxisWidth;
 			const minPeriodWidth = this.getMinPeriodWidth();
 
-			const _d = Math.round(visibleIndexesNum * 1.25) + 1;
-			
-			let periodWidth = canvasWidth / _d > 1 ? Math.round(canvasWidth / _d) : canvasWidth / _d;
+			const _d = Math.round(visibleIndexesNum * 1.1);
 
-			if (periodWidth >= this.model.periodWidth)
-				periodWidth = periodWidth * 0.075;
+			if (canvasWidth / _d > 5) {
+				periodWidth = Math.round(canvasWidth / _d);
+
+				let factor = 0.9
+				while (periodWidth >= this.model.periodWidth) {
+					periodWidth = Math.round(periodWidth * factor);
+					factor -= 0.1;
+				}
+			} else {
+				periodWidth = canvasWidth / _d;
+			}
 
 			if (periodWidth < minPeriodWidth) periodWidth = minPeriodWidth;
+
+			console.log('ZOOM', this.model.periodWidth, '>>>>', periodWidth)
 
 			if (this.model.periodWidth == minPeriodWidth) {
 				//don't zoom out but move right
