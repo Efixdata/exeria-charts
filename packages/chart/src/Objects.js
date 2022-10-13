@@ -359,7 +359,7 @@ var SeriesObject	=	function () {
 		if (o.priceLine) {
 
 			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
@@ -421,7 +421,7 @@ var SeriesObject	=	function () {
 
 		if (o.priceLine) {
 			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY	= Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
@@ -684,7 +684,7 @@ var SeriesObject	=	function () {
 		if (o.priceLine) {
 			ctx.setLineDash([]);
 			const value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
@@ -783,7 +783,7 @@ var SeriesObject	=	function () {
 				color = red;
 
 			}
-			var valueY = renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = color;
 			ctx.beginPath();
@@ -926,7 +926,7 @@ var SeriesObject	=	function () {
 				color = red;
 
 			}
-			var valueY = renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = color;
 			ctx.beginPath();
@@ -999,8 +999,8 @@ var SeriesObject	=	function () {
 		ctx.fill();
 
 		if (o.priceLine) {
-			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][field];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax)+panel._offset;
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][field];
+			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
@@ -1536,8 +1536,8 @@ var IndicatorObject	=	function () {
 
 		if (o.priceLine) {
 
-			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
+			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
@@ -1727,8 +1727,8 @@ var IndicatorObject	=	function () {
 
 		if (o.priceLine) {
 
-			const value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
-			valueY	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			const value = seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
+			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
