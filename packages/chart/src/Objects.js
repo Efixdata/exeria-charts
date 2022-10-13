@@ -755,8 +755,8 @@ var SeriesObject	=	function () {
 			ctx.strokeWidth = 1;
 
 			ctx.beginPath();
-			ctx.moveTo(midX - 0.5, highY);
-			ctx.lineTo(midX - 0.5, lowY);
+			ctx.moveTo(midX + 0.5, highY);
+			ctx.lineTo(midX + 0.5, lowY);
 			ctx.stroke();
 			ctx.closePath();
 
