@@ -1136,96 +1136,51 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		let wheelUpDelta = 0;
 		let wheelDownDelta = 0;
 
-		function accumulateAndTrigger(currentDelta, oppositeDelta, event, callback) {
-			currentDelta += event.deltaY;
-			oppositeDelta = 0;
-
-			if (Math.abs(currentDelta) >= 10) {
-				callback.call(self, event, self.config);
-				currentDelta = 0;
-			}
-		}	
-
 		return function(event) {
-			event.preventDefault();
+			if (self.config.mouseWheelZoomEnabled === false) return;
+			if (self.controller.isChartEmpty(self.chart)) return;
 
-			if (event.deltaY < 0) {
-				accumulateAndTrigger(wheelUpDelta, wheelDownDelta, event, self.onMouseWheelUp)
-			} else {
-				accumulateAndTrigger(wheelDownDelta, wheelUpDelta, event, self.onMouseWheelDown)
+			event.preventDefault();
+			clearInterval(self.swipe.hook);
+
+			if (event.deltaY < 0) { // scrolling up
+				wheelDownDelta = 0;
+				accumulateAndTrigger.call(self, wheelUpDelta, event, onMouseWheelUp)
+			} else { // scrolling down
+				wheelUpDelta = 0;
+				accumulateAndTrigger.call(self, wheelDownDelta, event, onMouseWheelDown)
 			}
 		}
-	}())
 
-	this.onMouseWheelUp 	=	function (e, config) {
-		if(config.mouseWheelZoomEnabled===false) return;
-		if(this.controller.isChartEmpty(this.chart)) return;
+		function accumulateAndTrigger(currentDelta, event, callback) {
+			currentDelta += event.deltaY;
 
-		var eo = this.getEventOffset(e);
-		
-		clearInterval(this.swipe.hook);
+			if (Math.abs(currentDelta) >= 10) {
+				this.doFrame(() => {
+					const eventOffset = this.getEventOffset(event);
+					const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
+					const dataLength = this.fusion.getMainSeries().data.length;
+					const xPosition = this.renderer.getIndexPoint(dataLength - 1, this.model);
+					const canvasWidth = this.model._width - this.model.valueAxisWidth;
+					const visibleIndexes = this.model._rightIndex - this.model._leftIndex;
+	
+					callback.call(this, index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset);
 
-		e.preventDefault();
+					// this.fit();
+					// this.renderOverlay();
+					// this.render();
+					self.controller.rerender();
+				})
 
-		self.doFrame(function () {
-
-			var index = this.renderer.getPointIndex(eo.offsetX, this.model);
-			var len = this.fusion.getMainSeries().data.length;
-			const canvasWidth = this.model._width - this.model.valueAxisWidth;
-			var x = this.renderer.getIndexPoint(len-1, this.model);
-
-			var _w = this.model._rightIndex - this.model._leftIndex; // current amount of candles
-			var _d = Math.round(_w * 0.9); // new amount of candles
-			if (_d < 6) return; // if less than 6 candles, abort
-
-			if (canvasWidth/_d > 5) { // candle width > 1px
-				var _pw =  Math.round(canvasWidth/_d);
-			} else {
-				var _pw = canvasWidth/_d;
+				currentDelta = 0;
 			}
-			
-			if (_pw <= this.model.periodWidth)
-				_pw = _pw + 2;
+		}
 
-			if (_pw < 0.01) _pw = 0.01;
-
-			this.model.periodWidth = _pw;
-
-			if (index > len - 1) {
-				if (this.model._leftIndex > 0)
-					this.moveIndexToPoint(len - 1, x);
-			} else
-				this.moveIndexToPoint(index, eo.offsetX);
-
-			// this.fit();
-			// this.renderOverlay();
-			// this.render();
-			self.controller.rerender();
-
-		});
-	};
-
-	this.onMouseWheelDown	=	function (event, config) {
-		if (config.mouseWheelZoomEnabled === false) return;
-		if (this.controller.isChartEmpty(this.chart)) return;
-		const eventOffset = this.getEventOffset(event);
-		
-		clearInterval(this.swipe.hook);
-		event.preventDefault();
-		
-
-		self.doFrame(function () {
-			// this refers to chart
+		function onMouseWheelDown(index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset) {
 			let periodWidth;
-			const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
-			const dataLength = this.fusion.getMainSeries().data.length;
-			const x = this.renderer.getIndexPoint(dataLength - 1, this.model);
 
-			const visibleIndexesNum = this.model._rightIndex - this.model._leftIndex;
-			const canvasWidth = this.model._width - this.model.valueAxisWidth;
 			const minPeriodWidth = this.getMinPeriodWidth();
-
-			const _d = Math.round(visibleIndexesNum * 1.1);
+			const _d = Math.round(visibleIndexes * 1.1);
 
 			if (canvasWidth / _d > 5) {
 				periodWidth = Math.round(canvasWidth / _d);
@@ -1251,18 +1206,37 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				this.model.periodWidth = periodWidth;
 				
 				if (index > dataLength - 1) {
-					this.moveIndexToPoint(dataLength - 1, x);
+					this.moveIndexToPoint(dataLength - 1, xPosition);
 				} else {
 					this.moveIndexToPoint(index, eventOffset.offsetX);
 				}
 			}
+		}
 
-			// this.fit();
-			// this.renderOverlay();
-			// this.render();
-			self.controller.rerender();
-		});
-	};
+		function onMouseWheelUp(index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset) {
+			var _d = Math.round(visibleIndexes * 0.9); // new amount of candles
+			if (_d < 6) return; // if less than 6 candles, abort
+
+			if (canvasWidth/_d > 5) { // candle width > 1px
+				var _pw =  Math.round(canvasWidth/_d);
+			} else {
+				var _pw = canvasWidth/_d;
+			}
+			
+			if (_pw <= this.model.periodWidth)
+				_pw = _pw + 2;
+
+			if (_pw < 0.01) _pw = 0.01;
+
+			this.model.periodWidth = _pw;
+
+			if (index > dataLength - 1) {
+				if (this.model._leftIndex > 0)
+					this.moveIndexToPoint(dataLength - 1, xPosition);
+			} else
+				this.moveIndexToPoint(index, eventOffset.offsetX);
+		}
+	}())
 
 	this.getMinPeriodWidth = function () {
 		const dataLength = this.fusion.getMainSeries().data.length;
