@@ -97,7 +97,7 @@ const Renderer = function (settings) {
 	this.render		=	function (ctx, model, fusion, translate, omitObject) {
 
 		try {
-			ctx.translate(0.5, 0.5);
+			//ctx.translate(0.5, 0.5);
 			var seriesManager = fusion.getSeriesManager();
 			
 			this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
@@ -137,7 +137,7 @@ const Renderer = function (settings) {
 			else
 				console.warn(err)
 		} finally {
-			ctx.translate (-0.5, -0.5);
+			// ctx.translate (-0.5, -0.5);
 		}
 	};
 
@@ -291,7 +291,7 @@ const Renderer = function (settings) {
 
 			try {
 				octx.save();
-				octx.translate (0.5, 0.5);
+				// octx.translate (0.5, 0.5);
 				octx.rect(0, panel._offset, panel._width - model.valueAxisWidth, panel._height);
 				octx.clip();
 				octx.font = WEBRCP.utils.colorManager.getFont("text");
@@ -340,7 +340,7 @@ const Renderer = function (settings) {
 				//permamently close all earlier paths (some can be unclosed)
 				octx.beginPath();
 				octx.closePath();
-				octx.translate (-0.5, -0.5);
+				// octx.translate (-0.5, -0.5);
 				octx.restore();
 			}
 		}
@@ -353,7 +353,7 @@ const Renderer = function (settings) {
 
 			try{
 				octx.save();
-				octx.translate (0.5, 0.5);
+				// octx.translate (0.5, 0.5);
 				octx.rect(0, panel._offset, panel._width, panel._height);
 				octx.clip();
 
@@ -387,7 +387,7 @@ const Renderer = function (settings) {
 				//permamently close all earlier paths (some can be unclosed)
 				octx.beginPath();
 				octx.closePath();
-				octx.translate (-0.5, -0.5);
+				// octx.translate (-0.5, -0.5);
 				octx.restore();
 			}
 		}
