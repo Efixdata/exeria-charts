@@ -6,9 +6,10 @@ import { Series } from './Objects'
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js"
 import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
-import _ from 'lodash';
 
 var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
+	window.interactor = this;
+	
 	var self = this;
 	this.chart = chart;
 	this.currentMode = new DefaultTool(this);
@@ -386,7 +387,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	};
 
-	this.moveIndexToPoint =	function (index, x) {
+	this.moveIndexToPoint =	function (index, x) { // index - candle index, x - canvas index from left
 		// TODO: model manipulation here, we should refactor it
 		var vpl = (this.model.periodWidth * index)-x; if (vpl<0) vpl = 0;
 		this.model.viewportLeft = vpl;
@@ -1598,13 +1599,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.octx.clip();
 
 			self.clearOverlay();
-			self.octx.translate (0.5, 0.5);
+			// self.octx.translate (0.5, 0.5);
 			r.render(o, self.octx, self.renderer, self.model, panel, self.fusion.getSeriesManager());
 			r.postRender(o, self.octx, self.renderer, self.model, panel, self.fusion.getSeriesManager());
 		}catch(e){
 			console.error(e,e.stack)
 		}finally{
-			self.octx.translate (-0.5, -0.5);
+			// self.octx.translate (-0.5, -0.5);
 			self.octx.restore();
 		}
 	}
@@ -1896,7 +1897,7 @@ function DefaultTool(interactor){
 			//render only on chart surface (without axis)
 			try{
 				octx.save();
-				octx.translate (0.5, 0.5);
+				// octx.translate (0.5, 0.5);
 				octx.rect(0, panel._offset, panel._width-this.interactor.model.valueAxisWidth, panel._height);
 				octx.clip();
 
@@ -1906,14 +1907,14 @@ function DefaultTool(interactor){
 			}catch(e){
 				console.error(e,e.stack)
 			}finally{
-				octx.translate (-0.5, -0.5);
+				// octx.translate (-0.5, -0.5);
 				octx.restore();
 			}
 
 			//post render on whole octx
 			try{
 				octx.save();
-				octx.translate (0.5, 0.5);
+				// octx.translate (0.5, 0.5);
 				octx.rect(0, panel._offset, panel._width, panel._height);
 				octx.clip();
 
@@ -1923,7 +1924,7 @@ function DefaultTool(interactor){
 			}catch(e){
 				console.error(e,e.stack)
 			}finally{
-				octx.translate (-0.5, -0.5);
+				// octx.translate (-0.5, -0.5);
 				octx.restore();
 			}
 		}
@@ -1950,7 +1951,7 @@ function DefaultTool(interactor){
 
 					try{
 						octx.save();
-						octx.translate (0.5, 0.5);
+						// octx.translate (0.5, 0.5);
 						tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
 						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision > 4 ? self.interactor.model.instrumentsSeries[0].instrument.precision : 4//self.interactor.model.instrumentsSeries[0].instrument.precision;
 						self.currentTip = tip;
@@ -1959,7 +1960,7 @@ function DefaultTool(interactor){
 					}catch(e){
 						console.error(e,e.stack)
 					}finally{
-						octx.translate (-0.5, -0.5);
+						// octx.translate (-0.5, -0.5);
 						octx.restore();
 					}
 				}

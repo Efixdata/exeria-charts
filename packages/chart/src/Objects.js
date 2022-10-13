@@ -708,8 +708,6 @@ var SeriesObject	=	function () {
 		var color = red;
 		var stroke = redStroke;
 		var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
-		var rightX = 0; var midX = 0;
-
 
 		ctx.lineWidth = 1;
 
@@ -720,52 +718,60 @@ var SeriesObject	=	function () {
 
 		var fV = LIB.getFirstAvailableValue(model, seriesManager[o.dataLink].data, dfC);
 
+		const roundedPeriodWidth = Math.round(model.periodWidth)
+
 		for (var i = model._leftIndex; i <= model._rightIndex; i++) {
 
 			if (i > seriesManager[o.dataLink].data.length - 1) continue;
 			if (seriesManager[o.dataLink].data[i][dfH] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			highY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfH], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			lowY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfL], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			openY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfO], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			closeY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfC], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			highY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfH], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
+			lowY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfL], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
+			openY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfO], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
+			closeY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfC], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
 
-			if (model.periodWidth==1) {
-				rightX = indexX;
-				midX = indexX;
-			} else
-				if (model.periodWidth==2) {
-					rightX = indexX;
-					midX = indexX;
-				} else
-					if (model.periodWidth==3) {
-						rightX = indexX+1;
-						midX = indexX+1;
-						indexX = indexX+1;
-					} else
-						if (model.periodWidth==4) {
-							rightX = indexX+2;
-							midX = indexX+1;
-						} else
-							if (model.periodWidth==5) {
-								rightX = indexX+3;
-								midX = indexX+1;
-							} else
-								if (model.periodWidth==6) {
-									rightX = indexX+4;
-									midX = indexX+2;
-								} else
-									if (model.periodWidth>6) {
+			const leftX = Math.round(indexX);
+			const rightX = leftX + roundedPeriodWidth;
+			const midX = Math.round(rightX - roundedPeriodWidth / 2);
 
-										midX = indexX+parseInt(model._midOffset);
-										rightX = indexX+model.periodWidth-2;
-										indexX = indexX+1;
+			console.log('OHLC', midX);
 
-									} else {
-										midX = indexX+parseInt(model._midOffset);
-										rightX = indexX+model.periodWidth-1;
-									}
+			// if (model.periodWidth==1) {
+			// 	rightX = indexX;
+			// 	midX = indexX;
+			// } else
+			// 	if (model.periodWidth==2) {
+			// 		rightX = indexX;
+			// 		midX = indexX;
+			// 	} else
+			// 		if (model.periodWidth==3) {
+			// 			rightX = indexX+1;
+			// 			midX = indexX+1;
+			// 			indexX = indexX+1;
+			// 		} else
+			// 			if (model.periodWidth==4) {
+			// 				rightX = indexX+2;
+			// 				midX = indexX+1;
+			// 			} else
+			// 				if (model.periodWidth==5) {
+			// 					rightX = indexX+3;
+			// 					midX = indexX+1;
+			// 				} else
+			// 					if (model.periodWidth==6) {
+			// 						rightX = indexX+4;
+			// 						midX = indexX+2;
+			// 					} else
+			// 						if (model.periodWidth>6) {
+
+			// 							midX = indexX+parseInt(model._midOffset);
+			// 							rightX = indexX+model.periodWidth-2;
+			// 							indexX = indexX+1;
+
+			// 						} else {
+			// 							midX = indexX+parseInt(model._midOffset);
+			// 							rightX = indexX+model.periodWidth-1;
+			// 						}
 
 			if (seriesManager[o.dataLink].data[i][dfC]-seriesManager[o.dataLink].data[i][dfO]>0) {
 
@@ -782,34 +788,25 @@ var SeriesObject	=	function () {
 				stroke = grayStroke;
 			}
 
-			if (model.periodWidth<4) {
-
-				ctx.strokeStyle = stroke;
-				ctx.beginPath();
-				ctx.moveTo(midX, highY);
-				ctx.lineTo(midX, lowY);
-				ctx.stroke();
-
-			} else {
-
-				ctx.strokeStyle = stroke;//grayStroke;
-				ctx.beginPath();
-				ctx.moveTo(midX, highY);
-				ctx.lineTo(midX, lowY);
-				ctx.stroke();
-				ctx.beginPath();
-
-				ctx.beginPath();
-				ctx.strokeStyle = stroke;
-				ctx.strokeWidth = .5;
+			if (roundedPeriodWidth<3) {
 				ctx.fillStyle = color;
-				ctx.moveTo(indexX, openY);
-				ctx.lineTo(rightX, openY);
-				ctx.lineTo(rightX, closeY);
-				ctx.lineTo(indexX, closeY);
+				ctx.fillRect(leftX, highY, roundedPeriodWidth, lowY - highY)
+			} else {
+				ctx.strokeStyle = stroke;
+				ctx.fillStyle = color;
+				ctx.strokeWidth = 1;
+
+				ctx.beginPath();
+				ctx.moveTo(midX - 0.5, highY + 0.5);
+				ctx.lineTo(midX - 0.5, lowY + 0.5);
+				ctx.stroke();
 				ctx.closePath();
+				
+				ctx.beginPath()
+				ctx.rect(leftX + 1.5, openY + 0.5, roundedPeriodWidth - 2, closeY - openY)
 				ctx.fill();
 				ctx.stroke();
+				ctx.closePath();
 			}
 
 
