@@ -103,8 +103,8 @@ const theme = {
       dark: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
     },
     price: {
-      light: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
     },
     priceSubscript: {
       light: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif",

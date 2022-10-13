@@ -276,7 +276,9 @@ export function drawIndicatorMarker(ctx, panel, point, radius, color, alpha ) {
 
 }
 
-export function renderPriceText(text, ctx, x, y, priceFont, subscriptFont) {
+export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscriptFont
+	let {text, ctx, x, y, priceFont, subscriptFont} = options
+
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
 	ctx.font = priceFont;
@@ -299,7 +301,9 @@ export function renderPriceText(text, ctx, x, y, priceFont, subscriptFont) {
 	ctx.fillText(currentText, currentX, y);
 }
 
-export function measurePriceTextWidth(text, ctx, priceFont, subscriptFont) {
+export function measurePriceTextWidth(options) {
+	let {text, ctx, priceFont, subscriptFont} = options
+	
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
 	ctx.font = priceFont;
