@@ -62,37 +62,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 	
 	function bindDomEvents(){
-		self.eventId = LIB.getUniqueId();
-		let accumulated1 = 0;
-		let accumulated2 = 0;
-		// const throttled = _.throttle(, 100)
-		self.topLayer.addEventListener('wheel', function(evt){
-			if (evt.deltaY < 0) {
-				accumulated1 += evt.deltaY;
-				accumulated2 = 0;
-
-				//console.log(accumulated1);
-
-				if (accumulated1 <= -10) {
-					self.onMouseWheelUp(evt, self.config);
-					//console.log(accumulated1, 'up!')
-					accumulated1 = 0;
-				}	
-			}
-			else {
-				accumulated2 += evt.deltaY;
-				accumulated1 = 0
-
-				if (accumulated2 >= 10) {
-					self.onMouseWheelDown(evt, self.config);
-					accumulated2 = 0;
-				}
-			}
-		});
-		self.topLayer.addEventListener('wheel', e => {
-			e.preventDefault();
-		});
-
+		self.topLayer.addEventListener('wheel', self.triggerWheelCallback)
 		self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
 		if (isTouchDevice()) {
@@ -148,8 +118,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.offDOMEvents = function(){
-		// $("body").off("." + self.eventId);
-		// self.topLayer.off("." + self.eventId);
+		self.topLayer.removeEventListener('wheel', self.triggerWheelCallback)
 
 		if (!isTouchDevice()) {
 			self.topLayer.removeEventListener('mouseDown', self.onMouseDown);
@@ -1163,6 +1132,31 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	}
 
+	this.triggerWheelCallback = (function() {
+		let wheelUpDelta = 0;
+		let wheelDownDelta = 0;
+
+		function accumulateAndTrigger(currentDelta, oppositeDelta, event, callback) {
+			currentDelta += event.deltaY;
+			oppositeDelta = 0;
+
+			if (Math.abs(currentDelta) >= 10) {
+				callback.call(self, event, self.config);
+				currentDelta = 0;
+			}
+		}	
+
+		return function(event) {
+			event.preventDefault();
+
+			if (event.deltaY < 0) {
+				accumulateAndTrigger(wheelUpDelta, wheelDownDelta, event, self.onMouseWheelUp)
+			} else {
+				accumulateAndTrigger(wheelDownDelta, wheelUpDelta, event, self.onMouseWheelDown)
+			}
+		}
+	}())
+
 	this.onMouseWheelUp 	=	function (e, config) {
 		if(config.mouseWheelZoomEnabled===false) return;
 		if(this.controller.isChartEmpty(this.chart)) return;
@@ -1195,7 +1189,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			if (_pw < 0.01) _pw = 0.01;
 
-			console.log('ZOOM', this.model.periodWidth, '====>', _pw)
 			this.model.periodWidth = _pw;
 
 			if (index > len - 1) {
@@ -1210,7 +1203,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.controller.rerender();
 
 		});
-
 	};
 
 	this.onMouseWheelDown	=	function (event, config) {
@@ -1248,8 +1240,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 
 			if (periodWidth < minPeriodWidth) periodWidth = minPeriodWidth;
-
-			console.log('ZOOM', this.model.periodWidth, '>>>>', periodWidth)
 
 			if (this.model.periodWidth == minPeriodWidth) {
 				//don't zoom out but move right

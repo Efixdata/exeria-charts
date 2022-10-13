@@ -735,44 +735,6 @@ var SeriesObject	=	function () {
 			const rightX = leftX + roundedPeriodWidth;
 			const midX = Math.round(rightX - roundedPeriodWidth / 2);
 
-			console.log('OHLC', midX);
-
-			// if (model.periodWidth==1) {
-			// 	rightX = indexX;
-			// 	midX = indexX;
-			// } else
-			// 	if (model.periodWidth==2) {
-			// 		rightX = indexX;
-			// 		midX = indexX;
-			// 	} else
-			// 		if (model.periodWidth==3) {
-			// 			rightX = indexX+1;
-			// 			midX = indexX+1;
-			// 			indexX = indexX+1;
-			// 		} else
-			// 			if (model.periodWidth==4) {
-			// 				rightX = indexX+2;
-			// 				midX = indexX+1;
-			// 			} else
-			// 				if (model.periodWidth==5) {
-			// 					rightX = indexX+3;
-			// 					midX = indexX+1;
-			// 				} else
-			// 					if (model.periodWidth==6) {
-			// 						rightX = indexX+4;
-			// 						midX = indexX+2;
-			// 					} else
-			// 						if (model.periodWidth>6) {
-
-			// 							midX = indexX+parseInt(model._midOffset);
-			// 							rightX = indexX+model.periodWidth-2;
-			// 							indexX = indexX+1;
-
-			// 						} else {
-			// 							midX = indexX+parseInt(model._midOffset);
-			// 							rightX = indexX+model.periodWidth-1;
-			// 						}
-
 			if (seriesManager[o.dataLink].data[i][dfC]-seriesManager[o.dataLink].data[i][dfO]>0) {
 
 				color = green;
@@ -788,28 +750,23 @@ var SeriesObject	=	function () {
 				stroke = grayStroke;
 			}
 
-			if (roundedPeriodWidth<3) {
-				ctx.fillStyle = color;
-				ctx.fillRect(leftX, highY, roundedPeriodWidth, lowY - highY)
-			} else {
-				ctx.strokeStyle = stroke;
-				ctx.fillStyle = color;
-				ctx.strokeWidth = 1;
+			ctx.strokeStyle = stroke;
+			ctx.fillStyle = color;
+			ctx.strokeWidth = 1;
 
-				ctx.beginPath();
-				ctx.moveTo(midX - 0.5, highY + 0.5);
-				ctx.lineTo(midX - 0.5, lowY + 0.5);
-				ctx.stroke();
-				ctx.closePath();
-				
+			ctx.beginPath();
+			ctx.moveTo(midX - 0.5, highY);
+			ctx.lineTo(midX - 0.5, lowY);
+			ctx.stroke();
+			ctx.closePath();
+
+			if (roundedPeriodWidth > 3) {
 				ctx.beginPath()
 				ctx.rect(leftX + 1.5, openY + 0.5, roundedPeriodWidth - 2, closeY - openY)
 				ctx.fill();
 				ctx.stroke();
 				ctx.closePath();
 			}
-
-
 		}
 
 		if (o.priceLine) {
