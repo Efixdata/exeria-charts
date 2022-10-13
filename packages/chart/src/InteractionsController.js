@@ -8,8 +8,6 @@ import Hammer from "./lib/hammer.min.js"
 import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
 
 var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
-	window.interactor = this;
-	
 	var self = this;
 	this.chart = chart;
 	this.currentMode = new DefaultTool(this);
