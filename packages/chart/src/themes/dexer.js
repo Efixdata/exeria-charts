@@ -34,6 +34,7 @@ const l_dots = "rgba(0, 0, 0, 0.24)";
 const l_border = "#c2c2c2";
 const l_red = "#e53c42"; //#f95151";
 const l_green = "#00b05d"; //#34c772";
+const l_greenBackground = "#21CA83";
 const l_menu_color = "#666";
 
 // -- CHART
@@ -59,6 +60,7 @@ const theme = {
     chartZeroColor: { light: "#dd7423", dark: "#ffff00" },
     chartRed: { light: l_chartRed, dark: "#FF007B", bw: black },
     chartGreen: { light: l_chartGreen, dark: "#17F7AB", bw: white },
+    chartGreenBackground: { light: l_greenBackground, dark: l_greenBackground, bw: white },
     chartGray: { light: gray, dark: d_chartGray },
     chartGrayPrimary: { light: l_chartStroke, dark: d_chartGrayLight },
     chartRedStroke: { light: "#800000", dark: "#CB026B", bw: black },

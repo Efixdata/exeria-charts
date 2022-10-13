@@ -288,8 +288,6 @@ var SeriesObject	=	function () {
 		var valueY = 0;
 		var color =  WEBRCP.utils.colorManager.getColor(o.color, o.color);
 		var textColor = WEBRCP.utils.getContrastColor(o.color);
-		var red = WEBRCP.utils.colorManager.getColor("chartRed");
-		var green = WEBRCP.utils.colorManager.getColor("chartGreen");
 
 		var dfO = o.openDataField ? o.openDataField : o.dataField;
 		var dfC = o.closeDataField ? o.closeDataField : o.dataField;
@@ -303,10 +301,10 @@ var SeriesObject	=	function () {
 			value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfC];
 			open = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfO];
 
-			if (value-open>0) {
-				color = green;
+			if (value - open > 0) {
+				color = WEBRCP.utils.colorManager.getColor("chartGreenBackground");
 			} else {
-				color = red;
+				color = WEBRCP.utils.colorManager.getColor("chartRed");
 			}
 		}
 
