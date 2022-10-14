@@ -310,7 +310,7 @@ var SeriesObject	=	function () {
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		valueY = renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		valueY = renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		renderer.drawPriceTag (ctx, model, panel, valueY, color, textColor, value, 'real');
 	}
 
@@ -326,7 +326,7 @@ var SeriesObject	=	function () {
 		var field = o.dataField;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		zeroY = renderer.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
+		zeroY = renderer.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 
 		for (var i=model._leftIndex; i<=model._rightIndex; i++) {
 
@@ -334,7 +334,7 @@ var SeriesObject	=	function () {
 			if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -358,7 +358,7 @@ var SeriesObject	=	function () {
 
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset
 			});
 		}
 
@@ -395,7 +395,7 @@ var SeriesObject	=	function () {
 			if (value === null) continue;
 		
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			let width = 1;
 
@@ -417,7 +417,7 @@ var SeriesObject	=	function () {
 
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset,
 			});
 		}
 
@@ -456,7 +456,7 @@ var SeriesObject	=	function () {
 			};
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.upperField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.upperField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 				midX = indexX;
@@ -484,7 +484,7 @@ var SeriesObject	=	function () {
 			}
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.lowerField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.lowerField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 				midX = indexX;
@@ -523,7 +523,7 @@ var SeriesObject	=	function () {
 
 			if (mod == 0) {
 				indexX = renderer.getIndexPoint(i, model);
-				valueY = renderer.getValuePoint(data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+				valueY = renderer.getYCoordinateForPrice(data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 
 				if (this.getRenderMode(o, model) == 'Volume Histogram') {
 					if (!data[i][field]) continue;
@@ -556,35 +556,35 @@ var SeriesObject	=	function () {
 			if (!seriesManager[o.dataLink].data[index]) return;
 
 			if (this.getRenderMode(o, model) == 'Line' || this.getRenderMode(o, model) == 'ChartShape' || this.getRenderMode(o, model) == 'Line and Histogram' || this.getRenderMode(o, model) == 'Histogram') {
-				var y = renderer.getValuePoint(
+				var y = renderer.getYCoordinateForPrice(
 						seriesManager[o.dataLink].data[index][field],
-						panel._height, panel.vMin, panel.vMax,
-						panel.valueAxisMode, fV)
+						{panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,
+						valueAxisMode: panel.valueAxisMode, fV})
 						+ panel._offset;
 				renderPoint(ctx, x, y, r);
 			} else if (this.getRenderMode(o, model) == 'Band') {
-				var yUp = renderer.getValuePoint(
+				var yUp = renderer.getYCoordinateForPrice(
 						seriesManager[o.dataLink].data[index][o.upperField],
-						panel._height, panel.vMin, panel.vMax,
-						panel.valueAxisMode, fV)
+						{panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,
+						valueAxisMode: panel.valueAxisMode, fV})
 						+ panel._offset;
-				var yDn = renderer.getValuePoint(
+				var yDn = renderer.getYCoordinateForPrice(
 						seriesManager[o.dataLink].data[index][o.lowerField],
-						panel._height, panel.vMin, panel.vMax,
-						panel.valueAxisMode, fV)
+						{panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,
+						valueAxisMode: panel.valueAxisMode, fV})
 						+ panel._offset;
 				renderPoint(ctx, x, yUp, r);
 				renderPoint(ctx, x, yDn, r);
 			} else if (this.getRenderMode(o, model) == 'OHLC' || this.getRenderMode(o, model) == 'Bars') {
-				var yC = renderer.getValuePoint(
+				var yC = renderer.getYCoordinateForPrice(
 						seriesManager[o.dataLink].data[index][o.closeDataField],
-						panel._height, panel.vMin, panel.vMax,
-						panel.valueAxisMode, fV)
+						{panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,
+						valueAxisMode: panel.valueAxisMode, fV})
 						+ panel._offset;
-				var yO = renderer.getValuePoint(
+				var yO = renderer.getYCoordinateForPrice(
 						seriesManager[o.dataLink].data[index][o.openDataField],
-						panel._height, panel.vMin, panel.vMax,
-						panel.valueAxisMode, fV)
+						{panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,
+						valueAxisMode: panel.valueAxisMode, fV})
 						+ panel._offset;
 
 				renderPoint(ctx, x, (yC + yO) / 2, r);
@@ -649,7 +649,7 @@ var SeriesObject	=	function () {
 			if (seriesManager[link].data[i] === null || seriesManager[link].data[i][field] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[link].data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[link].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 				midX = indexX;
@@ -677,7 +677,7 @@ var SeriesObject	=	function () {
 
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset,
 			});
 		}
 
@@ -685,57 +685,63 @@ var SeriesObject	=	function () {
 	}
 
 	this.renderAsOHLC	=	function (o, ctx, renderer, model, panel, seriesManager) {
+		let startX = 0; var highY = 0; var lowY = 0; var openY = 0; var closeY = 0;
 
-		var indexX = 0; var highY = 0; var lowY = 0; var openY = 0; var closeY = 0;
+		const redFillColor = WEBRCP.utils.colorManager.getColor("chartRed");
+		const greenFillColor = WEBRCP.utils.colorManager.getColor("chartGreen");
+		const grayFillColor = WEBRCP.utils.colorManager.getColor("chartGray");
+		
+		const redStrokeColor = WEBRCP.utils.colorManager.getColor("chartRedStroke");
+		const greenStrokeColor = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
+		const grayStrokeColor = WEBRCP.utils.colorManager.getColor("chartGray");
 
-		var red = WEBRCP.utils.colorManager.getColor("chartRed");
-		var green = WEBRCP.utils.colorManager.getColor("chartGreen");
-		var gray = WEBRCP.utils.colorManager.getColor("chartGray");
-		var redStroke = WEBRCP.utils.colorManager.getColor("chartRedStroke");
-		var greenStroke = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
-		var color = red;
-		var stroke = redStroke;
-		var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
+		let color = redFillColor;
+		let stroke = redStrokeColor;
 
 		ctx.lineWidth = 1;
 
-		var dfH = o.highDataField ? o.highDataField : o.dataField;
-		var dfL = o.lowDataField ? o.lowDataField : o.dataField;
-		var dfO = o.openDataField ? o.openDataField : o.dataField;
-		var dfC = o.closeDataField ? o.closeDataField : o.dataField;
+		let dfH = o.highDataField ? o.highDataField : o.dataField;
+		let dfL = o.lowDataField ? o.lowDataField : o.dataField;
+		let dfO = o.openDataField ? o.openDataField : o.dataField;
+		let dfC = o.closeDataField ? o.closeDataField : o.dataField;
 
-		var fV = LIB.getFirstAvailableValue(model, seriesManager[o.dataLink].data, dfC);
-
-		const roundedPeriodWidth = Math.round(model.periodWidth)
+		const roundedPeriodWidth = Math.round(model.periodWidth);
+		const data = seriesManager[o.dataLink].data;
+		const panelOffset = panel._offset;
+		const panelProps = {
+			panelHeight: panel._height,
+			minValue: panel.vMin,
+			maxValue: panel.vMax,
+			valueAxisMode: panel.valueAxisMode,
+			fV: LIB.getFirstAvailableValue(model, data, dfC)
+		};
 
 		for (var i = model._leftIndex; i <= model._rightIndex; i++) {
+			const dataPrice = data[i];
 
-			if (i > seriesManager[o.dataLink].data.length - 1) continue;
-			if (seriesManager[o.dataLink].data[i][dfH] === null) continue;
+			if (i > data.length - 1) continue;
+			if (dataPrice[dfH] === null) continue;
 
-			indexX 	= renderer.getIndexPoint(i, model);
-			highY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfH], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
-			lowY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfL], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
-			openY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfO], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
-			closeY 	= Math.round(renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfC], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset);
+			startX = roundAndTranslate(renderer.getIndexPoint(i, model));
+			highY = Math.round(renderer.getYCoordinateForPrice(dataPrice[dfH], panelProps) + panelOffset);
+			lowY = Math.round(renderer.getYCoordinateForPrice(dataPrice[dfL], panelProps) + panelOffset);
+			openY = roundAndTranslate(renderer.getYCoordinateForPrice(dataPrice[dfO], panelProps) + panelOffset);
+			closeY = Math.round(renderer.getYCoordinateForPrice(dataPrice[dfC], panelProps) + panelOffset);
 
-			const leftX = Math.round(indexX);
-			const rightX = leftX + roundedPeriodWidth;
-			const midX = Math.round(rightX - roundedPeriodWidth / 2);
+			const rightX = startX + roundedPeriodWidth;
+			const midX = roundAndTranslate(rightX - roundedPeriodWidth / 2);
 
-			if (seriesManager[o.dataLink].data[i][dfC]-seriesManager[o.dataLink].data[i][dfO]>0) {
+			const change = dataPrice[dfC] - dataPrice[dfO];
 
-				color = green;
-				stroke = greenStroke;
-
-			} else if (seriesManager[o.dataLink].data[i][dfC]-seriesManager[o.dataLink].data[i][dfO]<0) {
-
-				color = red;
-				stroke = redStroke;
-
-			} else{
-				color = gray;
-				stroke = grayStroke;
+			if (change > 0) {
+				color = greenFillColor;
+				stroke = greenStrokeColor;
+			} else if (change < 0) {
+				color = redFillColor;
+				stroke = redStrokeColor;
+			} else {
+				color = grayFillColor;
+				stroke = grayStrokeColor;
 			}
 
 			ctx.strokeStyle = stroke;
@@ -743,14 +749,14 @@ var SeriesObject	=	function () {
 			ctx.strokeWidth = 1;
 
 			ctx.beginPath();
-			ctx.moveTo(midX + 0.5, highY);
-			ctx.lineTo(midX + 0.5, lowY);
+			ctx.moveTo(midX, highY);
+			ctx.lineTo(midX, lowY);
 			ctx.stroke();
 			ctx.closePath();
 
 			if (roundedPeriodWidth > 3) {
 				ctx.beginPath()
-				ctx.rect(leftX + 1.5, openY + 0.5, roundedPeriodWidth - 2, closeY - openY)
+				ctx.rect(startX + 1, openY, roundedPeriodWidth - 2, closeY - openY)
 				ctx.fill();
 				ctx.stroke();
 				ctx.closePath();
@@ -758,12 +764,12 @@ var SeriesObject	=	function () {
 		}
 
 		if (o.priceLine) {
-			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
+			const value = data[data.length - 1][dfC];
 
 			this.renderPriceLine({
-				ctx, panel, model, value, green, red,
-				open: seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO],
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+				ctx, panel, model, value, green: greenFillColor, red: redFillColor,
+				open: data[data.length - 1][dfO],
+				y: renderer.getYCoordinateForPrice(value, panelProps) + panelOffset
 			});
 		}
 
@@ -800,13 +806,20 @@ var SeriesObject	=	function () {
 			if (i>seriesManager[o.dataLink].data.length-1) continue;
 			if (seriesManager[o.dataLink].data[i][dfH] === null) continue;
 
+			const dataPrice = seriesManager[o.dataLink].data[i];
+			const panelProps = {
+				panelHeight: panel._height,
+				minValue: panel.vMin,
+				maxValue: panel.vMax,
+				valueAxisMode: panel.valueAxisMode,
+				fV
+			};
+
 			indexX 	= renderer.getIndexPoint(i, model);
-			highY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfH], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			lowY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfL], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			openY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfO], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			closeY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][dfC], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-
-
+			highY 	= renderer.getYCoordinateForPrice(dataPrice[dfH], panelProps)+panel._offset;
+			lowY 	= renderer.getYCoordinateForPrice(dataPrice[dfL], panelProps)+panel._offset;
+			openY 	= renderer.getYCoordinateForPrice(dataPrice[dfO], panelProps)+panel._offset;
+			closeY 	= renderer.getYCoordinateForPrice(dataPrice[dfC], panelProps)+panel._offset;
 
 			if (model.periodWidth==1) {
 				rightX = indexX;
@@ -891,7 +904,7 @@ var SeriesObject	=	function () {
 			this.renderPriceLine({
 				ctx, panel, model, value, green, red,
 				open: seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO],
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset,
 			});
 		}
 
@@ -911,7 +924,7 @@ var SeriesObject	=	function () {
 		ctx.lineWidth = o.width ? o.width : 1;
 		ctx.beginPath();
 
-		const zeroY = renderer.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
+		const zeroY = renderer.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 		const fV = LIB.getFirstAvailableValue(model, data, field);
 		const start = getFirstValueBeforeStart(model._leftIndex, data, field);
 		const end = getFirstValueAfterEnd(model._rightIndex, data, field);
@@ -924,7 +937,7 @@ var SeriesObject	=	function () {
 			if ((data[i] === null || data[i][field] === null) && i !== end && i !== data.length - 1) continue;
 
 			indexX = renderer.getIndexPoint(i, model);
-			valueY = renderer.getValuePoint(data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+			valueY = renderer.getYCoordinateForPrice(data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 
 			if (model.periodWidth == 1) {
 				midX = indexX;
@@ -963,7 +976,7 @@ var SeriesObject	=	function () {
 
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax) + panel._offset
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax}) + panel._offset
 			});
 		}
 
@@ -1148,12 +1161,12 @@ var SeriesObject	=	function () {
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		this.tmpValue = renderer.getPointValue(y-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		this.tmpValue = renderer.getPriceForYCoordinate(y-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
 		if (this.tmpValue<=valueH&&this.tmpValue>=valueL){
 			hitResult = true;
 		}else{
-			var pointH = renderer.getValuePoint(seriesManager[o.dataLink].data[this.tmpIndex][dfH], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			var pointL = renderer.getValuePoint(seriesManager[o.dataLink].data[this.tmpIndex][dfL], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var pointH = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][dfH], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
+			var pointL = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][dfL], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 			if(pointH==pointL){
 				hitResult = isPointInCircle({x:x, y:pointH,r:4+this.hitTolerance },x,y);
 			}
@@ -1176,9 +1189,9 @@ var SeriesObject	=	function () {
 		var indexX = renderer.getIndexPoint(index, model)+model.periodWidth/2;
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var indexY = renderer.getPointValue(y-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
-		var indexH = renderer.getValuePoint(valueH, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-		var indexL = renderer.getValuePoint(valueL, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var indexY = renderer.getPriceForYCoordinate(y-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
+		var indexH = renderer.getYCoordinateForPrice(valueH, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
+		var indexL = renderer.getYCoordinateForPrice(valueL, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		
 
 		if( between(indexX-1, x, indexX+1, this.hitTolerance) 
@@ -1204,12 +1217,12 @@ var SeriesObject	=	function () {
 		var hitResult = false;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		var indexY = renderer.getValuePoint(seriesManager[o.dataLink].data[index][dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+		var indexY = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 		//var indexX = Math.round(renderer.getIndexPoint(index, model)+model.periodWidth/2);
 		var indexX = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
 
 		if (x > Math.round(indexX) && closestRightIndex < seriesManager[o.dataLink].data.length) {
-			var _y = renderer.getValuePoint(seriesManager[o.dataLink].data[closestRightIndex][dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+			var _y = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[closestRightIndex][dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 			var _x = renderer.getIndexPoint(closestRightIndex, model) + model.periodWidth / 2;;
 			if (between(indexY, y, _y, this.hitTolerance)) {
 				var nlp1 = getLinePointNearestMouse({ x0: indexX, y0: indexY, x1: _x, y1: _y }, x, y);
@@ -1219,7 +1232,7 @@ var SeriesObject	=	function () {
 				}
 			}
 		} else if (x < Math.round(indexX) && closestLeftIndex >= 0) {
-			var _y = renderer.getValuePoint(seriesManager[o.dataLink].data[closestLeftIndex][dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+			var _y = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[closestLeftIndex][dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 			var _x = renderer.getIndexPoint(closestLeftIndex, model) + model.periodWidth / 2;
 			if (between(indexY, y, _y, this.hitTolerance)) {
 				var nlp1 = getLinePointNearestMouse({ x0: indexX, y0: indexY, x1: _x, y1: _y }, x, y);
@@ -1249,7 +1262,7 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
 		var hitResult =  false;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		var indexY = renderer.getValuePoint(seriesManager[o.dataLink].data[index][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var indexY = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var indexX = renderer.getIndexPoint(index, model)+model.periodWidth/2;
 
 		if( between(indexX-1, x, indexX+1, this.hitTolerance) &&
@@ -1271,7 +1284,7 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
 		var hitResult =  false;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		// var indexY = renderer.getValuePoint(seriesManager[o.dataLink].data[index][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		// var indexY = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		const maxHeight = Math.round(panel._height * 0.25);
 		var indexY = panel._height + panel._offset - seriesManager[o.dataLink].data[index][o.dataField] / o.localExtremes.max * maxHeight;
 		var indexX = renderer.getIndexPoint(index, model);
@@ -1468,7 +1481,7 @@ var IndicatorObject	=	function () {
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		valueY = renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		valueY = renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		renderer.drawPriceTag (ctx, model, panel, valueY, color, textColor, value, 'real');
 
 	}
@@ -1485,14 +1498,14 @@ var IndicatorObject	=	function () {
 		var field = o.dataField;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		zeroY = renderer.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
+		zeroY = renderer.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 
 		for (var i=model._leftIndex; i<=model._rightIndex; i++) {
 
 			if (i>seriesManager[o.dataLink].data.length-1) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -1516,7 +1529,7 @@ var IndicatorObject	=	function () {
 			
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset
 			});
 		}
 
@@ -1543,7 +1556,7 @@ var IndicatorObject	=	function () {
 			if (seriesManager[o.dataLink].data[i][o.upperField] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.upperField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.upperField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -1576,7 +1589,7 @@ var IndicatorObject	=	function () {
 			if (seriesManager[o.dataLink].data[i][o.lowerField] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][o.lowerField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.lowerField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -1621,7 +1634,7 @@ var IndicatorObject	=	function () {
 			if (seriesManager[o.dataLink].data[i][field] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -1669,7 +1682,7 @@ var IndicatorObject	=	function () {
 			if (seriesManager[link].data[i][field] === null) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			valueY 	= renderer.getValuePoint(seriesManager[link].data[i][field], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			valueY 	= renderer.getYCoordinateForPrice(seriesManager[link].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if (model.periodWidth==1) {
 
@@ -1704,7 +1717,7 @@ var IndicatorObject	=	function () {
 			
 			this.renderPriceLine({
 				ctx, panel, model, value,
-				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset
 			});
 		}
 
@@ -1751,7 +1764,7 @@ var IndicatorObject	=	function () {
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		this.tmpPoint = renderer.getValuePoint(seriesManager[o.dataLink].data[this.tmpIndex][o.dataField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		this.tmpPoint = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 		return interactor.isOver(x, y, x, this.tmpPoint, 4);
 
@@ -1764,9 +1777,9 @@ var IndicatorObject	=	function () {
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
-		this.tmpPoint = renderer.getValuePoint(seriesManager[o.dataLink].data[this.tmpIndex][o.upperField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		this.tmpPoint = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][o.upperField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		if (interactor.isOver(x, y, x, this.tmpPoint, 4)) return true;
-		this.tmpPoint = renderer.getValuePoint(seriesManager[o.dataLink].data[this.tmpIndex][o.lowerField], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		this.tmpPoint = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][o.lowerField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		if (interactor.isOver(x, y, x, this.tmpPoint, 4)) return true;
 
 		return false;
@@ -1835,7 +1848,7 @@ var StrategyObject	=	function () {
 			if(strategyValue==FUSION.DO_NOTHING) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			//valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][field], panel._height, panel.vMin, panel.vMax)+panel._offset;
+			//valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 			const valuesY 	= this.getPointY4StrategyValue(o, i, strategyValue, panel, renderer, model, seriesManager);
 
 			if (model.periodWidth==1) {
@@ -1929,7 +1942,7 @@ var StrategyObject	=	function () {
 			if(strategyValue==FUSION.DO_NOTHING) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			//valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][field], panel._height, panel.vMin, panel.vMax)+panel._offset;
+			//valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 			valuesY 	= this.getPointY4StrategyValue(o, i, strategyValue, panel, renderer, model, seriesManager);
 
 			if (model.periodWidth==1) {
@@ -2052,8 +2065,8 @@ var StrategyObject	=	function () {
 			var min = seriesObject.getMin(index,o,seriesManager);
 
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
-			var vup	= renderer.getValuePoint(max, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-			var vdn	= renderer.getValuePoint(min, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var vup	= renderer.getYCoordinateForPrice(max, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
+			var vdn	= renderer.getYCoordinateForPrice(min, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 			if(strategyValue == FUSION.BUY || strategyValue==FUSION.SELL){
 				vup-=10;
@@ -2065,9 +2078,9 @@ var StrategyObject	=	function () {
 				vup-=36;
 				vdn+=36;
 			}
-			max = renderer.getPointValue(vup-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			max = renderer.getPriceForYCoordinate(vup-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
 
-			min = renderer.getPointValue(vdn-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			min = renderer.getPriceForYCoordinate(vdn-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
 
 			sv = {up:max,dn:min}
 		}else{
@@ -2081,8 +2094,8 @@ var StrategyObject	=	function () {
 	this.getPointY4StrategyValue = function(o, index, strategyValue, panel, renderer, model, seriesManager){
 		var sv = this.getValuesY4StrategyValue(o, index, strategyValue, panel, renderer, model, seriesManager);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var vup	= renderer.getValuePoint(sv.up, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-		var vdn	= renderer.getValuePoint(sv.dn, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var vup	= renderer.getYCoordinateForPrice(sv.up, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
+		var vdn	= renderer.getYCoordinateForPrice(sv.dn, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		return {up:vup, dn:vdn};
 	}
 
@@ -2466,7 +2479,7 @@ var FractalsObject = function() {
 			if(strategyValue==FUSION.DO_NOTHING) continue;
 
 			indexX 	= renderer.getIndexPoint(i, model);
-			//valueY 	= renderer.getValuePoint(seriesManager[o.dataLink].data[i][field], panel._height, panel.vMin, panel.vMax)+panel._offset;
+			//valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 			valuesY 	= this.getPointY4StrategyValue(o, i, strategyValue, panel, renderer, model, seriesManager);
 			valuesY.up -= 12;
 			valuesY.dn += 10;
@@ -2553,7 +2566,7 @@ var TradeObject = class TradeObject {
 	render(o, ctx, renderer, model, panel, seriesManager) {
 		this.drawTradeObject(o, ctx, renderer, model, panel, seriesManager);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var line_y = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 		if (this.isDragHandlerAllowedForObject(o, model)) this.drawDragHandler(line_y, ctx);
 		
@@ -2563,7 +2576,7 @@ var TradeObject = class TradeObject {
 
 	drawTradeObject(o, ctx, renderer, model, panel, seriesManager){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var line_y = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var line_x = this.settings.bar.x+this.settings.bar.w;
 		var line_w =  model._timeAxisWidth;
 
@@ -2619,14 +2632,14 @@ var TradeObject = class TradeObject {
 
 	drawPriceTag(o, ctx, renderer, model, panel, seriesManager){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var valueY = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var valueY = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		renderer.drawPriceTag (ctx, model, panel, valueY, this.settings.bar.color, this.settings.bar.text_color, o.price, 'real');
 	};
 
 	renderOverlay (o, octx, renderer, model, panel, seriesManager) {
 		if(o.related){
 			var fV = LIB.getReferenceValue(o.related, model, seriesManager);
-			var line_y = renderer.getValuePoint(o.related.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var line_y = renderer.getYCoordinateForPrice(o.related.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 			var line_x = this.settings.bar.x+this.settings.bar.w;
 			var line_w =  model._timeAxisWidth;
 			octx.globalAlpha = this.settings.relatedBar.alpha;
@@ -2648,33 +2661,33 @@ var TradeObject = class TradeObject {
 			if(o.parentId){
 				var parent = this.getTradeObjectById(o.parentId, model);
 				if(parent){
-					line_y = renderer.getValuePoint(parent.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+					line_y = renderer.getYCoordinateForPrice(parent.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 					var tp = this.getTpForPosition(parent, model);
-					if(tp) tp_y = renderer.getValuePoint(tp.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+					if(tp) tp_y = renderer.getYCoordinateForPrice(tp.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 					var sl = this.getSlForPosition(parent, model);
-					if(sl) sl_y = renderer.getValuePoint(sl.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+					if(sl) sl_y = renderer.getYCoordinateForPrice(sl.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 				}
 			}
 			//or not ....
 			else{
-				line_y = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 				var tp = this.getTpForPosition(o, model);
-				if(tp) tp_y = renderer.getValuePoint(tp.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				if(tp) tp_y = renderer.getYCoordinateForPrice(tp.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 				var sl = this.getSlForPosition(o, model);
-				if(sl) sl_y = renderer.getValuePoint(sl.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				if(sl) sl_y = renderer.getYCoordinateForPrice(sl.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 			}
 
 			if (tp_y || sl_y)
 				this.drawRelations(line_y, tp_y, sl_y, octx, renderer, model, panel, seriesManager);
 
 			if (o.priceConnections && o.priceConnections.length > 0) {
-				line_y = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 
 				for (const i in o.priceConnections) {
-					const connectedPriceY = renderer.getValuePoint(o.priceConnections[i], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+					const connectedPriceY = renderer.getYCoordinateForPrice(o.priceConnections[i], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 					this.drawRelations(line_y, connectedPriceY, null, octx, renderer, model, panel, seriesManager);
 				}
 			}
@@ -2685,7 +2698,7 @@ var TradeObject = class TradeObject {
 	postRenderOverlay (o, octx, renderer, model, panel, seriesManager) {
 		if(o.related){
 			var fV = LIB.getReferenceValue(o.related, model, seriesManager);
-			var line_y = renderer.getValuePoint(o.related.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var line_y = renderer.getYCoordinateForPrice(o.related.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 			var line_x = this.settings.bar.x+this.settings.bar.w;
 			var line_w =  model._timeAxisWidth;
 			octx.globalAlpha = 1;
@@ -2702,10 +2715,10 @@ var TradeObject = class TradeObject {
 		if(o.hidden == true) return false;
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
 			if(o.stop){
-				var valueY = renderer.getValuePoint(o.stopPrice, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				var valueY = renderer.getYCoordinateForPrice(o.stopPrice, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 				o.hitStop = true;
 			}else{
-				var valueY = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				var valueY = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 			}
 			o._hit = null;
 			o._hitCloseButton = null;
@@ -2797,7 +2810,7 @@ var TradeObject = class TradeObject {
 		const offset = getOffset(e).offsetY;
 		
 		const fV = this.getReferenceValue(e, o, renderer, interactor, model, panel, seriesManager);
-		const dragPrice = parseFloat(renderer.getPointValue(offset-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV).toFixed(instrument.precision));
+		const dragPrice = parseFloat(renderer.getPriceForYCoordinate(offset-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}).toFixed(instrument.precision));
 		
 		return WEBRCP.utils.roundPrice(dragPrice, instrument.priceChangeStep, instrument.precision);
 
@@ -2989,9 +3002,9 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 
 	drawFieldBetweenTrades(o, ctx, model, panel, seriesManager, renderer){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var lineY = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var lineY = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var fV = LIB.getReferenceValue(this.makeStopObject(o), model, seriesManager);
-		var lineStopY = renderer.getValuePoint(o.stopPrice, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var lineStopY = renderer.getYCoordinateForPrice(o.stopPrice, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var color = this.settings.line.color;
 		if (o.type.includes('BUY')) this.drawRect(lineY, lineStopY, ctx, color);
 		else this.drawRect(lineStopY, lineY, ctx, color);
@@ -3028,15 +3041,15 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 	renderOverlay (o, octx, renderer, model, panel, seriesManager) {
 		if (o._hit) {
 			var fVLimit = LIB.getReferenceValue(o, model, seriesManager);
-			var lineLimit = renderer.getValuePoint(o.price, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fVLimit)+panel._offset;
+			var lineLimit = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV: fVLimit})+panel._offset;
 			var fVStop = LIB.getReferenceValue(this.makeStopObject(o), model, seriesManager);
-			var lineStop = renderer.getValuePoint(o.stopPrice, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fVStop)+panel._offset;
+			var lineStop = renderer.getYCoordinateForPrice(o.stopPrice, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV: fVStop})+panel._offset;
 			super.drawRelations(lineLimit, lineStop, null, octx, renderer, model, panel, seriesManager);
 
 			if (o.priceConnections && o.priceConnections.length > 0) {
 				for (const i in o.priceConnections) {
-					const connectedPriceLimitY = renderer.getValuePoint(o.priceConnections[i], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fVLimit) + panel._offset;
-					const connectedPriceStopY = renderer.getValuePoint(o.priceConnections[i], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fVStop) + panel._offset;
+					const connectedPriceLimitY = renderer.getYCoordinateForPrice(o.priceConnections[i], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV: fVLimit}) + panel._offset;
+					const connectedPriceStopY = renderer.getYCoordinateForPrice(o.priceConnections[i], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV: fVStop}) + panel._offset;
 					this.drawRelations(lineLimit, connectedPriceLimitY, null, octx, renderer, model, panel, seriesManager);
 					this.drawRelations(lineStop, connectedPriceStopY, null, octx, renderer, model, panel, seriesManager);
 				}

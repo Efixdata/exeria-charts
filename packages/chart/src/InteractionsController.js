@@ -403,10 +403,17 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		var seriesId = self.model.instrumentsSeries[0].seriesId;
 
+		const panelProps = {
+			panelHeight: panel._height,
+			minValue: panel.vMin,
+			maxValue: panel.vMax,
+			valueAxisMode: panel.valueAxisMode,fV
+		}
+
 		var idx = self.fusion.getSeriesManager()[seriesId].data.length-1;
 		var fV = LIB.getFirstAvailableValue(self.model, self.fusion.getSeriesManager()[seriesId].data, 'c');
-		var closeY 	= self.renderer.getValuePoint(self.fusion.getSeriesManager()[seriesId].data[idx]['c'], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
-		var valueY = self.renderer.getPointValue(eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		var closeY 	= self.renderer.getYCoordinateForPrice(self.fusion.getSeriesManager()[seriesId].data[idx]['c'], panelProps) + panel._offset;
+		var valueY = self.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		var zone = null;
 		if(eo.offsetY > closeY){
@@ -1026,21 +1033,21 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				if (!panel2) return;
 				if(panel == panel2 && this.initialMinMax){
 					if(!this.initialMinMax.value)
-						this.initialMinMax.value =  this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+						this.initialMinMax.value =  this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 
 					
 
 					if ((this.isMouseDown && this.isRightButton===true) || (isAboveValueAxis && this.valueAxisClicked)){
 						var valueY1 = this.initialMinMax.value;
-						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+						var valueY2 = this.renderer.getPriceForYCoordinate( eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 						var delta = valueY2-valueY1;
 						if(delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max+delta - this.initialMinMax.min-delta) > 0.000000000000000001)){
 							panel.vMax = this.initialMinMax.max+delta;
 							panel.vMin = this.initialMinMax.min-delta;
 						}
 					} else if (this.isMouseDown && this.isRightButton===false) {
-						var valueY1 = this.renderer.getPointValue( io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
-						var valueY2 = this.renderer.getPointValue( eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+						var valueY1 = this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
+						var valueY2 = this.renderer.getPriceForYCoordinate( eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 						var delta = valueY2-valueY1;
 						panel.vMax = this.initialMinMax.max-delta;
 						panel.vMin = this.initialMinMax.min-delta;
@@ -2168,7 +2175,7 @@ function CrosshairTool(interactor){
 		var y = eo.offsetY;
 
 		if (panel){
-			valueY = this.interactor.controller.renderer.getPointValue(eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			valueY = this.interactor.controller.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 		}
 		
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('accent');
@@ -2204,8 +2211,8 @@ function CrosshairTool(interactor){
 		var y2 = eo.offsetY;
 
 		if(panel && panel2 && panel.id==panel2.id){
-			v1 = this.interactor.controller.renderer.getPointValue(io.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
-			v2 = this.interactor.controller.renderer.getPointValue(eo.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			v1 = this.interactor.controller.renderer.getPriceForYCoordinate(io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
+			v2 = this.interactor.controller.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 		}
 
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('accent');

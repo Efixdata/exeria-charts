@@ -172,7 +172,7 @@ const Renderer = function (settings) {
 		ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
 		if (panel.zeroLine) {
-			var y = this.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
+			var y = this.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 			ctx.strokeStyle = panel.zeroLine.color;
 			ctx.lineWidth = panel.zeroLine.width;
 			ctx.setLineDash(panel.zeroLine.dash);
@@ -184,7 +184,7 @@ const Renderer = function (settings) {
 			ctx.closePath();
 		}
 
-		var y = this.getValuePoint(0, panel._height, panel.vMin, panel.vMax)+panel._offset;
+		var y = this.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 		ctx.strokeStyle = panel.zeroLine.color;
 		ctx.lineWidth = panel.zeroLine.width;
 		ctx.setLineDash(panel.zeroLine.dash);
@@ -418,7 +418,7 @@ const Renderer = function (settings) {
 
 				//drawTickValue
 				tickValue += tick.tickSpacing;
-				tickPoint = this.getValuePoint(tickValue, panel._height, panel.vMin, panel.vMax)+panel._offset;
+				tickPoint = this.getYCoordinateForPrice(tickValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 				if (tickPoint<panel._offset) continue;
 
 				ctx.font = WEBRCP.utils.colorManager.getFont("price");
@@ -455,7 +455,7 @@ const Renderer = function (settings) {
 
 			//drawTickValue
 			tickValue += tick.tickSpacing;
-			tickPoint = this.getValuePoint(tickValue, panel._height, panel.vMin, panel.vMax)+panel._offset;
+			tickPoint = this.getYCoordinateForPrice(tickValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
 			if (tickPoint<panel._offset) continue;
 
 			ctx.beginPath();
@@ -1058,46 +1058,49 @@ const Renderer = function (settings) {
 		}
 	};
 
-	this.getValuePoint	=	function (rV, vH, vMin, vMax, mode, fV) {
-		var len = vMax - vMin;
-		var max = vMax;
-		var min = vMin;
+	this.getYCoordinateForPrice = function (price, options) {
+		const {panelHeight, minValue, maxValue, valueAxisMode, fV} = options;
+		var len = maxValue - minValue;
+		var max = maxValue;
+		var min = minValue;
 
 		var nv	= null;
-		if(mode == 'perc')
-			nv = LIB._converterPerc.realToAxis(rV, fV);
-		else if(mode == 'log')
-			nv = LIB._converterLog.realToAxis(rV, fV);
+		if (valueAxisMode == 'perc')
+			nv = LIB._converterPerc.realToAxis(price, fV);
+		else if (valueAxisMode == 'log')
+			nv = LIB._converterLog.realToAxis(price, fV);
 		else
-			nv = LIB._converterLin.realToAxis(rV, fV);
+			nv = LIB._converterLin.realToAxis(price, fV);
 
-		if (vMin<0) {
+		if (minValue<0) {
 
 			min = 0;
-			max	+=Math.abs(vMin);
-			nv	= parseFloat(nv) + Math.abs(vMin);
+			max += Math.abs(minValue);
+			nv = parseFloat(nv) + Math.abs(minValue);
 
 		} else {
-			nv	-=Math.abs(vMin);
+			nv -= Math.abs(minValue);
 		}
 
-		var yy = (nv * vH) / len;
+		var yy = (nv * panelHeight) / len;
 
-		return vH - Math.floor(yy);
+		return panelHeight - Math.floor(yy);
 	};
 
 
-	this.getPointValue	=	function (p, vH, vMin, vMax, mode, fV) {
-		var	len 	= vMax - vMin;
-		var point	= vH - p;
+	this.getPriceForYCoordinate	=	function (p, options) {
+		const {panelHeight, minValue, maxValue, valueAxisMode, fV} = options;
+		
+		var	len 	= maxValue - minValue;
+		var point	= panelHeight - p;
 
-		var aV = (point * len) / vH;
-		aV+=vMin;
+		var aV = (point * len) / panelHeight;
+		aV+=minValue;
 
 		var nv = null;
-		if(mode == 'perc')
+		if(valueAxisMode == 'perc')
 			nv = LIB._converterPerc.axisToReal(aV, fV)
-		else if(mode == 'log')
+		else if(valueAxisMode == 'log')
 			nv = LIB._converterLog.axisToReal(aV, fV)
 		else
 			nv = LIB._converterLin.axisToReal(aV, fV)

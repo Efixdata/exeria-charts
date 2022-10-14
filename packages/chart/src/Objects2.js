@@ -31,7 +31,7 @@ function Shape(){
 			const index = renderer.getStampIndex(anchors[i].prawilnyStamp, model, seriesManager);
 			const value = anchors[i].value;
 			const x = renderer.getIndexPoint(index, model) + model._midOffset;
-			const y = renderer.getValuePoint(anchors[i].value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+			const y = renderer.getYCoordinateForPrice(anchors[i].value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 
 			const point = {
 				x: x,
@@ -289,7 +289,7 @@ function Shape(){
 	};
 
 	this.stickToCandlePoint = function(e, panel, renderer, fV, candles, point){
-		//renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+		//renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 		var offset = 20, minDifference = 999999, closestPoint = 0, candle = null, difference = 99999;
 		var allowedKeys = this.allowedStickyKeys;
 		var candlePoint = point;
@@ -298,7 +298,7 @@ function Shape(){
 			for(var j in candle){ // j is every key of every candle
 				if(!(allowedKeys[j])) continue;
 
-				candlePoint = renderer.getValuePoint(candle[j], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				candlePoint = renderer.getYCoordinateForPrice(candle[j], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 				difference = Math.abs(candlePoint - point);
 				if(difference < minDifference){
 					minDifference = difference;
@@ -315,12 +315,12 @@ function Shape(){
 	this.stickToCandleValue = function(point, candles, panel, renderer, fV){
 		var offset = 20, minDifference = 999999, closestPoint = 0, closestValue =0, candle = null, difference = 99999;
 		var allowedKeys = this.allowedStickyKeys;
-		var pointValue = renderer.getPointValue(point, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		var pointValue = renderer.getPriceForYCoordinate(point, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 		for(var i in candles){
 			candle = candles[i];
 			for(var j in candle){ // j is every key of every candle
 				if(!(allowedKeys[j])) continue;
-				var candlePoint = renderer.getValuePoint(candle[j], panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				var candlePoint = renderer.getYCoordinateForPrice(candle[j], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 				difference = Math.abs(candlePoint - point);
 				if(difference < minDifference){
 					minDifference = difference;
@@ -351,7 +351,7 @@ function Shape(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		
 
 		if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
@@ -392,7 +392,7 @@ function Shape(){
 			v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
 		}
 		else
-			v = renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);		
+			v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});		
 			
 		if (!interactor.currentAnchor) {
 			for (var i in o.anchors) {
@@ -427,7 +427,7 @@ function Shape(){
 				var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
 			}
 			else
-				var v = renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+				var v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 			
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
@@ -506,15 +506,15 @@ function TrendLineObject(){
 			if (panel.valueAxisMode == "lin") {
 				let x1 = renderer.getIndexPoint(startI, model) + parseInt(model._midOffset);
 				let x2 = renderer.getIndexPoint(endI, model) + parseInt(model._midOffset);
-				let y1 = renderer.getValuePoint(line.a * startI + line.b, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
-				let y2 = renderer.getValuePoint(line.a * endI + line.b, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+				let y1 = renderer.getYCoordinateForPrice(line.a * startI + line.b, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
+				let y2 = renderer.getYCoordinateForPrice(line.a * endI + line.b, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 				ctx.moveTo(x1, y1);
 				ctx.lineTo(x2, y2);
 			} else {
 				for (var i = startI; i <= endI; i++) {
 					var lineValue = line.a * i + line.b;
 					let x = renderer.getIndexPoint(i, model) + parseInt(model._midOffset);
-					let y = renderer.getValuePoint(lineValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+					let y = renderer.getYCoordinateForPrice(lineValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 
 					if (i == model._leftIndex)
 						ctx.moveTo(x, y);
@@ -611,9 +611,9 @@ function TrendLineObject(){
 				var lIndex2 = lIndex1 >= 1 ? lIndex1 - 1 : lIndex1 + 1;
 
 				let lx1 = renderer.getIndexPoint(lIndex1, model) + parseInt(model._midOffset);
-				let ly1 = renderer.getValuePoint(line.a * lIndex1 + line.b, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+				let ly1 = renderer.getYCoordinateForPrice(line.a * lIndex1 + line.b, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 				let lx2 = renderer.getIndexPoint(lIndex2, model) + parseInt(model._midOffset);
-				let ly2 = renderer.getValuePoint(line.a * lIndex2 + line.b, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset;
+				let ly2 = renderer.getYCoordinateForPrice(line.a * lIndex2 + line.b, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
 
 				var nlp1 = getLinePointNearestMouse({ x0: lx1, y0: ly1, x1: lx2, y1: ly2 }, x, y);
 				var distance = pointsDistance({ x: x, y: y }, { x: nlp1.x, y: nlp1.y });
@@ -668,7 +668,7 @@ function TrendLineObject(){
 	// 	var baseAnchors = interactor.currentAnchor.anchors;
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 	// 	if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 
@@ -724,7 +724,7 @@ function TrendLineObject(){
 	// this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	console.log("TRENDLINE stage down start", interactor.currentAnchor);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 	if(interactor.currentAnchor==null){
 	// 		o.anchors[0].value = v;
@@ -743,14 +743,14 @@ function TrendLineObject(){
 	// this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 	// 		console.log("TRENDLINE long drag ");
 	// 		interactor.currentAnchor.drag = true;
 	// 		var i = interactor.currentAnchor.selected;
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -784,7 +784,7 @@ function TrendLineObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -813,7 +813,7 @@ var FibonLinesObject	=	function () {
 				else
 					y = y+distance*o.values[i]/100;
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var v = renderer.getPointValue(y, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				var v = renderer.getPriceForYCoordinate(y, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})+panel._offset;
 				valuesPoints.push({y:y, v:v, p:o.values[i]});
 			}
 		}
@@ -1000,7 +1000,7 @@ var FibonLinesObject	=	function () {
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 	// 	if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 
@@ -1049,7 +1049,7 @@ var FibonLinesObject	=	function () {
 	// this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	console.log("stage down start", interactor.currentAnchor);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 	if(interactor.currentAnchor==null){
 	// 		o.anchors[0].value = v;
@@ -1068,7 +1068,7 @@ var FibonLinesObject	=	function () {
 	// 	console.log("start drag ");
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
@@ -1101,7 +1101,7 @@ var FibonLinesObject	=	function () {
 	// 	if(interactor.currentAnchor){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -1285,7 +1285,7 @@ var ParallelChannelObject	=	function () {
 			var baseAnchors = interactor.currentAnchor.anchors;
 			var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
-			var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+			var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 			o.anchors[2].value = baseAnchors[2].value+yOffset;
 		}
 		else{
@@ -1305,7 +1305,7 @@ var ParallelChannelObject	=	function () {
 		// 		var mid = findMidPoint(pts[0], pts[1]);
 		// 		var h = pts[2].y-mid.y;
 		// 		o.anchors[2]._index = Math.round((o.anchors[0]._index + o.anchors[1]._index)/2);
-		// 		o.anchors[2]._value = renderer.getPointValue(mid.y+h, panel._height, panel.vMin, panel.vMax)+panel._offset;
+		// 		o.anchors[2]._value = renderer.getPriceForYCoordinate(mid.y+h, panel._height, panel.vMin, panel.vMax)+panel._offset;
 		// 		o.anchors[2].prawilnyStamp = renderer.getIndexStamp(o.anchors[2]._index, model, seriesManager);
 		// 	}else if(i===2){
 		// 		o.anchors[2].value = baseAnchors[2].value+yOffset;
@@ -1348,7 +1348,7 @@ var ParallelChannelObject	=	function () {
 	// this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	console.log("stage down start", interactor.currentAnchor);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 	var idx = renderer.getPointIndex (e._offset.offsetX, model)
 	// 	if(interactor.currentAnchor==null){
 	// 		o.anchors[0].value = v;
@@ -1368,7 +1368,7 @@ var ParallelChannelObject	=	function () {
 		console.log("start drag ");
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
@@ -1402,7 +1402,7 @@ var ParallelChannelObject	=	function () {
 		if(interactor.currentAnchor){
 			if(interactor.currentAnchor.selected===2){
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+				var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 				o.anchors[2].value = v;
 			}
 			else{
@@ -1415,7 +1415,7 @@ var ParallelChannelObject	=	function () {
 		// if(interactor.currentAnchor){
 		// 	var i = interactor.currentAnchor.selected;
 		// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-		// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 		// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 
 		// 	if(i!=null){
@@ -1428,7 +1428,7 @@ var ParallelChannelObject	=	function () {
 		// 			var h = pts[2].y-mid.y;
 		// 			var newIndex = (interactor.currentAnchor.anchors[0]._index + interactor.currentAnchor.anchors[1]._index)/2;
 		// 			o.anchors[2]._index = newIndex;
-		// 			o.anchors[2].value = renderer.getPointValue(mid.y-panel._offset, panel._height, panel.vMin, panel.vMax);
+		// 			o.anchors[2].value = renderer.getPriceForYCoordinate(mid.y-panel._offset, panel._height, panel.vMin, panel.vMax);
 		// 			o.anchors[2].prawilnyStamp = renderer.getIndexStamp(newIndex, model, seriesManager);
 		// 			console.log("MID: ", mid.y, o.anchors[2].value);
 		// 		}else if(i===2){
@@ -1544,7 +1544,7 @@ var ArrowObject	=	function () {
 	// this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	console.log("ARROW stage down start", interactor.currentAnchor);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 	// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 	if(interactor.currentAnchor==null){
@@ -1564,7 +1564,7 @@ var ArrowObject	=	function () {
 	// 	console.log("ARROW start drag ");
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){			console.log("ARROW real drag ");
@@ -1596,7 +1596,7 @@ var ArrowObject	=	function () {
 	// 	if(interactor.currentAnchor){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -1628,7 +1628,7 @@ function HorizontalLineObject(){
 	//override get points
 	this.getPoints = function(o, renderer, panel, model,seriesManager){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var y = renderer.getValuePoint(o.anchors[0].value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+		var y = renderer.getYCoordinateForPrice(o.anchors[0].value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		return [{x:0+this.anchorPointSize, y:y},{x:model._timeAxisWidth-this.anchorPointSize,y:y}];
 	}
 
@@ -1723,7 +1723,7 @@ function HorizontalLineObject(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var yValue = e._offset.offsetY-panel._offset;
-		var yOffset = parseFloat((renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})));
 
 		for(var i=0; i< o.anchors.length ;i++){
 			var index = renderer.getPointIndex(e.offsetX, model);
@@ -1866,7 +1866,7 @@ function VerticalLineObject(){
 	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		console.log("VERTICALLINE stage down start", interactor.currentAnchor);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 		if(interactor.currentAnchor==null){
@@ -1884,14 +1884,14 @@ function VerticalLineObject(){
 
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax)).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			console.log("VERTICALLINE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			o.anchors[0]._index = idx;
 			o.anchors[0].value = v;
@@ -1921,7 +1921,7 @@ function VerticalLineObject(){
 		if(interactor.currentAnchor!==null){
 			var i = interactor.currentAnchor.selected;
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
@@ -2173,7 +2173,7 @@ function DiNapoliLevels(){
 		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
 			if(e.button == 0){
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+				var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 				var idx = renderer.getPointIndex (e._offset.offsetX, model);
 				o.anchors.push( {stamp: 0, offset: 0, value: v, _index: idx} );
 				return false;
@@ -2197,7 +2197,7 @@ function DiNapoliLevels(){
 			var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
 		}
 		else
-			var v = renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			var v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		var i = interactor.currentAnchor.selected - 1;
 		o.anchors[i].value = LIB.round(v,renderer.getPrecision(model,panel));
@@ -2310,7 +2310,7 @@ function MultiLineObject(){
 	// 	o.hidden=true;
 	// 	console.log("MULTILINE stage down start", interactor.currentAnchor);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 	// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 	if(interactor.currentAnchor==null){
@@ -2330,14 +2330,14 @@ function MultiLineObject(){
 	// this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 	// 		console.log("MULTILINE long drag ");
 	// 		interactor.currentAnchor.drag = true;
 	// 		var i = interactor.currentAnchor.selected;
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -2359,7 +2359,7 @@ function MultiLineObject(){
 			var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
 		}
 		else
-			var v = renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			var v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		var i = interactor.currentAnchor.selected - 1;
 		o.anchors[i].value = LIB.round(v,renderer.getPrecision(model,panel));
@@ -2377,7 +2377,7 @@ function MultiLineObject(){
 		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
 			if(e.button == 0){
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+				var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 				var idx = renderer.getPointIndex (e._offset.offsetX, model);
 				o.anchors.push( {stamp: 0, offset: 0, value: v, _index: idx} );
 				return false;
@@ -2398,7 +2398,7 @@ function MultiLineObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -2498,7 +2498,7 @@ function AbcdObject(){
 			var levelY = (pts[2].y - yLength * level/100);
 
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
-			var y = renderer.getPointValue(levelY, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+			var y = renderer.getPriceForYCoordinate(levelY, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})+panel._offset;
 			var text = level + "% (" + y.toFixed(p)+ ")";
 
 			if (i == o.values.length - 1){
@@ -2600,14 +2600,14 @@ function AbcdObject(){
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			console.log("ABCD long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
@@ -2647,7 +2647,7 @@ function AbcdObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -2774,7 +2774,7 @@ function DiNapoliAbcObject(){
 				var levelY = (pts[2].y - yLength * level/100);
 
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var y = renderer.getPointValue(levelY, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset;
+				var y = renderer.getPriceForYCoordinate(levelY, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})+panel._offset;
 				
 				var valueText = (pts[2].value - valueDistance * level/100).toFixed(p);
 				var levelText = (level / 100).toFixed(3);
@@ -2901,14 +2901,14 @@ function DiNapoliAbcObject(){
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			console.log("ABCD long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
@@ -2950,7 +2950,7 @@ function DiNapoliAbcObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -3088,14 +3088,14 @@ function EllipseObject(){
 	// this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 	// 		console.log("ELLIPSE long drag ");
 	// 		interactor.currentAnchor.drag = true;
 	// 		var i = interactor.currentAnchor.selected;
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -3107,14 +3107,14 @@ function EllipseObject(){
 	// this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 	// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 	// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 	// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 	// 		console.log("ELLIPSE long drag ");
 	// 		interactor.currentAnchor.drag = true;
 	// 		var i = interactor.currentAnchor.selected;
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -3152,7 +3152,7 @@ function EllipseObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -3291,7 +3291,7 @@ function HorizontalRangeObject(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 		if(idx!=null){
 			let index = renderer.getStampIndex(baseAnchors[idx].prawilnyStamp, model, seriesManager);
@@ -3310,14 +3310,14 @@ function HorizontalRangeObject(){
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			console.log("HRANGE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
@@ -3348,7 +3348,7 @@ function HorizontalRangeObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -3487,7 +3487,7 @@ function VerticalRangeObject(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 		if(idx!=null){
 			if(idx===0){
@@ -3510,14 +3510,14 @@ function VerticalRangeObject(){
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			console.log("TRENDLINE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
-			var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				//o.anchors[i]._index = idx;
@@ -3548,7 +3548,7 @@ function VerticalRangeObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			//o.anchors[i]._index = idx;
@@ -3749,9 +3749,9 @@ function TextObject(){
 	this.getPoints =	function (o, renderer, panel, model, seriesManager) {
 		if (!o.anchors[1].dragged) {
 			var fV = LIB.getReferenceValue(o, model, seriesManager);		
-			var p0 = renderer.getValuePoint(o.anchors[0].value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			var p0 = renderer.getYCoordinateForPrice(o.anchors[0].value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
 			var p1 = p0+o._height;
-			var v = parseFloat(renderer.getPointValue(p1, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV));
+			var v = parseFloat(renderer.getPriceForYCoordinate(p1, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}));
 			o.anchors[1].value = v;
 		}
 		var pts = TextObject.prototype.getPoints.call(this , o, renderer, panel, model, seriesManager);
@@ -3959,7 +3959,7 @@ function TextObject(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 		if(idx==0){
 			var index0 = renderer.getStampIndex(baseAnchors[0].prawilnyStamp, model, seriesManager);
@@ -3997,7 +3997,7 @@ function TextObject(){
 	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 		console.log("TEXT ANNOTATION stage down start", interactor.currentAnchor);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 		if(interactor.currentAnchor==null){
@@ -4038,7 +4038,7 @@ function TextObject(){
 	// 	if(interactor.currentAnchor!==null){
 	// 		var i = interactor.currentAnchor.selected;
 	// 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+	// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 	// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 	// 		if(i!=null && i < o.anchors.length){
 	// 			o.anchors[i]._index = idx;
@@ -4173,7 +4173,7 @@ function BoxObject(){
 	// 	var baseAnchors = interactor.currentAnchor.anchors;
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 	// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-	// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+	// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 	// 	if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 
@@ -4366,7 +4366,7 @@ var TriangleObject	=	function () {
 			// 	var baseAnchors = interactor.currentAnchor.anchors;
 			// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 			// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-			// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+			// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		
 			// 	if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 		
@@ -4419,7 +4419,7 @@ var TriangleObject	=	function () {
 			// this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 			// 	console.log("BOX stage down start", interactor.currentAnchor);
 			// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-			// 	var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			// 	var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 			// 	var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			// 	if(interactor.currentAnchor==null){
 			// 		o.anchors[0].value = v;
@@ -4438,14 +4438,14 @@ var TriangleObject	=	function () {
 			// this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 			// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 			// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
-			// 	var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+			// 	var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 			// 	var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 			// 	var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 			// 	if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 			// 		console.log("BOX long drag ");
 			// 		interactor.currentAnchor.drag = true;
 			// 		var i = interactor.currentAnchor.selected;
-			// 		var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV);
+			// 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 			// 		var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			// 		if(i!=null && i < o.anchors.length){
 			// 			o.anchors[i]._index = idx;
@@ -4582,7 +4582,7 @@ var TriangleObject	=	function () {
 				var baseAnchors = interactor.currentAnchor.anchors;
 				var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var yOffset = parseFloat((renderer.getPointValue(yValue, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+				var yOffset = parseFloat((renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 				
 		
 				if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
@@ -4602,14 +4602,14 @@ var TriangleObject	=	function () {
 			this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 				var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
-				var yOffset = parseFloat((renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) - renderer.getPointValue(interactor.initialMouseEvent._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)).toFixed(panel.precision));
+				var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 				var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 				var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 				if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
 					console.log("PriceTag long drag ");
 					interactor.currentAnchor.drag = true;
 					var i = interactor.currentAnchor.selected;
-					var v = renderer.getPointValue(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
+					var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
 					var idx = renderer.getPointIndex (e._offset.offsetX, model);
 					if(i!=null && i < o.anchors.length){
 						o.anchors[i]._index = idx;
