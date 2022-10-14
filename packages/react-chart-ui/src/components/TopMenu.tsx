@@ -5,6 +5,7 @@ import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
 import { FullScreenButton } from "./FullScreenButton";
+import { CurrencySwitch } from "./CurrencySwitch";
 
 interface TopMenuProps {
   chart: any;
@@ -42,8 +43,6 @@ export const TopMenu = (props: TopMenuProps) => {
       return interval.symbol;
     });
   };
-
-  let valueAxisWidth = props.chart ? props.chart.getValueAxisWidth() : 10;
   
   return (
     <Container style={props.style}>
@@ -62,9 +61,7 @@ export const TopMenu = (props: TopMenuProps) => {
           <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
         </RightSection>
       </LeftSection>
-      <div style={{ width: valueAxisWidth, borderLeft: "1px solid rgba(255, 255, 255, 0.1)", display: "flex", alignItems: "center"}}>
-        <div style={{ color: "#7f9dcc", marginLeft: "auto", marginRight: "8px" }}>{props?.chart?.getCurrency()}</div>
-      </div>
+      <CurrencySwitch chart={props.chart} />
     </Container>
   );
 };

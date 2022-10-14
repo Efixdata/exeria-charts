@@ -355,7 +355,6 @@ var SeriesObject	=	function () {
 			ctx.closePath();
 		}
 
-
 		if (o.priceLine) {
 
 			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
@@ -363,7 +362,7 @@ var SeriesObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 			ctx.closePath();
 		}
@@ -425,7 +424,7 @@ var SeriesObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 			ctx.closePath();
 		}
@@ -688,7 +687,7 @@ var SeriesObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 			ctx.closePath();
 		}
@@ -788,7 +787,7 @@ var SeriesObject	=	function () {
 			ctx.strokeStyle = color;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 		}
 
@@ -931,7 +930,7 @@ var SeriesObject	=	function () {
 			ctx.strokeStyle = color;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 		}
 
@@ -1004,7 +1003,7 @@ var SeriesObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 		}
 
@@ -1541,7 +1540,7 @@ var IndicatorObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 		}
 
@@ -1732,7 +1731,7 @@ var IndicatorObject	=	function () {
 			ctx.lineWidth = 1;
 			ctx.beginPath();
 			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
+			ctx.lineTo(panel._width-renderer.getPriceRenderingOptions().valueAxisWidth, valueY);
 			ctx.stroke();
 		}
 
@@ -3145,21 +3144,23 @@ var MovePaneArrows	=	function () {
 
 
 
-		var arrowDn = createArrowDn(panel, model, this.opts);
-		var arrowUp = createArrowUp(panel, model, this.opts);
+		var arrowDn = createArrowDn(panel, renderer, this.opts);
+		var arrowUp = createArrowUp(panel, renderer, this.opts);
 
 		drawArrow(ctx,arrowUp);
 		drawArrow(ctx,arrowDn);
 		ctx.globalAlpha   = 1;
 	}
 
-	function createArrowDn(panel, model,opts){
+	function createArrowDn(panel, renderer, opts){
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
+
 		var arrowDn = {
 				x: [
-				             	panel._width-model.valueAxisWidth-opts.offsetX-opts.width,
-				             	panel._width-model.valueAxisWidth-opts.offsetX,
-				             	panel._width-model.valueAxisWidth-opts.offsetX-Math.floor(opts.width/2),
-				             	panel._width-model.valueAxisWidth-opts.offsetX-Math.floor(opts.width/2)-1,
+				             	panel._width-valueAxisWidth-opts.offsetX-opts.width,
+				             	panel._width-valueAxisWidth-opts.offsetX,
+				             	panel._width-valueAxisWidth-opts.offsetX-Math.floor(opts.width/2),
+				             	panel._width-valueAxisWidth-opts.offsetX-Math.floor(opts.width/2)-1,
 				   ],
 				y: [
 				             	panel._offset+opts.offsetY,
@@ -3171,13 +3172,15 @@ var MovePaneArrows	=	function () {
 		return arrowDn;
 	}
 
-	function createArrowUp(panel, model, opts){
+	function createArrowUp(panel, renderer, opts){
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
+
 		var arrowUp = {
 				x: [
-				             	panel._width-model.valueAxisWidth-opts.offsetX-opts.width*2-opts.spacing,
-				             	panel._width-model.valueAxisWidth-opts.offsetX-Math.floor(opts.width*1.5)-1-opts.spacing,
-				             	panel._width-model.valueAxisWidth-opts.offsetX-Math.floor(opts.width*1.5)-opts.spacing,
-				             	panel._width-model.valueAxisWidth-opts.offsetX-opts.width-opts.spacing,
+				             	panel._width-valueAxisWidth-opts.offsetX-opts.width*2-opts.spacing,
+				             	panel._width-valueAxisWidth-opts.offsetX-Math.floor(opts.width*1.5)-1-opts.spacing,
+				             	panel._width-valueAxisWidth-opts.offsetX-Math.floor(opts.width*1.5)-opts.spacing,
+				             	panel._width-valueAxisWidth-opts.offsetX-opts.width-opts.spacing,
 				   ],
 				y: [
 				             	panel._offset+opts.offsetY+opts.height,
@@ -3208,9 +3211,10 @@ var MovePaneArrows	=	function () {
 	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
 		var self = this;
 		var hitResult = false;
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
-		var x1 = panel._width-model.valueAxisWidth-this.opts.offsetX-this.opts.width*2-this.opts.spacing;
-		var x2 = panel._width-model.valueAxisWidth-this.opts.offsetX-this.opts.width;
+		var x1 = panel._width-valueAxisWidth-this.opts.offsetX-this.opts.width*2-this.opts.spacing;
+		var x2 = panel._width-valueAxisWidth-this.opts.offsetX-this.opts.width;
 
 		var y1 = panel._offset+this.opts.offsetY;
 		var y2 = panel._offset+this.opts.offsetY+this.opts.height;

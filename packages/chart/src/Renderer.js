@@ -4,8 +4,9 @@ import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatte
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 
-const Renderer = function (settings, context) {
+const Renderer = function (settings, context, controller) {
 	this.context = context;
+	this.controller = controller;
 	this.settings = settings;
 	this.priceRenderingOptions = {
 		valueAxisWidth: 0,
@@ -156,7 +157,7 @@ const Renderer = function (settings, context) {
 		catch(e) { this.onErrorWhileRendering(e) }
 
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("backgroundColor");
-		ctx.fillRect(0, panel._offset, panel._width-model.valueAxisWidth, panel._height);
+		ctx.fillRect(0, panel._offset, panel._width-this.priceRenderingOptions.valueAxisWidth, panel._height);
 
 		if (panel.hGrid) this.renderHGrid (ctx, model, panel, valueTick);
 		if (panel.vGrid) this.renderVGrid (ctx, model, panel, this.timeTicks);
@@ -174,7 +175,7 @@ const Renderer = function (settings, context) {
 		if (!omitObject) omitObject = { id: 'none' };
 
 		ctx.save();
-		ctx.rect(0, panel._offset, panel._width-model.valueAxisWidth, panel._height);
+		ctx.rect(0, panel._offset, panel._width-this.priceRenderingOptions.valueAxisWidth, panel._height);
 		ctx.clip();
 		ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
@@ -299,7 +300,7 @@ const Renderer = function (settings, context) {
 			try {
 				octx.save();
 				// octx.translate (0.5, 0.5);
-				octx.rect(0, panel._offset, panel._width - model.valueAxisWidth, panel._height);
+				octx.rect(0, panel._offset, panel._width - this.priceRenderingOptions.valueAxisWidth, panel._height);
 				octx.clip();
 				octx.font = WEBRCP.utils.colorManager.getFont("text");
 
@@ -439,7 +440,7 @@ const Renderer = function (settings, context) {
 				});
 			}
 
-			const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding * 2
+			const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + 1;
 			const panelWidth = Math.round(panel._width)
 			const panelStartX = panelWidth - valueAxisWidth;
 
@@ -454,8 +455,6 @@ const Renderer = function (settings, context) {
 			ctx.clip();
 
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
-
-			console.log('OPTIONS', this.priceRenderingOptions)
 
 			texts.forEach(options => renderPriceText.call(this, {
 				...options,
@@ -486,7 +485,7 @@ const Renderer = function (settings, context) {
 
 			ctx.beginPath();
 			ctx.moveTo(0, tickPoint);
-			ctx.lineTo(panel._width - model.valueAxisWidth, tickPoint);
+			ctx.lineTo(panel._width - this.priceRenderingOptions.valueAxisWidth, tickPoint);
 			ctx.stroke();
 			ctx.closePath();
 
@@ -550,7 +549,7 @@ const Renderer = function (settings, context) {
 			tickX = this.getIndexPoint(tickIndex, model);
 			stamp = fusion.getMainSeries().data[tickIndex].stamp;
 
-			if (tickX>model._width-model.valueAxisWidth) continue;
+			if (tickX>model._width-this.priceRenderingOptions.valueAxisWidth) continue;
 
 			ctx.fillText(this.getPrettyDate(stamp), tickX, tickY+12);
 		}
@@ -748,18 +747,18 @@ const Renderer = function (settings, context) {
 		try {
 			ctx.save();
 			ctx.beginPath();
-			ctx.rect(model._width - model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
+			ctx.rect(model._width - this.priceRenderingOptions.valueAxisWidth, panel._offset, this.priceRenderingOptions.valueAxisWidth, panel._height);
 			ctx.clip();
 
 			ctx.fillStyle = color;
 			ctx.font = WEBRCP.utils.colorManager.getFont("price");
 
 			ctx.beginPath();
-			ctx.moveTo(model._width - model.valueAxisWidth, y);
-			ctx.lineTo(model._width - model.valueAxisWidth + 5, y - 10);
+			ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
+			ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
 			ctx.lineTo(model._width, y - 10);
 			ctx.lineTo(model._width, y + 10);
-			ctx.lineTo(model._width - model.valueAxisWidth + 5, y + 10);
+			ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
 			ctx.closePath();
 			ctx.fill();
 
@@ -774,7 +773,7 @@ const Renderer = function (settings, context) {
 				renderPriceText({
 					text: vs,
 					ctx,
-					x: model._width - model.valueAxisWidth + 8,
+					x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
 					y: y + 3,
 					zerosToReduce: this.priceRenderingOptions.zerosToReduce
 				});
@@ -789,7 +788,7 @@ const Renderer = function (settings, context) {
 	this.drawDoublePriceTag		=	function (ctx, model, panel, y1, y2, color, textColor, innerColor, innerTextColor, v1, v2, valueType) {
 		try{
 			ctx.save();
-			ctx.rect(model._width-model.valueAxisWidth, panel._offset, model.valueAxisWidth, panel._height);
+			ctx.rect(model._width-this.priceRenderingOptions.valueAxisWidth, panel._offset, this.priceRenderingOptions.valueAxisWidth, panel._height);
 			ctx.clip();
 
 			if (y2 < y1) {
@@ -810,7 +809,7 @@ const Renderer = function (settings, context) {
 			var labelY = (y1 + h / 2) + 8;
 			var bottomOffset = panel._height - (y2 - panel._offset);
 
-			const x = model._width-model.valueAxisWidth;
+			const x = model._width-this.priceRenderingOptions.valueAxisWidth;
 			const xL = model._width;
 
 			ctx.fillStyle = color;
@@ -831,7 +830,7 @@ const Renderer = function (settings, context) {
 			renderPriceText({
 				text: vs1,
 				ctx,
-				x: model._width-model.valueAxisWidth+8,
+				x: model._width-this.priceRenderingOptions.valueAxisWidth+8,
 				y: y1+3,
 				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
@@ -894,16 +893,16 @@ const Renderer = function (settings, context) {
 
 			ctx.beginPath();
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor")
-			ctx.moveTo(model._width-model.valueAxisWidth+12, labelY - 0.5 * fontSize - 4);
-			ctx.lineTo(model._width-model.valueAxisWidth+18, labelY - 0.5 * fontSize - 4);
-			ctx.lineTo(model._width-model.valueAxisWidth+15, labelY - 0.5 * fontSize - 8);
+			ctx.moveTo(model._width-this.priceRenderingOptions.valueAxisWidth+12, labelY - 0.5 * fontSize - 4);
+			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+18, labelY - 0.5 * fontSize - 4);
+			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+15, labelY - 0.5 * fontSize - 8);
 			ctx.fill();
 
 			ctx.beginPath();
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor")
-			ctx.moveTo(model._width-model.valueAxisWidth+12, labelY + 1.5 * fontSize - 4);
-			ctx.lineTo(model._width-model.valueAxisWidth+18, labelY + 1.5 * fontSize - 4);
-			ctx.lineTo(model._width-model.valueAxisWidth+15, labelY + 1.5 * fontSize);
+			ctx.moveTo(model._width-this.priceRenderingOptions.valueAxisWidth+12, labelY + 1.5 * fontSize - 4);
+			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+18, labelY + 1.5 * fontSize - 4);
+			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+15, labelY + 1.5 * fontSize);
 			ctx.fill();
 
 			// labels
@@ -920,22 +919,22 @@ const Renderer = function (settings, context) {
 			renderPriceText({
 				text: vs2,
 				ctx,
-				x: model._width-model.valueAxisWidth+8,
+				x: model._width-this.priceRenderingOptions.valueAxisWidth+8,
 				y: y2+3,
 				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 
 			ctx.fillStyle = innerTextColor;
 			ctx.font = WEBRCP.utils.colorManager.getFont("text");
-			ctx.fillText(labelUp, model._width-model.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
+			ctx.fillText(labelUp, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
 			renderPriceText({
 				text: label,
 				ctx,
-				x: model._width-model.valueAxisWidth+12,
+				x: model._width-this.priceRenderingOptions.valueAxisWidth+12,
 				y: labelY + fontSize / 2,
 				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
-			ctx.fillText(labelDn, model._width-model.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
+			ctx.fillText(labelDn, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
 
 		}catch(e){
 			console.error(e, e.stack)
@@ -1277,7 +1276,7 @@ const Renderer = function (settings, context) {
 		return p;
 	}
 
-	this.calculatePriceRenderingOptions = function(data, precision) {
+	this.calculatePriceRenderingOptions = function(data, model, precision) {
 		let magnitude;
 		let valueAxisWidth;
 		let zerosToReduce;
@@ -1313,7 +1312,7 @@ const Renderer = function (settings, context) {
 
 		valueAxisWidth = measurePriceTextWidth({
 			text, ctx: this.context, zerosToReduce
-		});
+		}) + model.valueAxisPadding * 2;
 
 		this.priceRenderingOptions = {
 			magnitude, zerosToReduce, valueAxisWidth
