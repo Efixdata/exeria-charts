@@ -64,7 +64,7 @@ export default class Chart {
     this.container.append(this.canvas, this.overlay, this.topLayer);
 
     this.objectOnlyOnOverlay = false;
-    this.renderer = new ChartRenderer(rendererSettings);
+    this.renderer = new ChartRenderer(rendererSettings, this.ctx);
     this.objectsManager = new ObjectsManager(this);
     this.subscriptionManager = new SubscriptionManager(this);
 
@@ -386,14 +386,19 @@ export default class Chart {
 
   async setMainSeriesData(data, interval) {
     if (!this.fusion) return;
+
     const mainSeries = this.fusion.getMainSeries();
     if (interval) mainSeries.interval = interval;
     mainSeries.data = data;
+
+    this.renderer.calculatePriceRenderingOptions(mainSeries.data, mainSeries.instrument.precision);
+
     try {
       await this.recalculateScripts();
       this.moveToEnd();
-    } catch (_) {}
-    
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   appendMainSeriesData(data) {

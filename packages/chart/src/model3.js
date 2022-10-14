@@ -48,6 +48,7 @@ const a = {
   positions: { list: [], visible: true, selected: false },
   interval: { id: 3, symbol: "1h", desc: "1h", milis: 3600000 },
   valueAxisWidth: 80,
+  valueAxisPadding: 6,
   timeAxisHeight: 24,
   minValueTickHeight: 30,
   minTimeTickWidth: 120,

@@ -4,8 +4,15 @@ import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatte
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 
-const Renderer = function (settings) {
+const Renderer = function (settings, context) {
+	this.context = context;
 	this.settings = settings;
+	this.priceRenderingOptions = {
+		valueAxisWidth: 0,
+		magnitude: 1,
+		zerosToReduce: 0
+	};
+
 	this.objects	=	new Array();
 	this.timeTicks	=	new Array();
 
@@ -432,9 +439,7 @@ const Renderer = function (settings) {
 				});
 			}
 
-			const font = WEBRCP.utils.colorManager.getFont("price");
-			const valueAxisMargin = 6;
-			const valueAxisWidth = Math.round(measurePriceTextWidth({text: texts[0].text, ctx, priceFont: font})) + valueAxisMargin * 2
+			const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding * 2
 			const panelWidth = Math.round(panel._width)
 			const panelStartX = panelWidth - valueAxisWidth;
 
@@ -450,7 +455,13 @@ const Renderer = function (settings) {
 
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
 
-			texts.forEach(options => renderPriceText.call(this, {...options, x: panelStartX + valueAxisMargin, font}));
+			console.log('OPTIONS', this.priceRenderingOptions)
+
+			texts.forEach(options => renderPriceText.call(this, {
+				...options,
+				x: panelStartX + model.valueAxisPadding,
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
+			}));
 		} catch(error) {
 			console.error(error, error.stack)
 		} finally {
@@ -677,7 +688,8 @@ const Renderer = function (settings) {
 				text: v,
 				ctx,
 				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
-				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript")
+				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 
 			if (i < series.fields.length - 1) {
@@ -715,7 +727,8 @@ const Renderer = function (settings) {
 				x: valueToRender.value.x,
 				y: valueToRender.value.y,
 				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
-				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript")
+				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 
 			if (valueToRender.separator.text) {
@@ -762,7 +775,8 @@ const Renderer = function (settings) {
 					text: vs,
 					ctx,
 					x: model._width - model.valueAxisWidth + 8,
-					y: y + 3
+					y: y + 3,
+					zerosToReduce: this.priceRenderingOptions.zerosToReduce
 				});
 			}
 		} catch (e) {
@@ -818,7 +832,8 @@ const Renderer = function (settings) {
 				text: vs1,
 				ctx,
 				x: model._width-model.valueAxisWidth+8,
-				y: y1+3
+				y: y1+3,
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 
 			ctx.fillStyle = innerColor;
@@ -906,7 +921,8 @@ const Renderer = function (settings) {
 				text: vs2,
 				ctx,
 				x: model._width-model.valueAxisWidth+8,
-				y: y2+3
+				y: y2+3,
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 
 			ctx.fillStyle = innerTextColor;
@@ -916,7 +932,8 @@ const Renderer = function (settings) {
 				text: label,
 				ctx,
 				x: model._width-model.valueAxisWidth+12,
-				y: labelY + fontSize / 2
+				y: labelY + fontSize / 2,
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce
 			});
 			ctx.fillText(labelDn, model._width-model.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
 
@@ -1260,6 +1277,57 @@ const Renderer = function (settings) {
 		return p;
 	}
 
+	this.calculatePriceRenderingOptions = function(data, precision) {
+		let magnitude;
+		let valueAxisWidth;
+		let zerosToReduce;
+		let greatestNumber = Number.MIN_VALUE;
+		let greatestFraction = Number.MIN_VALUE;
+		let text = '';
+
+		for (let i = 0; i < data.length; i++) {
+			const candle = data[i];
+			const h = candle.h;
+			greatestNumber = h > greatestNumber ? h : greatestNumber;
+			
+			greatestFraction = getGreater(greatestFraction, candle.o);
+			greatestFraction = getGreater(greatestFraction, h);
+			greatestFraction = getGreater(greatestFraction, candle.l);
+			greatestFraction = getGreater(greatestFraction, candle.c);
+		}
+
+		magnitude = (Math.log(Math.floor(greatestNumber)) * Math.LOG10E + 1 | 0) || 1;
+		zerosToReduce = -Math.floor(Math.log10(greatestFraction) + 1);
+
+		for (let i = 0; i < magnitude; i++) {
+			text += '8';
+		}
+		
+		if (precision > 0) {
+			text += '.';
+
+			for (let i = 0; i < precision; i++) {
+				text += '8';
+			}
+		}
+
+		valueAxisWidth = measurePriceTextWidth({
+			text, ctx: this.context, zerosToReduce
+		});
+
+		this.priceRenderingOptions = {
+			magnitude, zerosToReduce, valueAxisWidth
+		};
+
+		function getGreater(current, proposal) {
+			const y = proposal - Math.floor(proposal);
+			return y > current ? y : current;
+		}
+	}
+
+	this.getPriceRenderingOptions = function() {
+		return this.priceRenderingOptions;
+	}
 };
 
 export default Renderer;

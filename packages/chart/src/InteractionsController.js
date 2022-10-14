@@ -1980,7 +1980,7 @@ function DefaultTool(interactor){
 			lw = _lw > lw ? _lw : lw;
 			var v = getValue(tip.values[i].value);
 
-			var _vw = measurePriceTextWidth({text: v, ctx});
+			var _vw = measurePriceTextWidth({text: v, ctx, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
 			vw = _vw > vw ? _vw : vw;
 		}
 		var valueWidth = lw + ctx.measureText(" : ").width+vw;
@@ -2029,8 +2029,8 @@ function DefaultTool(interactor){
 			ctx.fillText(tip.values[i].label+" : ",  txtX, txtY);
 			
 			var v = getValue(tip.values[i].value);
-			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx});
-			renderPriceText({text: v, ctx, x, y: txtY});
+			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
 		}
 
 		ctx.closePath();
