@@ -1917,7 +1917,7 @@ function DefaultTool(interactor){
 						tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
 						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision > 4 ? self.interactor.model.instrumentsSeries[0].instrument.precision : 4//self.interactor.model.instrumentsSeries[0].instrument.precision;
 						self.currentTip = tip;
-						drawTip(tip, o._hit.x, o._hit.y, octx, self.interactor.model);
+						drawTip(tip, o._hit.x, o._hit.y, octx, self.interactor.model, self.interactor.controller);
 
 					}catch(e){
 						console.error(e,e.stack)
@@ -1934,7 +1934,7 @@ function DefaultTool(interactor){
 		}
 	}
 
-	function drawTip(tip, x, y, ctx, model){
+	function drawTip(tip, x, y, ctx, model, controller){
 		const getValue = (value) => {
 			if (value !== undefined && value !== null) {
 				return value.toFixed ? formatNumber(value) : value;
@@ -1980,7 +1980,7 @@ function DefaultTool(interactor){
 			lw = _lw > lw ? _lw : lw;
 			var v = getValue(tip.values[i].value);
 
-			var _vw = measurePriceTextWidth({text: v, ctx, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			var _vw = measurePriceTextWidth({text: v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
 			vw = _vw > vw ? _vw : vw;
 		}
 		var valueWidth = lw + ctx.measureText(" : ").width+vw;
@@ -2029,8 +2029,8 @@ function DefaultTool(interactor){
 			ctx.fillText(tip.values[i].label+" : ",  txtX, txtY);
 			
 			var v = getValue(tip.values[i].value);
-			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
-			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: self.interactor.controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
 		}
 
 		ctx.closePath();
