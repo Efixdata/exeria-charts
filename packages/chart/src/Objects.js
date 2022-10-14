@@ -3227,7 +3227,7 @@ var MovePaneArrows	=	function () {
 				interactor.octx.globalAlpha   = 1;
 				interactor.octx.fillStyle   = this.opts.color;
 				interactor.octx.strokeStyle = this.opts.color;
-				var arrowUp = createArrowUp(panel, model, this.opts);
+				var arrowUp = createArrowUp(panel, interactor.renderer, this.opts);
 				drawArrow(interactor.octx,arrowUp);
 			}
 			//down arrow
