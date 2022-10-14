@@ -323,4 +323,11 @@ export function measurePriceTextWidth(text, ctx, priceFont, subscriptFont) {
 	return width;
 }
 
+export function roundAndTranslate(coordinate) {
+	const rounded = Math.round(coordinate);
+	const translated = rounded > coordinate ? rounded - 0.5 : rounded - 0.5;
+
+	return translated;
+}
+
 //# sourceURL=./platform/components/newchart/js/objects-lib.js

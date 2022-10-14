@@ -1,7 +1,7 @@
 import WEBRCP from "./WebRCP";
 import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
-import { between, isPointInCircle, pointsDistance, getLinePointNearestMouse } from './utils/objects-lib';
+import { between, isPointInCircle, pointsDistance, getLinePointNearestMouse, roundAndTranslate } from './utils/objects-lib';
 import { hitTolerance } from "./utils/environment";
 import imageCandleChartWhite from "./img/icons/candle_chart_white.svg";
 
@@ -353,21 +353,16 @@ var SeriesObject	=	function () {
 			ctx.closePath();
 		}
 
-
 		if (o.priceLine) {
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][o.dataField];
 
-			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
-			ctx.closePath();
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+			});
 		}
 
 		return true;
-
 	}
 
 	this.renderAsVolumeHistogram = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -418,14 +413,12 @@ var SeriesObject	=	function () {
 		}
 
 		if (o.priceLine) {
-			const value 	= seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY	= Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
-			ctx.closePath();
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][o.dataField];
+
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+			});
 		}
 
 		ctx.globalAlpha = 1;
@@ -680,15 +673,12 @@ var SeriesObject	=	function () {
 		ctx.closePath();
 
 		if (o.priceLine) {
-			ctx.setLineDash([]);
-			const value 	= seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
-			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
-			ctx.closePath();
+			const value = seriesManager[o.dataLink].data[seriesManager[link].data.length - 1][field];
+
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+			});
 		}
 
 		return true;
@@ -768,26 +758,13 @@ var SeriesObject	=	function () {
 		}
 
 		if (o.priceLine) {
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
 
-			var value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfC];
-			var open = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfO];
-
-			if (value-open>0) {
-
-				color = green;
-
-			} else {
-
-				color = red;
-
-			}
-			var valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = color;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
+			this.renderPriceLine({
+				ctx, panel, model, value, green, red,
+				open: seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO],
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+			});
 		}
 
 		return true;
@@ -906,31 +883,16 @@ var SeriesObject	=	function () {
 				ctx.closePath();
 			}
 
-
-
 		}
 
 		if (o.priceLine) {
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
 
-			var value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfC];
-			var open = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][dfO];
-
-			if (value-open>0) {
-
-				color = green;
-
-			} else {
-
-				color = red;
-
-			}
-			var valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = color;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
+			this.renderPriceLine({
+				ctx, panel, model, value, green, red,
+				open: seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO],
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset,
+			});
 		}
 
 		return true;
@@ -997,13 +959,12 @@ var SeriesObject	=	function () {
 		ctx.fill();
 
 		if (o.priceLine) {
-			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][field];
-			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][field];
+
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax) + panel._offset
+			});
 		}
 
 		function getFirstValueBeforeStart(leftIndex, data, field) {
@@ -1031,6 +992,25 @@ var SeriesObject	=	function () {
 			if (end < data.length - 1) end += 1;
 			return end;
 		}
+	}
+
+	this.renderPriceLine = function(options) {
+		const {ctx, panel, model, y, value, green, red, open} = options;
+		const roundedY = roundAndTranslate(y);
+
+		if (open) {
+			ctx.strokeStyle = (value - open > 0) ? green : red;
+		}
+
+		ctx.lineWidth = 1;
+
+		ctx.beginPath();
+		ctx.setLineDash([5, 5]);
+		ctx.moveTo(0, roundedY);
+		ctx.lineTo(panel._width - model.valueAxisWidth, roundedY);
+		ctx.stroke();
+		ctx.setLineDash([]);
+		ctx.closePath();
 	}
 
 	this.updateExtremes	=	function (o, extremes, model, seriesManager) {
@@ -1531,20 +1511,16 @@ var IndicatorObject	=	function () {
 
 		}
 
-
 		if (o.priceLine) {
-
-			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length-1][o.dataField];
-			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
+			const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][o.dataField];
+			
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+			});
 		}
 
 		return true;
-
 	}
 
 	this.renderAsBand	=	function (o, ctx, renderer, model, panel, seriesManager) {
@@ -1724,14 +1700,12 @@ var IndicatorObject	=	function () {
 		ctx.stroke();
 
 		if (o.priceLine) {
-
-			const value = seriesManager[o.dataLink].data[seriesManager[link].data.length-1][field];
-			valueY = Math.round(renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV)+panel._offset) + 0.5;
-			ctx.lineWidth = 1;
-			ctx.beginPath();
-			ctx.moveTo(0, valueY);
-			ctx.lineTo(panel._width-model.valueAxisWidth, valueY);
-			ctx.stroke();
+			const value = seriesManager[o.dataLink].data[seriesManager[link].data.length - 1][field];
+			
+			this.renderPriceLine({
+				ctx, panel, model, value,
+				y: renderer.getValuePoint(value, panel._height, panel.vMin, panel.vMax, panel.valueAxisMode, fV) + panel._offset
+			});
 		}
 
 		return true;
