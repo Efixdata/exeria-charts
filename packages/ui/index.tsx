@@ -3,3 +3,4 @@ export * from "./src/Button";
 export * from "./src/TextButton";
 export * from "./src/IconButton";
 export * from "./src/ButtonSelect";
+export * from "./src/RadioButton";

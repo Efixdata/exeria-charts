@@ -33,8 +33,8 @@ class ChartUI extends React.Component {
   }
 
   render() {
-    const leftMenuWidth = this.props.leftMenuWidth ? this.props.leftMenuWidth : "50px";
-    const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "50px";
+    const leftMenuWidth = this.props.leftMenuWidth ? this.props.leftMenuWidth : "41px";
+    const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
 
     return (
       <Container ref={this.containerRef}>

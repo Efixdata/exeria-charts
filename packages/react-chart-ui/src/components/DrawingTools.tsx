@@ -32,8 +32,6 @@ interface DrawingToolsProps {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 8px;
   `
   
   export const DrawingTools = (props: DrawingToolsProps) => {

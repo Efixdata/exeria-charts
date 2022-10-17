@@ -1,23 +1,38 @@
 import * as React from "react";
 import styled from "styled-components";
+import { iconButton } from "../theme"; 
 
 const Button = styled.button`
   background-color: transparent;
-  width: 30px;
-  height: 30px;
   border: none;
   outline: none;
   margin: 0;
   padding: 0;
-  border-radius: 5px;
+  width: ${iconButton.buttonSize}px;
+  height: ${iconButton.buttonSize}px;
+  border-radius: ${iconButton.borderRadius}px;
 
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+  &:hover, &.focus {
+    background-color: ${iconButton.backgroundActiveColor};
     cursor: pointer;
   }
 
   &.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: ${iconButton.backgroundActiveColor};
+    
+    path {
+      fill: ${iconButton.iconActiveColor};
+    }
+  }
+
+  picture {
+    display: contents;
+  }
+
+  img {
+    width: ${iconButton.iconSize}px;
+    height: ${iconButton.iconSize}px;
+    margin: 0 auto;
   }
 `
 
@@ -26,6 +41,7 @@ interface IconButtonProps {
   image?: string
   imageAlt?: string
   imageType?: string
+  callback?: () => void
   style?: React.CSSProperties
   onClick?: () => void
   active?: boolean
@@ -37,11 +53,11 @@ export const IconButton = (props: IconButtonProps) => {
     if (props.image)
       return (<picture>
         <source srcSet={props.image} type={props.imageType}/>
-        <img src={props.image} alt={props.imageAlt} style={{ width: "30px", height: "30px" }}/>
+        <img src={props.image} alt={props.imageAlt}/>
       </picture>);
   }
 
-  return <Button onClick={props.onClick} className={props.active ? "active" : ""}>
+  return <Button onClick={props.onClick} className={props.active ? "active" : ""} style={props.style}>
     {renderImage()}
     {props.children}
     </Button>;

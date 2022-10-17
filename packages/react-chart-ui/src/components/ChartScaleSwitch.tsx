@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React, {useState} from "react";
 import styled from "styled-components";
-import { ButtonSelect, IconButton, TextButton } from "ui";
+import { ButtonSelect, IconButton, TextButton, RadioButton } from "ui";
 
 interface ChartScaleSwitchProps {
   chart: any;
@@ -19,32 +19,24 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
   const defaultMode = props.chart ? props.chart.getValueAxisMode() : "lin";
 
   const [selectedMode, setSelectedMode] = useState(defaultMode);
-  
+  const buttons = [];
 
-  const changeMode = (mode: string) => {
+  for (let mode of modes) {
+    buttons.push(
+      <TextButton
+        key={mode}
+        callback={() => { changeMode(mode); }}
+        active={selectedMode == mode || (selectedMode === 'perc' && mode === '%')}
+      >
+        {mode}
+      </TextButton>
+    );
+  }
+
+  return <RadioButton buttons={buttons} horizontal/>;
+
+  function changeMode(mode: string) {
     props.chart.setValueAxisMode(mode);
     setSelectedMode(mode);
-  };
-
-  const renderScaleModes = () => {
-    const buttons = [];
-
-    for (let mode of modes) {
-      buttons.push(
-        <TextButton
-          key={mode}
-          onClick={() => {
-            changeMode(mode);
-          }}
-          active={selectedMode == mode || (selectedMode === 'perc' && mode === '%')}
-        >
-          {mode}
-        </TextButton>
-      );
-    }
-
-    return buttons;
-  };
-
-  return <Container style={props.style}>{renderScaleModes()}</Container>;
+  }
 };

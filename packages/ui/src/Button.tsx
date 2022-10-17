@@ -10,5 +10,5 @@ export const Button = (props: ButtonProps) => {
 
   return <button style={props.style} onClick={props.onClick}>
     {props.children}
-    </button>;
+  </button>;
 };

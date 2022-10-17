@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import styled from "styled-components";
-import { IconButton } from "ui";
+import { IconButton, RadioButton } from "ui";
 
 import defaultCursorImage from "../img/icons/cursors/default.svg";
 import crosshairCursorImage from "../img/icons/parallel.svg";
@@ -11,24 +10,7 @@ interface CursorsProps {
     style?: React.CSSProperties;
   }
   
-  const Container = styled.div`
-    background-color: rgba(255, 255, 255, 0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin: 8px;
-    border-radius: 4px;
-  `
-
-  interface CursorElement {
-    name: string,
-    image: any,
-    onClick: () => void
-  }
-  
   export const Cursors = (props: CursorsProps) => {
-
     const [selectedCursor, setSelectedCursor] = useState('DEFAULT');
 
     useEffect(() => {
@@ -44,47 +26,32 @@ interface CursorsProps {
         }
     })
     
-
-    const renderCursors = () => {
-        const cursors = {
-            DEFAULT: {
-                name: "Default",
-                image: defaultCursorImage
-            },
-            CROSSHAIR: {
-                name: "Croosshair",
-                image: crosshairCursorImage
-            },
-            ERASER: {
-                name: "Eraser",
-                image: eraserCursorImage
-            }
-        }
-
-        const cursorElements = [];
-
-        for (let key in cursors) {
-            const cursor: CursorElement = cursors[key];
-            cursorElements.push(
-                <IconButton
-                    key={key}
-                    image={cursor.image.src}
-                    onClick={() => {
-                        setSelectedCursor(key);
-                        props.chart.setCursor(key);
-                    }}
-                    active={selectedCursor === key}
-                />
-            );
-        }
-        
-        return cursorElements;
-    }
+    const cursors = [
+        <IconButton
+            key={'DEFAULT'}
+            image={defaultCursorImage.src}
+            callback={() => { onCurosorClick('DEFAULT') }}
+            active={selectedCursor === 'DEFAULT'}
+        />,
+        <IconButton
+            key={'CROSSHAIR'}
+            image={crosshairCursorImage.src}
+            callback={() => { onCurosorClick('CROSSHAIR') }}
+            active={selectedCursor === 'CROSSHAIR'}
+        />,
+        <IconButton
+            key={'ERASER'}
+            image={eraserCursorImage.src}
+            callback={() => { onCurosorClick('ERASER') }}
+            active={selectedCursor === 'ERASER'}
+        />
+    ]
     
-    return (
-      <Container style={props.style}>
-        {renderCursors()}
-      </Container>
-    );
+    return <RadioButton buttons={cursors} currentButton={'test'} />;``
+
+    function onCurosorClick(key: string) {
+        setSelectedCursor(key);
+        props.chart.setCursor(key);
+    }
   };
   
