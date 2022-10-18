@@ -142,13 +142,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.onTouchEvent =	function (evt) {
 		self.body.click();
 
-		const rect = evt.target.getBoundingClientRect();
 		const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
 		let touchEvent;
 
 		if (touches.length > 0) {
-			const ox = touches[0].pageX - rect.left;
-			const oy = touches[0].pageY - rect.top;
+			const ox = touches[0].pageX - window.scrollX;
+			const oy = touches[0].pageY - window.scrollY;
 
 			touchEvent = {
 				clientX: ox,
