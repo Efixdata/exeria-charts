@@ -9,12 +9,12 @@ const Container = styled.div`
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   height: 100%;
   max-height: 100%;
-  overflow-y: auto;
-  padding: 8px 0;
+  overflow: visible;
+  padding: 8px 0 8px 8px;
   grid-gap: 12px;
 `
 

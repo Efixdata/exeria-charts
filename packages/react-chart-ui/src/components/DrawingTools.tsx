@@ -19,6 +19,7 @@ import cycleImage from "../img/icons/cycles.svg";
 import boxImage from "../img/icons/box.svg";
 import textAnnotationImage from "../img/icons/text.svg";
 import priceTagImage from "../img/icons/price_tag.svg";
+import { Button, IconButton, SplitButton } from 'ui';
 
 
 
@@ -31,7 +32,8 @@ interface DrawingToolsProps {
     background-color: #100c22;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    width: 26px;
   `
   
   export const DrawingTools = (props: DrawingToolsProps) => {
@@ -331,6 +333,7 @@ interface DrawingToolsProps {
     
     return (
       <Container style={props.style}>
+        <SplitButton button = {<IconButton image={trendlineImage.src}></IconButton>} />
         {renderDrawingTools()}
       </Container>
     );

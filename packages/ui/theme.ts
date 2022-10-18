@@ -6,8 +6,8 @@ const violet_d = '#120f29';
 const violet_dd = '#080821';
 const green = '#14f7ab';
 
-const iconSize = 18;
-const buttonSize = 24;
+const iconSize = 20;
+const buttonSize = 26;
 const buttonPadding = (buttonSize - iconSize) / 2;
 
 export const radioButton = {

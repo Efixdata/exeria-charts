@@ -43,6 +43,7 @@ interface IconButtonProps {
   imageType?: string
   callback?: () => void
   style?: React.CSSProperties
+  iconStyle?: React.CSSProperties
   onClick?: () => void
   active?: boolean
 }
@@ -53,7 +54,7 @@ export const IconButton = (props: IconButtonProps) => {
     if (props.image)
       return (<picture>
         <source srcSet={props.image} type={props.imageType}/>
-        <img src={props.image} alt={props.imageAlt}/>
+        <img src={props.image} alt={props.imageAlt} style={props.iconStyle}/>
       </picture>);
   }
 
