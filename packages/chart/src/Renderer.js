@@ -674,7 +674,10 @@ const Renderer = function (settings) {
 		ctx.save();
 		ctx.beginPath();
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
-		ctx.roundRect(startX - 4, y-11, x - 4, 16, [4]);
+		if (ctx.roundRect)
+			ctx.roundRect(startX - 4, y-11, x - 4, 16, [4]);
+		else
+			ctx.rect(startX - 4, y-11, x - 4, 16, [4]);
 		ctx.fill();
 
 		ctx.fillStyle = color;

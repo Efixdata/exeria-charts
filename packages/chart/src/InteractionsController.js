@@ -386,8 +386,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		this.isRightButton = isTouchDevice() ? true : this.isRightMouseButton(e);
 
 		if (this.allowContextMenu || isTouchDevice()) {
-			this.buildContextMenu(e);
-			this.topLayer.contextMenu({x: e.pageX, y: e.pageY});
+			// this.buildContextMenu(e);
+			// this.topLayer.contextMenu({x: e.pageX, y: e.pageY});
 		} else this.allowContextMenu = true;
 
 	};
@@ -938,7 +938,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		if (this.isMouseDown && (this.isRightButton === false)) return this.onMouseDrag(e);
 		if (this.isMouseDown && this.isRightButton) return this.onRightMouseDrag(e);
-		if (e?.path[0] !== this.topLayer) return;
+		if (!e.path || !e.path[0] || e.path[0] !== this.topLayer) return;
 		this.currentHandler = this.isOverHandler(e);
 
 		if (this.currentHandler >- 1 && !this.currentStagingObject) {
