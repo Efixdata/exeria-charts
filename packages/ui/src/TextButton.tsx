@@ -14,6 +14,9 @@ const Button = styled.button`
   min-height: ${textButton.buttonSize}px;
   border-radius: ${textButton.borderRadius}px;
   white-space: nowrap;
+  font-size: ${textButton.fontSize}px;
+  font-weight: ${textButton.fontWeight};
+  font-family: Mulish,Roboto,sans-serif;
 
   &:hover {
     cursor: pointer;

@@ -8,6 +8,7 @@ const violet_background = '#1D1D3A'; // violet_ll * 10% on violet_d
 const green = '#14f7ab';
 
 const iconSize = 20;
+const fontSize = 13;
 const buttonSize = 26;
 const buttonPadding = (buttonSize - iconSize) / 2;
 const borderRadius = 4;
@@ -32,18 +33,21 @@ export const textButton = {
     textColor: violet_ll,
     textActiveColor: green,
     backgroundActiveColor: violet_ll + '1A',
-    borderRadius
+    borderRadius,
+    fontSize,
+    fontWeight: 500
 }
 
 export const splitButton = {
-    backgroundColor: violet_background,
     borderRadius,
     spacerColor: violet_ll + '1A',
-    activeBackgroundColor: violet_l,
+    backgroundHoverColor: violet_background,
+    backgroundActiveColor: violet_l,
+    buttonHoverColor: violet_ll + '1A',
     buttonSize,
 }
 
 export const splitButtonOption = {
     basePadding: buttonPadding,
-    activeBackgroundColor: violet_ll + '1A',
+    backgroundActiveColor: violet_ll + '1A',
 }

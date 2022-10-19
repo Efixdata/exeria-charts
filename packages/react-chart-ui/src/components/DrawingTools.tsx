@@ -330,20 +330,28 @@ interface DrawingToolsProps {
         
         return tools;
     }
+
+    let selectedTool2;
     
     return (
       <Container style={props.style}>
         <SplitButton
-            button = {<IconButton image={trendlineImage.src}></IconButton>}
+            activeOption={selectedTool2}
+            defaultOption='a'
             options = {[
-                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
-                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
-                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
-                { text: <TextButton>very very long text</TextButton>, icon: <IconButton image={arrowImage.src} /> }
+                { id: 'a', text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} />, callback: () => { setSelectedTool2('a') } },
+                { id: 'b', text: <TextButton>test 1</TextButton>, icon: <IconButton image={textAnnotationImage.src} />, callback: () => { setSelectedTool2('b') } },
+                { id: 'c', text: <TextButton>test 1</TextButton>, icon: <IconButton image={priceTagImage.src} />, callback: () => { setSelectedTool2('c') } },
+                { id: 'd', text: <TextButton>very very long text</TextButton>, icon: <IconButton image={arrowImage.src} />, callback: () => { setSelectedTool2('d') } }
             ]}
         />
         {renderDrawingTools()}
       </Container>
     );
+
+    function setSelectedTool2(id: string) : void {
+        console.log('selected ', id);
+        selectedTool2 = id;
+    }
   };
   
