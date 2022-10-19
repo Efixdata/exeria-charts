@@ -8,11 +8,12 @@ const Button = styled.button`
   border: none;
   outline: none;
   margin: 0;
-  padding: ${textButton.buttonPadding}px;
+  padding: ${textButton.buttonPadding}px ${textButton.buttonPadding * 2}px;
   color: ${textButton.textColor};
   min-width: ${textButton.buttonSize}px;
   min-height: ${textButton.buttonSize}px;
   border-radius: ${textButton.borderRadius}px;
+  white-space: nowrap;
 
   &:hover {
     cursor: pointer;

@@ -19,7 +19,7 @@ import cycleImage from "../img/icons/cycles.svg";
 import boxImage from "../img/icons/box.svg";
 import textAnnotationImage from "../img/icons/text.svg";
 import priceTagImage from "../img/icons/price_tag.svg";
-import { Button, IconButton, SplitButton } from 'ui';
+import { Button, IconButton, SplitButton, TextButton } from 'ui';
 
 
 
@@ -333,7 +333,15 @@ interface DrawingToolsProps {
     
     return (
       <Container style={props.style}>
-        <SplitButton button = {<IconButton image={trendlineImage.src}></IconButton>} />
+        <SplitButton
+            button = {<IconButton image={trendlineImage.src}></IconButton>}
+            options = {[
+                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
+                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
+                { text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} /> },
+                { text: <TextButton>very very long text</TextButton>, icon: <IconButton image={arrowImage.src} /> }
+            ]}
+        />
         {renderDrawingTools()}
       </Container>
     );

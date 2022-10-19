@@ -14,6 +14,7 @@ const Container = styled.div`
   height: 100%;
   max-height: 100%;
   overflow: visible;
+  z-index: 1;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
 `
