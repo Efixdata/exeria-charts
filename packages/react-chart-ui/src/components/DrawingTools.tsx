@@ -338,12 +338,27 @@ interface DrawingToolsProps {
         <SplitButton
             activeOption={selectedTool2}
             defaultOption='a'
-            options = {[
-                { id: 'a', text: <TextButton>test 1</TextButton>, icon: <IconButton image={arrowImage.src} />, callback: () => { setSelectedTool2('a') } },
-                { id: 'b', text: <TextButton>test 1</TextButton>, icon: <IconButton image={textAnnotationImage.src} />, callback: () => { setSelectedTool2('b') } },
-                { id: 'c', text: <TextButton>test 1</TextButton>, icon: <IconButton image={priceTagImage.src} />, callback: () => { setSelectedTool2('c') } },
-                { id: 'd', text: <TextButton>very very long text</TextButton>, icon: <IconButton image={arrowImage.src} />, callback: () => { setSelectedTool2('d') } }
-            ]}
+            options = {{
+                a: {
+                    text: <TextButton>test 1</TextButton>,
+                    icon: <IconButton image={arrowImage.src} />,
+                    callback: () => { setSelectedTool2('a') }
+                },
+                b: {
+                    text: <TextButton>test 1</TextButton>,
+                    icon: <IconButton image={textAnnotationImage.src} />,
+                    callback: () => { setSelectedTool2('b') } },
+                c: {
+                    text: <TextButton>test 1</TextButton>,
+                    icon: <IconButton image={priceTagImage.src} />,
+                    callback: () => { setSelectedTool2('c') }
+                },
+                d: {
+                    text: <TextButton>very very long text</TextButton>,
+                    icon: <IconButton image={arrowImage.src} />,
+                    callback: () => { setSelectedTool2('d') }
+                }
+            }}
         />
         {renderDrawingTools()}
       </Container>

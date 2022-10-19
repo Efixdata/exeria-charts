@@ -1,4 +1,4 @@
-import React, { useState, ReactElement } from "react";
+import React, { useState, ReactElement, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { splitButton, splitButtonOption } from "../theme"; 
 
@@ -35,12 +35,14 @@ const ButtonContainer = styled.div`
 
 const ChevronContainer = styled.div`
   position: relative;
-  left: -2px;
+  left: -4px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 100ms ease-in-out;
   cursor: pointer;
+  padding: 2px;
+  box-sizing: border-box;
 
   &:hover {
     background-color: ${splitButton.buttonHoverColor};
@@ -92,43 +94,41 @@ interface Option {
 
 interface SplitButtonProps {
   defaultOption: string
-  options: Option[]
-  setCurrentOption?: boolean,
+  options: Option<>
+  setCurrentOption?: boolean
   activeOption?: string
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
   const setCurrentOption = typeof props.setCurrentOption !== 'undefined' ? props.setCurrentOption : true;
+  const myRef = useRef();
 
   const [isOpen, setOpen] = useState(false);
   const [activeOption, setActiveOption] = useState(props.activeOption);
 
-  const savedOptions = {}
+  useEffect(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+  });
 
-  const options = props.options.map(option => {
-    savedOptions[option.id] = {
-      icon: option.icon,
-      callback: option.callback
-    }
-    return renderOption(option);
-  })
+  const activeOptionProps = props.options[activeOption || props.defaultOption];
 
-  const activeOptionProps = activeOption ? savedOptions[activeOption] : savedOptions[props.defaultOption];
-
-  const currentIcon = React.cloneElement( activeOptionProps.icon, {
-    style: { borderRadius: 0 },onClick: () => onActiveOptionClick(activeOptionProps.callback)} )
+  const currentButton = React.cloneElement(activeOptionProps.icon, {
+    style: { borderRadius: 0 },
+    onClick: () => onActiveOptionClick(activeOptionProps.callback)
+  });
 
   return (
-    <Container className={ isOpen && 'active' }>
+    <Container className={ isOpen && 'active' } ref={myRef}>
       <ButtonContainer>
-        { currentIcon }
+        { currentButton }
         <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
           <img src={Chevron.src} />
         </ChevronContainer>
       </ButtonContainer>
       { isOpen &&  
         <OptionsContainer>
-          { options }
+          { renderOptions() }
         </OptionsContainer>
       }
     </Container>
@@ -146,12 +146,25 @@ export const SplitButton = (props: SplitButtonProps) => {
     }
   }
 
-  function renderOption(option : Option) {
-    return (
-      <Option onClick={() => { onOptionClick(option.callback, option.id) }} key={option.id}>
-        { option.icon && option.icon }
-        { option.text }
-      </Option>
-    )
+  function renderOptions() {
+    const options = [];
+
+    for (const o in props.options) {
+      const option = props.options[o];
+      options.push(
+        <Option onClick={() => { onOptionClick(option.callback, o) }} key={o}>
+          { option.icon && option.icon }
+          { option.text }
+        </Option>
+      )
+    }
+
+    return options;
   }
+
+  function handleClickOutside(e) {
+    if (!myRef.current.contains(e.target)) {
+        setOpen(false);
+    }
+};
 };
