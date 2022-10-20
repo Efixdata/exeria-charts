@@ -1,19 +1,19 @@
-import React, { useState, ReactElement, useEffect, useRef } from "react";
+import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent } from "react";
 import styled from "styled-components";
-import { splitButton, splitButtonOption } from "../theme"; 
+import { splitButton, buttonOption as buttonOption } from "../theme"; 
 
 import Chevron from "./img/icons/chevron_right_no_margins.svg";
 
 const Container = styled.div`
   position: relative;
 
-  &:hover .chevron, &.active .chevron {
+  &:hover .chevron, &.open .chevron {
     width: ${splitButton.buttonSize}px;
     height: ${splitButton.buttonSize}px;
     left: 0;
   }
 
-  &:hover .chevron img, &.active .chevron img {
+  &:hover .chevron img, &.open .chevron img {
     width: 6px;
   }
 `
@@ -28,7 +28,7 @@ const ButtonContainer = styled.div`
     background-color: ${splitButton.backgroundHoverColor};
   }
 
-  .active &, .active:hover & {
+  .open &, .open:hover & {
     background-color: ${splitButton.backgroundActiveColor};
   }
 `
@@ -64,19 +64,30 @@ const OptionsContainer = styled.div`
   padding: 4px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
-  top: -${splitButtonOption.basePadding}px;
+  top: -${buttonOption.basePadding}px;
 `
 
 const Option = styled.div`
   display: flex;
   cursor: pointer;
-  padding-left: ${splitButtonOption.basePadding}px;
-  padding-top: ${splitButtonOption.basePadding}px;
-  padding-right: ${splitButtonOption.basePadding * 4}px;
-  padding-bottom: ${splitButtonOption.basePadding}px;
+  padding-left: ${buttonOption.basePadding}px;
+  padding-top: ${buttonOption.basePadding}px;
+  padding-right: ${buttonOption.basePadding * 4}px;
+  padding-bottom: ${buttonOption.basePadding}px;
+  grid-gap: ${buttonOption.basePadding * 2}px;
 
   &:hover {
-    background-color: ${splitButtonOption.backgroundActiveColor};
+    background-color: ${buttonOption.backgroundActiveColor};
+  }
+
+  &.active {
+    button {
+      color: ${buttonOption.fillActiveColor};
+    }
+    
+    & path, & circle {
+      fill: ${buttonOption.fillActiveColor};
+    }
   }
 
   & button {
@@ -100,26 +111,24 @@ interface SplitButtonProps {
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
-  const setCurrentOption = typeof props.setCurrentOption !== 'undefined' ? props.setCurrentOption : true;
+  // const setCurrentOption = typeof props.setCurrentOption !== 'undefined' ? props.setCurrentOption : true;
   const myRef = useRef();
-
   const [isOpen, setOpen] = useState(false);
-  const [activeOption, setActiveOption] = useState(props.activeOption);
 
-  useEffect(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-  });
-
-  const activeOptionProps = props.options[activeOption || props.defaultOption];
-
+  const activeOptionProps = props.options[props.activeOption || props.defaultOption];
   const currentButton = React.cloneElement(activeOptionProps.icon, {
     style: { borderRadius: 0 },
-    onClick: () => onActiveOptionClick(activeOptionProps.callback)
+    onClick: () => onActiveOptionClick(activeOptionProps.callback),
+    active: !!props.activeOption
+  });
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   });
 
   return (
-    <Container className={ isOpen && 'active' } ref={myRef}>
+    <Container className={ (isOpen && 'open')} ref={myRef}>
       <ButtonContainer>
         { currentButton }
         <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
@@ -136,13 +145,14 @@ export const SplitButton = (props: SplitButtonProps) => {
 
   function onOptionClick(callback: () => void, optionId: string) : void {
     setOpen(false);
-    if (setCurrentOption) { setActiveOption(optionId) }
     callback();
   }
 
   function onActiveOptionClick(callback: () => void) : void {
-    if (!activeOption) {
-      onOptionClick.call(null, callback, props.defaultOption)
+    if (!props.activeOption) {
+      onOptionClick.call(null, callback, props.defaultOption);
+    } else {
+      setOpen(!isOpen);
     }
   }
 
@@ -152,7 +162,11 @@ export const SplitButton = (props: SplitButtonProps) => {
     for (const o in props.options) {
       const option = props.options[o];
       options.push(
-        <Option onClick={() => { onOptionClick(option.callback, o) }} key={o}>
+        <Option
+          onClick={() => { onOptionClick(option.callback, o) }}
+          key={o}
+          className={ props.activeOption === o && 'active' }
+        >
           { option.icon && option.icon }
           { option.text }
         </Option>

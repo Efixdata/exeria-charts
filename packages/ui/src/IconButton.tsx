@@ -18,9 +18,7 @@ const Button = styled.button`
   }
 
   &.active {
-    background-color: ${iconButton.backgroundActiveColor};
-    
-    path {
+    path, circle {
       fill: ${iconButton.iconActiveColor};
     }
   }
@@ -61,5 +59,5 @@ export const IconButton = (props: IconButtonProps) => {
   return <Button onClick={props.onClick} className={props.active ? "active" : ""} style={props.style}>
     {renderImage()}
     {props.children}
-    </Button>;
+  </Button>;
 };

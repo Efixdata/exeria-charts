@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IconButton, RadioButton } from "ui";
 
 import defaultCursorImage from "../img/icons/cursors/default.svg";
-import crosshairCursorImage from "../img/icons/parallel.svg";
+import crosshairCursorImage from "../img/icons/cursors/cross.svg";
 import eraserCursorImage from "../img/icons/cursors/eraser.svg";
 
 interface CursorsProps {
@@ -30,26 +30,26 @@ interface CursorsProps {
         <IconButton
             key={'DEFAULT'}
             image={defaultCursorImage.src}
-            callback={() => { onCurosorClick('DEFAULT') }}
+            callback={() => { onCursorClick('DEFAULT') }}
             active={selectedCursor === 'DEFAULT'}
         />,
         <IconButton
             key={'CROSSHAIR'}
             image={crosshairCursorImage.src}
-            callback={() => { onCurosorClick('CROSSHAIR') }}
+            callback={() => { onCursorClick('CROSSHAIR') }}
             active={selectedCursor === 'CROSSHAIR'}
         />,
         <IconButton
             key={'ERASER'}
             image={eraserCursorImage.src}
-            callback={() => { onCurosorClick('ERASER') }}
+            callback={() => { onCursorClick('ERASER') }}
             active={selectedCursor === 'ERASER'}
         />
     ]
     
-    return <RadioButton buttons={cursors} currentButton={'test'} />;``
+    return <RadioButton buttons={cursors} currentButton={'DEFAULT'} />;
 
-    function onCurosorClick(key: string) {
+    function onCursorClick(key: string) {
         setSelectedCursor(key);
         props.chart.setCursor(key);
     }

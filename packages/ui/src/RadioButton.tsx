@@ -9,6 +9,7 @@ const Container = styled.div`
   border-radius: ${radioButton.borderRadius}px;
   overflow: hidden;
   background-color: ${radioButton.backgroundColor};
+  grid-gap: ${radioButton.gap}px;
 `
 
 interface RadioButtonProps {

@@ -7,7 +7,7 @@ const violet_dd = '#080821';
 const violet_background = '#1D1D3A'; // violet_ll * 10% on violet_d
 const green = '#14f7ab';
 
-const iconSize = 20;
+const iconSize = 18;
 const fontSize = 13;
 const buttonSize = 26;
 const buttonPadding = (buttonSize - iconSize) / 2;
@@ -16,7 +16,8 @@ const borderRadius = 4;
 export const radioButton = {
     padding: 0,
     backgroundColor: violet_ll + '1A',
-    borderRadius
+    borderRadius,
+    gap: 2
 }
 
 export const iconButton = {
@@ -47,7 +48,8 @@ export const splitButton = {
     buttonSize,
 }
 
-export const splitButtonOption = {
+export const buttonOption = {
     basePadding: buttonPadding,
     backgroundActiveColor: violet_ll + '1A',
+    fillActiveColor: green,
 }
