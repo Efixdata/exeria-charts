@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
+// @ts-ignore
 import { FullScreenButton } from "./FullScreenButton";
 
 interface TopMenuProps {
@@ -46,6 +47,7 @@ export const TopMenu = (props: TopMenuProps) => {
   let valueAxisWidth = props.chart ? props.chart.getValueAxisWidth() : 10;
   
   return (
+    // @ts-ignore
     <Container style={props.style}>
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />

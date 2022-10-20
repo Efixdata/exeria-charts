@@ -1,7 +1,7 @@
 import * as React from "react";
 
 interface ButtonProps {
-  children?: React.ReactNode
+  children?: JSX.Element|JSX.Element[]
   style?: React.CSSProperties
   onClick?: () => void
 }

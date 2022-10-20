@@ -21,6 +21,7 @@ interface LeftMenuProps {
 
 
 export const LeftMenu = (props: LeftMenuProps) => {
+  // @ts-ignore
   return <Container style={props.style}>
     <Cursors chart={props.chart}/>
     <DrawingTools chart={props.chart}/>

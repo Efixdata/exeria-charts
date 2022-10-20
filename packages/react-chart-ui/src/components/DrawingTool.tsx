@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import * as React from "react";
-import styled from "styled-components";
 import { IconButton } from "ui";
 
 interface DrawingToolProps {

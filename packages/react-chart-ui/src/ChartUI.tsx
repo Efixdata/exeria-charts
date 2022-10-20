@@ -1,11 +1,12 @@
 import React from "react";
+import { RefObject } from "react";
 import styled from "styled-components";
-import { LeftMenu } from "./src/components/LeftMenu";
-import { TopMenu } from "./src/components/TopMenu";
+import { LeftMenu } from "./components/LeftMenu";
+import { TopMenu } from "./components/TopMenu";
 
 interface ChartUIProps {
   chart: any;
-  children?: React.ReactNode;
+  children?: JSX.Element|JSX.Element[];
   leftMenuWidth?: string;
   topMenuHeight?: string;
 }
@@ -23,7 +24,7 @@ const Container = styled.div`
 `;
 
 class ChartUI extends React.Component {
-  containerRef;
+  containerRef: RefObject<HTMLDivElement>;
   props: ChartUIProps;
 
   constructor(props: ChartUIProps) {

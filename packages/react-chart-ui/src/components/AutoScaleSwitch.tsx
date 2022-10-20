@@ -8,7 +8,6 @@ interface AutoScaleSwitchProps {
 }
 
 export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
-
   const defaultAutoScaleValue = props.chart ? props.chart.getAutoScale() : true;
   const [autoScale, setAutoScale] = useState(defaultAutoScaleValue);
   const changeMode = () => {
@@ -17,17 +16,18 @@ export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
   };
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe('AUTOSCALE', (data: any) => {
+    const subscription = props?.chart?.subscribe("AUTOSCALE", (data: any) => {
       setAutoScale(data.autoScale);
-    })
+    });
 
     return () => {
       subscription?.unsubscribe();
-    }
+    };
   });
 
   return (
     <TextButton
+    //@ts-ignore
       style={props.style}
       onClick={() => {
         changeMode();

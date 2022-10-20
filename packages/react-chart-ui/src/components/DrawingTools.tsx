@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import styled from "styled-components";
 import { DrawingTool } from "./DrawingTool";
 
-
 import fibonLinesImage from "../img/icons/fibon.svg";
 import parallelChannelImage from "../img/icons/parallel.svg";
 import triangleImage from "../img/icons/triangle.svg";
@@ -19,7 +18,6 @@ import cycleImage from "../img/icons/cycles.svg";
 import boxImage from "../img/icons/box.svg";
 import textAnnotationImage from "../img/icons/text.svg";
 import priceTagImage from "../img/icons/price_tag.svg";
-
 
 
 interface DrawingToolsProps {
@@ -310,6 +308,7 @@ interface DrawingToolsProps {
         const tools = [];        
 
         for (let key in drawingTools) {
+            // @ts-ignore
             const tool = drawingTools[key];
             tools.push(
                 <DrawingTool
@@ -332,6 +331,7 @@ interface DrawingToolsProps {
     }
     
     return (
+        
       <Container style={props.style}>
         {renderDrawingTools()}
       </Container>

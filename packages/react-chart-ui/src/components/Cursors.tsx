@@ -22,9 +22,15 @@ interface CursorsProps {
   `
 
   interface CursorElement {
-    name: string,
+    name: CursorKey,
     image: any,
     onClick: () => void
+  }
+
+  enum CursorKey {
+    DEFAULT,
+    CROSSHAIR,
+    ERASER,
   }
   
   export const Cursors = (props: CursorsProps) => {
@@ -64,6 +70,7 @@ interface CursorsProps {
         const cursorElements = [];
 
         for (let key in cursors) {
+            // @ts-ignore
             const cursor: CursorElement = cursors[key];
             cursorElements.push(
                 <IconButton
@@ -82,6 +89,7 @@ interface CursorsProps {
     }
     
     return (
+    // @ts-ignore
       <Container style={props.style}>
         {renderCursors()}
       </Container>

@@ -45,6 +45,6 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
 
     return buttons;
   };
-
+  // @ts-ignore
   return <Container style={props.style}>{renderScaleModes()}</Container>;
 };

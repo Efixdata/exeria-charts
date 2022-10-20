@@ -22,7 +22,7 @@ const Button = styled.button`
 `
 
 interface IconButtonProps {
-  children?: React.ReactNode
+  children?: JSX.Element|JSX.Element[]
   image?: string
   imageAlt?: string
   imageType?: string

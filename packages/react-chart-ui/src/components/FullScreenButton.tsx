@@ -1,22 +1,18 @@
+// @ts-nocheck
 import * as React from "react";
 import { IconButton } from "ui";
 import fullScreenImage from "../img/icons/fullscreen_white.svg";
 import exitFullScreenImage from "../img/icons/fullscreen-exit_white.svg";
 import { useState } from "react";
-
-interface FullScreenButtonProps {
-  chart: any;
-  style?: React.CSSProperties;
-  mainContainer: React.RefObject<unknown>;
-}
-
-export const FullScreenButton = (props: FullScreenButtonProps) => {
+export const FullScreenButton = (props) => {
   const [icon, setIcon] = useState(fullScreenImage.src);
 
   React.useEffect(() => {
     if (!props?.mainContainer?.current) return;
 
-    props.mainContainer.current.addEventListener("fullscreenchange", (_event: any) => {
+    props.mainContainer.current.addEventListener(
+      "fullscreenchange",
+      (_event) => {
         if (isInFullScreen()) {
           setIcon(exitFullScreenImage.src);
         } else {

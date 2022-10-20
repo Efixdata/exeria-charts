@@ -19,7 +19,7 @@ const Button = styled.button`
 `
 
 interface TextButtonProps {
-  children?: React.ReactNode
+  children?: JSX.Element|JSX.Element[]|string
   style?: React.CSSProperties
   onClick: () => void
   active?: boolean
