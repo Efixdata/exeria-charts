@@ -35,7 +35,7 @@ const ButtonContainer = styled.div`
 
 const ChevronContainer = styled.div`
   position: relative;
-  left: -4px;
+  left: -3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,10 +149,15 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function onActiveOptionClick(callback: () => void) : void {
-    if (!props.activeOption) {
-      onOptionClick.call(null, callback, props.defaultOption);
-    } else {
-      setOpen(!isOpen);
+    if (isOpen) { // otwarte
+      setOpen(false); // zamknąć
+      if (props.activeOption) { // otwarte i aktywne
+        onOptionClick.call(null, callback, props.activeOption); // wyłączyć defaultowe
+      }
+    } else if (props.activeOption) { // zamknięte i aktywne
+      setOpen(true); // otworzyć
+    } else { // zamknięte i nieaktywne
+      onOptionClick.call(null, callback, props.defaultOption); // włączyć
     }
   }
 
@@ -180,5 +185,5 @@ export const SplitButton = (props: SplitButtonProps) => {
     if (!myRef.current.contains(e.target)) {
         setOpen(false);
     }
-};
+  }
 };

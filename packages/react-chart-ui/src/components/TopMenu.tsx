@@ -24,13 +24,15 @@ const Container = styled.div`
   background-color: #100c22;
   display: flex;
   flex-direction: row;
+  z-index: 2;
+  padding: 8px 0 8px 8px;
+  grid-gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 `
 const LeftSection = styled.div`
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-grow: 1;
   flex-direction: row;
-  padding: 0 16px;
 `
 
 export const TopMenu = (props: TopMenuProps) => {
@@ -49,13 +51,13 @@ export const TopMenu = (props: TopMenuProps) => {
     <Container style={props.style}>
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />
-        <ButtonSelect
+        {/* <ButtonSelect
           options={getAvailableIntervalsSymbols()}
           onSelect={(option) => {
             console.log(option);
           }}
           selectedOption={instrument?.interval?.symbol}
-        />
+        /> */}
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />

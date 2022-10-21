@@ -48,8 +48,18 @@ export const splitButton = {
     buttonSize,
 }
 
+export const selectButton = {
+    borderRadius,
+    spacerColor: violet_ll + '1A',
+    backgroundHoverColor: violet_background,
+    backgroundActiveColor: violet_l,
+    buttonHoverColor: violet_ll + '1A',
+    buttonSize,
+}
+
 export const buttonOption = {
     basePadding: buttonPadding,
     backgroundActiveColor: violet_ll + '1A',
     fillActiveColor: green,
+    iconSize
 }

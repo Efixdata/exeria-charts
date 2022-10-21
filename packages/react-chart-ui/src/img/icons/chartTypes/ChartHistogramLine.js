@@ -1,8 +1,8 @@
 import * as React from "react";
-const SvgChartHistogram = (props) => (
+const SvgChartHistogramLine = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="18" height="18" viewBox="0 0 18 18"
+    viewBox="0 0 18 18"
     xmlSpace="preserve"
     role="img"
     {...props}
@@ -14,4 +14,4 @@ const SvgChartHistogram = (props) => (
     <path fill="#7F9DCC" d="M4 14h10v1H4z" />
   </svg>
 );
-export default SvgChartHistogram;
+export default SvgChartHistogramLine;

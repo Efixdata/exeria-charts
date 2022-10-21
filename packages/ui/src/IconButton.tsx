@@ -27,7 +27,7 @@ const Button = styled.button`
     display: contents;
   }
 
-  img {
+  img, svg {
     width: ${iconButton.iconSize}px;
     height: ${iconButton.iconSize}px;
     margin: 0 auto;

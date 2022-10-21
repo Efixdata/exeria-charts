@@ -10,11 +10,10 @@ interface DrawingToolsProps {
   }
   
   const Container = styled.div`
-    background-color: #100c22;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: 26px;
+    grid-gap: 4px;
   `
   
   export const DrawingTools = (props: DrawingToolsProps) => {
@@ -352,8 +351,6 @@ interface DrawingToolsProps {
         const options = ids.map(id => {
             return drawingTools[id]
         });
-
-        console.log(options);
 
         return (
             <SplitButton
