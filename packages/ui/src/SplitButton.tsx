@@ -1,0 +1,189 @@
+import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent } from "react";
+import styled from "styled-components";
+import { splitButton, buttonOption as buttonOption } from "../theme"; 
+
+import Chevron from "./img/icons/chevron_right_no_margins.svg";
+
+const Container = styled.div`
+  position: relative;
+
+  &:hover .chevron, &.open .chevron {
+    width: ${splitButton.buttonSize}px;
+    height: ${splitButton.buttonSize}px;
+    left: 0;
+  }
+
+  &:hover .chevron img, &.open .chevron img {
+    width: 6px;
+  }
+`
+
+const ButtonContainer = styled.div`
+  border-radius: ${splitButton.borderRadius}px;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+
+  &:hover {
+    background-color: ${splitButton.backgroundHoverColor};
+  }
+
+  .open &, .open:hover & {
+    background-color: ${splitButton.backgroundActiveColor};
+  }
+`
+
+const ChevronContainer = styled.div`
+  position: relative;
+  left: -3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 100ms ease-in-out;
+  cursor: pointer;
+  padding: 2px;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: ${splitButton.buttonHoverColor};
+  }
+  
+  & img {
+    width: 4px;
+    transition: all 100ms ease-in-out;
+  }
+`
+
+const OptionsContainer = styled.div`
+  box-sizing: border-box;
+  border-radius: ${splitButton.borderRadius}px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: ${splitButton.backgroundActiveColor};
+  padding: 4px 0;
+  position: absolute;
+  left: ${splitButton.buttonSize}px;
+  top: -${buttonOption.basePadding}px;
+`
+
+const Option = styled.div`
+  display: flex;
+  cursor: pointer;
+  padding-left: ${buttonOption.basePadding}px;
+  padding-top: ${buttonOption.basePadding}px;
+  padding-right: ${buttonOption.basePadding * 4}px;
+  padding-bottom: ${buttonOption.basePadding}px;
+  grid-gap: ${buttonOption.basePadding * 2}px;
+
+  &:hover {
+    background-color: ${buttonOption.backgroundActiveColor};
+  }
+
+  &.active {
+    button {
+      color: ${buttonOption.fillActiveColor};
+    }
+    
+    & path, & circle {
+      fill: ${buttonOption.fillActiveColor};
+    }
+  }
+
+  & button {
+    pointer-events: none;
+    padding: 0;
+  }
+`
+
+interface Option {
+  text?: ReactElement
+  icon?: ReactElement
+  callback?: () => void
+  id: string
+}
+
+interface SplitButtonProps {
+  defaultOption: string
+  options: Option<>
+  setCurrentOption?: boolean
+  activeOption?: string
+}
+
+export const SplitButton = (props: SplitButtonProps) => {
+  // const setCurrentOption = typeof props.setCurrentOption !== 'undefined' ? props.setCurrentOption : true;
+  const myRef = useRef();
+  const [isOpen, setOpen] = useState(false);
+
+  const activeOptionProps = props.options[props.activeOption || props.defaultOption];
+  const currentButton = React.cloneElement(activeOptionProps.icon, {
+    style: { borderRadius: 0 },
+    onClick: () => onActiveOptionClick(activeOptionProps.callback),
+    active: !!props.activeOption
+  });
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  });
+
+  return (
+    <Container className={ (isOpen && 'open')} ref={myRef}>
+      <ButtonContainer>
+        { currentButton }
+        <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
+          <img src={Chevron.src} />
+        </ChevronContainer>
+      </ButtonContainer>
+      { isOpen &&  
+        <OptionsContainer>
+          { renderOptions() }
+        </OptionsContainer>
+      }
+    </Container>
+  );
+
+  function onOptionClick(callback: () => void, optionId: string) : void {
+    setOpen(false);
+    callback();
+  }
+
+  function onActiveOptionClick(callback: () => void) : void {
+    if (isOpen) { // otwarte
+      setOpen(false); // zamknąć
+      if (props.activeOption) { // otwarte i aktywne
+        onOptionClick.call(null, callback, props.activeOption); // wyłączyć defaultowe
+      }
+    } else if (props.activeOption) { // zamknięte i aktywne
+      setOpen(true); // otworzyć
+    } else { // zamknięte i nieaktywne
+      onOptionClick.call(null, callback, props.defaultOption); // włączyć
+    }
+  }
+
+  function renderOptions() {
+    const options = [];
+
+    for (const o in props.options) {
+      const option = props.options[o];
+      options.push(
+        <Option
+          onClick={() => { onOptionClick(option.callback, o) }}
+          key={o}
+          className={ props.activeOption === o && 'active' }
+        >
+          { option.icon && option.icon }
+          { option.text }
+        </Option>
+      )
+    }
+
+    return options;
+  }
+
+  function handleClickOutside(e) {
+    if (!myRef.current.contains(e.target)) {
+        setOpen(false);
+    }
+  }
+};

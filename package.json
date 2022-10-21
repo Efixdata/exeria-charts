@@ -11,7 +11,8 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "convert-svg": "npx svgr --out-dir packages/react-chart-ui/src/img/icons -- packages/react-chart-ui/src/img/icons"
   },
   "devDependencies": {
     "eslint-config-custom": "*",
