@@ -276,51 +276,59 @@ export function drawIndicatorMarker(ctx, panel, point, radius, color, alpha ) {
 
 }
 
-export function renderPriceText(text, ctx, x, y, priceFont, subscriptFont) {
+export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscriptFont
+	let {text, ctx, x, y, priceFont, subscriptFont, zerosToReduce} = options
+
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
+	
 	ctx.font = priceFont;
 
-	if (text >= 0.0001) {
-		ctx.fillText(text, x, y);
-		return;
+	if (text.indexOf('.') === -1 || zerosToReduce < 4) {
+		return ctx.fillText(text).width;
 	}
 
-	const magnitude = LIB.getNumberMagnitude(text);
-	let currentText = "0.(0";
+	const beforeDot = text.split('.')[0];
+	const afterDot = text.split('.')[1];
+
+	let currentText = beforeDot + '.(0';
 	ctx.fillText(currentText, x, y);
 	let currentX = x + ctx.measureText(currentText).width + 1;
 
 	ctx.font = subscriptFont;
-	ctx.fillText(magnitude, currentX, y + 2);
-	currentX += ctx.measureText(magnitude).width + 1;
+	ctx.fillText(zerosToReduce, currentX, y + 2);
+	currentX += ctx.measureText(zerosToReduce).width + 1;
+
 	ctx.font = priceFont;
-	currentText = ")" + text.substring(magnitude + 2);
+	currentText = ")" + afterDot.slice(zerosToReduce);
 	ctx.fillText(currentText, currentX, y);
 }
 
-export function measurePriceTextWidth(text, ctx, priceFont, subscriptFont) {
+export function measurePriceTextWidth(options) {
+	let {text, ctx, priceFont, subscriptFont, zerosToReduce} = options
+	
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
+
 	ctx.font = priceFont;
 
-	if (text >= 0.0001) {
+	if (text.indexOf('.') === -1 || zerosToReduce < 4) {
 		return ctx.measureText(text).width;
 	}
 
-	ctx.font = priceFont;
-	const magnitude = LIB.getNumberMagnitude(text);
-	let currentText = "0.(0";
+	const beforeDot = text.split('.')[0];
+	const afterDot = text.split('.')[1];
 
+	let currentText = beforeDot + '.(0';
 	let width = ctx.measureText(currentText).width + 1;
 
 	ctx.font = subscriptFont;
-	width += ctx.measureText(magnitude).width + 1;
+	width += ctx.measureText(zerosToReduce).width + 1;
 	ctx.font = priceFont;
-	currentText = ")" + text.substring(magnitude + 2);
+	currentText = ")" + afterDot.slice(zerosToReduce);
 	width += ctx.measureText(currentText).width;
 
-	return width;
+	return Math.ceil(width);
 }
 
 export function roundAndTranslate(coordinate) {

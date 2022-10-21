@@ -1165,7 +1165,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 					const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
 					const dataLength = this.fusion.getMainSeries().data.length;
 					const xPosition = this.renderer.getIndexPoint(dataLength - 1, this.model);
-					const canvasWidth = this.model._width - this.model.valueAxisWidth;
+					const canvasWidth = this.model._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
 					const visibleIndexes = this.model._rightIndex - this.model._leftIndex;
 	
 					callback.call(this, index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset);
@@ -1244,7 +1244,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.getMinPeriodWidth = function () {
 		const dataLength = this.fusion.getMainSeries().data.length;
-		const canvasWidth = this.model._width - this.model.valueAxisWidth;
+		const canvasWidth = this.model._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
 		const minPeriodWidth = canvasWidth * 0.9 / dataLength;
 		
 		return minPeriodWidth;
@@ -1563,7 +1563,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		var self = this;
 		try{
 			self.octx.save();
-			self.octx.rect(0, panel._offset, panel._width - self.model.valueAxisWidth, panel._height);
+			self.octx.rect(0, panel._offset, panel._width - self.controller.renderer.getPriceRenderingOptions().valueAxisWidth, panel._height);
 			self.octx.clip();
 
 			self.clearOverlay();
@@ -1722,7 +1722,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.isAboveValueAxis = function(e) {
 		if (this.currentPanel)
-			return e.offsetX > (this.currentPanel._width - this.model.valueAxisWidth);
+			return e.offsetX > (this.currentPanel._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth);
 		return false;
 	}
 
@@ -1866,7 +1866,7 @@ function DefaultTool(interactor){
 			try{
 				octx.save();
 				// octx.translate (0.5, 0.5);
-				octx.rect(0, panel._offset, panel._width-this.interactor.model.valueAxisWidth, panel._height);
+				octx.rect(0, panel._offset, panel._width-this.interactor.controller.renderer.getPriceRenderingOptions().valueAxisWidth, panel._height);
 				octx.clip();
 
 				var o = this.interactor.currentHitObject;
@@ -1923,7 +1923,7 @@ function DefaultTool(interactor){
 						tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
 						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision > 4 ? self.interactor.model.instrumentsSeries[0].instrument.precision : 4//self.interactor.model.instrumentsSeries[0].instrument.precision;
 						self.currentTip = tip;
-						drawTip(tip, o._hit.x, o._hit.y, octx, self.interactor.model);
+						drawTip(tip, o._hit.x, o._hit.y, octx, self.interactor.model, self.interactor.controller);
 
 					}catch(e){
 						console.error(e,e.stack)
@@ -1940,7 +1940,7 @@ function DefaultTool(interactor){
 		}
 	}
 
-	function drawTip(tip, x, y, ctx, model){
+	function drawTip(tip, x, y, ctx, model, controller){
 		const getValue = (value) => {
 			if (value !== undefined && value !== null) {
 				return value.toFixed ? formatNumber(value) : value;
@@ -1986,7 +1986,7 @@ function DefaultTool(interactor){
 			lw = _lw > lw ? _lw : lw;
 			var v = getValue(tip.values[i].value);
 
-			var _vw = measurePriceTextWidth(v, ctx);
+			var _vw = measurePriceTextWidth({text: v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
 			vw = _vw > vw ? _vw : vw;
 		}
 		var valueWidth = lw + ctx.measureText(" : ").width+vw;
@@ -2035,8 +2035,8 @@ function DefaultTool(interactor){
 			ctx.fillText(tip.values[i].label+" : ",  txtX, txtY);
 			
 			var v = getValue(tip.values[i].value);
-			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth(v, ctx);
-			renderPriceText(v, ctx, x, txtY);
+			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
 		}
 
 		ctx.closePath();
@@ -2182,7 +2182,7 @@ function CrosshairTool(interactor){
 		ctx.lineWidth = 1;
 		
 		ctx.moveTo(0, eo.offsetY);
-		ctx.lineTo(model._width - model.valueAxisWidth, eo.offsetY);
+		ctx.lineTo(model._width - this.interactor.controller.renderer.getPriceRenderingOptions().valueAxisWidth, eo.offsetY);
 		ctx.moveTo(eo.offsetX, 0);
 		ctx.lineTo(eo.offsetX, model._height - model.timeAxisHeight);
 		ctx.stroke();
@@ -2209,6 +2209,8 @@ function CrosshairTool(interactor){
 		var y1 = io.offsetY;
 		var y2 = eo.offsetY;
 
+		const valueAxisWidth = this.interactor.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
+
 		if(panel && panel2 && panel.id==panel2.id){
 			v1 = this.interactor.controller.renderer.getPriceForYCoordinate(io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 			v2 = this.interactor.controller.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
@@ -2219,12 +2221,12 @@ function CrosshairTool(interactor){
 		ctx.lineWidth = 1;
 		
 		ctx.moveTo(0, eo.offsetY);
-		ctx.lineTo(model._width - model.valueAxisWidth, eo.offsetY);
+		ctx.lineTo(model._width - valueAxisWidth, eo.offsetY);
 		ctx.moveTo(eo.offsetX, 0);
 		ctx.lineTo(eo.offsetX, model._height - model.timeAxisHeight);
 
 		ctx.moveTo(0, io.offsetY);
-		ctx.lineTo(model._width - model.valueAxisWidth, io.offsetY);
+		ctx.lineTo(model._width - valueAxisWidth, io.offsetY);
 		ctx.moveTo(io.offsetX, 0);
 		ctx.lineTo(io.offsetX, model._height - model.timeAxisHeight);
 		ctx.stroke();

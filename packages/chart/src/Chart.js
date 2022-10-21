@@ -64,7 +64,7 @@ export default class Chart {
     this.container.append(this.canvas, this.overlay, this.topLayer);
 
     this.objectOnlyOnOverlay = false;
-    this.renderer = new ChartRenderer(rendererSettings);
+    this.renderer = new ChartRenderer(rendererSettings, this.ctx, this);
     this.objectsManager = new ObjectsManager(this);
     this.subscriptionManager = new SubscriptionManager(this);
 
@@ -201,7 +201,7 @@ export default class Chart {
       this.model["_height"] = this.canvasHeight;
 
       this.model["_timeAxisWidth"] =
-        this.model._width - this.model.valueAxisWidth;
+      this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
       this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
       this.model["_rightIndex"] = this.renderer.getPointIndex(
         this.model._timeAxisWidth,
@@ -386,14 +386,24 @@ export default class Chart {
 
   async setMainSeriesData(data, interval) {
     if (!this.fusion) return;
+
     const mainSeries = this.fusion.getMainSeries();
     if (interval) mainSeries.interval = interval;
     mainSeries.data = data;
+
+    this.renderer.calculatePriceRenderingOptions(mainSeries.data, this.model, mainSeries.instrument.precision);
+
     try {
       await this.recalculateScripts();
       this.moveToEnd();
-    } catch (_) {}
-    
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setTimeout(this.emitEvent.bind(this, {
+        topic: 'VALUE_AXIS_WIDTH_CHANGE',
+        data: this.renderer.getPriceRenderingOptions().valueAxisWidth
+      }), 0);
+    }
   }
 
   appendMainSeriesData(data) {
@@ -568,7 +578,7 @@ export default class Chart {
   moveToEnd() {
 		if(!this.isChartEmpty()){
 			this.doMoveToEnd = (this.canvasWidth==0);
-			var vpl = (this.model.periodWidth * this.fusion.getMainSeries().data.length)-(this.canvasWidth-this.model.valueAxisWidth)+this.model.endMargin;
+			var vpl = (this.model.periodWidth * this.fusion.getMainSeries().data.length)-(this.canvasWidth-this.renderer.getPriceRenderingOptions().valueAxisWidth)+this.model.endMargin;
 			if (vpl<0) vpl = 0;
 			this.model.viewportLeft = vpl;
 		}
@@ -597,7 +607,7 @@ export default class Chart {
 	}
 
   getValueAxisWidth() {
-    return this.model.valueAxisWidth;
+    return this.renderer.getPriceRenderingOptions().valueAxisWidth;
   }
 
   getCurrency() {
@@ -672,11 +682,16 @@ export default class Chart {
   }
 
   subscribe(topic, callback) {
-    // TOPICS: AUTOSCALE, CURSOR_CHANGE
+    // TOPICS: AUTOSCALE, CURSOR_CHANGE, VALUE_AXIS_WIDTH_CHANGE
     this.subscriptionManager.subscribe(topic, callback);
   }
 
   emitEvent(event) {
+    // event = {
+    //   topic: '',
+    //   data: any
+    // }
+
     this.subscriptionManager.onEvent(event);
   }
 

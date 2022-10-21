@@ -567,6 +567,7 @@ function TrendLineObject(){
 		var self = this;
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		var hitResult = false;
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
 		this.clearHits(o);
 
@@ -577,11 +578,11 @@ function TrendLineObject(){
 		)
 			|| (
 				o.anchors[0].expanded == true &&
-				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x, pts[0].x < pts[1].x ? pts[1].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x, pts[0].x < pts[1].x ? pts[1].x : panel._width - valueAxisWidth, self.hitTolerance)
 			)
 			|| (
 				o.anchors[1].expanded == true &&
-				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x, pts[1].x < pts[0].x ? pts[0].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x, pts[1].x < pts[0].x ? pts[0].x : panel._width - valueAxisWidth, self.hitTolerance)
 			)
 		) {
 
@@ -918,6 +919,7 @@ var FibonLinesObject	=	function () {
 		var self = this;
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		var hitResult = false;
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
 		this.clearHits(o);
 
@@ -926,11 +928,11 @@ var FibonLinesObject	=	function () {
 		)
 		|| (
 				o.anchors[0].expanded == true &&
-				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x , pts[0].x < pts[1].x ? pts[1].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x , pts[0].x < pts[1].x ? pts[1].x : panel._width - valueAxisWidth, self.hitTolerance)
 			)
 		|| (
 				o.anchors[1].expanded == true &&
-				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x , pts[1].x < pts[0].x ? pts[0].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x , pts[1].x < pts[0].x ? pts[0].x : panel._width - valueAxisWidth, self.hitTolerance)
 			)
 		){
 			//line 1
@@ -1215,16 +1217,18 @@ var ParallelChannelObject	=	function () {
 		var mid = findMidPoint(pts[0], pts[1]);
 		var h =pts[2].y-mid.y;
 		var hitResult = false;
+		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
+
 		this.clearHits(o);
 
 		if(	between(pts[0].x, x, pts[1].x, self.hitTolerance)
 		|| (
 				o.anchors[0].expanded == true &&
-				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x , pts[0].x < pts[1].x ? pts[1].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[0].x < pts[1].x ? 0 : pts[0].x, x , pts[0].x < pts[1].x ? pts[1].x : panel._width -valueAxisWidth, self.hitTolerance)
 			)
 		|| (
 				o.anchors[1].expanded == true &&
-				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x , pts[1].x < pts[0].x ? pts[0].x : panel._width - model.valueAxisWidth, self.hitTolerance)
+				between(pts[1].x < pts[0].x ? 0 : pts[1].x, x , pts[1].x < pts[0].x ? pts[0].x : panel._width -valueAxisWidth, self.hitTolerance)
 			)
 		){
 

@@ -45,6 +45,7 @@ const model2 = {
   positions: { list: [], visible: true, selected: false }, // daata model
   interval: { id: 0, symbol: "5m", desc: "5 minutes", milis: 300000 }, // data model
   valueAxisWidth: 80, // configuration settings
+  valueAxisPadding: 6,
   timeAxisHeight: 24, // configuration settings
   minValueTickHeight: 30, // configuration settings
   minTimeTickWidth: 120, // configuration settings
