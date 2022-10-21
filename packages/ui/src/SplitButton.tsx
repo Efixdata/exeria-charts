@@ -2,7 +2,8 @@ import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent } from
 import styled from "styled-components";
 import { splitButton, buttonOption as buttonOption } from "../theme"; 
 
-import Chevron from "./img/icons/chevron_right_no_margins.svg";
+// @ts-ignore-next-line: Unreachable code error
+import { ChevronRight } from "./img/icons/index.js";
 
 const Container = styled.div`
   position: relative;
@@ -96,26 +97,29 @@ const Option = styled.div`
   }
 `
 
-interface Option {
+interface SplitButtonOption {
   text?: ReactElement
-  icon?: ReactElement
-  callback?: () => void
+  icon: ReactElement
+  callback: () => void
   id: string
+}
+
+interface SplitButtonOptions {
+  [index: string]: SplitButtonOption;
 }
 
 interface SplitButtonProps {
   defaultOption: string
-  options: Option<>
+  options: SplitButtonOptions
   setCurrentOption?: boolean
-  activeOption?: string
+  activeOption: string
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
-  // const setCurrentOption = typeof props.setCurrentOption !== 'undefined' ? props.setCurrentOption : true;
-  const myRef = useRef();
+  const myRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
 
-  const activeOptionProps = props.options[props.activeOption || props.defaultOption];
+  const activeOptionProps : SplitButtonOption = props.options[props.activeOption || props.defaultOption];
   const currentButton = React.cloneElement(activeOptionProps.icon, {
     style: { borderRadius: 0 },
     onClick: () => onActiveOptionClick(activeOptionProps.callback),
@@ -128,11 +132,11 @@ export const SplitButton = (props: SplitButtonProps) => {
   });
 
   return (
-    <Container className={ (isOpen && 'open')} ref={myRef}>
+    <Container className={ (isOpen ? 'open' : undefined)} ref={myRef}>
       <ButtonContainer>
         { currentButton }
         <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
-          <img src={Chevron.src} />
+          <ChevronRight />
         </ChevronContainer>
       </ButtonContainer>
       { isOpen &&  
@@ -143,7 +147,7 @@ export const SplitButton = (props: SplitButtonProps) => {
     </Container>
   );
 
-  function onOptionClick(callback: () => void, optionId: string) : void {
+  function onOptionClick(callback: () => void) : void {
     setOpen(false);
     callback();
   }
@@ -152,12 +156,12 @@ export const SplitButton = (props: SplitButtonProps) => {
     if (isOpen) { // otwarte
       setOpen(false); // zamknąć
       if (props.activeOption) { // otwarte i aktywne
-        onOptionClick.call(null, callback, props.activeOption); // wyłączyć defaultowe
+        onOptionClick.call(null, callback); // wyłączyć defaultowe
       }
     } else if (props.activeOption) { // zamknięte i aktywne
       setOpen(true); // otworzyć
     } else { // zamknięte i nieaktywne
-      onOptionClick.call(null, callback, props.defaultOption); // włączyć
+      onOptionClick.call(null, callback); // włączyć
     }
   }
 
@@ -170,7 +174,7 @@ export const SplitButton = (props: SplitButtonProps) => {
         <Option
           onClick={() => { onOptionClick(option.callback, o) }}
           key={o}
-          className={ props.activeOption === o && 'active' }
+          className={ props.activeOption === o ? 'active' : undefined }
         >
           { option.icon && option.icon }
           { option.text }
@@ -181,8 +185,8 @@ export const SplitButton = (props: SplitButtonProps) => {
     return options;
   }
 
-  function handleClickOutside(e) {
-    if (!myRef.current.contains(e.target)) {
+  function handleClickOutside(e : SyntheticEvent) {
+    if (!myRef.current?.contains(e.target)) {
         setOpen(false);
     }
   }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, ReactElement, useEffect } from "react";
+import React, { useState, useRef, ReactElement, useEffect, SyntheticEvent } from "react";
 import { selectButton, buttonOption } from "../theme"
 import { IconButton } from "./IconButton";
 import styled from "styled-components";
@@ -77,20 +77,24 @@ const Option = styled.div`
 `
 
 
-interface Option {
+interface SelectButtonOption {
   text?: ReactElement
-  icon?: ReactElement
+  icon: ReactElement
   id: string
 }
 
+interface SelectButtonOptions {
+  [index: string]: SelectButtonOption;
+}
+
 interface SelectButtonProps {
-  options: Option<>;
+  options: SelectButtonOptions;
   onSelect: (option: string|undefined) => void;
-  selectedOption?: string;
+  selectedOption: string;
 }
 
 export const SelectButton = (props: SelectButtonProps) => {
-  const myRef = useRef();
+  const myRef = useRef<HTMLDivElement>(null);
   const [selectedOption, setSelectedOption] = useState(props.selectedOption);
   const [isOpen, setOpen] = useState(false);
 
@@ -101,7 +105,7 @@ export const SelectButton = (props: SelectButtonProps) => {
 
 
   return (
-    <Container className={ (isOpen && 'open')} ref={myRef}>
+    <Container className={ isOpen ? 'open' : undefined } ref={myRef}>
       <ButtonContainer onClick={() => {setOpen(!isOpen)}}>
         { renderSelectedOption() }
       </ButtonContainer>
@@ -129,11 +133,11 @@ export const SelectButton = (props: SelectButtonProps) => {
     return options;
   }
 
-  function renderOption(option:Option) {
+  function renderOption(option:SelectButtonOption) {
     return (
       <Option
         key={option.id}
-        className={ selectedOption === option.id && 'active' }
+        className={ selectedOption === option.id ? 'active' : undefined }
         onClick={() => onSelect(option.id)}
       >
         { option.icon && option.icon }
@@ -150,8 +154,8 @@ export const SelectButton = (props: SelectButtonProps) => {
     )
   }
 
-  function handleClickOutside(e) {
-    if (!myRef.current.contains(e.target)) {
+  function handleClickOutside(e : SyntheticEvent) {
+    if (!myRef.current?.contains(e.target)) {
         setOpen(false);
     }
   }
