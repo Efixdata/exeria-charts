@@ -15,8 +15,10 @@ const Container = styled.div`
 interface RadioButtonProps {
   buttons: ReactElement[];
   style?: React.CSSProperties
-  onClick?: () => void
   horizontal?: true
+  currentButton: string
+  defaultButton: string
+  onSelect: (id: string) => void
 }
 
 export const RadioButton = (props: RadioButtonProps) => {
@@ -28,9 +30,14 @@ export const RadioButton = (props: RadioButtonProps) => {
     </Container>
   )
 
-  function onSelectOption(props) {
-    // TODO: set active button and change icon color
-    props.callback();
+  function onSelectOption(clickedButton) {
+    const id = clickedButton.id;
+
+    if (id === props.currentButton && id !== props.defaultButton) {
+      props.onSelect(props.defaultButton);
+    } else {
+      props.onSelect(id);
+    }
   }
   
   function renderButtons() {

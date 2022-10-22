@@ -34,6 +34,7 @@ interface TextButtonProps {
   onClick?: () => void
   callback?: () => void
   active?: boolean
+  id?: string
 }
 
 export const TextButton = (props: TextButtonProps) => {
