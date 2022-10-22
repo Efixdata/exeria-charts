@@ -1,16 +1,32 @@
 {
   "name": "@dexer-io/chart",
-  "private": true,
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.1",
+  "description": "Chart",
   "main": "src/index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "author": {
+    "name": "Dexer",
+    "email": "kk@dexer.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/dexer-io/chart-repo.git",
+    "directory": "packages/chart"
+  },
+  "module": "/dist/index.js",
+  "types": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "UNLICENSED",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
     "dev": "webpack"
   },
-  "author": "",
-  "license": "UNLICENSED",
   "devDependencies": {
     "svg-inline-loader": "^0.8.2",
     "webpack": "^5.69.1",
