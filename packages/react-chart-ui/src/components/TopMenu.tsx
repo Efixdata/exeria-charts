@@ -6,6 +6,7 @@ import { MainChartTypeSelect } from "./MainChartTypeSelect";
 // @ts-ignore
 import { FullScreenButton } from "./FullScreenButton";
 import { CurrencySwitch } from "./CurrencySwitch";
+import { IntervalSwitch } from "./IntervalSwitch";
 
 interface TopMenuProps {
   chart: any;
@@ -51,13 +52,7 @@ export const TopMenu = (props: TopMenuProps) => {
     <Container style={props.style}>
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />
-        {/* <ButtonSelect
-          options={getAvailableIntervalsSymbols()}
-          onSelect={(option) => {
-            console.log(option);
-          }}
-          selectedOption={instrument?.interval?.symbol}
-        /> */}
+        <IntervalSwitch chart={props.chart} />
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />

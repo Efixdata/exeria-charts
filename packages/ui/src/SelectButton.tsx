@@ -43,6 +43,7 @@ const OptionsContainer = styled.div`
   position: absolute;
   top: calc(-${buttonOption.basePadding}px - 4px);
   left: -${buttonOption.basePadding}px;
+  z-index: 1;
 `
 
 const Option = styled.div`
@@ -57,8 +58,6 @@ const Option = styled.div`
   &:hover {
     background-color: ${buttonOption.backgroundActiveColor};
   }
-
-
 
   &.active {
     button {
@@ -79,7 +78,7 @@ const Option = styled.div`
 
 interface SelectButtonOption {
   text?: ReactElement
-  icon: ReactElement
+  icon?: ReactElement
   id: string
 }
 
@@ -91,6 +90,7 @@ interface SelectButtonProps {
   options: SelectButtonOptions;
   onSelect: (option: string|undefined) => void;
   selectedOption: string;
+  style?: React.CSSProperties
 }
 
 export const SelectButton = (props: SelectButtonProps) => {
@@ -107,7 +107,7 @@ export const SelectButton = (props: SelectButtonProps) => {
 
 
   return (
-    <Container className={ isOpen ? 'open' : undefined } ref={myRef}>
+    <Container className={ isOpen ? 'open' : undefined } ref={myRef} style={props.style}>
       <ButtonContainer onClick={() => {setOpen(!isOpen)}}>
         { renderSelectedOption() }
       </ButtonContainer>
@@ -143,16 +143,21 @@ export const SelectButton = (props: SelectButtonProps) => {
         onClick={() => onSelect(option.id)}
       >
         { option.icon && option.icon }
-        { option.text }
+        { option.text && option.text }
       </Option>
     )
   }
 
   function renderSelectedOption() {
+    const selected = props.options[selectedOption];
+
     return (
-      <IconButton onClick={() => setOpen(!isOpen)}>
-        { props.options[selectedOption].icon }
-      </IconButton>
+      <div onClick={() => setOpen(!isOpen)}>
+        { selected.icon && <IconButton>
+          { props.options[selectedOption].icon }
+        </IconButton> }
+        { !selected.icon && selected.text && props.options[selectedOption].text }
+      </div>
     )
   }
 
