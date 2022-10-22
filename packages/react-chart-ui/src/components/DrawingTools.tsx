@@ -1,24 +1,65 @@
-import React, { useState } from 'react';
+import React, { ReactElement, useState } from 'react';
 import styled from "styled-components";
 // @ts-ignore
 import { Fibonacci, Channel, Triangle, Arrow, LineTrend, LineHorizontal, LineVertical, LineMulti, Abcd, Oval, RangeVertical, RangeHorizontal, Cycles, Rectangle, Text, PriceTag } from "../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from 'ui';
+import { DrawingTool } from './DrawingTool.js';
 
 interface DrawingToolsProps {
     chart: any;
     style?: React.CSSProperties;
-  }
+}
+
+interface DrawingToolAnchor {
+    stamp: number
+    offset: number
+    value: number
+    _index: number
+    expandable?: boolean
+    expanded?: boolean
+    defaultDirection?: 'left' | 'right'
+}
+
+interface DrawingToolProps {
+    id: string
+    type: string
+    name: string
+    defaultColor: string
+    order: number
+    sticky?: boolean
+    width?: number
+    dash?: number[]
+    values?: number[]
+    valuesState?: boolean[]
+    valuesCanDelete?: boolean
+    valuesCanAdd?: boolean
+    fillBg?: boolean
+    anchors: DrawingToolAnchor[]
+    canBeIndicator?: boolean
+    text?: string
+    isIndicator?: boolean
+    setAnchorValue?: number[]
+    flipped?: boolean
+    style?: string
+    priceMarker?: boolean
+    fontSize?: number
+}
+
+interface DrawingTool {
+    icon: ReactElement
+    props: DrawingToolProps
+}
   
-  const Container = styled.div`
+const Container = styled.div`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     grid-gap: 4px;
-  `
+`
   
-  export const DrawingTools = (props: DrawingToolsProps) => {
+export const DrawingTools = (props: DrawingToolsProps) => {
 
-    const drawingTools = {
+    const drawingTools : { [index: string]: DrawingTool } = {
         fibon: {
             icon: <Fibonacci/>,
             props: {
@@ -83,7 +124,6 @@ interface DrawingToolsProps {
             icon: <Arrow />,
             props: {
                 id: 'arrow',
-                
                 type: 'arrow',
                 name: 'Arrow',
                 defaultColor: "defaultToolColor",
