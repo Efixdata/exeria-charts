@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from "styled-components";
-
+// @ts-ignore
 import { Fibonacci, Channel, Triangle, Arrow, LineTrend, LineHorizontal, LineVertical, LineMulti, Abcd, Oval, RangeVertical, RangeHorizontal, Cycles, Rectangle, Text, PriceTag } from "../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from 'ui';
 
@@ -337,7 +337,7 @@ interface DrawingToolsProps {
       </Container>
     );
 
-    function renderDrawingTool(tool) {
+    function renderDrawingTool(tool: any) {
         return (
             <IconButton 
                 onClick={() => {onSelectTool(tool.props)}}
@@ -350,19 +350,21 @@ interface DrawingToolsProps {
 
     function renderSplitButton(ids:string[], defaultOption:string) {
         const options = ids.map(id => {
+            // @ts-ignore
             return drawingTools[id]
         });
 
         return (
             <SplitButton
                 defaultOption={defaultOption}
+                // @ts-ignore
                 activeOption={ids.indexOf(selectedTool) > -1 ? selectedTool : undefined}
                 options={[{}, ...options].reduce(renderSplitButtonOption)}
             />
         );
     }
 
-    function renderSplitButtonOption(options, option) {
+    function renderSplitButtonOption(options: any, option: any) {
         options[option.props.id] = {
             text: <TextButton>{option.props.name}</TextButton>,
             icon: <IconButton>{option.icon}</IconButton>,
@@ -372,7 +374,7 @@ interface DrawingToolsProps {
         return options;
     }
 
-    function onSelectTool(tool) {
+    function onSelectTool(tool: any) {
         const interactor = props.chart.getInteractor();
         if (interactor.currentMode && interactor.currentMode.onCancel) interactor.currentMode.onCancel();
 

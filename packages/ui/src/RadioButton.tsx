@@ -30,7 +30,7 @@ export const RadioButton = (props: RadioButtonProps) => {
     </Container>
   )
 
-  function onSelectOption(clickedButton) {
+  function onSelectOption(clickedButton: any) {
     const id = clickedButton.id;
 
     if (id === props.currentButton && id !== props.defaultButton) {

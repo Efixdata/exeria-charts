@@ -127,7 +127,9 @@ export const SplitButton = (props: SplitButtonProps) => {
   });
 
   useEffect(() => {
+    // @ts-ignore
     document.addEventListener('mousedown', handleClickOutside);
+    // @ts-ignore
     return () => document.removeEventListener('mousedown', handleClickOutside);
   });
 
@@ -172,6 +174,7 @@ export const SplitButton = (props: SplitButtonProps) => {
       const option = props.options[o];
       options.push(
         <Option
+        // @ts-ignore
           onClick={() => { onOptionClick(option.callback, o) }}
           key={o}
           className={ props.activeOption === o ? 'active' : undefined }
@@ -186,6 +189,7 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function handleClickOutside(e : SyntheticEvent) {
+    // @ts-ignore
     if (!myRef.current?.contains(e.target)) {
         setOpen(false);
     }

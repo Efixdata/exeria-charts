@@ -1,5 +1,4 @@
 import * as React from "react";
-import { ButtonSelect } from "ui";
 import styled from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";

@@ -99,7 +99,9 @@ export const SelectButton = (props: SelectButtonProps) => {
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
+    // @ts-ignore
     document.addEventListener('mousedown', handleClickOutside);
+    // @ts-ignore
     return () => document.removeEventListener('mousedown', handleClickOutside);
   });
 
@@ -155,6 +157,7 @@ export const SelectButton = (props: SelectButtonProps) => {
   }
 
   function handleClickOutside(e : SyntheticEvent) {
+    // @ts-ignore
     if (!myRef.current?.contains(e.target)) {
         setOpen(false);
     }

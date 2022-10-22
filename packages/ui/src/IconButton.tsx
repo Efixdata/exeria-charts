@@ -44,7 +44,7 @@ interface IconButtonProps {
   iconStyle?: React.CSSProperties
   onClick?: () => void
   active?: boolean
-  id: string
+  id?: string
 }
 
 export const IconButton = (props: IconButtonProps) => {
