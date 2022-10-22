@@ -12,10 +12,11 @@ const fontSize = 13;
 const buttonSize = 26;
 const buttonPadding = (buttonSize - iconSize) / 2;
 const borderRadius = 4;
+const backgroundTransparency15 = '26';
 
 export const radioButton = {
     padding: 0,
-    backgroundColor: violet_ll + '1A',
+    backgroundColor: violet_ll + backgroundTransparency15,
     borderRadius,
     gap: 2
 }
@@ -23,7 +24,7 @@ export const radioButton = {
 export const iconButton = {
     iconSize,
     buttonSize,
-    backgroundActiveColor: violet_ll + '1A',
+    backgroundActiveColor: violet_ll + backgroundTransparency15,
     iconActiveColor: green,
     borderRadius
 }
@@ -33,7 +34,7 @@ export const textButton = {
     buttonPadding,
     textColor: violet_ll,
     textActiveColor: green,
-    backgroundActiveColor: violet_ll + '1A',
+    backgroundActiveColor: violet_ll + backgroundTransparency15,
     borderRadius,
     fontSize,
     fontWeight: 500
@@ -41,25 +42,25 @@ export const textButton = {
 
 export const splitButton = {
     borderRadius,
-    spacerColor: violet_ll + '1A',
+    spacerColor: violet_ll + backgroundTransparency15,
     backgroundHoverColor: violet_background,
     backgroundActiveColor: violet_l,
-    buttonHoverColor: violet_ll + '1A',
+    buttonHoverColor: violet_ll + backgroundTransparency15,
     buttonSize,
 }
 
 export const selectButton = {
     borderRadius,
-    spacerColor: violet_ll + '1A',
+    spacerColor: violet_ll + backgroundTransparency15,
     backgroundHoverColor: violet_background,
     backgroundActiveColor: violet_l,
-    buttonHoverColor: violet_ll + '1A',
+    buttonHoverColor: violet_ll + backgroundTransparency15,
     buttonSize,
 }
 
 export const buttonOption = {
     basePadding: buttonPadding,
-    backgroundActiveColor: violet_ll + '1A',
+    backgroundActiveColor: violet_ll + backgroundTransparency15,
     fillActiveColor: green,
     iconSize
 }

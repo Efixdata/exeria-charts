@@ -14,8 +14,8 @@ const Container = styled.div`
     left: 0;
   }
 
-  &:hover .chevron img, &.open .chevron img {
-    width: 6px;
+  &:hover .chevron svg, &.open .chevron svg {
+    transform: scale(1);
   }
 `
 
@@ -36,7 +36,7 @@ const ButtonContainer = styled.div`
 
 const ChevronContainer = styled.div`
   position: relative;
-  left: -3px;
+  left: -4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,8 +49,8 @@ const ChevronContainer = styled.div`
     background-color: ${splitButton.buttonHoverColor};
   }
   
-  & img {
-    width: 4px;
+  & svg {
+    transform: scale(0.5);
     transition: all 100ms ease-in-out;
   }
 `
@@ -66,6 +66,7 @@ const OptionsContainer = styled.div`
   position: absolute;
   left: ${splitButton.buttonSize}px;
   top: -${buttonOption.basePadding}px;
+  z-index: 1;
 `
 
 const Option = styled.div`

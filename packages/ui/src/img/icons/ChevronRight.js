@@ -2,7 +2,8 @@ import * as React from "react";
 const SvgChevronRight = (props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 7.5 13"
+    width={7.5}
+    height={13}
     style={{
       enableBackground: "new 0 0 7.5 13",
     }}

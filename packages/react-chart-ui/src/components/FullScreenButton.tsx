@@ -1,28 +1,24 @@
 // @ts-nocheck
 import * as React from "react";
 import { IconButton } from "ui";
-import fullScreenImage from "../img/icons/fullscreen_white.svg";
-import exitFullScreenImage from "../img/icons/fullscreen-exit_white.svg";
+import { Fullscreen, ExitFullscreen } from "../img/icons";
 import { useState } from "react";
+
 export const FullScreenButton = (props) => {
-  const [icon, setIcon] = useState(fullScreenImage.src);
+  const [isInFullScreen, setFullScreen] = useState(false);
+  const icon = isInFullScreen ? <ExitFullscreen /> : <Fullscreen />;
 
   React.useEffect(() => {
     if (!props?.mainContainer?.current) return;
-
     props.mainContainer.current.addEventListener(
       "fullscreenchange",
       (_event) => {
-        if (isInFullScreen()) {
-          setIcon(exitFullScreenImage.src);
-        } else {
-          setIcon(fullScreenImage.src);
-        }
+        setFullScreen(checkFullScreen());
       }
     );
   }, []);
 
-  const isInFullScreen = () => {
+  const checkFullScreen = () => {
     if (!document) return false;
 
     return (
@@ -39,7 +35,7 @@ export const FullScreenButton = (props) => {
     if (!document) return;
     const mainContainerElement = props.mainContainer.current;
 
-    if (!isInFullScreen()) {
+    if (!isInFullScreen) {
       // setIcon(exitFullScreenImage.src);
       if (mainContainerElement.requestFullscreen) {
         mainContainerElement.requestFullscreen();
@@ -64,5 +60,9 @@ export const FullScreenButton = (props) => {
     }
   };
 
-  return <IconButton image={icon} onClick={onClick} />;
+  return (
+    <IconButton onClick={onClick}>
+      { icon }
+    </IconButton>
+  )
 };
