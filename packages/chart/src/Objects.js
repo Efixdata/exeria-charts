@@ -3130,11 +3130,11 @@ var MovePaneArrows	=	function () {
 
 
 
-		var arrowDn = createArrowDn(panel, renderer, this.opts);
-		var arrowUp = createArrowUp(panel, renderer, this.opts);
+		// var arrowDn = createArrowDn(panel, renderer, this.opts);
+		// var arrowUp = createArrowUp(panel, renderer, this.opts);
 
-		drawArrow(ctx,arrowUp);
-		drawArrow(ctx,arrowDn);
+		// drawArrow(ctx,arrowUp);
+		// drawArrow(ctx,arrowDn);
 		ctx.globalAlpha   = 1;
 	}
 
@@ -3213,8 +3213,8 @@ var MovePaneArrows	=	function () {
 				interactor.octx.globalAlpha   = 1;
 				interactor.octx.fillStyle   = this.opts.color;
 				interactor.octx.strokeStyle = this.opts.color;
-				var arrowUp = createArrowUp(panel, interactor.renderer, this.opts);
-				drawArrow(interactor.octx,arrowUp);
+				//var arrowUp = createArrowUp(panel, interactor.renderer, this.opts);
+				//drawArrow(interactor.octx,arrowUp);
 			}
 			//down arrow
 			else if(between(x2, x, x2+this.opts.width, self.hitTolerance)){
@@ -3222,8 +3222,8 @@ var MovePaneArrows	=	function () {
 				interactor.octx.globalAlpha   = 1;
 				interactor.octx.fillStyle   = this.opts.color;
 				interactor.octx.strokeStyle = this.opts.color;
-				var arrowDn = createArrowDn(panel, model, this.opts);
-				drawArrow(interactor.octx,arrowDn);
+				//var arrowDn = createArrowDn(panel, model, this.opts);
+				//drawArrow(interactor.octx,arrowDn);
 			}
 		}
 		return hitResult;
