@@ -151,14 +151,18 @@ export const SelectButton = (props: SelectButtonProps) => {
   function renderSelectedOption() {
     const selected = props.options[selectedOption];
 
-    return (
-      <div onClick={() => setOpen(!isOpen)}>
-        { selected.icon && <IconButton>
-          { props.options[selectedOption].icon }
-        </IconButton> }
-        { !selected.icon && selected.text && props.options[selectedOption].text }
-      </div>
-    )
+    if (selected) {
+      return (
+        <div onClick={() => setOpen(!isOpen)}>
+          { selected.icon && <IconButton>
+            { props.options[selectedOption].icon }
+          </IconButton> }
+          { !selected.icon && selected.text && props.options[selectedOption].text }
+        </div>
+      );
+    } else {
+      return <></>;
+    }
   }
 
   function handleClickOutside(e : SyntheticEvent) {
