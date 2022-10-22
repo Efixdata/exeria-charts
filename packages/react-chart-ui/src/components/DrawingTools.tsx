@@ -3,7 +3,6 @@ import styled from "styled-components";
 // @ts-ignore
 import { Fibonacci, Channel, Triangle, Arrow, LineTrend, LineHorizontal, LineVertical, LineMulti, Abcd, Oval, RangeVertical, RangeHorizontal, Cycles, Rectangle, Text, PriceTag } from "../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from 'ui';
-import { DrawingTool } from './DrawingTool.js';
 
 interface DrawingToolsProps {
     chart: any;
