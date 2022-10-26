@@ -407,7 +407,7 @@ const Renderer = function (settings, context, controller) {
 		const mode = panel.valueAxisMode;
 
 		try {
-			const tickValue = tick.niceMin;
+			let tickValue = tick.niceMin;
 			const texts = [];
 			let tickPoint = 0;
 
