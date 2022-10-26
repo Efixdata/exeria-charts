@@ -19,6 +19,6 @@ module.exports = {
     // globalObject: 'this'
   },
   optimization: {
-    minimize: true
+    minimize: false
 },
 };
