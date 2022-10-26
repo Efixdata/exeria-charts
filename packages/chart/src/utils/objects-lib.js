@@ -285,7 +285,8 @@ export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscr
 	ctx.font = priceFont;
 
 	if (text.indexOf('.') === -1 || zerosToReduce < 4) {
-		return ctx.fillText(text).width;
+		ctx.fillText(text, x, y);
+		return;
 	}
 
 	const beforeDot = text.split('.')[0];
