@@ -4,6 +4,7 @@ import { SelectButton, TextButton } from "ui";
 interface IntervalSwitchProps {
   chart: any;
   style?: React.CSSProperties;
+  onIntervalChange?: (symbol: string) => void;
 }
 
 export const IntervalSwitch = (props: IntervalSwitchProps) => {
@@ -29,7 +30,9 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
             <SelectButton
                 style={{...props.style, minWidth: 34}}
                 options={availableIntervalsSymbols}
-                onSelect={(option) => { console.log(option); }}
+                onSelect={(option) => { 
+                  if (props.onIntervalChange && option != undefined) props.onIntervalChange(option);
+                }}
                 selectedOption={instrument?.interval?.symbol}
             />
         )

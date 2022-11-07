@@ -12,6 +12,7 @@ interface TopMenuProps {
   chart: any;
   style?: React.CSSProperties;
   mainContainer: React.RefObject<unknown>;
+  onIntervalChange?: (symbol: string) => void;
 }
 
 const RightSection = styled.div`
@@ -52,7 +53,7 @@ export const TopMenu = (props: TopMenuProps) => {
     <Container style={props.style}>
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />
-        <IntervalSwitch chart={props.chart} />
+        <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange}/>
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />

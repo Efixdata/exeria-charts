@@ -35,15 +35,7 @@ export default class Chart {
     this.container = options.container;
     this.config = { ...this.config, ...options.config };
     this.model = { ...model, ...options.model };
-    this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...options.instrument };
-    if (options.instrument) {
-      this.instrument = options.instrument;
-      if (options.instrument.symbol)
-        this.model.instrumentsSeries[0].title = options.instrument.symbol;
-
-      if (options.instrument.precision)
-        this.model.panels[0].precision = options.instrument.precision;
-    }
+    this.setInstrument(options.instrument);
   }
 
   init() {
@@ -395,14 +387,18 @@ export default class Chart {
 
     try {
       await this.recalculateScripts();
-      this.moveToEnd();
     } catch (error) {
       console.error(error);
-    } finally {
-      setTimeout(this.emitEvent.bind(this, {
-        topic: 'VALUE_AXIS_WIDTH_CHANGE',
-        data: this.renderer.getPriceRenderingOptions().valueAxisWidth
-      }), 0);
+    }
+    finally {
+      setTimeout(() => {
+        this.emitEvent({
+          topic: 'VALUE_AXIS_WIDTH_CHANGE',
+          data: this.renderer.getPriceRenderingOptions().valueAxisWidth
+        });
+
+        this.moveToEnd();
+      }, 0);
     }
   }
 
@@ -585,7 +581,16 @@ export default class Chart {
 	}
 
   setInstrument(instrument) {
-    this.instrument = instrument;
+    if (instrument) {
+      this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...instrument };
+      this.instrument = instrument;
+      
+      if (instrument.symbol)
+        this.model.instrumentsSeries[0].title = instrument.symbol;
+
+      if (instrument.precision)
+        this.model.panels[0].precision = instrument.precision;
+    }
   }
 
   getInstrument() {

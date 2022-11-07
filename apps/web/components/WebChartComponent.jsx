@@ -1,7 +1,42 @@
 import React, {useLayoutEffect, useState } from "react";
 import {ChartUI} from '@dexer-io/react-chart-ui';
 import Chart from "@dexer-io/chart";
-import skyrocketData from "../data/BNBUSD.json";
+import skyrocketData1h from "../data/BNBUSD.json";
+import skyrocketData5m from "../data/BNBUSD-5m.json";
+
+const getCandles = (candles) => {
+  const result = [];
+  
+  for (let i=0; i < candles.t.length; ++i) {
+    result.push({
+        o: candles.o[i] * 0.000000001,
+        h: candles.h[i] * 0.000000001,
+        l: candles.l[i] * 0.000000001,
+        c: candles.c[i] * 0.000000001,
+        v: candles.v[i],
+        stamp: candles.t[i]
+    })
+  }
+
+  return result;
+}
+
+const instrument2 = {
+  id: "BTC2USD",
+  symbol: "BTC2/USD",
+  name: "BTC2/USD",
+  currency: "USD2",
+  precision: 10,
+  chart: "ohlc",
+  availableIntervals: [
+    { symbol: "1m", milis: 60000 },
+    { symbol: "5m", milis:  300000},
+    { symbol: "15m", milis: 900000 },
+    { symbol: "1h", milis: 2700000 },
+    { symbol: "1D", milis: 86400000 },
+    { symbol: "1M", milis: -1 }],
+  interval: { symbol: "5m", milis: 300000 }
+  };
 
 const getChartLibrary = (containerElement) => {
   const instrument = {
@@ -12,13 +47,13 @@ const getChartLibrary = (containerElement) => {
       precision: 10,
       chart: "ohlc",
       availableIntervals: [
-        { symbol: "1m" },
-        { symbol: "5m", milis: 60000 },
+        { symbol: "1m", milis: 60000 },
+        { symbol: "5m", milis:  300000},
         { symbol: "15m", milis: 900000 },
         { symbol: "1h", milis: 2700000 },
         { symbol: "1D", milis: 86400000 },
         { symbol: "1M", milis: -1 }],
-    interval: { symbol: "1h", milis: 2700000 }
+      interval: { symbol: "1h", milis: 2700000 }
       };
       
       const chart = new Chart({
@@ -26,18 +61,7 @@ const getChartLibrary = (containerElement) => {
         instrument: instrument
       });
   
-      const candles = [];
-  
-      for (let i=0; i < skyrocketData.t.length; ++i) {
-      candles.push({
-          o: skyrocketData.o[i] * 0.000000001,
-          h: skyrocketData.h[i] * 0.000000001,
-          l: skyrocketData.l[i] * 0.000000001,
-          c: skyrocketData.c[i] * 0.000000001,
-          v: skyrocketData.v[i],
-          stamp: skyrocketData.t[i]
-      })
-      }
+      const candles = getCandles(skyrocketData1h);
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
@@ -70,14 +94,22 @@ export function WebChartComponent() {
       containerElement.style.position = "relative";
 
       if (chart === null) setChart(getChartLibrary(containerElement));
-
   });
+
+  const onIntervalChange = (symbol) => {
+    if (symbol == "5m") {
+      chart.setInstrument(instrument2);
+      chart.setMainSeriesData(getCandles(skyrocketData5m), { symbol: "5m", milis: 60000 });
+    } else {
+      chart.setMainSeriesData(getCandles(skyrocketData1h), { symbol: "1h", milis: 2700000 });
+    }
+  };
 
   return (
     <div>
       <div style={{ display: "flex", gap: "10px" }}>
         <div style={{ width: '1000px', height: '800px', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
             <div ref={objectRef} />
           </ChartUI>
           

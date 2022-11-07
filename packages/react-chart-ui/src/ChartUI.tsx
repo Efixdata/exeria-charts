@@ -9,6 +9,8 @@ interface ChartUIProps {
   children?: JSX.Element|JSX.Element[];
   leftMenuWidth?: string;
   topMenuHeight?: string;
+  loading?: boolean;
+  onIntervalChange?: (symbol: string) => void;
 }
 
 const Container = styled.div`
@@ -39,7 +41,7 @@ class ChartUI extends React.Component {
 
     return (
       <Container ref={this.containerRef}>
-        <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef}/>
+        <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
         <div
           style={{
             display: "flex",
