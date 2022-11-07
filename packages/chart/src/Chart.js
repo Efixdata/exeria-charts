@@ -100,14 +100,14 @@ export default class Chart {
     this.initialized = true;
   }
 
-  async recalculateScripts() {
+  async recalculateScripts({ rerender = true } = {}) {
     try {
       this.fusion.fullSynchronization();
       this.fusion.configureScripts();
       await this.fusion.initAll();
       this.fusion.calculateAll();
   
-      this.rerender();
+      if (rerender) this.rerender();
     } catch (error) {
       console.warn(error);
     }
@@ -386,7 +386,9 @@ export default class Chart {
     this.renderer.calculatePriceRenderingOptions(mainSeries.data, this.model, mainSeries.instrument.precision);
 
     try {
-      await this.recalculateScripts();
+      await this.recalculateScripts({ rerender: false });
+      this.moveToEnd({ rerender: false });
+      this.rerender();
     } catch (error) {
       console.error(error);
     }
@@ -396,8 +398,6 @@ export default class Chart {
           topic: 'VALUE_AXIS_WIDTH_CHANGE',
           data: this.renderer.getPriceRenderingOptions().valueAxisWidth
         });
-
-        this.moveToEnd();
       }, 0);
     }
   }
@@ -571,13 +571,21 @@ export default class Chart {
 		return panel;
 	}
 
-  moveToEnd() {
-		if(!this.isChartEmpty()){
-			this.doMoveToEnd = (this.canvasWidth==0);
-			var vpl = (this.model.periodWidth * this.fusion.getMainSeries().data.length)-(this.canvasWidth-this.renderer.getPriceRenderingOptions().valueAxisWidth)+this.model.endMargin;
-			if (vpl<0) vpl = 0;
-			this.model.viewportLeft = vpl;
-		}
+  moveToEnd({ rerender = true } = {}) {
+    if (!this.isChartEmpty()) {
+      this.doMoveToEnd = (this.canvasWidth == 0);
+
+      const dataLength = this.fusion.getMainSeries().data.length;
+      const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;
+
+      let vpl = (this.model.periodWidth * dataLength) - (this.canvasWidth - valueAxisWidth) + this.model.endMargin;
+
+      if (vpl < 0) { vpl = 0; }
+
+      this.model.viewportLeft = vpl;
+
+      if (rerender) this.rerender();
+    }
 	}
 
   setInstrument(instrument) {
