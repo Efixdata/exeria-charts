@@ -2,6 +2,7 @@ import React, { useState, useRef, ReactElement, useEffect, SyntheticEvent } from
 import { selectButton, buttonOption } from "../theme"
 import { IconButton } from "./IconButton";
 import styled from "styled-components";
+import { Icon } from "./Icon";
 
 const Container = styled.div`
   position: relative;
@@ -154,9 +155,9 @@ export const SelectButton = (props: SelectButtonProps) => {
     if (selected) {
       return (
         <div onClick={() => setOpen(!isOpen)}>
-          { selected.icon && <IconButton>
+          { selected.icon && <Icon>
             { props.options[selectedOption].icon }
-          </IconButton> }
+          </Icon> }
           { !selected.icon && selected.text && props.options[selectedOption].text }
         </div>
       );
