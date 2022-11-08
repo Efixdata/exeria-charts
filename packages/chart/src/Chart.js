@@ -12,6 +12,7 @@ import SubscriptionManager from "./SubscriptionManager";
 export default class Chart {
   containerId;
   ctx;
+  octx;
   canvas;
   container;
   renderer;
@@ -48,6 +49,7 @@ export default class Chart {
     this.overlay.style.position = "absolute";
     this.overlay.style.inset = "0 0 0 0";
     this.ctx = this.canvas.getContext("2d");
+    this.octx = this.overlay.getContext("2d");
 
     this.topLayer = document.createElement("div");
     this.topLayer.style.position = "absolute";
@@ -122,7 +124,6 @@ export default class Chart {
   }
 
   render(objectOnlyOnOverlay) {
-    var ctx = this.canvas.getContext("2d");
 
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visibled
@@ -180,20 +181,36 @@ export default class Chart {
       var self = this;
       var r = self.renderer;
 
+      let ratio = 1;
+      if (window) {
+        ratio = window.devicePixelRatio;
+      }
+
       const boundingRect = this.container.getBoundingClientRect();
       this.canvasWidth = boundingRect.width;
       this.canvasHeight = boundingRect.height;
-      this.canvas.width = this.canvasWidth;
-      this.canvas.height = this.canvasHeight;
-      this.overlay.width = this.canvasWidth;
-      this.overlay.height = this.canvasHeight;
+      const widthWithRatio = this.canvasWidth * ratio;
+      const widthPx = this.canvasWidth + "px";
+      const heightWithRatio = this.canvasHeight * ratio;
+      const heightPx = this.canvasHeight + "px"
+      
+      this.canvas.width = widthWithRatio;
+      this.canvas.height = heightWithRatio;
+      this.canvas.style.width = widthPx;
+      this.canvas.style.height = heightPx;
+      this.canvas.getContext("2d").scale(ratio, ratio);
+
+      this.overlay.width = widthWithRatio;
+      this.overlay.height = heightWithRatio;
+      this.overlay.style.width = widthPx;
+      this.overlay.style.height = heightPx;
+      this.overlay.getContext("2d").scale(ratio, ratio);
 
       // this.model['axisGrid'] = this.mainAxisGrid;
       this.model["_width"] = this.canvasWidth;
       this.model["_height"] = this.canvasHeight;
 
-      this.model["_timeAxisWidth"] =
-      this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
+      this.model["_timeAxisWidth"] = this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
       this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
       this.model["_rightIndex"] = this.renderer.getPointIndex(
         this.model._timeAxisWidth,
@@ -338,7 +355,6 @@ export default class Chart {
   updateToolsOptions(config) {}
 
   renderOverlay() {
-    var octx = this.overlay.getContext("2d");
 
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visible
@@ -347,13 +363,13 @@ export default class Chart {
     if (!this.isChartEmpty()) {
       this.interactor.clearOverlay();
 
-      this.renderer.renderOverlay(octx, this.model, this.fusion);
+      this.renderer.renderOverlay(this.octx, this.model, this.fusion);
 
       if (this.interactor.currentMode.renderOverlay)
-        this.interactor.currentMode.renderOverlay(octx);
+        this.interactor.currentMode.renderOverlay(this.octx);
 
       this.renderer.postRenderOverlay(
-        octx,
+        this.octx,
         this.model,
         this.fusion.getSeriesManager()
       );

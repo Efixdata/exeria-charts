@@ -1297,7 +1297,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 
 	this.clearOverlay		=	function () {
-		self.octx.setTransform(1, 0, 0, 1, 0, 0);
+		// self.octx.setTransform(1, 0, 0, 1, 0, 0);
 		self.octx.clearRect(-1,-1,self.model._width+2, self.model._height+2);
 	};
 
