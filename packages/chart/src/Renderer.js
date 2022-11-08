@@ -445,6 +445,7 @@ const Renderer = function (settings, context, controller) {
 			const panelStartX = panelWidth - valueAxisWidth;
 
 			ctx.save();
+			ctx.beginPath();
 			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisBackground"); //priceAxisBackground
 			ctx.rect(panelWidth - valueAxisWidth, panel._offset, valueAxisWidth, panel._height);
 			ctx.fill()
@@ -464,6 +465,7 @@ const Renderer = function (settings, context, controller) {
 		} catch(error) {
 			console.error(error, error.stack)
 		} finally {
+			ctx.closePath();
 			ctx.restore();
 		}
 	};
