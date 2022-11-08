@@ -698,6 +698,7 @@ var SeriesObject	=	function () {
 		let color = redFillColor;
 		let stroke = redStrokeColor;
 
+		ctx.save();
 		ctx.lineWidth = 1;
 
 		let dfH = o.highDataField ? o.highDataField : o.dataField;
@@ -773,6 +774,8 @@ var SeriesObject	=	function () {
 			});
 		}
 
+		ctx.restore();
+
 		return true;
 	}
 
@@ -791,7 +794,7 @@ var SeriesObject	=	function () {
 		var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
 		var rightX = 0; var midX = 0;
 
-
+		ctx.save();
 		ctx.lineWidth = 1;
 
 		var dfH = o.highDataField ? o.highDataField : o.dataField;
@@ -907,7 +910,7 @@ var SeriesObject	=	function () {
 				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset,
 			});
 		}
-
+		ctx.restore();
 		return true;
 	}
 
@@ -918,6 +921,8 @@ var SeriesObject	=	function () {
 		const data = seriesManager[o.dataLink].data;
 
 		if (forceField) field = forceField;
+
+		ctx.save();
 
 		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('chartStroke');
 		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('chartFill');
@@ -1005,6 +1010,8 @@ var SeriesObject	=	function () {
 			if (end < data.length - 1) end += 1;
 			return end;
 		}
+
+		ctx.restore();
 	}
 
 	this.renderPriceLine = function(options) {
@@ -1015,6 +1022,7 @@ var SeriesObject	=	function () {
 			ctx.strokeStyle = (value - open > 0) ? green : red;
 		}
 
+		ctx.save();
 		ctx.lineWidth = 1;
 
 		ctx.beginPath();
@@ -1024,6 +1032,7 @@ var SeriesObject	=	function () {
 		ctx.stroke();
 		ctx.setLineDash([]);
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	this.updateExtremes	=	function (o, extremes, model, seriesManager) {
@@ -1491,7 +1500,7 @@ var IndicatorObject	=	function () {
 		var indexX = 0; var valueY = 0; var midX = 0; var zeroY = 0;
 
 		var stroke = o.color;
-
+		ctx.save();
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = o.width;
 
@@ -1533,6 +1542,7 @@ var IndicatorObject	=	function () {
 			});
 		}
 
+		ctx.restore();
 		return true;
 	}
 
@@ -1542,7 +1552,7 @@ var IndicatorObject	=	function () {
 
 		var fill = o.color;
 
-
+		ctx.save();
 		ctx.fillStyle = fill;
 		ctx.lineWidth = o.width;
 		ctx.beginPath();
@@ -1614,6 +1624,7 @@ var IndicatorObject	=	function () {
 		ctx.closePath();
 		ctx.fill();
 		ctx.globalAlpha = 1;
+		ctx.restore();
 		return true;
 	}
 
@@ -1624,6 +1635,7 @@ var IndicatorObject	=	function () {
 		var field = o.dataField;
 		if (forceField) field = forceField;
 
+		ctx.save();
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -1657,6 +1669,8 @@ var IndicatorObject	=	function () {
 					lastX = midX;			
 			}
 		}
+
+		ctx.restore();
 	}
 
 	this.renderAsLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
@@ -1664,6 +1678,7 @@ var IndicatorObject	=	function () {
 		var indexX = 0; var valueY = 0; var midX = 0; var lastX = 0;
 
 		var stroke = o.color;
+		ctx.save();
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = o.width;
 		ctx.beginPath();
@@ -1720,7 +1735,7 @@ var IndicatorObject	=	function () {
 				y: renderer.getYCoordinateForPrice(value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset
 			});
 		}
-
+		ctx.restore();
 		return true;
 	}
 
@@ -1836,7 +1851,7 @@ var StrategyObject	=	function () {
 		if (forceField) field = forceField;
 
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
-
+		ctx.save();
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth = o.width;
 
@@ -1873,6 +1888,7 @@ var StrategyObject	=	function () {
 
 		}
 		//ctx.globalAlpha = 1;
+		ctx.restore();
 		return true;
 	}
 
@@ -1931,7 +1947,7 @@ var StrategyObject	=	function () {
 
 		var field = o.dataField;
 		if (forceField) field = forceField;
-
+		ctx.save();
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
 		for (var i=model._leftIndex; i<model._rightIndex; i++) {
@@ -1968,6 +1984,8 @@ var StrategyObject	=	function () {
 			ctx.fill();
 			lastX = midX;
 		}
+
+		ctx.restore();
 	}
 
 	this.drawHit	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
@@ -1994,12 +2012,14 @@ var StrategyObject	=	function () {
 		}
 
 		function renderPoint(ctx, x, y ,r , color){
+			ctx.save();
 			ctx.beginPath();
 			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
 			ctx.globalAlpha = 0.7;
 			ctx.arc(x, y, r, 0, 2 * Math.PI, false);
 			ctx.stroke();
 			ctx.closePath();
+			ctx.restore();
 		}
 	}
 
@@ -2103,6 +2123,8 @@ var StrategyObject	=	function () {
 	this.drawBuy = function(ctx, midX, valueY){
 		var self = this;
 		var offset = 0;
+
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor");
 
@@ -2117,11 +2139,13 @@ var StrategyObject	=	function () {
 		ctx.lineTo(midX-5, valueY+4+offset);
 		ctx.fill();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	this.drawSell = function(ctx, midX, valueY){
 		var self = this;
 		var offset = 0;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor");
 
@@ -2136,10 +2160,12 @@ var StrategyObject	=	function () {
 		ctx.lineTo(midX-5, valueY-4+offset);
 		ctx.fill();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	function drawExitShort(ctx, midX, valueY){
 		var self = this;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("sellColor");
 		ctx.beginPath();
@@ -2152,10 +2178,12 @@ var StrategyObject	=	function () {
 		ctx.lineTo(midX+4, valueY+2+offset);
 		ctx.stroke();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	function drawExitLong(ctx, midX, valueY){
 		var self = this;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("buyColor");
 		ctx.beginPath();
@@ -2168,10 +2196,12 @@ var StrategyObject	=	function () {
 		ctx.lineTo(midX+4, valueY-2+offset);
 		ctx.stroke();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	this.drawExitAll = function(ctx, midX, valueY) {
 		var self = this;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("exitAllColor");
 		ctx.beginPath();
@@ -2182,6 +2212,7 @@ var StrategyObject	=	function () {
 		ctx.lineTo(midX+3, valueY-3+offset);
 		ctx.stroke();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 
@@ -2256,6 +2287,7 @@ var CandlestickPatternStrategyObject = function() {
 	candleStickPatternStrategyObject.drawSell = function(ctx, midX, valueY){
 		var self = this;
 		var offset = 0;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor");
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("sellColor");
@@ -2280,11 +2312,13 @@ var CandlestickPatternStrategyObject = function() {
 		ctx.globalAlpha = 0.87;
 		ctx.drawImage(this.candleChartImage, midX-9, valueY-33, this.candleChartImage.width, this.candleChartImage.height);
 		ctx.globalAlpha = 1;
+		ctx.restore();
 	}
 
 	candleStickPatternStrategyObject.drawBuy = function(ctx, midX, valueY){
 		var self = this;
 		var offset = 0;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor");
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("buyColor");
@@ -2309,6 +2343,7 @@ var CandlestickPatternStrategyObject = function() {
 		ctx.globalAlpha = 0.87;
 		ctx.drawImage(this.candleChartImage, midX-9, valueY+15, this.candleChartImage.width, this.candleChartImage.height);
 		ctx.globalAlpha = 1;
+		ctx.restore();
 	}
 
 	candleStickPatternStrategyObject.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
@@ -2381,6 +2416,7 @@ var FractalsObject = function() {
 
 	fractalsObject.drawSell = function(ctx, midX, valueY){
 		var offset = -4;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = "#009688";
 		ctx.strokeStyle = "#009688";
@@ -2396,10 +2432,12 @@ var FractalsObject = function() {
 		ctx.lineTo(midX-10, valueY+offset);
 		ctx.fill();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	fractalsObject.drawBuy = function(ctx, midX, valueY){
 		var offset = 4;
+		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = "#e91e63";
 		ctx.strokeStyle = "#e91e63";
@@ -2415,6 +2453,7 @@ var FractalsObject = function() {
 		ctx.lineTo(midX-10, valueY+offset);
 		ctx.fill();
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	fractalsObject.drawExitAll = function (ctx, midX, valueY, position) {
@@ -2469,6 +2508,7 @@ var FractalsObject = function() {
 		var field = o.dataField;
 		if (forceField) field = forceField;
 
+		ctx.save();
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
 		for (var i=model._leftIndex; i<model._rightIndex; i++) {
@@ -2510,6 +2550,8 @@ var FractalsObject = function() {
 			ctx.fill();
 			lastX = midX;
 		}
+
+		ctx.restore();
 	}
 
 	fractalsObject.drawHit	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
@@ -2540,12 +2582,14 @@ var FractalsObject = function() {
 		}
 
 		function renderPoint(ctx, x, y ,r , color){
+			ctx.save();
 			ctx.beginPath();
 			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
 			ctx.globalAlpha = 0.7;
 			ctx.arc(x, y, r, 0, 2 * Math.PI, false);
 			ctx.stroke();
 			ctx.closePath();
+			ctx.restore();
 		}
 	}
 
@@ -2580,6 +2624,8 @@ var TradeObject = class TradeObject {
 		var line_x = this.settings.bar.x+this.settings.bar.w;
 		var line_w =  model._timeAxisWidth;
 
+		ctx.save();
+
 		if (o.modified) {
 			ctx.globalAlpha = 0.5;
 		} else if (WEBRCP.utils.isOrderWaiting(o.object)) {
@@ -2590,6 +2636,8 @@ var TradeObject = class TradeObject {
 
 		this.drawLine(line_x, line_y, line_w, this.settings.line.color,ctx);
 		this.drawBar(o.title, line_y, this.settings.bar.color, ctx);
+
+		ctx.restore();
 	}
 	
 	isDragHandlerAllowedForObject(o, model){
@@ -2830,6 +2878,7 @@ var TradeObject = class TradeObject {
 
 
 	drawLine(x, y, w, color, ctx){
+		ctx.save();
 		ctx.setLineDash(this.settings.line.dash || []);
 		ctx.lineWidth = this.settings.line.w;
 		ctx.strokeStyle = color;
@@ -2839,12 +2888,14 @@ var TradeObject = class TradeObject {
 		ctx.stroke();
 		ctx.setLineDash([]);
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	drawBar(title, y, color, ctx){
 		var x = this.settings.bar.x;
 		var close_x = this.settings.bar.closeBtn.x;
 		//bar
+		ctx.save();
 		ctx.beginPath();
 		ctx.setLineDash([]);
 		ctx.fillStyle = color;
@@ -2866,17 +2917,21 @@ var TradeObject = class TradeObject {
 		var label_x = this.settings.bar.closeBtn.x + this.settings.bar.closeBtn.w + this.settings.bar.spacing;
 		ctx.fillStyle = this.settings.bar.text_color;
 		ctx.fillText(title, label_x, y+3);
+		ctx.restore();
 	}
 
 	drawRect(y1, y2, ctx, color){
+		ctx.save();
 		ctx.fillStyle = color;
 		ctx.globalAlpha = 0.05;
 		ctx.fillRect(0, y1, ctx.canvas.width, y2-y1);
 		ctx.globalAlpha = 1;
+		ctx.restore();
 		
 	}
 
 	drawDragHandler(y, ctx){
+		ctx.save();
 		ctx.fillStyle = this.settings.bar.text_color;
 		ctx.strokeStyle = this.settings.bar.text_color;
 		ctx.beginPath();
@@ -2886,9 +2941,11 @@ var TradeObject = class TradeObject {
 		ctx.lineTo(this.settings.bar.dragTpSlHandler.x+this.settings.bar.dragTpSlHandler.w/2,y+this.settings.bar.dragTpSlHandler.w/2);
 		ctx.stroke();
 		ctx.closePath();
+		ctx.restore();
 	}
 	
 	drawRunnerMarker(y, ctx, marker){
+		ctx.save();
 		ctx.fillStyle = marker.bg;
 		ctx.strokeStyle = this.settings.bar.color;
 		ctx.beginPath();
@@ -2897,11 +2954,12 @@ var TradeObject = class TradeObject {
 		ctx.fillStyle =marker.color;
 		ctx.fillText(marker.text.substring(0,1).toUpperCase(), this.settings.runnerMarker.x+2 , y+3);
 		ctx.closePath();
+		ctx.restore();
 	}
 
 	drawRelations(y, y1, y2, ctx, renderer, model, panel, seriesManager){
 		var r = 9;
-
+		ctx.save();
 		if(y1){
 			var yS = y > y1 ? y : y1;
 			var yE = y < y1 ? y : y1;
@@ -2948,6 +3006,8 @@ var TradeObject = class TradeObject {
 			ctx.stroke();
 			ctx.closePath();
 		}
+
+		ctx.restore();
 	}
 
 	getTpForPosition(p, model){
@@ -3122,11 +3182,13 @@ var MovePaneArrows	=	function () {
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 		var color = WEBRCP.utils.colorManager.getColor("iconColor");
+		ctx.save();
 		//ctx.fillStyle = this.opts.color;
 		//ctx.strokeStyle = this.opts.color;
 		ctx.fillStyle = color;
 		ctx.strokeStyle = color;
 		ctx.globalAlpha   = this.opts.alpha;
+		
 
 
 
@@ -3136,6 +3198,7 @@ var MovePaneArrows	=	function () {
 		// drawArrow(ctx,arrowUp);
 		// drawArrow(ctx,arrowDn);
 		ctx.globalAlpha   = 1;
+		ctx.restore();
 	}
 
 	function createArrowDn(panel, renderer, opts){
@@ -3179,6 +3242,7 @@ var MovePaneArrows	=	function () {
 	}
 
 	function drawArrow(ctx,a){
+		ctx.save();
 		ctx.beginPath();
 		ctx.moveTo(a.x[0], a.y[0]);
 		ctx.lineTo(a.x[1], a.y[1]);
@@ -3187,6 +3251,7 @@ var MovePaneArrows	=	function () {
 		ctx.lineTo(a.x[0], a.y[0]);
 		ctx.fill();
 		//ctx.stroke();
+		ctx.restore();
 	}
 
 	this.init = function(){}

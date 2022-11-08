@@ -2970,6 +2970,7 @@ function EllipseObject(){
 	this.render = function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
+		ctx.save();
 		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
@@ -2989,7 +2990,9 @@ function EllipseObject(){
 		}
 
 		ctx.globalAlpha = 1;
+		ctx.closePath();
 		ctx.stroke();
+		ctx.restore();
 	}
 
 	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
