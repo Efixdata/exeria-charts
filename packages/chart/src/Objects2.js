@@ -2,6 +2,7 @@ import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { between, calcLine, isPointInCircle, pointsDistance, findMidPoint, getLinePointNearestMouse, calcPointOnPerpendicularLine, movePointByDistance, findAnchorPointForXY, findAnchorPointArrowForXY, drawAnchor, drawAnchors, drawAnchorArrow, drawAnchorsArrow, drawIndicatorMarker } from './utils/objects-lib';
 import { isTouchDevice } from "./utils/environment";
+import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
 
 //obiekt bazowy
 function Shape(){
@@ -4499,10 +4500,9 @@ var TriangleObject	=	function () {
 				ctx.lineWidth = o.width;
 				ctx.setLineDash(o.dash ? o.dash : []);
 
-				var fV = LIB.getReferenceValue(o, model, seriesManager);
 				var value = o.anchors[0].value;
 				var valueS = LIB.nFormatter(value, renderer.getPrecision(model,panel));
-				var w = this.defaultLineLen+this.defaultTagLen;
+				var w = this.defaultLineLen + 15 + measurePriceTextWidth({text: valueS, ctx, zerosToReduce: renderer.getPriceRenderingOptions().zerosToReduce});
 
 				if(!o.flipped){
 					ctx.beginPath();
@@ -4517,7 +4517,13 @@ var TriangleObject	=	function () {
 					ctx.stroke();
 					ctx.closePath();
 					ctx.fillStyle = WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
-					ctx.fillText(valueS, x+this.defaultLineLen+10, y+3);
+					renderPriceText({
+						text: valueS,
+						ctx,
+						x: x + this.defaultLineLen + 10,
+						y: y + 3,
+						zerosToReduce: renderer.getPriceRenderingOptions().zerosToReduce
+					});
 				}else{
 					ctx.beginPath();
 					ctx.moveTo(x-this.defaultLineLen, y)
@@ -4531,7 +4537,13 @@ var TriangleObject	=	function () {
 					ctx.stroke();
 					ctx.closePath();
 					ctx.fillStyle = WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("indicatorMarker"), '#ffffff');
-					ctx.fillText(valueS, x-w+10, y+3);
+					renderPriceText({
+						text: valueS,
+						ctx,
+						x: x - w + 10,
+						y: y + 3,
+						zerosToReduce: renderer.getPriceRenderingOptions().zerosToReduce
+					});
 				}
 			}
 		
