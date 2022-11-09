@@ -5,7 +5,7 @@ import { Shape } from './Objects2'
 import { Series } from './Objects'
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js"
-import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
+import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
 
 var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
 	var self = this;
@@ -2172,32 +2172,40 @@ function CrosshairTool(interactor){
 	this.renderUp = function(ctx, e){
 		if (!e) return;
 
-		var self = this;
-		var panel = this.interactor.getPanel(e.offsetY);
-		var model = this.interactor.model;
-		var valueY = undefined;
-		var eo = this.interactor.getEventOffset(e);
-		var y = eo.offsetY;
+		const self = this;
+		const panel = this.interactor.getPanel(e.offsetY);
+		const model = this.interactor.model;
+		const eventOffset = this.interactor.getEventOffset(e);
+		const y = roundAndTranslate(eventOffset.offsetY);
+		const x = roundAndTranslate(eventOffset.offsetX);
+		let valueY = undefined;
 
-		if (panel){
-			valueY = this.interactor.controller.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
+		if (panel) {
+			valueY = this.interactor.controller.renderer.getPriceForYCoordinate(y - panel._offset, {
+				panelHeight: panel._height,
+				minValue: panel.vMin,
+				maxValue: panel.vMax
+			});
 		}
 		
+		ctx.save();
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('accent');
 		ctx.setLineDash([5, 5]);
 		ctx.lineWidth = 1;
-		
-		ctx.moveTo(0, eo.offsetY);
-		ctx.lineTo(model._width - this.interactor.controller.renderer.getPriceRenderingOptions().valueAxisWidth, eo.offsetY);
-		ctx.moveTo(eo.offsetX, 0);
-		ctx.lineTo(eo.offsetX, model._height - model.timeAxisHeight);
+
+		ctx.moveTo(0, y);
+		ctx.lineTo(model._width - this.interactor.controller.renderer.getPriceRenderingOptions().valueAxisWidth, y);
+		ctx.moveTo(x, 0);
+		ctx.lineTo(x, model._height - model.timeAxisHeight);
 		ctx.stroke();
 
+		ctx.restore();
+
 		if (panel && valueY && y) {
-			self.interactor.controller.renderer.drawPriceTag (ctx, self.interactor.model, panel, y, self.color, self.textColor, valueY);
+			self.interactor.controller.renderer.drawPriceTag(ctx, self.interactor.model, panel, y, self.color, self.textColor, valueY);
 		}
 
-		self.interactor.controller.renderer.drawTimeTag(ctx, self.interactor.model, eo.offsetX, self.color, self.textColor, self.interactor.fusion);
+		self.interactor.controller.renderer.drawTimeTag(ctx, self.interactor.model, x, self.color, self.textColor, self.interactor.fusion);
 	}
 
 	this.renderDn = function(ctx, i, e) {
