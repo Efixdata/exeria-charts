@@ -178,15 +178,14 @@ export default class Chart {
       this.fusion.getMainSeries().data &&
       this.fusion.getMainSeries().data.length > 0
     ) {
-      var self = this;
-      var r = self.renderer;
-
       let ratio = 1;
+      
       if (window) {
         ratio = window.devicePixelRatio;
       }
 
       const boundingRect = this.container.getBoundingClientRect();
+
       this.canvasWidth = boundingRect.width;
       this.canvasHeight = boundingRect.height;
       const widthWithRatio = this.canvasWidth * ratio;
@@ -212,23 +211,21 @@ export default class Chart {
 
       this.model["_timeAxisWidth"] = this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
       this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
-      this.model["_rightIndex"] = this.renderer.getPointIndex(
-        this.model._timeAxisWidth,
-        this.model
-      );
+      this.model["_rightIndex"] = this.renderer.getPointIndex(this.model._timeAxisWidth, this.model);
 
       this.model["_midOffset"] = parseInt(this.model.periodWidth / 2);
 
-      var panel = null;
-      var offset = 0;
+      let panel = null;
+      let offset = 0;
 
       this.interactor.hideEmptyPanels();
       this.interactor.basisToHeights();
 
       for (var i = 0; i < this.model.panels.length; i++) {
         panel = this.model.panels[i];
-        if (this.model.panels[i]._visible)
+        if (this.model.panels[i]._visible) {
           offset += this.fitPanel(panel, i, offset);
+        }
       }
     }
   }

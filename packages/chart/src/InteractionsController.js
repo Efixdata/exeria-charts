@@ -952,7 +952,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		this.controller.renderOverlay();
 	};
 
-	this.onMouseDrag		=	function (e) {
+	this.onMouseDrag = function (e) {
 		if (this.controller.isChartEmpty(this.chart)) return;
 		this.currentMode.onMouseDrag(e);
 		this.controller.renderOverlay()
@@ -988,12 +988,10 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		);
 	};
 
-	this.onPan				=	function (e) {
-
+	this.onPan = function (e) {
 		if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
-
 		
 		var io = this.getEventOffset(this.initialMouseEvent);
 		var eo = this.getEventOffset(e);
@@ -1005,15 +1003,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		var offset = 0;
 
-		if(this.model.instrumentsSeries[0] &&  this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data){
-
+		if (this.model.instrumentsSeries[0] &&  this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
 			var sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
 
-			if((this.currentViewportLeft-currentOffset) <= this.model.periodWidth*(sl-1)){
-				if(this.currentViewportLeft-currentOffset < 0){
+			if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
+				if (this.currentViewportLeft-currentOffset < 0){
 					this.model.viewportLeft = 0;
-				}
-				else{
+				} else {
 					offset = currentOffset;
 					this.model.viewportLeft=this.currentViewportLeft-offset;
 				}
@@ -1021,35 +1017,45 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			var panel = this.getPanel(io.offsetY);
 			if (!panel) return;
+
 			const isAboveValueAxis = this.isAboveValueAxis(e);
+
 			if (isAboveValueAxis && this.valueAxisClicked) {
 				if (this.model.autoScale == true) this.controller.setAutoScale(false);
 				this.chart.style.cursor = "ns-resize";
 			}
 
-			if(this.model.autoScale == false){
+			if (this.model.autoScale == false) {
 				var panel2 = this.getPanel(eo.offsetY);
 				if (!panel2) return;
-				if(panel == panel2 && this.initialMinMax){
-					if(!this.initialMinMax.value)
-						this.initialMinMax.value =  this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
 
-					
+				if (panel == panel2 && this.initialMinMax){
+					const panelOptions = {
+						panelHeight: panel._height,
+						minValue: panel.vMin,
+						maxValue: panel.vMax
+					};
 
-					if ((this.isMouseDown && this.isRightButton===true) || (isAboveValueAxis && this.valueAxisClicked)){
-						var valueY1 = this.initialMinMax.value;
-						var valueY2 = this.renderer.getPriceForYCoordinate( eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
-						var delta = valueY2-valueY1;
-						if(delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max+delta - this.initialMinMax.min-delta) > 0.000000000000000001)){
-							panel.vMax = this.initialMinMax.max+delta;
-							panel.vMin = this.initialMinMax.min-delta;
+					if (!this.initialMinMax.value) {
+						this.initialMinMax.value =  this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, panelOptions);
+					}
+
+					if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
+						const valueY1 = this.initialMinMax.value;
+						const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+						const delta = valueY2 - valueY1;
+
+						if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
+							panel.vMax = this.initialMinMax.max + delta;
+							panel.vMin = this.initialMinMax.min - delta;
 						}
-					} else if (this.isMouseDown && this.isRightButton===false) {
-						var valueY1 = this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
-						var valueY2 = this.renderer.getPriceForYCoordinate( eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax});
-						var delta = valueY2-valueY1;
-						panel.vMax = this.initialMinMax.max-delta;
-						panel.vMin = this.initialMinMax.min-delta;
+					} else if (this.isMouseDown && this.isRightButton === false) {
+						const valueY1 = this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
+						const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+						const delta = valueY2 - valueY1;
+
+						panel.vMax = this.initialMinMax.max - delta;
+						panel.vMin = this.initialMinMax.min - delta;
 					}
 
 				}
@@ -1117,22 +1123,23 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 
 	this.basisToHeights = function(){
-		var B = 0;
-		var H = this.model._height-this.model.timeAxisHeight;
+		const panels = this.model.panels;
+		const length = this.model.panels.length
+		const fullHeight = this.model._height - this.model.timeAxisHeight;
+		let basis = 0;
 
-		for (var i=0; i<this.model.panels.length; i++) {
-			if(this.model.panels[i]._visible)
-				B += this.model.panels[i].basis;
+		for (var i = 0; i < length; i++) {
+			const panel = panels[i];
+
+			if (panel._visible) {
+				basis += panel.basis;
+			}
 		}
 
-		for (var i=0; i<this.model.panels.length; i++) {
-			if(this.model.panels[i]._visible){
-				var b = this.model.panels[i].basis;
-				var h = Math.round(H * b/B);
-				this.model.panels[i]._height = h;
-			}else{
-				this.model.panels[i]._height = 0;
-			}
+		for (var i = 0; i < length; i++) {
+			const panel = panels[i];
+
+			panel._height = panel._visible ? Math.round(fullHeight * panel.basis / basis) : 0;
 		}
 	}
 
@@ -1818,7 +1825,6 @@ function DefaultTool(interactor){
 	this.onMouseDrag		=	function (e) {
 		this.startEvent = this.interactor.initialMouseEvent;
 		this.finishEvent = e;
-
 
 		if (this.interactor.currentHandler >-1) return this.interactor.onDragHandler(e);
 		if (this.interactor.currentHitObject != null) return this.interactor.onDragObject(e);
