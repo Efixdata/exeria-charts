@@ -277,14 +277,13 @@ export function drawIndicatorMarker(ctx, panel, point, radius, color, alpha ) {
 }
 
 export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscriptFont
-	let {text, ctx, x, y, priceFont, subscriptFont, zerosToReduce} = options
+	let {text, ctx, x, y, priceFont, subscriptFont, zerosToReduce, mode} = options
 
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
-	
 	ctx.font = priceFont;
 
-	if (text.indexOf('.') === -1 || zerosToReduce < 4) {
+	if (text.indexOf('.') === -1 || zerosToReduce < 4 || mode == "perc" || mode == "log") {
 		ctx.fillText(text, x, y);
 		return;
 	}
@@ -306,14 +305,14 @@ export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscr
 }
 
 export function measurePriceTextWidth(options) {
-	let {text, ctx, priceFont, subscriptFont, zerosToReduce} = options
+	let {text, ctx, priceFont, subscriptFont, zerosToReduce, mode} = options
 	
 	if (!priceFont) priceFont = WEBRCP.utils.colorManager.getFont("price");
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
 
 	ctx.font = priceFont;
 
-	if (text.indexOf('.') === -1 || zerosToReduce < 4) {
+	if (text.indexOf('.') === -1 || zerosToReduce < 4 || mode === "perc") {
 		return ctx.measureText(text).width;
 	}
 

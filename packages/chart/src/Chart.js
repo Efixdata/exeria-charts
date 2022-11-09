@@ -661,6 +661,7 @@ export default class Chart {
       this.model.panels[0].valueAxisMode =  "log";
     }
     
+    this.setAutoScale(true);
     this.rerender();
 		// this.refreshTools();
 	}

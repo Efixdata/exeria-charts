@@ -410,7 +410,14 @@ const Renderer = function (settings, context, controller) {
 			let tickValue = tick.niceMin;
 			const texts = [];
 			let tickPoint = 0;
+			let precision = this.getPrecision(model, panel);
 
+			if (mode == 'perc') { 
+				precision = 2;
+			} else if (mode == 'log') {
+				precision = 4;
+			}
+	
 			while (tickValue < tick.niceMax) {
 				//drawTickValue
 				tickValue += tick.tickSpacing;
@@ -419,14 +426,14 @@ const Renderer = function (settings, context, controller) {
 				if (tickPoint < panel._offset) continue;
 				
 				let value = tickValue;
-				let text = value.toFixed(this.getPrecision(model, panel));
+				let text = value.toFixed(precision);
 
 				if (mode == 'log') {
 					value = LIB._converterLog.axisToReal(tickValue, 1);
 				}
 				
 				if (value > 999999)	{
-					text = LIB.nFormatter(value,this.getPrecision(model, panel));
+					text = LIB.nFormatter(value, precision);
 				}
 								
 				if (panel.valueAxisMode == "perc") {
@@ -460,7 +467,8 @@ const Renderer = function (settings, context, controller) {
 			texts.forEach(options => renderPriceText.call(this, {
 				...options,
 				x: panelStartX + model.valueAxisPadding,
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
+				zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+				mode
 			}));
 		} catch(error) {
 			console.error(error, error.stack)
@@ -1276,11 +1284,11 @@ const Renderer = function (settings, context, controller) {
 
 	this.getPrecision = function(model, panel){
 		var p = 5;
-		if(panel.valueAxisMode == 'perc'){
-			p = 2;
-		}else if(model.instrumentsSeries && model.instrumentsSeries.length > 0){
+
+		if (model.instrumentsSeries && model.instrumentsSeries.length > 0) {
 				p = model.instrumentsSeries[0].instrument.precision > 4 ? model.instrumentsSeries[0].instrument.precision : model.instrumentsSeries[0].instrument.precision
 		}
+
 		return p;
 	}
 
