@@ -370,7 +370,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
         { lines }
         { shapes }
         { analyticalTools }
-        { textAnnotation }
+        {/* { textAnnotation } */}
         { priceTag }
         { ranges }
       </Container>
