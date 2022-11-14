@@ -714,6 +714,11 @@ const Renderer = function (settings, context, controller) {
 
 		ctx.save();
 		ctx.beginPath();
+		ctx.rect(0, panel._offset, model._width - this.priceRenderingOptions.valueAxisWidth - 1, panel._height);
+		ctx.closePath();
+		ctx.clip();
+		
+		ctx.beginPath();
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
 		if (ctx.roundRect)
 			ctx.roundRect(startX - 4, y-11, x - 4, 16, [4]);
