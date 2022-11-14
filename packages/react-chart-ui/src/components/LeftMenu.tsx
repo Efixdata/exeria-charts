@@ -17,6 +17,11 @@ const Container = styled.div`
   z-index: 1;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar { 
+      display: none;  /* Safari and Chrome */
+  }
 `
 
 interface LeftMenuProps {
