@@ -602,16 +602,22 @@ export default class Chart {
 	}
 
   setInstrument(instrument) {
-    if (instrument) {
-      this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...instrument };
-      this.instrument = instrument;
-      
-      if (instrument.symbol)
-        this.model.instrumentsSeries[0].title = instrument.symbol;
+    if (!instrument) return;
 
-      if (instrument.precision)
-        this.model.panels[0].precision = instrument.precision;
-    }
+    this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...instrument };
+    this.instrument = instrument;
+    
+    if (instrument.symbol)
+      this.model.instrumentsSeries[0].title = instrument.symbol;
+
+    if (instrument.precision)
+      this.model.panels[0].precision = instrument.precision;
+
+    if (!this.fusion) return;
+
+    const mainSeries = this.fusion.getMainSeries();
+    mainSeries.instrument = { ...mainSeries.instrument, ...instrument };
+    mainSeries.title = instrument.symbol;
   }
 
   getInstrument() {
