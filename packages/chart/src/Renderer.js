@@ -192,17 +192,6 @@ const Renderer = function (settings, context, controller) {
 			ctx.closePath();
 		}
 
-		var y = this.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
-		ctx.strokeStyle = panel.zeroLine.color;
-		ctx.lineWidth = panel.zeroLine.width;
-		ctx.setLineDash(panel.zeroLine.dash);
-		ctx.beginPath();
-		ctx.moveTo(0,y);
-		ctx.lineTo(panel._width,y);
-		ctx.stroke();
-		ctx.setLineDash([]);
-		ctx.closePath();
-
 		for (var i = 0; i < panel.objects.length; i++) {
 			let object = panel.objects[i];
 

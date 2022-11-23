@@ -57,7 +57,7 @@ const model2 = {
       vMin: 1.115833,
       precision: 5,
       centerZero: false,
-      zeroLine: { color: "yellow", width: 1, dash: [3, 3] },
+      // zeroLine: { color: "yellow", width: 1, dash: [3, 3] },
       objects: [
         {
           id: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb",
