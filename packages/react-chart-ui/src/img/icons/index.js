@@ -1,4 +1,5 @@
 export { default as Build } from "./Build";
+export { default as Camera } from "./Camera";
 export { default as CandleChart } from "./CandleChart";
 export { default as ChartLines } from "./ChartLines";
 export { default as Checked } from "./Checked";
@@ -27,8 +28,11 @@ export { default as Mouse } from "./Mouse";
 export { default as Remove } from "./Remove";
 export { default as Settings } from "./Settings";
 export { default as Share } from "./Share";
+export { default as Stocktwits } from "./Stocktwits";
 export { default as Stroke } from "./Stroke";
 export { default as Study } from "./Study";
+export { default as Telegram } from "./Telegram";
+export { default as Twitter } from "./Twitter";
 export { default as Up } from "./Up";
 export { default as Visible } from "./Visible";
 export { default as Width } from "./Width";
