@@ -765,4 +765,34 @@ export default class Chart {
 
 		this.rerender();
 	}
+
+  onDownload(watermark) {
+		var link = document.createElement('a');
+
+    this.ctx.save();
+		this.ctx.fillStyle = WEBRCP.utils.colorManager.getColor('primaryTextColor');
+		this.ctx.font = WEBRCP.utils.colorManager.getFont("title");
+		var title = this.instrument.name + "_" + this.model.interval.symbol;
+		this.ctx.fillText(title, this.canvas.width / 2 - this.ctx.measureText(title).width / 2, 60);
+    this.ctx.restore();
+
+    if (!watermark) {
+      link.href = this.canvas.toDataURL();
+			link.download = title + "_" + Date.now() + ".png";
+			link.click();
+			this.render();
+    } else {
+      var image = new Image();
+      image.src = watermark;
+      image.onload = function() {
+        image.width = 160;
+        image.height = 44;
+        this.ctx.drawImage(image, 30, this.canvas.height - image.height - 40, image.width, image.height);
+        link.href = this.canvas.toDataURL();
+        link.download = title + "_" + Date.now() + ".png";
+        link.click();
+        this.render();
+      }.bind(this);
+    }
+	}
 }

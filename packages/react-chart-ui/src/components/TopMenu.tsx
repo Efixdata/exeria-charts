@@ -7,6 +7,8 @@ import { MainChartTypeSelect } from "./MainChartTypeSelect";
 import { FullScreenButton } from "./FullScreenButton";
 import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
+import { SaveChartImageButton } from "./SaveChartImageButton";
+import { ShareChartButton } from "./ShareChartButton";
 
 interface TopMenuProps {
   chart: any;
@@ -38,6 +40,11 @@ const LeftSection = styled.div`
   flex-direction: row;
 `
 
+const Icons = styled.div`
+  display: flex;
+  gap: 2px;
+`
+
 export const TopMenu = (props: TopMenuProps) => {
   const instrument = props?.chart?.getInstrument();
 
@@ -57,7 +64,11 @@ export const TopMenu = (props: TopMenuProps) => {
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />
-          <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
+          <Icons>
+            <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
+            <SaveChartImageButton chart={props.chart} />
+            <ShareChartButton chart={props.chart} />
+          </Icons>
         </RightSection>
       </LeftSection>
       <CurrencySwitch chart={props.chart} />
