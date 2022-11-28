@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { SelectButton, TextButton } from "ui";
 
 interface IntervalSwitchProps {
@@ -9,6 +10,8 @@ interface IntervalSwitchProps {
 
 export const IntervalSwitch = (props: IntervalSwitchProps) => {
   const instrument = props?.chart?.getInstrument();
+  const interval = props?.chart?.getInterval();
+  const [intervalSymbol, setIntervalSymbol] = useState(interval);
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return null;
@@ -22,6 +25,19 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
     });
   };
 
+  useEffect(() => {
+    const subscription = props?.chart?.subscribe("INTERVAL_CHANGE", (data: any) => {
+      setTimeout(() => {
+        setIntervalSymbol(data.symbol);
+      }, 0);
+      
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  });
+
   const render = () => {
     const availableIntervalsSymbols = getAvailableIntervalsSymbols();
 
@@ -33,7 +49,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
                 onSelect={(option) => { 
                   if (props.onIntervalChange && option != undefined) props.onIntervalChange(option);
                 }}
-                selectedOption={instrument?.interval?.symbol}
+                selectedOption={intervalSymbol}
             />
         )
     } else {

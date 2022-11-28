@@ -393,7 +393,10 @@ export default class Chart {
     if (!this.fusion) return;
 
     const mainSeries = this.fusion.getMainSeries();
-    if (interval) mainSeries.interval = interval;
+    if (interval) {
+      mainSeries.interval = interval;
+      this.model.interval = interval;
+    }
     mainSeries.data = data;
 
     this.renderer.calculatePriceRenderingOptions(mainSeries.data, this.model, mainSeries.instrument.precision);
@@ -410,6 +413,11 @@ export default class Chart {
         this.emitEvent({
           topic: 'VALUE_AXIS_WIDTH_CHANGE',
           data: this.renderer.getPriceRenderingOptions().valueAxisWidth
+        });
+
+        this.emitEvent({
+          topic: 'INTERVAL_CHANGE',
+          data: interval
         });
       }, 0);
     }
@@ -795,4 +803,8 @@ export default class Chart {
       }.bind(this);
     }
 	}
+
+  getInterval() {
+    return this.model.interval;
+  }
 }

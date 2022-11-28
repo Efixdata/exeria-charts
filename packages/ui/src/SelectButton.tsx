@@ -100,6 +100,7 @@ export const SelectButton = (props: SelectButtonProps) => {
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
+    setSelectedOption(props.selectedOption);
     // @ts-ignore
     document.addEventListener('mousedown', handleClickOutside);
     // @ts-ignore
