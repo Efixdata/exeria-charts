@@ -1,7 +1,10 @@
 // @ts-nocheck
 import * as React from "react";
+import styled from "styled-components";
 import { IconButton } from "ui";
-import { Camera } from "../img/icons";
+import { selectButton } from "ui/theme";
+
+import { Camera, Download, Copy } from "../img/icons";
 
 const dexerWatermark = `
 <svg id="Warstwa_1" data-name="Warstwa 1" xmlns="http://www.w3.org/2000/svg" width="158.63mm" height="43.59mm" viewBox="0 0 449.65 123.57">
@@ -17,16 +20,83 @@ const dexerWatermark = `
 </svg>
 `;
 
-const svg64 = Buffer.from(dexerWatermark).toString('base64');
-const b64Start = 'data:image/svg+xml;base64,';
+const SaveImageButtonWrapper = styled.div`
+  position: relative;
+  &.active {
+    background-color: ${selectButton.backgroundActiveColor};
+    border-radius: ${selectButton.borderRadius}px ${selectButton.borderRadius}px
+      0px 0px;
+  }
+`;
+
+const OptionsContainer = styled.div`
+  box-sizing: border-box;
+  border-radius: ${selectButton.borderRadius}px 0px
+    ${selectButton.borderRadius}px ${selectButton.borderRadius}px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: ${selectButton.backgroundActiveColor};
+  padding: 4px 0;
+  position: absolute;
+  top: 26px;
+  left: -129px;
+  z-index: 1;
+  width: 155px;
+`;
+
+const OptionValue = styled.span`
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  padding: 8px 18px 5px 8px;
+  grid-gap: 8px;
+  color: #fff;
+  opacity: 0.7;
+  &:hover {
+    background-color: #7f9dcc26;
+  }
+`;
+
+const svg64 = Buffer.from(dexerWatermark).toString("base64");
+const b64Start = "data:image/svg+xml;base64,";
 const image64 = b64Start + svg64;
 
 export const SaveChartImageButton = (props) => {
+  const dropDownRef = React.useRef(null)
+  const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
     props.chart.onDownload(image64);
   };
 
+  const handleClickOutside = (e: SyntheticEvent) => {
+    if (!dropDownRef.current?.contains(e.target)) {
+      setIsOpen(false);
+    }
+  };
+
+  React.useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  });
+
   return (
-    <IconButton onClick={onClick}><Camera /></IconButton>
-  )
+    <SaveImageButtonWrapper ref={dropDownRef} className={isOpen ? "active" : null}>
+      <IconButton onClick={() => setIsOpen((prev) => !prev)}>
+        <Camera />
+      </IconButton>
+      {isOpen && (
+        <OptionsContainer>
+          <OptionValue>
+            <Copy />
+            Copy chart image
+          </OptionValue>
+          <OptionValue onClick={onClick}>
+            <Download />
+            Save chart image
+          </OptionValue>
+        </OptionsContainer>
+      )}
+    </SaveImageButtonWrapper>
+  );
 };
