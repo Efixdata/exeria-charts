@@ -13,6 +13,7 @@ const Renderer = function (settings, context, controller) {
 		magnitude: 1,
 		zerosToReduce: 0
 	};
+	this.volumePrecision = 2;
 
 	this.objects	=	new Array();
 	this.timeTicks	=	new Array();
@@ -668,8 +669,20 @@ const Renderer = function (settings, context, controller) {
 				value: {},
 				separator: {}
 			};
+			let precision = 2;
+			let zerosToReduce = this.priceRenderingOptions.zerosToReduce;
 
-			var v = LIB.nFormatter(field, this.getPrecision(model, panel));
+			if (series.precisions && series.precisions[i] !== null && series.precisions[i] !== undefined) {
+				precision = series.precisions[i];
+				zerosToReduce = 0;
+			} else if (object.renderAs == "OHLC" && series.labels[i] == "V") {
+				precision = this.volumePrecision;
+				zerosToReduce = 0;
+			} else {
+				precision = this.getPrecision(model, panel);
+			}
+
+			var v = LIB.nFormatter(field, precision);
 
 			valueToRender.label.text= WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ';
 			if (series.fields.length == 1 && series.labels[i] == 'value') valueToRender.label.text = '';
@@ -682,12 +695,13 @@ const Renderer = function (settings, context, controller) {
 			valueToRender.value.x = x;
 			valueToRender.value.y = y;
 			valueToRender.value.text = v;
+			valueToRender.value.zerosToReduce = zerosToReduce;
 			x += measurePriceTextWidth({
 				text: v,
 				ctx,
 				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
 				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
+				zerosToReduce: zerosToReduce
 			});
 
 			if (i < series.fields.length - 1) {
@@ -734,7 +748,7 @@ const Renderer = function (settings, context, controller) {
 				y: valueToRender.value.y,
 				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
 				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
+				zerosToReduce: valueToRender.value.zerosToReduce
 			});
 
 			if (valueToRender.separator.text) {

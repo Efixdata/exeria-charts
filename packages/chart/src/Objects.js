@@ -1093,12 +1093,19 @@ var SeriesObject	=	function () {
 		const values = [];
 		const fields = seriesManager[o.dataLink].fields;
 		const labels = seriesManager[o.dataLink].labels;
+		const precisions = seriesManager[o.dataLink].precisions;
 
 		for (var f in fields) {
-			values.push({
+			const value = {
 				label: WEBRCP.locale.fusion.getMessage(labels[f], labels[f]),
 				value: seriesManager[o.dataLink].data[index][fields[f]]
-			});
+			};
+
+			if (precisions && precisions[f]) {
+				value.precision = precisions[f];
+			}
+
+			values.push(value);
 		}
 
 		const data = {

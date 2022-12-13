@@ -1748,6 +1748,7 @@ FUSION.scripts['VOLUME'] = {
                 title: 'volumeTitle',
                 labels: ['value'],
                 fields: ['VOLUME'],
+                precisions: [2],
                 data: null
             }
         }

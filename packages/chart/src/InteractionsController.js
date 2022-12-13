@@ -1912,44 +1912,47 @@ function DefaultTool(interactor){
 				this.tipTimeout = setTimeout(showTip, this.toolTipShowDelay);
 
 			function showTip(){
-				var o = self.interactor.currentHitObject;
+				var hitObject = self.interactor.currentHitObject;
 
-				if(o && o._hit && o._hit.x && o._hit.y && o.dataLink && self.interactor.fusion.getSeriesManager()[o.dataLink]){
-					var o = self.interactor.currentHitObject;
-					var r = self.interactor.controller.renderer.objects[o.type];
-					var index = self.interactor.controller.renderer.getPointIndex(o._hit.x, self.interactor.model);
+				if (hitObject && hitObject._hit && hitObject._hit.x && hitObject._hit.y && hitObject.dataLink && self.interactor.fusion.getSeriesManager()[hitObject.dataLink]){
+					var object = self.interactor.controller.renderer.objects[hitObject.type];
+					var index = self.interactor.controller.renderer.getPointIndex(hitObject._hit.x, self.interactor.model);
 
-					if(index > self.interactor.fusion.getSeriesManager()[o.dataLink].data.length-1) return;
+					if(index > self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length-1) return;
 
-					var tip = r.getToolTip(self.interactor.currentHitObject, index, self.interactor.model, self.interactor.fusion.getSeriesManager(), self.interactor.fusion.getScriptsManager());
+					var tip = object.getToolTip(self.interactor.currentHitObject, index, self.interactor.model, self.interactor.fusion.getSeriesManager(), self.interactor.fusion.getScriptsManager());
 
-					try{
+					try {
 						octx.save();
 						// octx.translate (0.5, 0.5);
 						tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
 						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision > 4 ? self.interactor.model.instrumentsSeries[0].instrument.precision : 4//self.interactor.model.instrumentsSeries[0].instrument.precision;
 						self.currentTip = tip;
-						drawTip(tip, o._hit.x, o._hit.y, octx, self.interactor.model, self.interactor.controller);
+						drawTip(tip, hitObject._hit.x, hitObject._hit.y, octx, self.interactor.model, self.interactor.controller);
 
-					}catch(e){
+					} catch(e) {
 						console.error(e,e.stack)
-					}finally{
+					} finally {
 						// octx.translate (-0.5, -0.5);
 						octx.restore();
 					}
 				}
 			}
-		}else{
+		} else {
 			clearTimeout(this.tipTimeout);
 			this.currentTip = null;
 			this.tipTimeout = null;
 		}
 	}
 
-	function drawTip(tip, x, y, ctx, model, controller){
-		const getValue = (value) => {
+	function drawTip(tip, x, y, ctx, model, controller) {
+		const getValue = (value, precision) => {
 			if (value !== undefined && value !== null) {
-				return value.toFixed ? formatNumber(value) : value;
+				let newValue = value;
+				if (value.toFixed) {
+					newValue = formatNumber(newValue, precision);
+				}
+				return newValue;
 			} else {
 				return "-";
 			}
@@ -1990,7 +1993,7 @@ function DefaultTool(interactor){
 		for(var i in tip.values){
 			var _lw = ctx.measureText(tip.values[i].label).width;
 			lw = _lw > lw ? _lw : lw;
-			var v = getValue(tip.values[i].value);
+			var v = getValue(tip.values[i].value, tip.values[i].precision);
 
 			var _vw = measurePriceTextWidth({text: v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
 			vw = _vw > vw ? _vw : vw;
@@ -2039,10 +2042,16 @@ function DefaultTool(interactor){
 			ctx.font = WEBRCP.utils.colorManager.getFont("text");
 			txtY += cfg.lineSpacing+cfg.lineHeight;
 			ctx.fillText(tip.values[i].label+" : ",  txtX, txtY);
+			let zerosToReduce = controller.renderer.getPriceRenderingOptions().zerosToReduce;
+			const precision = tip.values[i].precision;
+
+			if (precision !== null && precision !== undefined) {
+				zerosToReduce = 0;
+			}
 			
-			var v = getValue(tip.values[i].value);
+			var v = getValue(tip.values[i].value, precision);
 			var x = txtX+cfg.width-2*cfg.margin-measurePriceTextWidth({text:v, ctx, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
-			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce});
+			renderPriceText({text: v, ctx, x, y: txtY, zerosToReduce: zerosToReduce});
 		}
 
 		ctx.closePath();
@@ -2064,13 +2073,16 @@ function DefaultTool(interactor){
 			return max;
 		}
 
-		function formatNumber(n){
+		function formatNumber(n, precision){
+			if (precision == null || precision === undefined) {
+				precision = tip.precision;
+			}
 			if(n==0) return "0";
 
 			if(n > 999999)
-				return LIB.nFormatter(tip.values[i].value, tip.precision);
+				return LIB.nFormatter(tip.values[i].value, precision);
 			else
-				return n.toFixed(tip.precision);
+				return n.toFixed(precision);
 		}
 	}
 }
