@@ -61,7 +61,7 @@ export const ShareChartButton = (props) => {
   const renderOptions = () => {
     return options.map((option, i) => (
       <OptionValue key={i} onClick={option.action}>
-        {actionLoading && option.social === "Twitter" ? <Loading /> : option.logo}
+        {option.loading ? <Loading /> : option.logo}
         {option.social}
       </OptionValue>
     ));
@@ -83,16 +83,19 @@ export const ShareChartButton = (props) => {
       social: "Twitter",
       logo: <Twitter height={18} width={18} fill="#fff" />,
       action: shareOnTwitter,
+      loading: actionLoading.twitter
     },
     {
       social: "Telegram",
       logo: <Telegram height={18} width={18} fill="#fff" />,
       action: shareOnTelegram,
+      loading: actionLoading.telegram
     },
     {
       social: "StockTweets",
       logo: <Stocktwits height={18} width={18} fill="#fff" />,
       action: null,
+      loading: false
     },
   ];
 

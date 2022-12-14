@@ -1,8 +1,9 @@
 // @ts-nocheck
 import * as React from "react";
 import styled from "styled-components";
-import { IconButton } from "ui";
+import { IconButton, Loading } from "ui";
 import { selectButton } from "ui/theme";
+import useShareChartImage from "../hooks/useShareChartImage";
 
 import { Camera, Download, Copy } from "../img/icons";
 
@@ -61,8 +62,9 @@ const OptionValue = styled.span`
 const svg64 = Buffer.from(dexerWatermark).toString("base64");
 const b64Start = "data:image/svg+xml;base64,";
 const image64 = b64Start + svg64;
-
 export const SaveChartImageButton = (props) => {
+
+  const {copyImageURL, imageCopied, actionLoading} = useShareChartImage(props)
   const dropDownRef = React.useRef(null)
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
@@ -87,8 +89,8 @@ export const SaveChartImageButton = (props) => {
       </IconButton>
       {isOpen && (
         <OptionsContainer>
-          <OptionValue>
-            <Copy />
+          <OptionValue onClick={copyImageURL}>
+            {actionLoading.copyImage ? <Loading/> : <Copy />}
             Copy chart image
           </OptionValue>
           <OptionValue onClick={onClick}>
