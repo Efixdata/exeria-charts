@@ -28,6 +28,7 @@ const OptionsContainer = styled.div`
   top: 26px;
   left: 0px;
   z-index: 1;
+  min-width: 116px;
 `;
 
 const OptionValue = styled.span`
@@ -91,12 +92,12 @@ export const ShareChartButton = (props) => {
       action: shareOnTelegram,
       loading: actionLoading.telegram
     },
-    {
-      social: "StockTweets",
-      logo: <Stocktwits height={18} width={18} fill="#fff" />,
-      action: null,
-      loading: false
-    },
+    // {
+    //   social: "StockTwits",
+    //   logo: <Stocktwits height={18} width={18} fill="#fff" />,
+    //   action: null,
+    //   loading: false
+    // },
   ];
 
   return (

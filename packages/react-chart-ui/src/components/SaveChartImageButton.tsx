@@ -41,9 +41,9 @@ const OptionsContainer = styled.div`
   padding: 4px 0;
   position: absolute;
   top: 26px;
-  left: -129px;
+  left: -132px;
   z-index: 1;
-  width: 155px;
+  min-width: 158px;
 `;
 
 const OptionValue = styled.span`
