@@ -32,8 +32,11 @@ export { default as Stocktwits } from "./Stocktwits";
 export { default as Stroke } from "./Stroke";
 export { default as Study } from "./Study";
 export { default as Telegram } from "./Telegram";
+export { default as Download } from "./Download";
+export { default as Copy } from "./Copy";
 export { default as Twitter } from "./Twitter";
 export { default as Up } from "./Up";
 export { default as Visible } from "./Visible";
 export { default as Width } from "./Width";
 export { default as Zoom } from "./Zoom";
+

@@ -6,3 +6,4 @@ export * from "./src/SelectButton";
 export * from "./src/RadioButton";
 export * from "./src/IconTextButton";
 export * from "./src/SplitButton";
+export * from "./src/Loading";
