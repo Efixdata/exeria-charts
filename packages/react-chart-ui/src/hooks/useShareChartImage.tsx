@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export default function useShareChartImage(chart: any) {
   const TWITTER_INTENT_URI = "https://twitter.com/intent/tweet";
   const TELEGRAM_INTENT_URI = "https://t.me/share/url";
-  const API_URI = "https://dexer-test.netlify.app/.netlify/functions/api";
+  const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
   const TEMPLATE_TEXT = `Check chart now 🚀🚀🚀🚀`;
   const STARTING_POINT = window.location.href
 
