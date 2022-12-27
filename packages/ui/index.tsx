@@ -7,3 +7,7 @@ export * from "./src/RadioButton";
 export * from "./src/IconTextButton";
 export * from "./src/SplitButton";
 export * from "./src/Loading";
+export * from "./src/Modal";
+export * from "./src/DialogBox";
+export * from "./src/ListItem";
+export * from "./src/Headline";

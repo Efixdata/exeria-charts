@@ -807,4 +807,8 @@ export default class Chart {
   getInterval() {
     return this.model.interval;
   }
+
+  getScripts() {
+    return FUSION.getFreeScripts();
+  }
 }
