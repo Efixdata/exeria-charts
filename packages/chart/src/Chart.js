@@ -578,7 +578,7 @@ export default class Chart {
 				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
 				objects: []
 		}
-    
+
 		panel.id = LIB.getUniqueId();
 
 		//make room
@@ -813,4 +813,25 @@ export default class Chart {
   getScripts() {
     return FUSION.getFreeScripts();
   }
+
+  removePanelFromModel(panel) {
+		var basis = panel.basis;
+
+		for (var i = 0; i < this.model.panels.length; i++) {
+			if (panel.id === this.model.panels[i].id) {
+				this.model.panels[i].objects.forEach(function(e){
+          this.objectsManager.detachObject(e.id);
+        });
+
+				this.model.panels.splice(i,1);
+				break;
+			}
+		}
+
+		var sub = parseInt(basis / this.model.panels.length);
+
+		for (var i = 0; i < this.model.panels.length; i++) {
+      this.model.panels[i].basis += sub;
+    }
+	}
 }
