@@ -486,21 +486,46 @@ export default class Chart {
   }
 
   addScript(scriptKey) {
-		if (scriptKey === "VOLUME") {
-			const config = {
-				id: null,
-				inputs: {
-					CLOSE: this.fusion.getMainSeries().seriesId + ":v"
-				},
-				key: "VOLUME",
-				pane: 0,
-				userName: "VOLUME",
-				visible: true
-			};
-
-			this.onScriptEditorApply(config);
-		}
+    this.onScriptEditorApply(this.createScriptConfig(scriptKey));
 	}
+
+  createScriptConfig(scriptKey) {
+    const proto = FUSION.getScript(scriptKey);
+    var scriptCfg = {
+      id: null,
+      inputs: {},
+      key: scriptKey,
+      pane: proto.newPane ? "new" : "1",
+      userName: scriptKey,
+      visible: true,
+    };
+
+    const getDefaultSeries = (input) => {
+      for (var key in this.fusion.getSeriesManager()) {
+        const series = this.fusion.getSeriesManager()[key];
+  
+        for (var i = 0; i < series.fields.length; i++) {
+          if (input.properties.def === series.fields[i]) {
+            return series.seriesId + ":" + series.fields[i];
+          }
+        }
+      }
+    };
+
+    Object.keys(proto.inputs).forEach((k) => {
+      const input = proto.inputs[k];
+
+      if (input.type == "series") {
+        scriptCfg.inputs[k] = getDefaultSeries(input);
+      } else {
+        scriptCfg.inputs[k] = input.value;
+      }
+    });
+
+    this.fusion.configureScript(scriptCfg);
+
+    return scriptCfg;
+  };
 
   async onScriptEditorApply(config){
 		var proto = FUSION.getScript(config.key);
