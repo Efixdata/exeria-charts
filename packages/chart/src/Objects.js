@@ -2387,11 +2387,10 @@ var CandlestickPatternStrategyObject = function() {
 };
 
 var FractalsObject = function() {
-	var self = this;
 	var fractalsObject = new StrategyObject();
 
 	fractalsObject.getToolTip = function(o, index, model, seriesManager, scriptManager) {
-		values = [];
+		const values = [];
 		const fields = seriesManager[o.dataLink].fields;
 		const labels = seriesManager[o.dataLink].labels;
 
