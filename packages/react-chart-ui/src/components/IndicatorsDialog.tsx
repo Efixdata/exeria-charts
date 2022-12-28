@@ -1,6 +1,7 @@
 // @ts-nocheck
-import * as React from "react";
+import React, { useState } from "react";
 import { DialogBox, ListItem } from "ui";
+import Fuse from 'fuse.js';
 
 interface IndicatorsDialogProps {
   onClick: any;
@@ -9,6 +10,16 @@ interface IndicatorsDialogProps {
 }
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
+
+  const [query, setQuery] = useState("");
+  const [filteredIndicators, setFilteredIndicators] = useState(props.indicators);
+
+  const allIndicators = new Fuse(props.indicators, {
+    includeScore: false,
+    shouldSort: true,
+    keys: ["title", "description", "key"]
+  })
+
   const createScriptConfig = (key, proto) => {
     var scriptCfg = {
       id: null,
@@ -49,9 +60,10 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const renderDialogBody = () => {
     const listItems = [];
 
-    for (let indicator of props.indicators) {
+    for (let indicator of filteredIndicators) {
       const listItem = (
         <ListItem
+          key={indicator.key}
           title={indicator.title}
           subtitle={indicator.description}
           onClick={() => {
@@ -68,6 +80,15 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     return listItems;
   };
 
+  const onQueryChange = (e) => {
+    setQuery(e.target.value);
+    const queryResult = allIndicators.search(query);
+
+    setFilteredIndicators(queryResult.map((result) => {
+      return result.item;
+    }));
+  };
+
   return (
     <DialogBox
       title="Add indicator to chart"
@@ -75,6 +96,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
         props.onClose();
       }}
     >
+      <input autoFocus type="text" onChange={onQueryChange} label="Search"/>
       {renderDialogBody()}
     </DialogBox>
   );
