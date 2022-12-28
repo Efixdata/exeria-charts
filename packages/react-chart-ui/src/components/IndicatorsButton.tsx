@@ -78,8 +78,8 @@ export const IndicatorsButton = (props) => {
 
     for (let indicator of indicators) {
       const listItem = <ListItem title={indicator.title} subtitle={indicator.description} onClick={() => {
-        console.log(indicator);
         props.chart.onScriptEditorApply(createScriptConfig(indicator.key, indicator));
+        onClose();
       }}/>
       listItems.push(listItem);
     }
