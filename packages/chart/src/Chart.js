@@ -8,6 +8,7 @@ import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
+import englishLocale from "./locale/en-US";
 
 export default class Chart {
   containerId;
@@ -811,7 +812,35 @@ export default class Chart {
   }
 
   getScripts() {
-    return FUSION.getFreeScripts();
+    const scripts = FUSION.getFreeScripts();
+    const translator = WEBRCP.utils.getMessages(englishLocale);
+
+    for (let key in scripts) {
+      const script = scripts[key];
+
+      script.title = translator.getMessage(script.title, script.title);
+      script.description = translator.getMessage(script.description, script.title);
+
+      for (let inputKey in script.inputs) {
+        const input = script.inputs[inputKey];
+        input.name = translator.getMessage(input.name, input.name);
+      }
+
+      for (let outputKey in script.outputs) {
+        const output = script.outputs[outputKey];
+
+        if (output.type === "series") {
+          const series = output.series;
+          series.title = translator.getMessage(series.title, series.title);
+          
+          for (let labelKey in output.labels) {
+            series.labels[labelKey] = translator.getMessage(series.labels[labelKey] , series.labels[labelKey]);
+          }
+        }  
+      }
+    }
+
+    return scripts;
   }
 
   removePanelFromModel(panel) {
