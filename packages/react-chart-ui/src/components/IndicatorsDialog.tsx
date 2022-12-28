@@ -18,7 +18,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     includeScore: false,
     shouldSort: true,
     keys: ["title", "description", "key"]
-  })
+  });
 
   const renderDialogBody = () => {
     const listItems = [];
@@ -30,17 +30,21 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
           title={indicator.title}
           subtitle={indicator.description}
           onClick={() => {
-            props.chart.addScript(indicator.key);
-            props.onClose();
+            onIndicatorPick(indicator.key);
           }}
         />
       );
-      
+
       listItems.push(listItem);
     }
 
     return listItems;
   };
+
+  const onIndicatorPick = (indicatorKey) => {
+    props.chart.addScript(indicatorKey);
+    props.onClose();
+  }
 
   const onQueryChange = (e) => {
     setQuery(e.target.value);
@@ -51,6 +55,12 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     }));
   };
 
+  const onSubmit = () => {
+    if (filteredIndicators[0]) {
+      onIndicatorPick(filteredIndicators[0].key);
+    }
+  }
+
   return (
     <DialogBox
       title="Add indicator to chart"
@@ -58,7 +68,9 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
         props.onClose();
       }}
     >
-      <input autoFocus type="text" onChange={onQueryChange} label="Search"/>
+      <form onSubmit={onSubmit}>
+        <input autoFocus type="text" onChange={onQueryChange} label="Search"/>
+      </form>
       {renderDialogBody()}
     </DialogBox>
   );
