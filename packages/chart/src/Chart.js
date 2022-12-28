@@ -557,6 +557,7 @@ export default class Chart {
 			}
 		}
 
+    this.recalculateScripts();
 		await this.rerender();
 		// this.onResize();
 		// if(this.options.controller)
@@ -572,11 +573,12 @@ export default class Chart {
 				basis: 25,
 				vMax: 100,
 				vMin: 0,
-				precision: options?.instrument?.precision || 4,
+				precision: this.instrument?.precision || 4,
 				centerZero: false,
 				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
 				objects: []
 		}
+    
 		panel.id = LIB.getUniqueId();
 
 		//make room

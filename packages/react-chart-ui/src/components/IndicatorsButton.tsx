@@ -20,6 +20,7 @@ export const IndicatorsButton = (props) => {
     const tempIndicators = [];
     for (let i in scripts) {
       const script = scripts[i];
+      script.key = i;
 
       if (script.type === 'indicators') {
         tempIndicators.push(script);
@@ -34,6 +35,7 @@ export const IndicatorsButton = (props) => {
   }
   
   const createScriptConfig = (key, proto) => {
+    
     var scriptCfg = {
         id: null,
         inputs: {},
@@ -44,23 +46,40 @@ export const IndicatorsButton = (props) => {
     }
 
     Object.keys(proto.inputs).forEach( k => {
-      var input = proto.inputs[k];
-      scriptCfg.inputs[k] = input.value;
+      const input = proto.inputs[k];
+
+      if (input.type == "series") {
+        scriptCfg.inputs[k] = getDefaultSeries(input);
+      } else {
+        scriptCfg.inputs[k] = input.value;
+      }
     });
 
-    return scriptCfg;
+    props.chart.fusion.configureScript(scriptCfg);
 
+    return scriptCfg;
   }
+
+  const getDefaultSeries = (input) => {
+    for (var key in props.chart.fusion.getSeriesManager()) {
+			const series = props.chart.fusion.getSeriesManager()[key];
+
+			for (var i = 0; i < series.fields.length; i++) {
+				
+				if (input.properties.def === series.fields[i]) {
+					return series.seriesId + ":" + series.fields[i];
+				}
+			}
+		}
+  }
+
   const renderDialogBody = () => {
     const listItems = [];
 
     for (let indicator of indicators) {
       const listItem = <ListItem title={indicator.title} subtitle={indicator.description} onClick={() => {
         console.log(indicator);
-
-       
-
-        props.chart.onScriptEditorApply(createScriptConfig('MACD', indicator));
+        props.chart.onScriptEditorApply(createScriptConfig(indicator.key, indicator));
       }}/>
       listItems.push(listItem);
     }
