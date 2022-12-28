@@ -9,9 +9,8 @@ export const IndicatorsButton = (props) => {
   
   const [isModalVisible, setModalVisible] = useState(false);
   const [indicators, setIndicators] = useState([]);
-
-  const functions = [];
-  const strategies = [];
+  const [strategies, setStrategies] = useState([]);
+  const [functions, setFunctions] = useState([]);
 
   const initializeScripts = () => {
     if (functions.length > 0 && indicators.length > 0 && strategies.length > 0) return;
@@ -19,6 +18,9 @@ export const IndicatorsButton = (props) => {
     const scripts = props?.chart?.getScripts();
 
     const tempIndicators = [];
+    const tempStrategies = [];
+    const tempFunctions = [];
+
     for (let i in scripts) {
       const script = scripts[i];
       script.key = i;
@@ -26,13 +28,15 @@ export const IndicatorsButton = (props) => {
       if (script.type === 'indicators') {
         tempIndicators.push(script);
       } else if (script.type === 'strategies') {
-        strategies.push(script);
+        tempStrategies.push(script);
       } else if (script.type === 'functions') {
-        functions.push(script);
+        tempFunctions.push(script);
       }
     }
 
     setIndicators(tempIndicators);
+    setStrategies(tempStrategies);
+    setFunctions(tempFunctions);
   }
 
   const onClick = () => {
