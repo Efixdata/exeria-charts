@@ -7,14 +7,20 @@ import { useState } from "react";
 export const FullScreenButton = (props) => {
   const [isInFullScreen, setFullScreen] = useState(false);
   const icon = isInFullScreen ? <ExitFullscreen /> : <Fullscreen />;
+  
+  const eventTypes = [
+    "fullscreenchange",
+    "webkitfullscreenchange",
+    "mozfullscreenchange",
+    "msfullscreenchange",
+  ];
 
   React.useEffect(() => {
     if (!props?.mainContainer?.current) return;
-    props.mainContainer.current.addEventListener(
-      "fullscreenchange",
-      (_event) => {
+    eventTypes.forEach((eventType) =>
+      props.mainContainer.current.addEventListener(eventType, (_event) => {
         setFullScreen(checkFullScreen());
-      }
+      })
     );
   }, []);
 
