@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { buttonOption, selectButton } from "ui/theme";
-import useShareChartImage from "../hooks/useShareChartImage";
+import useShareChartImage, { ActionEnum } from "../hooks/useShareChartImage";
 import { Share, Twitter, Telegram, Stocktwits } from "../img/icons";
 
 const ShareButtonWrapper = styled.div`
@@ -54,7 +54,7 @@ const OptionsHeader = styled.div`
 `
 
 export const ShareChartButton = (props) => {
-  const { shareOnTwitter, shareOnTelegram, actionLoading } =
+  const { shareImage, actionLoading } =
     useShareChartImage(props);
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -83,13 +83,13 @@ export const ShareChartButton = (props) => {
     {
       social: "Twitter",
       logo: <Twitter height={18} width={18} fill="#fff" />,
-      action: shareOnTwitter,
+      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet'),
       loading: actionLoading.twitter
     },
     {
       social: "Telegram",
       logo: <Telegram height={18} width={18} fill="#fff" />,
-      action: shareOnTelegram,
+      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url'),
       loading: actionLoading.telegram
     },
     // {
