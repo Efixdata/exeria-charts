@@ -777,7 +777,7 @@ export default class Chart {
   onDownload(watermark) {
 		var link = document.createElement('a');
     const positionY = this.canvasHeight / 2;
-    const positionX = this.canvasWidth / 2 - 200;
+    const positionX = this.canvasWidth / 2 - 160;
     this.ctx.save();
 		this.ctx.fillStyle = WEBRCP.utils.colorManager.getColor('primaryTextColor');
 		this.ctx.font = WEBRCP.utils.colorManager.getFont("title");

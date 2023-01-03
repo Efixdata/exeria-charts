@@ -20,10 +20,12 @@ export default function useShareChartImage(chart: any) {
     return new Promise((resolve, reject) => {
       const ctx = chart.chart.ctx;
       const positionY = chart.chart?.canvasHeight / 2;
-      const positionX = chart.chart?.canvasWidth / 2 - 200;
+      const positionX = chart.chart?.canvasWidth / 2 - 160;
+
       const image = new Image();
       image.onload = setUpWaterMark; 
       image.src = WaterMark.src;
+
       function setUpWaterMark() {
         ctx?.drawImage(image, positionX, positionY, 260, 70);
         return resolve(
@@ -49,6 +51,7 @@ export default function useShareChartImage(chart: any) {
     socialURI?: string
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
+    const windowReference = window.open('', '_blank');
     try {
       const imageData = await createWaterMark();
       const callback = await startSession(imageData);
@@ -58,9 +61,9 @@ export default function useShareChartImage(chart: any) {
       const shareModeIsActive = action === ActionEnum.share;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {
-        setTimeout(() => {
-          window.open(generatedURI, "_blank");
-        }, 0);
+        if(windowReference){
+          windowReference.location = generatedURI;    
+        }
       } else {
         await navigator.clipboard.writeText(generatedURI);
       }
