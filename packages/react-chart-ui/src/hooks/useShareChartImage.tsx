@@ -51,14 +51,14 @@ export default function useShareChartImage(chart: any) {
     socialURI?: string
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
-    const windowReference = window.open('', '_blank');
+    const shareModeIsActive = action === ActionEnum.share;
+    const windowReference = shareModeIsActive ? window.open('', '_blank') : null
     try {
       const imageData = await createWaterMark();
       const callback = await startSession(imageData);
       const redirectURI = callback.redirect_url;
       const intentURI = `${socialURI}?text=${TEMPLATE_TEXT}&url=${redirectURI}?t=${Date.now()}?point=${STARTING_POINT}`;
       const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${STARTING_POINT}`;
-      const shareModeIsActive = action === ActionEnum.share;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {
         if(windowReference){
