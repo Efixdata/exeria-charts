@@ -3,11 +3,11 @@ import styled from "styled-components";
 import { Headline } from "./Headline";
 
 const Item = styled.div`
-    padding: 20px;
-    border-bottom: 1px solid black;
+    padding: 6px 8px;
+    border-radius: 6px;
 
     &:hover {
-        background-color: green;
+        background-color: rgba(255, 255, 255, 0.05);
         cursor: pointer;
     }
 `;

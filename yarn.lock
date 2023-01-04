@@ -2748,7 +2748,7 @@
   "resolved" "file:apps/docs"
   "version" "0.0.0"
   dependencies:
-    "next" "12.2.3"
+    "next" "^12.3.4"
     "react" "17.0.2"
     "react-dom" "17.0.2"
 
@@ -6034,7 +6034,7 @@
   "version" "0.0.0"
   dependencies:
     "@dexer-io/chart" "*"
-    "next" "12.2.3"
+    "next" "^12.3.4"
     "react" "17.0.2"
     "react-chart" "*"
     "react-dom" "17.0.2"

@@ -7,11 +7,12 @@ const Container = styled.div`
 `;
 
 const Title = styled.div`
-    font-size: 1.2em;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 600;
 `;
 
 const Subtitle = styled.div`
+    font-size: 13px;
     opacity: 0.7;
 `;
 
@@ -25,9 +26,15 @@ interface HeadlineProps {
 
 export const Headline = (props: HeadlineProps) => {
 
+  const renderSubtitle = () => {
+    if (props.subtitle) {
+      return <Subtitle>{props.subtitle}</Subtitle>
+    }
+  }
+
   return <Container style={props.style}>
     <Title>{props.title}</Title>
-    {props.subtitle || <Subtitle>props.subtitle</Subtitle>}
+    {renderSubtitle()}
     {props.children}
   </Container>;
 };

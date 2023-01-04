@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogBox, ListItem } from "ui";
+import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput } from "ui";
 import Fuse from 'fuse.js';
 
 interface IndicatorsDialogProps {
@@ -38,7 +38,11 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
       listItems.push(listItem);
     }
 
-    return listItems;
+    return (
+      <ListItemsWrapper>
+        {listItems}
+      </ListItemsWrapper>
+    );
   };
 
   const onIndicatorPick = (indicatorKey) => {
@@ -47,7 +51,14 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   }
 
   const onQueryChange = (e) => {
-    setQuery(e.target.value);
+    const value = e.target.value;
+    setQuery(value);
+
+    if (!value) {
+      setFilteredIndicators(props.indicators);
+      return;
+    }
+
     const queryResult = allIndicators.search(query);
 
     setFilteredIndicators(queryResult.map((result) => {
@@ -62,16 +73,16 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   }
 
   return (
-    <DialogBox
-      title="Add indicator to chart"
-      onClose={() => {
-        props.onClose();
-      }}
-    >
-      <form onSubmit={onSubmit}>
-        <input autoFocus type="text" onChange={onQueryChange} label="Search"/>
-      </form>
-      {renderDialogBody()}
-    </DialogBox>
+      <DialogContainer style={props.style}>
+        <DialogHeader>ADD INDICATOR TO CHART</DialogHeader>
+          <form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
+            <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
+          </form>
+        
+        <DialogBody style={{ margin: 12, paddingRight: 12}}>
+        {renderDialogBody()}
+        </DialogBody>
+    </DialogContainer>
+      
   );
 };
