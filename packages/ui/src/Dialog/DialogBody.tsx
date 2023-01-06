@@ -2,8 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 
 const Body = styled.div`
-    height: 500px;
-    max-height: 100%;
     overflow-y: auto;
 
     /* width */

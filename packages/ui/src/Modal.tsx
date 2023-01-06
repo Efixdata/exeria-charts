@@ -47,12 +47,9 @@ const InnerContainer = styled.div`
   
 const InnerPaper = styled.div`
     display: flex;
-    max-height: calc(100% - 64px);
     flex-direction: column;
-    margin: 32px;
     position: relative;
     overflow-y: auto;
-    color: rgba(0, 0, 0, 0.87);
     transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 `;
 

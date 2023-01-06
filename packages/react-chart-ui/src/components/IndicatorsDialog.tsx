@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput } from "ui";
+import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput, TextButton } from "ui";
+import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
 
 interface IndicatorsDialogProps {
@@ -36,6 +37,10 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
       );
 
       listItems.push(listItem);
+    }
+
+    if (listItems.length === 0) {
+      return <div style={{ color: "#7F9DCC", textAlign: "center", marginTop: "30px" }}>NO RESULTS</div>;
     }
 
     return (
@@ -74,9 +79,10 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   return (
       <DialogContainer style={props.style}>
-        <DialogHeader>ADD INDICATOR TO CHART</DialogHeader>
-          <form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
+        <DialogHeader>ADD INDICATOR TO CHART<TextButton onClick={props.onClose} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
+          <form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
             <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
+            <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
           </form>
         
         <DialogBody style={{ margin: 12, paddingRight: 12}}>

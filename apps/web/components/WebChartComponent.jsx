@@ -109,8 +109,8 @@ export function WebChartComponent() {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "10px" }}>
-        <div style={{ width: '1000px', height: '800px', backgroundColor: '#100c22' }}>
+      <div style={{ display: "flex", gap: "10px", overflow: "hidden" }}>
+        <div style={{ width: '100vw', height: '100vh', backgroundColor: '#100c22' }}>
           <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
             <div ref={objectRef} />
           </ChartUI>

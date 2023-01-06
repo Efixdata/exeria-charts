@@ -24,7 +24,7 @@ const Input = styled.input`
     width: calc(100% - 16px);
 
     &::placeholder {
-        color: rgba(255, 255, 255, 0.4);
+        color: #c3c2cc80;
     }
 `
 
