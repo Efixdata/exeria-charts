@@ -4,6 +4,13 @@ import { TextButton, Modal } from "ui";
 import { Indicators } from "../img/icons";
 import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
+import styled from "styled-components";
+
+const IndicatorsText = styled.span`
+  @media (max-width: 600px) {
+    display: none;
+  }
+`
 
 export const IndicatorsButton = (props) => {
   
@@ -51,7 +58,7 @@ export const IndicatorsButton = (props) => {
   return (
     <>
       <TextButton onClick={onClick}>
-        <Indicators style={{ marginRight: 6 }} /> <span>Indicators</span>
+        <Indicators style={{ marginRight: 6 }} /> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
 
       <Modal

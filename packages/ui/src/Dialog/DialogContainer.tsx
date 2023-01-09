@@ -10,9 +10,9 @@ const Container = styled.div`
     @media (min-width: 600px) {
       flex-direction: column;
       width: 600px;
-      max-width: 90%;
+      max-width: 90vh;
       height: 600px;
-      max-height: 90%;
+      max-height: 90vh;
       border-radius: 6px;
     }
 
