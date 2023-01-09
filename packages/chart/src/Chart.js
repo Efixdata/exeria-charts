@@ -776,7 +776,8 @@ export default class Chart {
 
   onDownload(watermark) {
 		var link = document.createElement('a');
-
+    const positionY = this.canvasHeight / 2;
+    const positionX = this.canvasWidth / 2 - 160;
     this.ctx.save();
 		this.ctx.fillStyle = WEBRCP.utils.colorManager.getColor('primaryTextColor');
 		this.ctx.font = WEBRCP.utils.colorManager.getFont("title");
@@ -795,7 +796,7 @@ export default class Chart {
       image.onload = function() {
         image.width = 160;
         image.height = 44;
-        this.ctx.drawImage(image, 30, this.canvas.height - image.height - 40, image.width, image.height);
+        this.ctx.drawImage(image, positionX, positionY, 260, 70);
         link.href = this.canvas.toDataURL();
         link.download = title + "_" + Date.now() + ".png";
         link.click();
