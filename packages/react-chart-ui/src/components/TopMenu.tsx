@@ -34,7 +34,6 @@ const Container = styled.div`
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
 `
 const LeftSection = styled.div`
   display: flex;
