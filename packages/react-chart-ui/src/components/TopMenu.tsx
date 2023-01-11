@@ -9,6 +9,7 @@ import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { SaveChartImageButton } from "./SaveChartImageButton";
 import { ShareChartButton } from "./ShareChartButton";
+import { IndicatorsButton } from "./IndicatorsButton";
 
 interface TopMenuProps {
   chart: any;
@@ -61,6 +62,8 @@ export const TopMenu = (props: TopMenuProps) => {
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />
         <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange}/>
+        <IndicatorsButton chart={props.chart} />
+        
         <RightSection>
           <AutoScaleSwitch chart={props.chart} />
           <ChartScaleSwitch chart={props.chart} />

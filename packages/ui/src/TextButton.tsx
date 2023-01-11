@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { textButton } from "../theme"; 
 
 const Button = styled.button`
+  display: flex;
+  align-items: center;
   box-sizing: border-box;
   background-color: transparent;
   border: none;

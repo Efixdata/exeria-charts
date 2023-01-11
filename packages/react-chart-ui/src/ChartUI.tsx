@@ -17,8 +17,8 @@ const Container = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  maxheight: 100%;
-  maxwidth: 100%;
+  max-height: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   font-family: Mulish, Roboto, sans-serif;

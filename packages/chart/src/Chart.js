@@ -8,6 +8,7 @@ import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
+import englishLocale from "./locale/en-US";
 
 export default class Chart {
   containerId;
@@ -485,21 +486,46 @@ export default class Chart {
   }
 
   addScript(scriptKey) {
-		if (scriptKey === "VOLUME") {
-			const config = {
-				id: null,
-				inputs: {
-					CLOSE: this.fusion.getMainSeries().seriesId + ":v"
-				},
-				key: "VOLUME",
-				pane: 0,
-				userName: "VOLUME",
-				visible: true
-			};
-
-			this.onScriptEditorApply(config);
-		}
+    this.onScriptEditorApply(this.createScriptConfig(scriptKey));
 	}
+
+  createScriptConfig(scriptKey) {
+    const proto = FUSION.getScript(scriptKey);
+    var scriptCfg = {
+      id: null,
+      inputs: {},
+      key: scriptKey,
+      pane: proto.newPane ? "new" : "1",
+      userName: scriptKey,
+      visible: true,
+    };
+
+    const getDefaultSeries = (input) => {
+      for (var key in this.fusion.getSeriesManager()) {
+        const series = this.fusion.getSeriesManager()[key];
+  
+        for (var i = 0; i < series.fields.length; i++) {
+          if (input.properties.def === series.fields[i]) {
+            return series.seriesId + ":" + series.fields[i];
+          }
+        }
+      }
+    };
+
+    Object.keys(proto.inputs).forEach((k) => {
+      const input = proto.inputs[k];
+
+      if (input.type == "series") {
+        scriptCfg.inputs[k] = getDefaultSeries(input);
+      } else {
+        scriptCfg.inputs[k] = input.value;
+      }
+    });
+
+    this.fusion.configureScript(scriptCfg);
+
+    return scriptCfg;
+  };
 
   async onScriptEditorApply(config){
 		var proto = FUSION.getScript(config.key);
@@ -557,6 +583,7 @@ export default class Chart {
 			}
 		}
 
+    this.recalculateScripts();
 		await this.rerender();
 		// this.onResize();
 		// if(this.options.controller)
@@ -572,11 +599,12 @@ export default class Chart {
 				basis: 25,
 				vMax: 100,
 				vMin: 0,
-				precision: options?.instrument?.precision || 4,
+				precision: this.instrument?.precision || 4,
 				centerZero: false,
 				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
 				objects: []
 		}
+
 		panel.id = LIB.getUniqueId();
 
 		//make room
@@ -808,4 +836,57 @@ export default class Chart {
   getInterval() {
     return this.model.interval;
   }
+
+  getScripts() {
+    const scripts = FUSION.getFreeScripts();
+    const translator = WEBRCP.utils.getMessages(englishLocale);
+
+    for (let key in scripts) {
+      const script = scripts[key];
+
+      script.title = translator.getMessage(script.title, script.title);
+      script.description = translator.getMessage(script.description, script.title);
+
+      for (let inputKey in script.inputs) {
+        const input = script.inputs[inputKey];
+        input.name = translator.getMessage(input.name, input.name);
+      }
+
+      for (let outputKey in script.outputs) {
+        const output = script.outputs[outputKey];
+
+        if (output.type === "series") {
+          const series = output.series;
+          series.title = translator.getMessage(series.title, series.title);
+          
+          for (let labelKey in output.labels) {
+            series.labels[labelKey] = translator.getMessage(series.labels[labelKey] , series.labels[labelKey]);
+          }
+        }  
+      }
+    }
+
+    return scripts;
+  }
+
+  removePanelFromModel(panel) {
+		var basis = panel.basis;
+
+		for (var i = 0; i < this.model.panels.length; i++) {
+			if (panel.id === this.model.panels[i].id) {
+				this.model.panels[i].objects.forEach(function(e){
+          this.objectsManager.detachObject(e.id);
+        });
+
+				this.model.panels.splice(i,1);
+				break;
+			}
+		}
+
+		var sub = parseInt(basis / this.model.panels.length);
+
+		for (var i = 0; i < this.model.panels.length; i++) {
+      this.model.panels[i].basis += sub;
+    }
+	}
 }
