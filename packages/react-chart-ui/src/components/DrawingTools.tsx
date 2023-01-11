@@ -365,7 +365,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
     const ranges = renderSplitButton(['hRange', 'vRange'], 'vRange');
     
     return (
-        
+    // @ts-ignore
       <Container style={props.style}>
         { lines }
         { shapes }

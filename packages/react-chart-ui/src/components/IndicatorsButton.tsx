@@ -5,6 +5,7 @@ import { Indicators } from "../img/icons";
 import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
 import styled from "styled-components";
+import { Portal } from 'react-portal';
 
 const IndicatorsText = styled.span`
   padding-left: 6px;
@@ -61,14 +62,15 @@ export const IndicatorsButton = (props) => {
       <TextButton onClick={onClick}>
         <Indicators/> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
-
-      <Modal
-        visible={isModalVisible}
-        onCloseOutsideClick={true}
-        onClose={onClose}
-      >
-        <IndicatorsDialog onClose={onClose} indicators={indicators} chart={props.chart}/>
-      </Modal>
+      <Portal>
+        <Modal
+          visible={isModalVisible}
+          onCloseOutsideClick={true}
+          onClose={onClose}
+        >
+          <IndicatorsDialog onClose={onClose} indicators={indicators} chart={props.chart}/>
+        </Modal>
+      </Portal>
     </>
   );
 };

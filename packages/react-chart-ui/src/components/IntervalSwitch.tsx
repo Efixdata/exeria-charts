@@ -44,6 +44,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
     if (availableIntervalsSymbols) {
         return (
             <SelectButton
+                // @ts-ignore
                 style={{...props.style, minWidth: 34}}
                 options={availableIntervalsSymbols}
                 onSelect={(option) => { 

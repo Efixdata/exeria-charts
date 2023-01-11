@@ -14,7 +14,7 @@ const { useEffect, useRef } = React
 
 const Container = styled.div`
     position: fixed;
-    z-index: 1300;
+    z-index: 10000;
     inset: 0px;
 `;
   

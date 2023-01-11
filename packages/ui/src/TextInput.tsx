@@ -22,6 +22,7 @@ const Input = styled.input`
     margin-left: -8px;
     margin-right: -8px;
     width: calc(100% - 16px);
+    box-sizing: initial;
 
     &::placeholder {
         color: #c3c2cc80;
