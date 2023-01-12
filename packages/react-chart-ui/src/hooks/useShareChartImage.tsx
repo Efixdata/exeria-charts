@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import WaterMark from "../img/icons/WaterMark.svg"
+import useGenerateWatermark from "./useGenerateWatermark";
 
 export enum ActionEnum {
   copy,
@@ -7,6 +8,7 @@ export enum ActionEnum {
 }
 
 export default function useShareChartImage(chart: any) {
+  const { waterMark64 } = useGenerateWatermark()
   const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
   const TEMPLATE_TEXT = `Check chart now 🚀🚀🚀🚀`;
   const STARTING_POINT = window.location.href;
@@ -24,7 +26,7 @@ export default function useShareChartImage(chart: any) {
 
       const image = new Image();
       image.onload = setUpWaterMark; 
-      image.src = WaterMark.src;
+      image.src = waterMark64;
 
       function setUpWaterMark() {
         ctx?.drawImage(image, positionX, positionY, 260, 70);

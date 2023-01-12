@@ -3,8 +3,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { selectButton } from "ui/theme";
+import useGenerateWatermark from "../hooks/useGenerateWatermark";
 import useShareChartImage, { ActionEnum } from "../hooks/useShareChartImage";
-import WaterMark from "../img/icons/WaterMark.svg"
+
 import { Camera, Download, Copy } from "../img/icons";
 
 const SaveImageButtonWrapper = styled.div`
@@ -45,14 +46,17 @@ const OptionValue = styled.span`
   }
 `;
 
-export const SaveChartImageButton = (props) => {
 
+export const SaveChartImageButton = (props) => {
+  const { waterMark64 } = useGenerateWatermark()
   const { shareImage, actionLoading} =
     useShareChartImage(props);
+   
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
-    props.chart.onDownload(WaterMark.src, true)
+    
+    props.chart.onDownload(waterMark64, true)
   };
 
   const handleClickOutside = (e: SyntheticEvent) => {
