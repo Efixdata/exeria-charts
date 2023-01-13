@@ -23,6 +23,7 @@ const Container = styled.div`
   flex-direction: column;
   font-family: Mulish, Roboto, sans-serif;
   font-size: 13px;
+  user-select: none;
 `;
 
 class ChartUI extends React.Component {

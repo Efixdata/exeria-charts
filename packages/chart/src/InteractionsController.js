@@ -791,6 +791,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.onMouseDown = function (e) {
 		if (self.controller.isChartEmpty(self.chart)) return;
+		e.preventDefault();
 
 		if (e.which === 2) {
 			self.controller.onCrosshair();
@@ -934,10 +935,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		};
 
 		e._offset = this.getEventOffset(e);
-
 		if (this.isMouseDown && (this.isRightButton === false)) return this.onMouseDrag(e);
 		if (this.isMouseDown && this.isRightButton) return this.onRightMouseDrag(e);
-		if (!e.path || !e.path[0] || e.path[0] !== this.topLayer) return;
+
+		const path = e.path || (e.composedPath && e.composedPath());
+		if (!path || !path[0] || path[0] !== this.topLayer) return;
+
 		this.currentHandler = this.isOverHandler(e);
 
 		if (this.currentHandler >- 1 && !this.currentStagingObject) {
