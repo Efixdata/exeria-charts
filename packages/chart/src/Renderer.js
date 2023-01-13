@@ -625,6 +625,7 @@ const Renderer = function (settings, context, controller) {
 			const formattedInputs = [];
 			for (const key in script.inputs) {
 				let input = script.inputs[key];
+				if (input === null) continue;
 				input = input.slice ? input.slice(0, -2) : null;
 				input = input && input.split ? input.split(':')[0] : input;
 

@@ -825,6 +825,7 @@ FUSION.scripts['HLINE'] = {
     description: 'hlineDescription',
     type: 'indicators',
     newPane: false,
+    quickAdd: false,
     inputs: {
 
         'VALUE': {type: 'double', name: 'value', properties: {max: 2000000, min: -2000000}, value: 1}
@@ -1685,6 +1686,7 @@ FUSION.scripts['OPENINT'] = {
     description: 'openintDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'CLOSE': {type: 'series', name: 'price', properties: {def:'i'}, value: null},
     },
@@ -2000,6 +2002,7 @@ FUSION.scripts['TREND'] = {
     description: 'trendDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'HIGH': {type: 'series', name: 'priceHigh', properties: {def:'h'}, value: null},
         'LOW': {type: 'series', name: 'priceLow', properties: {def:'l'}, value: null},
@@ -3762,6 +3765,7 @@ FUSION.scripts['EQUITY'] = {
     type: 'indicators',
     showAsType: 'strategies',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'PRICE': {type: 'series', name: 'price', properties: {def:'c'}, value: null},
         'STRATEGY': {type: 'series', name: 'equityStrategy', properties: {}, value: null},
@@ -4102,6 +4106,7 @@ FUSION.scripts['TRADINGTIMEFRAME'] = {
     description: 'ttfDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         
         'DAYS': {type: 'booleanList', name: "ttfDays", properties: {}, value: {
@@ -5829,6 +5834,7 @@ FUSION.scripts['SIGNALDISTANCE'] = {
     description: 'signalDistanceDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'STRATEGY': {type: 'series', name: 'strategy', properties: {}, value: null},
     },
@@ -5892,6 +5898,7 @@ FUSION.scripts['ACCUMULATION'] = {
     description: 'accumulationDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'INDICATOR': {type: 'series', name: 'indicator', properties: {}, value: null},
     },
@@ -6519,6 +6526,7 @@ FUSION.scripts['PIVOTPOINTS'] = {
     description: 'pivotPointDescription',
     type: 'indicators',
     newPane: false,
+    quickAdd: false,
     inputs: {
         'CLOSE': {type: 'series', name: 'price', properties: {def:'c'}, value: null},
     },
@@ -8104,6 +8112,7 @@ FUSION.scripts['CORRELATIONCOEFFICIENT'] = {
     description: 'correlationCoefficientDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'CLOSE': {type: 'series', name: 'priceClose', properties: {def:'c'}, value: null},
         'CLOSE2': {type: 'series', name: 'priceClose2', properties: {def:'c'}, value: null},
@@ -8398,6 +8407,7 @@ FUSION.scripts['FISHERTRANSFORM'] = {
     description: 'fisherTransformDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'HIGH': {type: 'series', name: 'priceHigh', properties: {def:'h'}, value: null},
         'LOW': {type: 'series', name: 'priceLow', properties: {def:'l'}, value: null},
@@ -9436,6 +9446,7 @@ FUSION.scripts['SHARPERATIO'] = {
     description: 'sharpeRatioDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'EL': {type: 'series', name: 'equityLine', properties: {def:'EQUITY'}, value: null},
         'RORPERIODS': {type: 'integer', name: 'rorPeriods', properties: {max: 200, min: 0}, value: 21},
@@ -9574,6 +9585,7 @@ FUSION.scripts['INFORMATIONRATIO'] = {
     description: 'informationRatioDescription',
     type: 'indicators',
     newPane: true,
+    quickAdd: false,
     inputs: {
         'EL': {type: 'series', name: 'equityLine', properties: {def:'EQUITY'}, value: null},
         'RORPERIODS': {type: 'integer', name: 'rorPeriods', properties: {max: 200, min: 0}, value: 21},
@@ -10243,7 +10255,6 @@ FUSION.engine = function () {
 
 
     this.getSeriesWrapper		=	function (seriesLink) {
-
         var spl = seriesLink.split(':');
 
         var self = this;

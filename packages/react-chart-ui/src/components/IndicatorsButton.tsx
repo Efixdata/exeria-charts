@@ -32,6 +32,9 @@ export const IndicatorsButton = (props) => {
 
     for (let i in scripts) {
       const script = scripts[i];
+
+      if (script.quickAdd === false) continue;
+
       script.key = i;
 
       if (script.type === 'indicators') {
