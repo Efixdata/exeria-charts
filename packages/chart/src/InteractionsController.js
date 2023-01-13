@@ -791,7 +791,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.onMouseDown = function (e) {
 		if (self.controller.isChartEmpty(self.chart)) return;
-		e.preventDefault();
+		if (e.preventDefault) e.preventDefault();
 
 		if (e.which === 2) {
 			self.controller.onCrosshair();
