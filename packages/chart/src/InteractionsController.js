@@ -2535,9 +2535,9 @@ function EraserTool(interactor){
 	this.interactor = interactor;
 	this.allowSwipe = true;
 
-	this.cursor = 'not-allowed';
+	this.cursor = 'no-drop';
 	this.cursorOverObject = 'pointer';
-	this.cursorOnDrag = 'not-allowed';
+	this.cursorOnDrag = 'no-drop';
 
 	this.onMouseDown = function(e){
 		this.startEvent = e;
