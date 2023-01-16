@@ -1012,9 +1012,10 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
 				if (this.currentViewportLeft-currentOffset < 0){
 					this.model.viewportLeft = 0;
-				} else {
+				} else if (currentX !== this.lastOffsetX) {
 					offset = currentOffset;
 					this.model.viewportLeft=this.currentViewportLeft-offset;
+					this.lastOffsetX = currentX;
 				}
 			}
 
@@ -1732,7 +1733,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.isAboveValueAxis = function(e) {
 		if (this.currentPanel)
-			return e.offsetX > (this.currentPanel._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth);
+			return e._offset.offsetX > (this.currentPanel._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth);
 		return false;
 	}
 
