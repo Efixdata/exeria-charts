@@ -27,10 +27,10 @@ align-items: center;
 `
 
 const Container = styled.div`
+  box-sizing: border-box;
   background-color: #100c22;
   display: flex;
   flex-direction: row;
-  z-index: 2;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

@@ -26,6 +26,28 @@ const Container = styled.div`
   user-select: none;
 `;
 
+const WrapperOuter = styled.div`
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+`
+
+const WrapperInner = styled.div`
+  display: flex;
+  flexDirection: row;
+  flexGrow: 1;
+  height: calc(100% - 41px);
+  width: 100%;
+  overflow-y: auto;
+
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar { 
+      display: none;  /* Safari and Chrome */
+  }
+`
+
+
 class ChartUI extends React.Component {
   containerRef: RefObject<HTMLDivElement>;
   props: ChartUIProps;
@@ -42,20 +64,13 @@ class ChartUI extends React.Component {
 
     return (
       <Container ref={this.containerRef}>
-        <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexGrow: "1",
-            maxHeight: `calc(100% - ${topMenuHeight}`,
-            maxWidth: '100%',
-            position: 'relative'
-          }}
-        >
-          <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-          <div style={{ flexGrow: "1", maxWidth: `calc(100% - ${leftMenuWidth})`, marginLeft: leftMenuWidth }}>{this.props.children}</div>
-        </div>
+        <WrapperOuter className="wrapperOuter">
+          <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
+          <WrapperInner className="wrapperInner">
+            <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
+            <div style={{ position: 'absolute', inset: '41px 0 0 41px' }}>{this.props.children}</div>
+          </WrapperInner>
+        </WrapperOuter>
       </Container>
     );
   }
