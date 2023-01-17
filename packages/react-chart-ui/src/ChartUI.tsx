@@ -49,11 +49,12 @@ class ChartUI extends React.Component {
             flexDirection: "row",
             flexGrow: "1",
             maxHeight: `calc(100% - ${topMenuHeight}`,
-            maxWidth: '100%'
+            maxWidth: '100%',
+            position: 'relative'
           }}
         >
           <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-          <div style={{ flexGrow: "1", maxWidth: `calc(100% - ${leftMenuWidth})` }}>{this.props.children}</div>
+          <div style={{ flexGrow: "1", maxWidth: `calc(100% - ${leftMenuWidth})`, marginLeft: leftMenuWidth }}>{this.props.children}</div>
         </div>
       </Container>
     );
