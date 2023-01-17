@@ -24,6 +24,9 @@ flex-direction: row;
 margin-left: auto;
 gap: 16px;
 align-items: center;
+@media (max-width: 600px) {
+  gap: 4px;
+}
 `
 
 const Container = styled.div`
