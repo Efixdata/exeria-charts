@@ -15,6 +15,7 @@ const Container = styled.div`
   min-height: calc(100% - 17px);
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
+  z-index: 1;
 `
 
 interface LeftMenuProps {

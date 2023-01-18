@@ -42,6 +42,7 @@ const LeftSection = styled.div`
   display: flex;
   flex-grow: 1;
   flex-direction: row;
+  z-index: 2;
 `
 
 const Icons = styled.div`
