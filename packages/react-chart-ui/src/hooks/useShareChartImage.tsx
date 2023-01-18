@@ -10,7 +10,7 @@ export enum ActionEnum {
 export default function useShareChartImage(chart: any) {
   const { waterMark64 } = useGenerateWatermark()
   const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
-  const TEMPLATE_TEXT = `Check chart now 🚀🚀🚀🚀`;
+  const TEMPLATE_TEXT = `Chart by Dexer.io`;
   const STARTING_POINT = window.location.href;
   const [actionLoading, setActionLoading] = useState({
     twitter: false,
@@ -53,16 +53,18 @@ export default function useShareChartImage(chart: any) {
   const shareImage = async (
     socialName: string,
     action: ActionEnum,
-    socialURI?: string
+    socialURI?: string,
+    text?: string,
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
     const shareModeIsActive = action === ActionEnum.share;
-    
+    text = text || TEMPLATE_TEXT;
+
     try {
       const imageData = await createWaterMark();
       const callback = await startSession(imageData);
       const redirectURI = callback.redirect_url;
-      const intentURI = `${socialURI}?text=${TEMPLATE_TEXT}&url=${redirectURI}?t=${Date.now()}?point=${STARTING_POINT}`;
+      const intentURI = `${socialURI}?text=${text}&url=${redirectURI}?t=${Date.now()}?point=${STARTING_POINT}`;
       const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${STARTING_POINT}`;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {

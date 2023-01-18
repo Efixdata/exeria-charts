@@ -83,13 +83,13 @@ export const ShareChartButton = (props) => {
     {
       social: "Twitter",
       logo: <Twitter height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet'),
+      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet', `$${props.chart.instrument.symbol} chart from @Dexer_io`),
       loading: actionLoading.twitter
     },
     {
       social: "Telegram",
       logo: <Telegram height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url'),
+      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url', `${props.chart.instrument.symbol} chart from Dexer.io`),
       loading: actionLoading.telegram
     },
     // {
