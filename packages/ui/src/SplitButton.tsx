@@ -65,7 +65,7 @@ const OptionsContainer = styled.div<{top: number}>`
   padding: ${splitButton.menuPadding}px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
-  top: ${p => p.top}px;
+  top: ${props => props.top}px;
   z-index: 1;
 `
 

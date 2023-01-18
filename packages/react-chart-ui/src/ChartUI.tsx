@@ -33,11 +33,11 @@ const WrapperOuter = styled.div`
   overflow: hidden;
 `
 
-const WrapperInner = styled.div`
+const WrapperInner = styled.div<{height: string}>`
   display: flex;
   flexDirection: row;
   flexGrow: 1;
-  height: calc(100% - 41px);
+  height: ${props => props.height};
   width: 100%;
   overflow-y: auto;
 
@@ -80,9 +80,9 @@ class ChartUI extends React.Component {
         <WrapperOuter className="wrapperOuter">
           <ContainerOffsetContext.Provider value={this.containerOffset}>
             <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-            <WrapperInner className="wrapperInner">
+            <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight})`}>
               <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-              <div style={{ position: 'absolute', inset: '41px 0 0 41px' }}>{this.props.children}</div>
+              <div style={{ position: 'absolute', inset: `${topMenuHeight} 0 0 ${leftMenuWidth}` }}>{this.props.children}</div>
             </WrapperInner>
           </ContainerOffsetContext.Provider>
         </WrapperOuter>
