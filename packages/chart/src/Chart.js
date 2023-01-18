@@ -802,16 +802,11 @@ export default class Chart {
 		this.rerender();
 	}
 
-  onDownload(watermark) {
+  onDownload(watermark, watermarkWidth, watermarkHeight) {
 		var link = document.createElement('a');
-    const positionY = this.canvasHeight / 2;
-    const positionX = this.canvasWidth / 2 - 160;
-    this.ctx.save();
-		this.ctx.fillStyle = WEBRCP.utils.colorManager.getColor('primaryTextColor');
-		this.ctx.font = WEBRCP.utils.colorManager.getFont("title");
-		var title = this.instrument.name + "_" + this.model.interval.symbol;
-		this.ctx.fillText(title, this.canvas.width / 2 - this.ctx.measureText(title).width / 2, 60);
-    this.ctx.restore();
+    const positionY = this.canvasHeight / 2 - watermarkHeight / 2;
+    const positionX = this.canvasWidth / 2 - watermarkWidth / 2;
+    const title = this.instrument.name + "_" + this.model.interval.symbol;
 
     if (!watermark) {
       link.href = this.canvas.toDataURL();
@@ -822,9 +817,9 @@ export default class Chart {
       var image = new Image();
       image.src = watermark;
       image.onload = function() {
-        image.width = 160;
-        image.height = 44;
-        this.ctx.drawImage(image, positionX, positionY, 260, 70);
+        image.width = watermarkWidth;
+        image.height = watermarkHeight;
+        this.ctx.drawImage(image, positionX, positionY, watermarkWidth, watermarkHeight);
         link.href = this.canvas.toDataURL();
         link.download = title + "_" + Date.now() + ".png";
         link.click();

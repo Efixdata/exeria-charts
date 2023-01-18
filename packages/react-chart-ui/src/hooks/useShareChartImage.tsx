@@ -20,16 +20,19 @@ export default function useShareChartImage(chart: any) {
 
   const createWaterMark = async () => {
     return new Promise((resolve, reject) => {
+      const watermarkWidth = 240;
+      const watermarkHeight = 66;
+
       const ctx = chart.chart.ctx;
-      const positionY = chart.chart?.canvasHeight / 2;
-      const positionX = chart.chart?.canvasWidth / 2 - 160;
+      const positionY = chart.chart?.canvasHeight / 2 - watermarkHeight / 2;
+      const positionX = chart.chart?.canvasWidth / 2 - watermarkWidth / 2;
 
       const image = new Image();
       image.onload = setUpWaterMark; 
       image.src = waterMark64;
 
       function setUpWaterMark() {
-        ctx?.drawImage(image, positionX, positionY, 260, 70);
+        ctx?.drawImage(image, positionX, positionY, watermarkWidth, watermarkHeight);
         return resolve(
           chart?.chart?.canvas?.toDataURL("image/png", 1.0) as string
         );
@@ -54,7 +57,7 @@ export default function useShareChartImage(chart: any) {
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
     const shareModeIsActive = action === ActionEnum.share;
-    const windowReference = shareModeIsActive ? window.open('', '_blank') : null
+    
     try {
       const imageData = await createWaterMark();
       const callback = await startSession(imageData);
@@ -63,6 +66,7 @@ export default function useShareChartImage(chart: any) {
       const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${STARTING_POINT}`;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {
+        const windowReference = shareModeIsActive ? window.open('', '_blank') : null;
         if(windowReference){
           windowReference.location = generatedURI;    
         }

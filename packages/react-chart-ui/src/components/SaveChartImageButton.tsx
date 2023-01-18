@@ -55,8 +55,7 @@ export const SaveChartImageButton = (props) => {
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
-    
-    props.chart.onDownload(waterMark64, true)
+    props.chart.onDownload(waterMark64, 240, 66);
   };
 
   const handleClickOutside = (e: SyntheticEvent) => {
