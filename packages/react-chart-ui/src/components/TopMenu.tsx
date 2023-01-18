@@ -7,7 +7,6 @@ import { MainChartTypeSelect } from "./MainChartTypeSelect";
 import { FullScreenButton } from "./FullScreenButton";
 import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
-import { SaveChartImageButton } from "./SaveChartImageButton";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./IndicatorsButton";
 
@@ -69,7 +68,6 @@ export const TopMenu = (props: TopMenuProps) => {
           <ChartScaleSwitch chart={props.chart} />
           <Icons>
             <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
-            <SaveChartImageButton chart={props.chart} />
             <ShareChartButton chart={props.chart} />
           </Icons>
         </RightSection>
