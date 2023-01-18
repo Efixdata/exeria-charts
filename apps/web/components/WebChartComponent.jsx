@@ -83,13 +83,13 @@ export function WebChartComponent() {
   useLayoutEffect(() => {
       const containerElement = objectRef.current;
 
-      // @ts-ignore
+      // // @ts-ignore
       containerElement.style.width = width;
-      // @ts-ignore
+      // // @ts-ignore
       containerElement.style.height = height;
-      // @ts-ignore
+      // // @ts-ignore
       containerElement.style.maxHeight = maxHeight;
-      // @ts-ignore
+      // // @ts-ignore
       containerElement.style.maxWidth = maxWidth;
       // @ts-ignore
       containerElement.style.position = "relative";
@@ -108,15 +108,10 @@ export function WebChartComponent() {
   };
 
   return (
-    <div>
-      <div style={{ display: "flex", gap: "10px", overflow: "hidden" }}>
-        <div style={{ width: '100vw', height: '100vh', backgroundColor: '#100c22' }}>
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
           <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
             <div ref={objectRef} />
           </ChartUI>
-          
         </div>
-      </div>
-    </div>
   );
 }

@@ -3,6 +3,7 @@ import { RefObject } from "react";
 import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu";
 import { TopMenu } from "./components/TopMenu";
+import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 
 interface ChartUIProps {
   chart: any;
@@ -47,15 +48,27 @@ const WrapperInner = styled.div`
   }
 `
 
-
 class ChartUI extends React.Component {
   containerRef: RefObject<HTMLDivElement>;
+  containerOffset: { offsetTop?: number, offsetBottom?: number };
   props: ChartUIProps;
 
   constructor(props: ChartUIProps) {
     super(props);
     this.props = props;
     this.containerRef = React.createRef();
+    this.containerOffset = {};
+  }
+
+  componentDidMount() {
+    setBoundingClientRect(this.containerRef, this.containerOffset);
+
+    // if (typeof window !== undefined) {
+    //   window.addEventListener('resize', setBoundingClientRect.bind(this))
+    // }
+  }
+  componentDidUpdate() {
+    setBoundingClientRect(this.containerRef, this.containerOffset);
   }
 
   render() {
@@ -63,16 +76,28 @@ class ChartUI extends React.Component {
     const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
 
     return (
-      <Container ref={this.containerRef}>
+      <Container ref={this.containerRef} className="UI-container">
         <WrapperOuter className="wrapperOuter">
-          <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-          <WrapperInner className="wrapperInner">
-            <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-            <div style={{ position: 'absolute', inset: '41px 0 0 41px' }}>{this.props.children}</div>
-          </WrapperInner>
+          <ContainerOffsetContext.Provider value={this.containerOffset}>
+            <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
+            <WrapperInner className="wrapperInner">
+              <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
+              <div style={{ position: 'absolute', inset: '41px 0 0 41px' }}>{this.props.children}</div>
+            </WrapperInner>
+          </ContainerOffsetContext.Provider>
         </WrapperOuter>
       </Container>
     );
+  }
+}
+
+function setBoundingClientRect(containerRef : RefObject<HTMLDivElement>, containerOffset : any) {
+  const boundingClientRect = containerRef.current?.getBoundingClientRect();
+  console.log('changed the size', boundingClientRect);
+
+  if (boundingClientRect) {
+    containerOffset.top = boundingClientRect.y
+    containerOffset.bottom = boundingClientRect.bottom
   }
 }
 

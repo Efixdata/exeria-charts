@@ -47,6 +47,7 @@ export const splitButton = {
     backgroundActiveColor: violet_l,
     buttonHoverColor: violet_ll + backgroundTransparency15,
     buttonSize,
+    menuPadding: buttonPadding
 }
 
 export const selectButton = {

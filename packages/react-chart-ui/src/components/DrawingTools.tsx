@@ -1,8 +1,9 @@
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useState, useContext } from 'react';
 import styled from "styled-components";
 // @ts-ignore
 import { Fibonacci, Channel, Triangle, Arrow, LineTrend, LineHorizontal, LineVertical, LineMulti, Abcd, Oval, RangeVertical, RangeHorizontal, Cycles, Rectangle, Text, PriceTag } from "../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from 'ui';
+import ContainerOffsetContext from '../contexts/ContainerOffsetContext';
 
 interface DrawingToolsProps {
     chart: any;
@@ -356,6 +357,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
     }
     
     const [selectedTool, setSelectedTool] = useState('');
+    const containerOffset = useContext(ContainerOffsetContext);
 
     const lines = renderSplitButton(['channel', 'hLine', 'vLine', 'mLine', 'trend'], 'trend');
     const shapes = renderSplitButton(['arrow', 'ellipse', 'triangle', 'box'], 'box');
@@ -399,6 +401,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
                 // @ts-ignore
                 activeOption={ids.indexOf(selectedTool) > -1 ? selectedTool : undefined}
                 options={[{}, ...options].reduce(renderSplitButtonOption)}
+                containerOffset={containerOffset}
             />
         );
     }
