@@ -114,7 +114,7 @@ interface SplitButtonProps {
   options: SplitButtonOptions
   setCurrentOption?: boolean
   activeOption: string
-  containerOffset: { top?: number, bottom?: number}
+  containerOffset: { offsetTop?: number, offsetBottom?: number}
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
@@ -131,7 +131,7 @@ export const SplitButton = (props: SplitButtonProps) => {
   });
 
   useEffect(() => {
-    setMenuPosition(calculateMenuPosition());
+    setMenuPosition(calculateMenuPosition())
     // @ts-ignore
     document.addEventListener('mousedown', handleClickOutside);
     // @ts-ignore
@@ -205,8 +205,8 @@ export const SplitButton = (props: SplitButtonProps) => {
     const containerOffset = props.containerOffset;
     let topMenuPosition = -buttonOption.basePadding;
 
-    if (buttonOffset && containerOffset.bottom) {
-      const fromBottomToButton = containerOffset.bottom - buttonOffset;
+    if (buttonOffset && containerOffset.offsetBottom) {
+      const fromBottomToButton = containerOffset.offsetBottom - buttonOffset;
       const menuHeight = calculateMenuHeight();
 
       if (fromBottomToButton < menuHeight) {
@@ -214,6 +214,7 @@ export const SplitButton = (props: SplitButtonProps) => {
       }
     }
 
+    console.log('CALCULATE', containerOffset)
     return topMenuPosition;
   }
 

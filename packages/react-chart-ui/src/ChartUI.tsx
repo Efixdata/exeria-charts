@@ -1,3 +1,4 @@
+import { AlignRightSimple } from "phosphor-react";
 import React from "react";
 import { RefObject } from "react";
 import styled from "styled-components";
@@ -61,14 +62,17 @@ class ChartUI extends React.Component {
   }
 
   componentDidMount() {
-    setBoundingClientRect(this.containerRef, this.containerOffset);
+    this.setBoundingClientRect();
 
-    // if (typeof window !== undefined) {
-    //   window.addEventListener('resize', setBoundingClientRect.bind(this))
-    // }
+    if (typeof window !== 'undefined') {
+      ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event => {
+        window.addEventListener(event, this.setBoundingClientRect)
+      })
+    }
   }
+
   componentDidUpdate() {
-    setBoundingClientRect(this.containerRef, this.containerOffset);
+    this.setBoundingClientRect();
   }
 
   render() {
@@ -89,15 +93,15 @@ class ChartUI extends React.Component {
       </Container>
     );
   }
-}
 
-function setBoundingClientRect(containerRef : RefObject<HTMLDivElement>, containerOffset : any) {
-  const boundingClientRect = containerRef.current?.getBoundingClientRect();
-  console.log('changed the size', boundingClientRect);
-
-  if (boundingClientRect) {
-    containerOffset.top = boundingClientRect.y
-    containerOffset.bottom = boundingClientRect.bottom
+  setBoundingClientRect = () => {
+    const boundingClientRect = this.containerRef.current?.getBoundingClientRect();
+    console.log('changed the size', boundingClientRect?.bottom);
+  
+    if (boundingClientRect) {
+      this.containerOffset.offsetBottom = boundingClientRect.bottom;
+      this.containerOffset.offsetTop = boundingClientRect.top;
+    }
   }
 }
 
