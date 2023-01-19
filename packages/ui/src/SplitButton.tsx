@@ -1,4 +1,4 @@
-import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent } from "react";
+import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent, RefObject } from "react";
 import styled from "styled-components";
 import { splitButton, buttonOption as buttonOption } from "../theme"; 
 
@@ -36,7 +36,7 @@ const ButtonContainer = styled.div`
 
 const ChevronContainer = styled.div`
   position: relative;
-  left: -4px;
+  left: -${splitButton.menuPadding}px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,17 +55,17 @@ const ChevronContainer = styled.div`
   }
 `
 
-const OptionsContainer = styled.div`
+const OptionsContainer = styled.div<{top: number}>`
   box-sizing: border-box;
   border-radius: ${splitButton.borderRadius}px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   background-color: ${splitButton.backgroundActiveColor};
-  padding: 4px 0;
+  padding: ${splitButton.menuPadding}px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
-  top: -${buttonOption.basePadding}px;
+  top: ${props => props.top}px;
   z-index: 1;
 `
 
@@ -114,11 +114,14 @@ interface SplitButtonProps {
   options: SplitButtonOptions
   setCurrentOption?: boolean
   activeOption: string
+  containerOffset: { offsetTop?: number, offsetBottom?: number}
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
   const myRef = useRef<HTMLDivElement>(null);
+  const buttonRef : RefObject<HTMLDivElement> = React.createRef();
   const [isOpen, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState(-buttonOption.basePadding)
 
   const activeOptionProps : SplitButtonOption = props.options[props.activeOption || props.defaultOption];
   const currentButton = React.cloneElement(activeOptionProps.icon, {
@@ -128,6 +131,7 @@ export const SplitButton = (props: SplitButtonProps) => {
   });
 
   useEffect(() => {
+    setMenuPosition(calculateMenuPosition())
     // @ts-ignore
     document.addEventListener('mousedown', handleClickOutside);
     // @ts-ignore
@@ -136,14 +140,14 @@ export const SplitButton = (props: SplitButtonProps) => {
 
   return (
     <Container className={ (isOpen ? 'open' : undefined)} ref={myRef}>
-      <ButtonContainer>
+      <ButtonContainer ref={buttonRef}>
         { currentButton }
         <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
           <ChevronRight />
         </ChevronContainer>
       </ButtonContainer>
       { isOpen &&  
-        <OptionsContainer>
+        <OptionsContainer top={menuPosition}>
           { renderOptions() }
         </OptionsContainer>
       }
@@ -194,5 +198,29 @@ export const SplitButton = (props: SplitButtonProps) => {
     if (!myRef.current?.contains(e.target)) {
         setOpen(false);
     }
+  }
+
+  function calculateMenuPosition() {
+    const buttonOffset = buttonRef.current?.getBoundingClientRect().top;
+    const containerOffset = props.containerOffset;
+    let topMenuPosition = -buttonOption.basePadding;
+
+    if (buttonOffset && containerOffset.offsetBottom) {
+      const fromBottomToButton = containerOffset.offsetBottom - buttonOffset;
+      const menuHeight = calculateMenuHeight();
+
+      if (fromBottomToButton < menuHeight) {
+        topMenuPosition -= menuHeight - fromBottomToButton;
+      }
+    }
+    
+    return topMenuPosition;
+  }
+
+  function calculateMenuHeight() {
+    const optionHeight = buttonOption.basePadding * 2 + splitButton.buttonSize;
+    const optionsAmount = Object.keys(props.options).length;
+
+    return optionsAmount * optionHeight + 2 * splitButton.menuPadding;
   }
 };

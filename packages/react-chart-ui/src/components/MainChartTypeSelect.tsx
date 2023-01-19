@@ -9,6 +9,9 @@ interface MainChartTypeSelectProps {
 }
 
 export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
+  const defaultDrawMode = 'OHLC';
+  const [selectedDrawMode, setSelectedDrawMode] = useState(defaultDrawMode);
+
   return (
         <SelectButton
           options={{
@@ -40,8 +43,9 @@ export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
           }}
           onSelect={(option) => {
             props.chart.setMainDrawMode(option);
+            setSelectedDrawMode(option || defaultDrawMode);
           }}
-          selectedOption='OHLC'
+          selectedOption={selectedDrawMode}
         />
   );
 };

@@ -24,13 +24,16 @@ flex-direction: row;
 margin-left: auto;
 gap: 16px;
 align-items: center;
+@media (max-width: 600px) {
+  gap: 4px;
+}
 `
 
 const Container = styled.div`
+  box-sizing: border-box;
   background-color: #100c22;
   display: flex;
   flex-direction: row;
-  z-index: 2;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -39,6 +42,7 @@ const LeftSection = styled.div`
   display: flex;
   flex-grow: 1;
   flex-direction: row;
+  z-index: 2;
 `
 
 const Icons = styled.div`

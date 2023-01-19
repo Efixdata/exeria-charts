@@ -11,17 +11,11 @@ const Container = styled.div`
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  height: 100%;
-  max-height: 100%;
-  overflow: visible;
-  z-index: 1;
+  height: max-content;
+  min-height: calc(100% - 17px);
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
-  &::-webkit-scrollbar { 
-      display: none;  /* Safari and Chrome */
-  }
+  z-index: 1;
 `
 
 interface LeftMenuProps {
@@ -32,8 +26,10 @@ interface LeftMenuProps {
 
 export const LeftMenu = (props: LeftMenuProps) => {
   // @ts-ignore
-  return <Container style={props.style}>
-    <Cursors chart={props.chart}/>
-    <DrawingTools chart={props.chart}/>
-  </Container>;
+  return (
+    <Container style={props.style}>
+      <Cursors chart={props.chart}/>
+      <DrawingTools chart={props.chart}/>
+    </Container>
+  )
 };

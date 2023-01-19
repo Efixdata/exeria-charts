@@ -1,8 +1,10 @@
+import { AlignRightSimple } from "phosphor-react";
 import React from "react";
 import { RefObject } from "react";
 import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu";
 import { TopMenu } from "./components/TopMenu";
+import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 
 interface ChartUIProps {
   chart: any;
@@ -26,14 +28,51 @@ const Container = styled.div`
   user-select: none;
 `;
 
+const WrapperOuter = styled.div`
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+`
+
+const WrapperInner = styled.div<{height: string}>`
+  display: flex;
+  flexDirection: row;
+  flexGrow: 1;
+  height: ${props => props.height};
+  width: 100%;
+  overflow-y: auto;
+
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar { 
+      display: none;  /* Safari and Chrome */
+  }
+`
+
 class ChartUI extends React.Component {
   containerRef: RefObject<HTMLDivElement>;
+  containerOffset: { offsetTop?: number, offsetBottom?: number };
   props: ChartUIProps;
 
   constructor(props: ChartUIProps) {
     super(props);
     this.props = props;
     this.containerRef = React.createRef();
+    this.containerOffset = {};
+  }
+
+  componentDidMount() {
+    this.setBoundingClientRect();
+
+    if (typeof window !== 'undefined') {
+      ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event => {
+        window.addEventListener(event, this.setBoundingClientRect)
+      })
+    }
+  }
+
+  componentDidUpdate() {
+    this.setBoundingClientRect();
   }
 
   render() {
@@ -41,22 +80,27 @@ class ChartUI extends React.Component {
     const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
 
     return (
-      <Container ref={this.containerRef}>
-        <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexGrow: "1",
-            maxHeight: `calc(100% - ${topMenuHeight}`,
-            maxWidth: '100%'
-          }}
-        >
-          <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-          <div style={{ flexGrow: "1", maxWidth: `calc(100% - ${leftMenuWidth})` }}>{this.props.children}</div>
-        </div>
+      <Container ref={this.containerRef} className="UI-container">
+        <WrapperOuter className="wrapperOuter">
+          <ContainerOffsetContext.Provider value={this.containerOffset}>
+            <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
+            <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight})`}>
+              <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
+              <div style={{ position: 'absolute', inset: `${topMenuHeight} 0 0 ${leftMenuWidth}` }}>{this.props.children}</div>
+            </WrapperInner>
+          </ContainerOffsetContext.Provider>
+        </WrapperOuter>
       </Container>
     );
+  }
+
+  setBoundingClientRect = () => {
+    const boundingClientRect = this.containerRef.current?.getBoundingClientRect();
+  
+    if (boundingClientRect) {
+      this.containerOffset.offsetBottom = boundingClientRect.bottom;
+      this.containerOffset.offsetTop = boundingClientRect.top;
+    }
   }
 }
 
