@@ -213,8 +213,7 @@ export const SplitButton = (props: SplitButtonProps) => {
         topMenuPosition -= menuHeight - fromBottomToButton;
       }
     }
-
-    console.log('CALCULATE', containerOffset)
+    
     return topMenuPosition;
   }
 

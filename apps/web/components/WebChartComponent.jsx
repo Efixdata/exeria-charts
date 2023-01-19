@@ -83,13 +83,13 @@ export function WebChartComponent() {
   useLayoutEffect(() => {
       const containerElement = objectRef.current;
 
-      // // @ts-ignore
+      // @ts-ignore
       containerElement.style.width = width;
-      // // @ts-ignore
+      // @ts-ignore
       containerElement.style.height = height;
-      // // @ts-ignore
+      // @ts-ignore
       containerElement.style.maxHeight = maxHeight;
-      // // @ts-ignore
+      // @ts-ignore
       containerElement.style.maxWidth = maxWidth;
       // @ts-ignore
       containerElement.style.position = "relative";

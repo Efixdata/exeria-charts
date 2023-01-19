@@ -96,7 +96,6 @@ class ChartUI extends React.Component {
 
   setBoundingClientRect = () => {
     const boundingClientRect = this.containerRef.current?.getBoundingClientRect();
-    console.log('changed the size', boundingClientRect?.bottom);
   
     if (boundingClientRect) {
       this.containerOffset.offsetBottom = boundingClientRect.bottom;
