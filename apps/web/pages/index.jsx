@@ -10,7 +10,7 @@ const smallChartConfig = {margin: '100px 20px', height: 'calc(100vh - 416px)', w
 
 export default function Web() {
   return (
-    <div>
+    <div style={{height: 'calc(100vh - 16px)'}}>
       <WebChartComponent />
     </div>
   );
