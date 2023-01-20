@@ -4,7 +4,8 @@ import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { buttonOption, selectButton } from "ui/theme";
 import useShareChartImage, { ActionEnum } from "../hooks/useShareChartImage";
-import { Share, Twitter, Telegram, Stocktwits } from "../img/icons";
+import { Share, Twitter, Telegram, Copy , Download} from "../img/icons";
+import useGenerateWatermark from "../hooks/useGenerateWatermark";
 
 const ShareButtonWrapper = styled.div`
   position: relative;
@@ -17,8 +18,7 @@ const ShareButtonWrapper = styled.div`
 
 const OptionsContainer = styled.div`
   box-sizing: border-box;
-  border-radius: 0px ${selectButton.borderRadius}px
-    ${selectButton.borderRadius}px;
+  border-radius: ${selectButton.borderRadius}px 0 ${selectButton.borderRadius}px ${selectButton.borderRadius}px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -26,16 +26,16 @@ const OptionsContainer = styled.div`
   padding: 4px 0;
   position: absolute;
   top: 26px;
-  left: 0px;
+  right: 0;
   z-index: 1;
-  min-width: 116px;
+  min-width: 160px;
 `;
 
 const OptionValue = styled.span`
   display: flex;
   cursor: pointer;
   align-items: center;
-  padding: 8px 18px 5px 8px;
+  padding: 8px 18px 8px 8px;
   grid-gap: 8px;
   color: #fff;
   opacity: 0.7;
@@ -54,18 +54,22 @@ const OptionsHeader = styled.div`
 `
 
 export const ShareChartButton = (props) => {
+  const { waterMark64 } = useGenerateWatermark();
   const { shareImage, actionLoading } =
     useShareChartImage(props);
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const renderOptions = () => {
-    return options.map((option, i) => (
-      <OptionValue key={i} onClick={option.action}>
+    return options.map((option, i) => {
+      if (option.type === "divider") {
+        return <OptionsHeader style={{padding: 0, margin: "8px 8px"}}/>
+      }
+      return <OptionValue key={i} onClick={option.action}>
         {option.loading ? <Loading /> : option.logo}
         {option.social}
       </OptionValue>
-    ));
+  });
   };
 
   React.useEffect(() => {
@@ -83,21 +87,29 @@ export const ShareChartButton = (props) => {
     {
       social: "Twitter",
       logo: <Twitter height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet'),
+      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet', `$${props.chart.instrument.symbol} chart from @Dexer_io`),
       loading: actionLoading.twitter
     },
     {
       social: "Telegram",
       logo: <Telegram height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url'),
+      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url', `${props.chart.instrument.symbol} chart from Dexer.io`),
       loading: actionLoading.telegram
     },
-    // {
-    //   social: "StockTwits",
-    //   logo: <Stocktwits height={18} width={18} fill="#fff" />,
-    //   action: null,
-    //   loading: false
-    // },
+    {
+      type: "divider"
+    },
+    {
+      social: "Copy image link",
+      logo: <Copy height={24} width={24} fill="#fff" />,
+      action: ()=> shareImage('copyImage', ActionEnum.copy, '', ActionEnum.copy),
+      loading: actionLoading.copyImage
+    },
+    {
+      social: "Download image",
+      logo: <Download height={24} width={24} fill="#fff" />,
+      action: ()=> props.chart.onDownload(waterMark64, 240, 66),
+    }
   ];
 
   return (
