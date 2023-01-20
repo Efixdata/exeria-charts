@@ -1871,7 +1871,8 @@ function DefaultTool(interactor){
 	this.renderOverlay	=	function (octx) {
 		var self = this;
 		if (this.startEvent && this.interactor.currentHitObject && this.interactor.isMouseDown) {
-			var panel = this.interactor.getPanel(this.startEvent.offsetY);
+			const startEventOffset = this.interactor.getEventOffset(this.startEvent);
+			var panel = this.interactor.getPanel(startEventOffset.offsetY);
 			//render only on chart surface (without axis)
 			try{
 				octx.save();
