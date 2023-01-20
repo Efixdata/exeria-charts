@@ -26,7 +26,7 @@ const OptionsContainer = styled.div`
   padding: 4px 0;
   position: absolute;
   top: 26px;
-  left: -134px;
+  right: 0;
   z-index: 1;
   min-width: 160px;
 `;
