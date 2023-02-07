@@ -37,6 +37,14 @@ export const FullScreenButton = (props) => {
     );
   };
 
+  const isFullScreenAvailable = () => {
+    return (
+      document.fullscreenEnabled /* Standard syntax */ ||
+      document.webkitFullscreenEnabled /* Safari */ ||
+      document.msFullscreenEnabled /* IE11 */
+    ); 
+  };
+
   const onClick = () => {
     if (!document) return;
     const mainContainerElement = props.mainContainer.current;
@@ -66,9 +74,13 @@ export const FullScreenButton = (props) => {
     }
   };
 
-  return (
-    <IconButton onClick={onClick}>
-      { icon }
-    </IconButton>
-  )
+  if (isFullScreenAvailable()) {
+    return (
+      <IconButton onClick={onClick}>
+        { icon }
+      </IconButton>
+    );
+  }
+  
+  return null;
 };
