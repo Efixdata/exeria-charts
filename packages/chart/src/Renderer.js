@@ -1345,7 +1345,8 @@ const Renderer = function (settings, context, controller) {
 		};
 
 		function getGreater(current, proposal) {
-			const y = proposal - Math.floor(proposal);
+			const positiveProposal = Math.abs(proposal);
+			const y = positiveProposal - Math.floor(positiveProposal);
 			return y > current ? y : current;
 		}
 	}
