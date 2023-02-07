@@ -60,12 +60,23 @@ export const IndicatorsButton = (props) => {
     setModalVisible(false);
   };
 
+  const getPortalNode = () => {
+    if (!document) return null;
+
+    if (document.fullscreenElement) return document.fullscreenElement;
+    if (document.webkitFullscreenElement) return document.webkitFullscreenElement;
+    if (document.mozFullScreenElement) return document.mozFullScreenElement;
+    if (document.msFullscreenElement) return document.msFullscreenElement;
+
+    return null;
+  };
+
   return (
     <>
       <TextButton onClick={onClick}>
         <Indicators/> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
-      <Portal>
+      <Portal node={getPortalNode()}>
         <Modal
           visible={isModalVisible}
           onCloseOutsideClick={true}
