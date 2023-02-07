@@ -283,7 +283,7 @@ export function renderPriceText(options) { // text, ctx, x, y, priceFont, subscr
 	if (!subscriptFont) subscriptFont = WEBRCP.utils.colorManager.getFont("priceSubscript");
 	ctx.font = priceFont;
 
-	if (text.indexOf('.') === -1 || zerosToReduce < 4 || mode == "perc" || mode == "log") {
+	if (text.indexOf('.') === -1 || zerosToReduce < 4 || mode == "perc") {
 		ctx.fillText(text, x, y);
 		return;
 	}

@@ -404,8 +404,6 @@ const Renderer = function (settings, context, controller) {
 
 			if (mode == 'perc') { 
 				precision = 2;
-			} else if (mode == 'log') {
-				precision = 4;
 			}
 	
 			while (tickValue < tick.niceMax) {
@@ -416,11 +414,12 @@ const Renderer = function (settings, context, controller) {
 				if (tickPoint < panel._offset) continue;
 				
 				let value = tickValue;
-				let text = value.toFixed(precision);
 
 				if (mode == 'log') {
 					value = LIB._converterLog.axisToReal(tickValue, 1);
 				}
+
+				let text = value.toFixed(precision);
 				
 				if (value > 999999)	{
 					text = LIB.nFormatter(value, precision);
