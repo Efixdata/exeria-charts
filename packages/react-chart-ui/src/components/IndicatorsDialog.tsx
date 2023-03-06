@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput, TextButton } from "ui";
 import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
+import { IndicatorSettingsDialog } from "./IndicatorSettingsDialog";
 
 interface IndicatorsDialogProps {
   onClick: any;
@@ -14,6 +15,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   const [query, setQuery] = useState("");
   const [filteredIndicators, setFilteredIndicators] = useState(props.indicators);
+  const [chosenIndicator, setChosenIndicator] = useState(null)
 
   const allIndicators = new Fuse(props.indicators, {
     includeScore: false,
@@ -31,7 +33,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
           title={indicator.title}
           subtitle={indicator.description}
           onClick={() => {
-            onIndicatorPick(indicator.key);
+            onIndicatorPick(indicator);
           }}
         />
       );
@@ -44,15 +46,18 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     }
 
     return (
-      <ListItemsWrapper>
-        {listItems}
-      </ListItemsWrapper>
+      <DialogBody style={{ margin: 12, paddingRight: 12}}>
+        <ListItemsWrapper>
+          {listItems}
+        </ListItemsWrapper>
+      </DialogBody>
     );
   };
 
-  const onIndicatorPick = (indicatorKey) => {
-    props.chart.addScript(indicatorKey);
-    props.onClose();
+  const onIndicatorPick = (indicator) => {
+    // props.chart.addScript(indicator.key);
+    // props.onClose();
+    setChosenIndicator(indicator);
   }
 
   const onQueryChange = (e) => {
@@ -73,22 +78,32 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   const onSubmit = () => {
     if (filteredIndicators[0]) {
-      onIndicatorPick(filteredIndicators[0].key);
+      onIndicatorPick(filteredIndicators[0]);
     }
   }
 
-  return (
-      <DialogContainer style={props.style}>
-        <DialogHeader>ADD INDICATOR TO CHART<TextButton onClick={props.onClose} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
-          <form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
-            <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
-            <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
-          </form>
-        
-        <DialogBody style={{ margin: 12, paddingRight: 12}}>
-        {renderDialogBody()}
-        </DialogBody>
-    </DialogContainer>
-      
-  );
+  const renderSearchBar = () => {
+    return (<form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
+      <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
+      <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
+    </form>);
+  }
+
+  const renderDialogHeader = () => {
+    return <DialogHeader>ADD INDICATOR TO CHART<TextButton onClick={props.onClose} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
+  }
+
+  const renderIndicatorsDialog = () => {
+    return <DialogContainer style={props.style}>
+      {renderDialogHeader()}
+      {renderSearchBar()}
+      {renderDialogBody()}
+    </DialogContainer>;
+  }
+
+  if (chosenIndicator) {
+    return <IndicatorSettingsDialog chart={props.chart} indicator={chosenIndicator} onClose={() => {setChosenIndicator(null)}} />
+  } else {
+    return renderIndicatorsDialog(); 
+  }
 };
