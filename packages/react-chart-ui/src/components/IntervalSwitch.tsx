@@ -12,6 +12,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
   const instrument = props?.chart?.getInstrument();
   const interval = props?.chart?.getInterval();
   const [intervalSymbol, setIntervalSymbol] = useState(interval);
+  console.log('🚀 ~ file: IntervalSwitch.tsx:15 ~ IntervalSwitch ~ intervalSymbol:', intervalSymbol)
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return null;
@@ -50,7 +51,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
                 onSelect={(option) => { 
                   if (props.onIntervalChange && option != undefined) props.onIntervalChange(option);
                 }}
-                selectedOption={intervalSymbol}
+                selectedOption={intervalSymbol || '1h'}
             />
         )
     } else {
