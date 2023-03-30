@@ -10,6 +10,7 @@ export * from "./src/Loading";
 export * from "./src/Modal";
 export * from "./src/Dialog/DialogBox";
 export * from "./src/Dialog/DialogHeader";
+export * from "./src/Dialog/DialogFooter";
 export * from "./src/Dialog/DialogBody";
 export * from "./src/Dialog/DialogContainer";
 export * from "./src/ListItem";

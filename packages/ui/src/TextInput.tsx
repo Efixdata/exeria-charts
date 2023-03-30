@@ -7,7 +7,11 @@ interface TextInputProps {
   autoFocus?: boolean;
   placeholder?: string;
   onChange?: any;
-
+  type?: string;
+  max?: number;
+  min?: number;
+  step?: number;
+  value?: string;
 }
 
 const Input = styled.input`
@@ -31,7 +35,17 @@ const Input = styled.input`
 
 export const TextInput = (props: TextInputProps) => {
 
-  return <Input style={props.style} type="text" autoFocus={!!props.autoFocus} placeholder={props.placeholder || ""} onChange={props.onChange}>
+  return <Input
+    style={props.style}
+    type={props.type || "text"}
+    autoFocus={!!props.autoFocus}
+    placeholder={props.placeholder || ""}
+    onChange={props.onChange}
+    step={props.step}
+    min={props.min}
+    max={props.max}
+    value={props.value}
+  >
     {props.children}
   </Input>;
 };

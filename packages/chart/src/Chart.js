@@ -489,8 +489,12 @@ export default class Chart {
     this.onScriptEditorApply(this.createScriptConfig(scriptKey));
 	}
 
-  createScriptConfig(scriptKey) {
-    const proto = FUSION.getScript(scriptKey);
+  addScript(scriptKey, proto) {
+    this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
+	}
+
+  createScriptConfig(scriptKey, proto) {
+    if (!proto) proto = FUSION.getScript(scriptKey);
     var scriptCfg = {
       id: null,
       inputs: {},

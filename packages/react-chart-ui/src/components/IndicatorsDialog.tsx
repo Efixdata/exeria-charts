@@ -55,8 +55,6 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   };
 
   const onIndicatorPick = (indicator) => {
-    // props.chart.addScript(indicator.key);
-    // props.onClose();
     setChosenIndicator(indicator);
   }
 
@@ -102,7 +100,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   }
 
   if (chosenIndicator) {
-    return <IndicatorSettingsDialog chart={props.chart} indicator={chosenIndicator} onClose={() => {setChosenIndicator(null)}} />
+    return <IndicatorSettingsDialog chart={props.chart} indicator={chosenIndicator} onClose={() => {props.onClose()}} onBack={() => {setChosenIndicator(null)}}/>
   } else {
     return renderIndicatorsDialog(); 
   }
