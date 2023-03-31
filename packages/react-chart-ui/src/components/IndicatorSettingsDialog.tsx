@@ -10,9 +10,34 @@ interface IndicatorSettingsDialogProps {
   chart: any;
 }
 
+const initializeConfig = (indicator, seriesManager) => {
+  const config = { ...indicator };
+
+  for (let i in config.inputs) {
+    const input = config.inputs[i];
+
+    if (input.type === "integer" || input.type === "double") {
+      input.value = input.value || input?.properties?.def;
+    } else if (input.type === "series" && !input.value) {
+      for (let key in seriesManager) {
+        const series = seriesManager[key];
+        for (let i in series.labels) {
+          const value = series.seriesId + ':' + series.fields[i];
+          if (input?.properties?.def === series.fields[i]) {
+            input.value = value;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return config;
+}
+
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
 
-  const [config, setConfig] = useState({ ...props.indicator })
+  const [config, setConfig] = useState(initializeConfig(props.indicator, props.chart.getSeriesManager()));
 
   const renderInputs = () => {
     const inputs = [];
@@ -57,6 +82,35 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         value={config.inputs[key].value}
         onChange={(event) => {onInputChange(key, event.target.value * 1.0)}}
       ></TextInput>
+    } else if(input.type === "series") {
+      const seriesManager = props.chart.getSeriesManager();
+
+      if (!seriesManager) {
+        console.error("No series manager available");
+        return;
+      }
+
+      
+      const renderOptions = () => {
+        const options = [];
+
+        for (let key in seriesManager) {
+          const series = seriesManager[key];
+          for (let i in series.labels) {
+            const value = series.seriesId + ':' + series.fields[i];
+            if (value === input.value) {
+              options.push(<option key={value} selected value={value}>{series.title}.{series.labels[i]}</option>);
+            } else {
+              options.push(<option key={value} value={value}>{series.title}.{series.labels[i]}</option>);
+            }
+          }
+        }
+        return options;
+      }
+
+      return <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+        {renderOptions()}
+      </select>
     }
     
   }

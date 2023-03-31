@@ -519,7 +519,7 @@ export default class Chart {
     Object.keys(proto.inputs).forEach((k) => {
       const input = proto.inputs[k];
 
-      if (input.type == "series") {
+      if (input.type == "series" && !input.value) {
         scriptCfg.inputs[k] = getDefaultSeries(input);
       } else {
         scriptCfg.inputs[k] = input.value;
