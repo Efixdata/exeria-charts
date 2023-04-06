@@ -17,3 +17,5 @@ export * from "./src/ListItem";
 export * from "./src/Headline";
 export * from "./src/ListItemsWrapper";
 export * from "./src/TextInput";
+export * from "./src/CheckboxInput";
+export * from "./src/Label";

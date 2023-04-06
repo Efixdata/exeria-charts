@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogHeader, DialogBody, DialogContainer, DialogFooter, ListItem, ListItemsWrapper, TextInput, TextButton } from "ui";
+import { DialogHeader, DialogBody, DialogContainer, DialogFooter, ListItem, ListItemsWrapper, TextInput, TextButton, Label, CheckboxInput } from "ui";
 import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
 
@@ -16,8 +16,10 @@ const initializeConfig = (indicator, seriesManager) => {
   for (let i in config.inputs) {
     const input = config.inputs[i];
 
-    if (input.type === "integer" || input.type === "double") {
+    if (input.type === "integer" || input.type === "double" || input.type === "list") {
       input.value = input.value || input?.properties?.def;
+    } else if (input.type === "boolean") {
+      input.value = !!input.value;
     } else if (input.type === "series" && !input.value) {
       for (let key in seriesManager) {
         const series = seriesManager[key];
@@ -50,6 +52,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   }
 
   const onInputChange = (key, value) => {
+    console.log(key, value);
     const newConfig = { ...config };
     newConfig.inputs[key].value = value;
     
@@ -62,7 +65,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     // input props: type, name, properties { def, max, min }, value
     // input types: integer, double, series, list, boolean, matrix, conditional, booleanList, timezone, object
     if (input.type === "integer") {
-      return <TextInput
+      return <Label name={input.name}><TextInput
         key={key}
         placeholder={input.name}
         type="number"
@@ -71,9 +74,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         step={1}
         value={config.inputs[key].value}
         onChange={(event) => {onInputChange(key, event.target.value * 1)}}
-      ></TextInput>
+      ></TextInput></Label>
     } else if (input.type === "double") {
-      return <TextInput
+      return <Label name={input.name}><TextInput
         key={key}
         placeholder={input.name}
         type="number"
@@ -81,7 +84,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         max={input?.properties?.max}
         value={config.inputs[key].value}
         onChange={(event) => {onInputChange(key, event.target.value * 1.0)}}
-      ></TextInput>
+      ></TextInput></Label>
     } else if(input.type === "series") {
       const seriesManager = props.chart.getSeriesManager();
 
@@ -108,9 +111,38 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         return options;
       }
 
-      return <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
-        {renderOptions()}
-      </select>
+      return <Label name={input.name}>
+        <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+          {renderOptions()}
+        </select>
+      </Label>
+    } else if(input.type === "list") {
+      const renderOptions = () => {
+        const options = [];
+
+        for (let key in input.list) {
+          const value = input.list[key];
+
+          if (value === input.value) {
+            options.push(<option key={value} selected value={value}>{value}</option>);
+          } else {
+            options.push(<option key={value} value={value}>{value}</option>);
+          }
+        }
+        return options;
+      }
+
+      return <Label name={input.name}>
+        <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+          {renderOptions()}
+        </select>
+      </Label>
+    } else if (input.type === "boolean") {
+      return <Label name={input.name}><CheckboxInput
+        key={key}
+        value={config.inputs[key].value}
+        onChange={(event) => {onInputChange(key, event.target.checked)}}
+      ></CheckboxInput></Label>
     }
     
   }

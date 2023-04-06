@@ -40,6 +40,7 @@ export default function ObjectsManager(chart){
 	this.detachObject = function(objectId){
 		if(objectId){
 			var o = LIB.getObjectById(self.chart.model, objectId);
+			if (!o) return;
 			if( this.chart.renderer.objects[o.type] instanceof Shape){
 				detachToolObject(o.id);
 				var relatedScript = findRelatedScript(o);
