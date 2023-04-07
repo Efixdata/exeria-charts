@@ -14,6 +14,7 @@ const StyledForm = styled.form`
     box-sizing: border-box;
     grid-gap: 24px 40px;
     flex-wrap: wrap;
+    align-items: end;
 `;
 
 export const Form = (props: FormProps) => {

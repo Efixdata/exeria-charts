@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { inputBackgroundColor, inputBorderRadius } from "ui/theme";
 
 interface SelectProps {
   style?: React.CSSProperties;
@@ -11,16 +12,15 @@ interface SelectProps {
 
 const StyledSelect = styled.select`
     color: white;
-    background-color: #0F0C22;
+    background-color: ${inputBackgroundColor};
     height: 30px;
-    border-radius: 30px;
+    border-radius: ${inputBorderRadius};
     border: none;
     outline: none;
     padding: 4px 16px;
     margin-left: -8px;
     margin-right: -8px;
-    width: 144px;
-    max-width: calc(100% - 16px);
+    width: calc(100% - 16px);
     overflow: hidden;
     box-sizing: initial;
     -webkit-appearance: none;

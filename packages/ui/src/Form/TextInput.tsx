@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { inputBackgroundColor, inputBorderRadius } from "ui/theme";
 
 interface TextInputProps {
   children?: JSX.Element|JSX.Element[]
@@ -17,18 +18,16 @@ interface TextInputProps {
 const Input = styled.input`
     color: white;
     font-size: 13px;
-    background-color: #0F0C22;
+    background-color: ${inputBackgroundColor};
     height: 30px;
-    border-radius: 30px;
+    border-radius: ${inputBorderRadius};
     border: none;
     outline: none;
     padding: 4px 16px;
     margin-left: -8px;
     margin-right: -8px;
     width: calc(100% - 16px);
-    width: 144px;
     box-sizing: initial;
-    flex-grow: 1;
     &::placeholder {
         color: #c3c2cc80;
     }

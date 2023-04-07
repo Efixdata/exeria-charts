@@ -69,3 +69,7 @@ export const buttonOption = {
 // INPUTS
 
 export const labelColor = violet_ll;
+export const inputBackgroundColor = violet_dd;
+export const inputBorderRadius = "30px";
+export const checkboxBorderRadius = "6px";
+export const checkboxTickColor = violet_ll;
