@@ -26,8 +26,9 @@ const Input = styled.input`
     margin-left: -8px;
     margin-right: -8px;
     width: calc(100% - 16px);
+    width: 144px;
     box-sizing: initial;
-
+    flex-grow: 1;
     &::placeholder {
         color: #c3c2cc80;
     }

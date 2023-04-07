@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput, TextButton } from "ui";
+import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput, TextButton, Form } from "ui";
 import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
 import { IndicatorSettingsDialog } from "./IndicatorSettingsDialog";
@@ -81,10 +81,10 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   }
 
   const renderSearchBar = () => {
-    return (<form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
-      <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
+    return (<Form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
+      <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." style={{width: "100%"}} />
       <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
-    </form>);
+    </Form>);
   }
 
   const renderDialogHeader = () => {

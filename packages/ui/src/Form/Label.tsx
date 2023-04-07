@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { labelColor } from "ui/theme";
 
 interface LabelProps {
   children?: JSX.Element|JSX.Element[]
@@ -8,7 +9,12 @@ interface LabelProps {
 }
 
 const StyledLabel = styled.label`
-    color: white;
+    color: ${labelColor};
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 6px;
+    font-size: 14px;
 `
 
 export const Label = (props: LabelProps) => {

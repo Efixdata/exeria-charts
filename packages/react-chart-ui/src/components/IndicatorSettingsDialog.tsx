@@ -1,8 +1,7 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogHeader, DialogBody, DialogContainer, DialogFooter, ListItem, ListItemsWrapper, TextInput, TextButton, Label, CheckboxInput } from "ui";
-import { MagnifyingGlass, X } from "phosphor-react";
-import Fuse from 'fuse.js';
+import { DialogHeader, DialogBody, DialogContainer, DialogFooter, TextInput, TextButton, Label, CheckboxInput, Select, Form } from "ui";
+import { X } from "phosphor-react";
 
 interface IndicatorSettingsDialogProps {
   onClick: any;
@@ -63,7 +62,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
   const renderInput = (input: any, key: string) => {
     // input props: type, name, properties { def, max, min }, value
-    // input types: integer, double, series, list, boolean, matrix, conditional, booleanList, timezone, object
+    // input types: integer, double, series, list, boolean, matrix (join, doublecheck, mix), conditional, booleanList, timezone, object
     if (input.type === "integer") {
       return <Label name={input.name}><TextInput
         key={key}
@@ -112,9 +111,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       }
 
       return <Label name={input.name}>
-        <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+        <Select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
           {renderOptions()}
-        </select>
+        </Select>
       </Label>
     } else if(input.type === "list") {
       const renderOptions = () => {
@@ -149,12 +148,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
 
   const renderDialogBody = () => {
-    return <div style={{ color: "#7F9DCC", textAlign: "center", marginTop: "30px" }}>
-      <div>{JSON.stringify(config)}</div>
-      <form onSubmit={(e) => {e.preventDefault()}}>
+      return <Form onSubmit={(e) => {e.preventDefault()}}>
         { renderInputs() }
-      </form>
-    </div>;
+      </Form>
   };
 
   const onIndicatorPick = () => {
@@ -165,9 +161,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   return (
     <>
       <DialogContainer style={props.style}>
-        <DialogHeader>CONFIGURE INDICATOR<TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
+        <DialogHeader>{`${props.indicator.title}`}<TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
         
-        <DialogBody style={{ margin: 12, paddingRight: 12}}>
+        <DialogBody style={{ padding: "20px"}}>
         {renderDialogBody()}
         </DialogBody>
         <DialogFooter style={{ margin: "10px"}}><TextButton style={{marginLeft: "auto", padding: "24px"}} onClick={onIndicatorPick}>OK</TextButton></DialogFooter>
