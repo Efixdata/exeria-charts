@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { ChartHistogram, ChartLine, ChartBars, ChartCandles, ChartHistogramLine } from "../img/icons/chartTypes/index.js";
+import { ChartHistogram, ChartLine, ChartBars, ChartCandles, ChartHistogramLine } from "../../img/icons/chartTypes/index.js";
 import { SelectButton, TextButton, IconButton } from "ui";
 
 interface MainChartTypeSelectProps {

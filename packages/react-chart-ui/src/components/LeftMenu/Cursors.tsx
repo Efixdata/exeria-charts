@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IconButton, RadioButton } from "ui";
 
-import { Cross, Default, Eraser } from "../img/icons/cursors/index.js";
+import { Cross, Default, Eraser } from "../../img/icons/cursors/index.js";
 
 interface CursorsProps {
     chart: any;

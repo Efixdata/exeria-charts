@@ -8,7 +8,7 @@ import { FullScreenButton } from "./FullScreenButton";
 import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
-import { IndicatorsButton } from "./IndicatorsButton";
+import { IndicatorsButton } from "./Indicators/IndicatorsButton";
 
 interface TopMenuProps {
   chart: any;

@@ -1,12 +1,12 @@
 // @ts-nocheck
 import * as React from "react";
 import { TextButton, Modal } from "ui";
-import { Indicators } from "../img/icons";
+import { Indicators } from "../../../img/icons";
 import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
 import styled from "styled-components";
 import { Portal } from 'react-portal';
-import { usePortalNode } from "../hooks/usePortalNode";
+import { usePortalNode } from "../../../hooks/usePortalNode";
 
 const IndicatorsText = styled.span`
   padding-left: 6px;

@@ -2,8 +2,8 @@ import { AlignRightSimple } from "phosphor-react";
 import React from "react";
 import { RefObject } from "react";
 import styled from "styled-components";
-import { LeftMenu } from "./components/LeftMenu";
-import { TopMenu } from "./components/TopMenu";
+import { LeftMenu } from "./components/LeftMenu/LeftMenu";
+import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 
 interface ChartUIProps {
