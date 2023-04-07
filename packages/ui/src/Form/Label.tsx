@@ -16,7 +16,11 @@ const StyledLabel = styled.label`
     gap: 6px;
     box-sizing: border-box;
     font-size: 14px;
-    width: 160px;
+    width: 100%;
+    @media (min-width: 600px) {
+      width: 170px;
+    }
+   
 `
 
 export const Label = (props: LabelProps) => {

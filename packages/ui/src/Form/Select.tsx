@@ -13,16 +13,16 @@ interface SelectProps {
 const StyledSelect = styled.select`
     color: white;
     background-color: ${inputBackgroundColor};
-    height: 30px;
+    height: 38px;
     border-radius: ${inputBorderRadius};
     border: none;
     outline: none;
     padding: 4px 16px;
     margin-left: -8px;
     margin-right: -8px;
-    width: calc(100% - 16px);
+    width: calc(100% + 16px);
     overflow: hidden;
-    box-sizing: initial;
+    box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='34' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");

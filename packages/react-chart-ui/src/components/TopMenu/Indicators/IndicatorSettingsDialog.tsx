@@ -16,7 +16,9 @@ const initializeConfig = (indicator, seriesManager) => {
     const input = config.inputs[i];
 
     if (input.type === "integer" || input.type === "double" || input.type === "list") {
-      input.value = input.value || input?.properties?.def;
+      if (input.value === null || input.value === undefined) {
+        input.value = input?.properties?.def;
+      }
     } else if (input.type === "boolean") {
       input.value = !!input.value;
     } else if (input.type === "series" && !input.value) {
@@ -51,7 +53,6 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   }
 
   const onInputChange = (key, value) => {
-    console.log(key, value);
     const newConfig = { ...config };
     newConfig.inputs[key].value = value;
     
@@ -71,8 +72,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         min={input?.properties?.min}
         max={input?.properties?.max}
         step={1}
+        allowEmpty={false}
         value={config.inputs[key].value}
-        onChange={(event) => {onInputChange(key, event.target.value * 1)}}
+        onChange={(event) => {onInputChange(key, event.target.value)}}
       ></TextInput></Label>
     } else if (input.type === "double") {
       return <Label name={input.name}><TextInput
@@ -81,8 +83,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         type="number"
         min={input?.properties?.min}
         max={input?.properties?.max}
+        allowEmpty={false}
         value={config.inputs[key].value}
-        onChange={(event) => {onInputChange(key, event.target.value * 1.0)}}
+        onChange={(event) => {onInputChange(key, event.target.value)}}
       ></TextInput></Label>
     } else if(input.type === "series") {
       const seriesManager = props.chart.getSeriesManager();
@@ -148,12 +151,26 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
 
   const renderDialogBody = () => {
-      return <Form onSubmit={(e) => {e.preventDefault()}}>
+      return <Form onSubmit={(e) => {
+        e.preventDefault();
+        onIndicatorPick();
+      }
+        }>
         { renderInputs() }
       </Form>
   };
 
+  const validateForm = () => {
+    for (let i in config.inputs) {
+      const input = config.inputs[i];
+      if (input === null || input === undefined) return false;
+    }
+  }
+
   const onIndicatorPick = () => {
+    const isFormValid = validateForm();
+    if (!isFormValid) return;
+
     props.chart.addScript(config.key, config);
     props.onClose();
   }

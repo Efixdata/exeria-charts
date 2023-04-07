@@ -12,7 +12,7 @@ const StyledForm = styled.form`
     flex-direction: row;
     width: 100%;
     box-sizing: border-box;
-    grid-gap: 24px 40px;
+    grid-gap: 25px;
     flex-wrap: wrap;
     align-items: end;
 `;
