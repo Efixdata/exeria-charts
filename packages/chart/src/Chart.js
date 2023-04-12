@@ -21,6 +21,7 @@ export default class Chart {
   instrument;
   objectsManager;
   subscriptionManager;
+  theme;
 
   constructor(options) {
     if (typeof window == undefined) return;
@@ -38,6 +39,10 @@ export default class Chart {
     this.config = { ...this.config, ...options.config };
     this.model = { ...model, ...options.model };
     this.setInstrument(options.instrument);
+
+    if (options.theme) {
+      WEBRCP.utils.colorManager.setTheme(options.theme, options?.themeVariant)
+    }
   }
 
   init() {

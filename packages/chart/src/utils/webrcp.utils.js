@@ -330,6 +330,11 @@ export default function WebRCPUtils () {
       this.theme = theme;
       this.variant = variant || "dark";
 
+      this.setTheme = function(theme, variant) {
+        if (theme) this.theme = theme;
+        if (variant) this.variant = variant;
+      }
+
       this.images = {
           exeriaWatermark: {light: "exeria_watermark.png", dark: "exeria_watermark_white.png"}
       };
