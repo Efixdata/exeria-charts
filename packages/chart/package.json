@@ -1,6 +1,6 @@
 {
   "name": "@dexer-io/chart",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Chart",
   "main": "src/index.js",
   "publishConfig": {
@@ -21,6 +21,9 @@
     "dist",
     "README.md"
   ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "license": "UNLICENSED",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
