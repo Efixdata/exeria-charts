@@ -1,5 +1,5 @@
 import * as React from "react";
-const SvgDefault = (props) => (
+export const Cross = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 18 18"
@@ -9,8 +9,8 @@ const SvgDefault = (props) => (
   >
     <path
       fill="#7F9DCC"
-      d="m9.7 8 3.8-1.3-10-3 3 10L7.8 10l4.3 4.3 2-2L9.7 8z"
+      d="M1 8h7v1H1zM11 8h7v1h-7zM8.999 7.001v-7h1v7zM8.991 17.009v-7h1v7z"
     />
   </svg>
 );
-export default SvgDefault;
+export default Cross;

@@ -4,6 +4,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
+  "main": "index.ts",
   "description": "React chart component",
   "author": {
     "name": "Dexer",
@@ -29,9 +30,10 @@
     "build": "webpack"
   },
   "dependencies": {
-    "chart": "*",
+    "@dexer-io/chart": "*",
     "phosphor-react": "^1.4.1",
-    "react-portal": "^4.2.2"
+    "react-portal": "^4.2.2",
+    "ui": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",
