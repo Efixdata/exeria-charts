@@ -21,9 +21,7 @@
     "dist",
     "README.md"
   ],
-  "exports": {
-    ".": "./dist/index.js"
-  },
+
   "license": "UNLICENSED",
   "scripts": {
     "lint": "eslint *.ts*",
