@@ -107,9 +107,48 @@ export function WebChartComponent() {
     }
   };
 
+  const theme = {
+    background: "blue",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    accentColor: "green",
+    icons: {
+        color: "white",
+        activeColor: "red",
+        groupBackgroundColor: "purple",
+        backgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+    },
+    menu: {
+        hoverBackgroundColor: "pink",
+        splitButtonBackgroundColor: "black",
+        activeBackgroundColor: "#888",
+        activeBackgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+        textColor: "white",
+        textActiveColor: "red"
+    },
+    dialog: {
+        backgroundColor: "#333",
+        titleColor: "white",
+        textColor: "white",
+        dividerColor: "rgba(255, 255, 255, 0.1)",
+        itemTitleColor: "white",
+        itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
+        itemHoverBackgroundColor: "rgba(255, 255, 255, 0.1)"
+    },
+    inputs: {
+        backgroundColor: "black",
+        placeholderColor: "grey",
+        textColor: "white",
+    },
+    scrollBar: {
+        trackColor: "rgba(255, 255, 255, 0.02)",
+        thumbColor: "rgba(255, 255, 255, 0.1)",
+        thumbHoverColor: "tomato",
+  }
+}
+
   return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={theme}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

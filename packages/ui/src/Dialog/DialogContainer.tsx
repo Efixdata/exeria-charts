@@ -16,8 +16,8 @@ const Container = styled.div`
       border-radius: 6px;
     }
 
-    color: white;
-    background-color: #201E3E;
+    color: ${props => props.theme.dialog.textColor};
+    background-color: ${props => props.theme.dialog.backgroundColor};
     overflow: hidden;
     box-shadow: 8px 8px 24px 0px rgba(0, 0, 0, 1);
 `

@@ -26,11 +26,11 @@ const ButtonContainer = styled.div`
   display: flex;
 
   &:hover {
-    background-color: ${splitButton.backgroundHoverColor};
+    background-color: ${props => props.theme.menu.splitButtonBackgroundColor};
   }
 
   .open &, .open:hover & {
-    background-color: ${splitButton.backgroundActiveColor};
+    background-color: ${props => props.theme.menu.activeBackgroundColor};
   }
 `
 
@@ -46,7 +46,7 @@ const ChevronContainer = styled.div`
   box-sizing: border-box;
 
   &:hover {
-    background-color: ${splitButton.buttonHoverColor};
+    background-color: ${props => props.theme.menu.activeBackgroundHoverColor};
   }
   
   & svg {
@@ -61,7 +61,7 @@ const OptionsContainer = styled.div<{top: number}>`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: ${splitButton.backgroundActiveColor};
+  background-color: ${props => props.theme.menu.activeBackgroundColor};
   padding: ${splitButton.menuPadding}px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
@@ -79,16 +79,16 @@ const Option = styled.div`
   grid-gap: ${buttonOption.basePadding * 2}px;
 
   &:hover {
-    background-color: ${buttonOption.backgroundActiveColor};
+    background-color: ${props => props.theme.menu.activeBackgroundHoverColor};
   }
 
   &.active {
     button {
-      color: ${buttonOption.fillActiveColor};
+      color: ${props => props.theme.menu.textActiveColor};
     }
     
     & path, & circle {
-      fill: ${buttonOption.fillActiveColor};
+      fill: ${props => props.theme.icons.activeColor};
     }
   }
 

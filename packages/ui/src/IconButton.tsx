@@ -4,6 +4,10 @@ import { Icon } from "./Icon";
 
 const Button = styled.button`
   display: contents;
+  &>div:hover, &>div:focus {
+      background-color: ${props => props.theme.icons.backgroundHoverColor };
+      cursor: pointer;
+    }
 `
 
 interface IconButtonProps {

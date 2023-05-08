@@ -82,7 +82,7 @@ class ChartUI extends React.Component {
     const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
 
     return (
-      <Theme>
+      <Theme theme={this.props.theme}>
         <Container ref={this.containerRef} className="UI-container">
           <WrapperOuter className="wrapperOuter">
             <ContainerOffsetContext.Provider value={this.containerOffset}>

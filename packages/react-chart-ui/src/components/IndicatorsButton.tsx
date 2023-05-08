@@ -6,9 +6,9 @@ import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
 import styled from "styled-components";
 import { Portal } from 'react-portal';
+import { Icon } from "ui/src/Icon";
 
 const IndicatorsText = styled.span`
-  padding-left: 6px;
   @media (max-width: 600px) {
     display: none;
   }
@@ -74,7 +74,7 @@ export const IndicatorsButton = (props) => {
   return (
     <>
       <TextButton onClick={onClick}>
-        <Indicators/> <IndicatorsText>Indicators</IndicatorsText>
+        <Icon style={{ marginLeft: -6 }}><Indicators/></Icon> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
       <Portal node={getPortalNode()}>
         <Modal
