@@ -157,11 +157,17 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       const input = config.inputs[i];
       if (input === null || input === undefined) return false;
     }
+    // TODO: add better form validation, indicate to the user what to do to make it valid.
+    return true;
   }
 
   const onIndicatorPick = () => {
     const isFormValid = validateForm();
-    if (!isFormValid) return;
+
+    if (!isFormValid) {
+      console.error("Form invalid");
+      return;
+    }
 
     props.chart.addScript(config.key, config);
     props.onClose();
