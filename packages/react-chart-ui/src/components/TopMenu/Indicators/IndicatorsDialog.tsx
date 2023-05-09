@@ -67,11 +67,11 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
       return;
     }
 
-    const queryResult = allIndicators.search(query);
+    const queryResult = allIndicators
+      .search(query)
+      .map(result => result.item)
 
-    setFilteredIndicators(queryResult.map((result) => {
-      return result.item;
-    }));
+    setFilteredIndicators(queryResult);
   };
 
   const onSubmit = (event: React.FormEventHandler<HTMLFormElement>) => {
