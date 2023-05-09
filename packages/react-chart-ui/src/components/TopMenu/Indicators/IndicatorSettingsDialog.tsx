@@ -65,7 +65,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     // input props: type, name, properties { def, max, min }, value
     // input types: integer, double, series, list, boolean, matrix (join, doublecheck, mix), conditional, booleanList, timezone, object
     if (input.type === "integer") {
-      return <Label name={input.name}><TextInput
+      return <Label name={input.name} key={key + 'label'}><TextInput
         key={key}
         placeholder={input.name}
         type="number"
@@ -77,7 +77,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         onChange={(event) => {onInputChange(key, event.target.value)}}
       ></TextInput></Label>
     } else if (input.type === "double") {
-      return <Label name={input.name}><TextInput
+      return <Label name={input.name} key={key + 'label'}><TextInput
         key={key}
         placeholder={input.name}
         type="number"
@@ -113,7 +113,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         return options;
       }
 
-      return <Label name={input.name}>
+      return <Label name={input.name} key={key + 'label'}>
         <Select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
           {renderOptions()}
         </Select>
@@ -134,13 +134,13 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         return options;
       }
 
-      return <Label name={input.name}>
+      return <Label name={input.name} key={key + 'label'}>
         <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
           {renderOptions()}
         </select>
       </Label>
     } else if (input.type === "boolean") {
-      return <Label name={input.name}><CheckboxInput
+      return <Label name={input.name} key={key + 'label'}><CheckboxInput
         key={key}
         value={config.inputs[key].value}
         onChange={(event) => {onInputChange(key, event.target.checked)}}
