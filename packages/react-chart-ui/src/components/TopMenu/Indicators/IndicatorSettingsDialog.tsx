@@ -83,6 +83,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         type="number"
         min={input?.properties?.min}
         max={input?.properties?.max}
+        step={input?.properties?.step}
         allowEmpty={false}
         value={config.inputs[key].value}
         onChange={(event) => {onInputChange(key, event.target.value)}}
