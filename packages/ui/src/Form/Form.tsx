@@ -4,6 +4,7 @@ import styled from "styled-components";
 interface FormProps {
   children?: JSX.Element|JSX.Element[]
   style?: React.CSSProperties
+  onSubmit: React.FormEventHandler<HTMLFormElement> | undefined
 }
 
 const StyledForm = styled.form`
@@ -19,7 +20,7 @@ const StyledForm = styled.form`
 
 export const Form = (props: FormProps) => {
 
-  return <StyledForm style={props.style}>
+  return <StyledForm style={props.style} onSubmit={props.onSubmit}>
     {props.children}
   </StyledForm>;
 };

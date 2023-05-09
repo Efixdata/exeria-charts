@@ -157,7 +157,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       const input = config.inputs[i];
       if (input === null || input === undefined) return false;
     }
-    // TODO: add better form validation, indicate to the user what to do to make it valid.
+    // TODO: add better form validation, indicate to the user what to do to make
     return true;
   }
 
@@ -176,15 +176,25 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   return (
     <>
       <DialogContainer style={props.style}>
-        <DialogHeader>{`${props.indicator.title}`}<TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
-        
-        <DialogBody style={{ padding: "20px"}}>
-        {renderDialogBody()}
-        </DialogBody>
-        <DialogFooter style={{ margin: "10px"}}><TextButton style={{marginLeft: "auto", padding: "24px"}} onClick={onIndicatorPick}>OK</TextButton></DialogFooter>
-    </DialogContainer>
+        <DialogHeader>
+          {`${props.indicator.title}`}
+          <TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}>
+            <X size={24} />
+          </TextButton>
+        </DialogHeader>
 
+        <DialogBody style={{ padding: "20px" }}>
+          {renderDialogBody()}
+        </DialogBody>
+        <DialogFooter style={{ margin: "10px" }}>
+          <TextButton
+            style={{ marginLeft: "auto", padding: "24px" }}
+            onClick={onIndicatorPick}
+          >
+            OK
+          </TextButton>
+        </DialogFooter>
+      </DialogContainer>
     </>
-      
   );
 };

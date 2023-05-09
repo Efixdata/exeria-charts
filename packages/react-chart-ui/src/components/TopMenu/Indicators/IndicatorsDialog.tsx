@@ -74,7 +74,8 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     }));
   };
 
-  const onSubmit = () => {
+  const onSubmit = (event: React.FormEventHandler<HTMLFormElement>) => {
+    event.preventDefault();
     if (filteredIndicators[0]) {
       onIndicatorPick(filteredIndicators[0]);
     }
@@ -83,7 +84,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const renderSearchBar = () => {
     return (<Form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
       <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." style={{width: "100%"}} />
-      <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
+      <MagnifyingGlass size={20} style={{ position: "absolute", right: 39, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
     </Form>);
   }
 
