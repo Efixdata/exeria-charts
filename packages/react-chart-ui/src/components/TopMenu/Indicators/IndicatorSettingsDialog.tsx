@@ -103,18 +103,14 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
           const series = seriesManager[key];
           for (let i in series.labels) {
             const value = series.seriesId + ':' + series.fields[i];
-            if (value === input.value) {
-              options.push(<option key={value} selected value={value}>{series.title}.{series.labels[i]}</option>);
-            } else {
-              options.push(<option key={value} value={value}>{series.title}.{series.labels[i]}</option>);
-            }
+            options.push(<option key={value} value={value}>{series.title}.{series.labels[i]}</option>);
           }
         }
         return options;
       }
 
       return <Label name={input.name} key={key + 'label'}>
-        <Select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+        <Select value={input.value} key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
           {renderOptions()}
         </Select>
       </Label>
@@ -125,17 +121,13 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         for (let key in input.list) {
           const value = input.list[key];
 
-          if (value === input.value) {
-            options.push(<option key={value} selected value={value}>{value}</option>);
-          } else {
-            options.push(<option key={value} value={value}>{value}</option>);
-          }
+          options.push(<option key={value} value={value}>{value}</option>);
         }
         return options;
       }
 
       return <Label name={input.name} key={key + 'label'}>
-        <select key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
+        <select key={key} value={input.value} onChange={(event) => { onInputChange(key, event.target.value) }}>
           {renderOptions()}
         </select>
       </Label>
