@@ -66,6 +66,20 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
+      const id = chart.drawTool({
+        type: "timeRange",
+        editable: false,
+        color: "#14f7ab20",
+        secondaryColor: "#ffffff10",
+        text: "15m",
+        textColor: "white",
+        stamp1: 1663066800000,
+        stamp2: 1661066800000
+      });
+
+      setTimeout(() => {
+        chart.deleteTool(id);
+      }, 10000)
   
       return chart;
   }
@@ -148,7 +162,7 @@ export function WebChartComponent() {
 
   return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={theme}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

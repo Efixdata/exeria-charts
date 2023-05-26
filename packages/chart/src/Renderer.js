@@ -1,7 +1,7 @@
 import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
-import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
+import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 
 const Renderer = function (settings, context, controller) {
@@ -64,6 +64,7 @@ const Renderer = function (settings, context, controller) {
 		EllipseObject.prototype = shape;
 		HorizontalRangeObject.prototype = shape;
 		VerticalRangeObject.prototype = shape;
+		TimeRangeObject.prototype = shape;
 		CycleObject.prototype = shape;
 		BoxObject.prototype = shape;
 		TextObject.prototype = shape;
@@ -85,6 +86,7 @@ const Renderer = function (settings, context, controller) {
 	this.objects['box'] = new BoxObject();
 	this.objects['hRange'] = new HorizontalRangeObject();
 	this.objects['vRange'] = new VerticalRangeObject();
+	this.objects['timeRange'] = new TimeRangeObject();
 	this.objects['cycle'] = new CycleObject();
 	this.objects['textAnnotation'] = new TextObject();
 	this.objects['triangle'] = new TriangleObject();
