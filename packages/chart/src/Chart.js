@@ -9,6 +9,7 @@ import WEBRCP from "./WebRCP";
 import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
 import englishLocale from "./locale/en-US";
+import ToolDrawer from "./ToolDrawer";
 
 export default class Chart {
   containerId;
@@ -22,6 +23,7 @@ export default class Chart {
   objectsManager;
   subscriptionManager;
   theme;
+  toolDrawer;
 
   constructor(options) {
     if (typeof window == undefined) return;
@@ -39,6 +41,7 @@ export default class Chart {
     this.config = { ...this.config, ...options.config };
     this.model = { ...model, ...options.model };
     this.setInstrument(options.instrument);
+    this.toolDrawer = new ToolDrawer(this);
 
     if (options.theme) {
       WEBRCP.utils.colorManager.setTheme(options.theme, options?.themeVariant)
@@ -889,42 +892,4 @@ export default class Chart {
       this.model.panels[i].basis += sub;
     }
 	}
-
-  drawTool(tool) {
-    const toolConfig = {
-      id: LIB.getUniqueId(), 
-      type: tool.type,
-      name: tool.name || 'tool',
-      color: tool.color,
-      secondaryColor: tool.secondaryColor,
-      text: tool.text,
-      textColor: tool.textColor,
-      editable: tool.editable === false ? false : true,
-      width: 2,
-      dash: [0,0],
-      _hit: false,
-      _hitAnchor: null,
-      _hitArrow: null,
-      anchors: []
-    };
-
-    if (tool.type == 'trendLine') {
-        toolConfig.anchors = [ 
-          { prawilnyStamp: tool.stamp2, offset: 0, value: tool.price2, _index: 0, expandable: true, expanded: false, defaultDirection: 'left' },
-          { prawilnyStamp: tool.stamp1, offset: 0, value: tool.price1, _index: 0, expandable: true, expanded: false, defaultDirection: 'right' }
-        ];
-    } else if (tool.type == 'timeRange'){
-				toolConfig.anchors = [ 
-          { prawilnyStamp: tool.stamp2, offset: 0, _index: 0, expandable: true, expanded: false, defaultDirection: 'left' },
-          { prawilnyStamp: tool.stamp1, offset: 0, _index: 0, expandable: true, expanded: false, defaultDirection: 'right' }
-        ];        
-    }
-
-    this.model.panels[0].objects.push(toolConfig);
-    return toolConfig.id;
-  }
-
-  deleteTool(id) {
-    this.onDelete(id);
-  }
 }

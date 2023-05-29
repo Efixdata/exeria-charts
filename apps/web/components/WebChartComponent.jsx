@@ -66,20 +66,20 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
-      const id = chart.drawTool({
-        type: "timeRange",
+      const futureTimeRangeId = chart.toolDrawer.drawFutureTimeRange(
+        18000000,
+        {
         editable: false,
         color: "#14f7ab20",
         secondaryColor: "#ffffff10",
-        text: "15m",
+        text: "5h",
         textColor: "white",
-        stamp1: 1663066800000,
-        stamp2: 1661066800000
       });
 
       setTimeout(() => {
-        chart.deleteTool(id);
-      }, 10000)
+        
+        chart.toolDrawer.deleteTool(futureTimeRangeId);
+      }, 1000)
   
       return chart;
   }
