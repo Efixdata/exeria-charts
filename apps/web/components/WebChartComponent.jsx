@@ -66,20 +66,22 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
-      const futureTimeRangeId = chart.toolDrawer.drawFutureTimeRange(
-        18000000,
-        {
-        editable: false,
-        color: "#14f7ab20",
-        secondaryColor: "#ffffff10",
+      const timeRangeId = chart.toolDrawer.drawTimeRange({
+        startTime: 1663027200000,
+        timeRange: 18000000,
         text: "5h",
-        textColor: "white",
+        config:  {
+          editable: false,
+          color: "#14f7ab20",
+          secondaryColor: "#ffffff10",
+          textColor: "white",
+        }
       });
 
-      setTimeout(() => {
+      // setTimeout(() => {
         
-        chart.toolDrawer.deleteTool(futureTimeRangeId);
-      }, 1000)
+      //   chart.toolDrawer.deleteTool(futureTimeRangeId);
+      // }, 1000)
   
       return chart;
   }

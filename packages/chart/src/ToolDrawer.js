@@ -31,23 +31,24 @@ export default class ToolDrawer {
     return config.id;
   }
 
-  drawTrendLine(stamp1, stamp2, price1, price2, options = {}) {
-    const config = {
+  drawTrendLine(initialOptions = {}) {
+    const formattedConfig = {
+      ...initialOptions.config,
       type: "trendLine",
       anchors: [
         {
-          prawilnyStamp: stamp2,
+          prawilnyStamp: initialOptions.startStamp,
           offset: 0,
-          value: price2,
+          value: initialOptions.startPrice,
           _index: 0,
           expandable: true,
           expanded: false,
           defaultDirection: "left",
         },
         {
-          prawilnyStamp: stamp1,
+          prawilnyStamp: initialOptions.endStamp,
           offset: 0,
-          value: price1,
+          value: initialOptions.endPrice,
           _index: 0,
           expandable: true,
           expanded: false,
@@ -56,34 +57,21 @@ export default class ToolDrawer {
       ],
     };
 
-    return this.drawTool({ ...config, ...options });
+    return this.drawTool(formattedConfig);
   }
 
-  drawTimeRange(stamp1, stamp2, options) {
-    const config = {
+  drawTimeRange(initialOptions) {
+    const formattedConfig = {
+      ...initialOptions.config,
       type: "timeRange",
-      anchors: [
-        {
-          prawilnyStamp: stamp1,
-        },
-        {
-          prawilnyStamp: stamp2,
-        },
-      ],
+      text: initialOptions.text,
+      startTime: initialOptions.startTime,
+      timeRange: initialOptions.timeRange,
     };
 
-    return this.drawTool({ ...config, ...options });
+    return this.drawTool(formattedConfig);
   }
-
-  drawFutureTimeRange(period, options) {
-    const config = {
-      type: "futureTimeRange",
-      period: period
-    };
-
-    return this.drawTool({ ...config, ...options });
-  }
-
+ 
   deleteTool(id) {
     this.chart.onDelete(id);
   }
