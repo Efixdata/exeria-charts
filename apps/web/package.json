@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@dexer-io/chart": "*",
+    "@dexer-io/react-chart-ui": "*",
     "next": "^12.3.4",
     "react": "17.0.2",
     "react-chart": "*",

@@ -30,12 +30,12 @@ align-items: center;
 
 const Container = styled.div`
   box-sizing: border-box;
-  background-color: #100c22;
   display: flex;
   flex-direction: row;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: ${props => props.theme.background || "#100c22"};
+  border-bottom: ${props => props.theme.border || "1px solid rgba(255, 255, 255, 0.1)"};
 `
 const LeftSection = styled.div`
   display: flex;
@@ -60,7 +60,6 @@ export const TopMenu = (props: TopMenuProps) => {
   };
   
   return (
-    // @ts-ignore
     <Container style={props.style}>
       <LeftSection>
         <MainChartTypeSelect chart={props.chart} />

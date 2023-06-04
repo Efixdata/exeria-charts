@@ -11,7 +11,7 @@ const Button = styled.button`
   outline: none;
   margin: 0;
   padding: ${textButton.buttonPadding}px ${textButton.buttonPadding * 2}px;
-  color: ${textButton.textColor};
+  color:  ${props => props.theme.menu.textColor };
   min-width: ${textButton.buttonSize}px;
   min-height: ${textButton.buttonSize}px;
   border-radius: ${textButton.borderRadius}px;
@@ -22,11 +22,11 @@ const Button = styled.button`
 
   &:hover {
     cursor: pointer;
-    background-color: ${textButton.backgroundActiveColor};
+    background-color:  ${props => props.theme.menu.hoverBackgroundColor };
   }
 
   &.active {
-    color: ${textButton.textActiveColor};
+    color: ${props => props.theme.menu.textActiveColor };
   }
 `
 

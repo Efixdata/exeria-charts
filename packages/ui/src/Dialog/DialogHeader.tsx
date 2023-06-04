@@ -6,8 +6,8 @@ const Header = styled.div`
     flex-direction: row;
     align-items: center;
     padding: 24px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #7F9DCC;
+    border-bottom: 1px solid ${props => props.theme.dialog.dividerColor};
+    color: ${props => props.theme.dialog.titleColor};
     font-size: 14px;
 `
 

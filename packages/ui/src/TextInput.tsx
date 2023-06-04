@@ -11,9 +11,9 @@ interface TextInputProps {
 }
 
 const Input = styled.input`
-    color: white;
+    color: ${props => props.theme.inputs.textColor};
     font-size: 13px;
-    background-color: #0F0C22;
+    background-color: ${props => props.theme.inputs.backgroundColor};
     height: 30px;
     border-radius: 30px;
     border: none;
@@ -25,7 +25,7 @@ const Input = styled.input`
     box-sizing: initial;
 
     &::placeholder {
-        color: #c3c2cc80;
+      color: ${props => props.theme.inputs.placeholderColor};
     }
 `
 

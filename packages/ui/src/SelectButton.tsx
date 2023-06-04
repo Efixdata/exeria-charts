@@ -23,14 +23,6 @@ const ButtonContainer = styled.div`
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
-
-  &:hover {
-    background-color: ${selectButton.backgroundHoverColor};
-  }
-
-  .open &, .open:hover & {
-    background-color: ${selectButton.backgroundActiveColor};
-  }
 `
 
 const OptionsContainer = styled.div`
@@ -39,7 +31,7 @@ const OptionsContainer = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: ${selectButton.backgroundActiveColor};
+  background-color: ${props => props.theme.menu.activeBackgroundColor };
   padding: 4px 0;
   position: absolute;
   top: calc(-${buttonOption.basePadding}px - 4px);
@@ -57,16 +49,16 @@ const Option = styled.div`
   grid-gap: ${buttonOption.basePadding * 2}px;
 
   &:hover {
-    background-color: ${buttonOption.backgroundActiveColor};
+    background-color:${props => props.theme.menu.activeBackgroundHoverColor };
   }
 
   &.active {
     button {
-      color: ${buttonOption.fillActiveColor};
+      color: ${props => props.theme.menu.textActiveColor };
     }
     
     & path, & circle {
-      fill: ${buttonOption.fillActiveColor};
+      fill: ${props => props.theme.icons.activeColor };
     }
   }
 

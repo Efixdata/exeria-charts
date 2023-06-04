@@ -2341,7 +2341,7 @@ chardet@^0.7.0:
 
 chart@*:
   version "0.1.2"
-  resolved "https://npm.efixdata.pl:4873/chart/-/chart-0.1.2.tgz"
+  resolved "https://registry.yarnpkg.com/chart/-/chart-0.1.2.tgz#69d9e916c26a8bed85b29df802c763ab5297d318"
   integrity sha512-MSiVzAd3qUEXv54k9KGe1oIoC7WG32W9wtjpovlTGlzo2ue/fRiHf7kJAK1zmD736jH/0fVWNCQLh41btfAEZQ==
   dependencies:
     hashish ""
@@ -2414,8 +2414,8 @@ clone@^1.0.2:
 
 color-convert@0.2.x:
   version "0.2.1"
-  resolved "https://npm.efixdata.pl:4873/color-convert/-/color-convert-0.2.1.tgz"
-  integrity sha1-NjyrI8lLMaDWTbcQSLjGqUD4xow=
+  resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-0.2.1.tgz#363cab23c94b31a0d64db71048b8c6a940f8c68c"
+  integrity sha512-FWbwpCgyRV41Vml0iKU9UmL0dVTKORnm7ZC8h8cdfvutk2bU7ZcMLtSleggScK/IpUVXILg9Pw86LhPUQyTaVg==
 
 color-convert@^1.9.0:
   version "1.9.3"
@@ -3597,14 +3597,14 @@ has@^1.0.3:
 
 hashish@:
   version "0.0.4"
-  resolved "https://npm.efixdata.pl:4873/hashish/-/hashish-0.0.4.tgz"
+  resolved "https://registry.yarnpkg.com/hashish/-/hashish-0.0.4.tgz#6d60bc6ffaf711b6afd60e426d077988014e6554"
   integrity sha512-xyD4XgslstNAs72ENaoFvgMwtv8xhiDtC2AtzCG+8yF7W/Knxxm9BX+e2s25mm+HxMKh0rBmXVOEGF3zNImXvA==
   dependencies:
     traverse ">=0.2.4"
 
 hat@:
   version "0.0.3"
-  resolved "https://npm.efixdata.pl:4873/hat/-/hat-0.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/hat/-/hat-0.0.3.tgz#bb014a9e64b3788aed8005917413d4ff3d502d8a"
   integrity sha512-zpImx2GoKXy42fVDSEad2BPKuSQdLcqsCYa48K3zHSzM/ugWuYjLDr8IXxpVuL7uCLHw56eaiLxCRthhOzf5ug==
 
 hoist-non-react-statics@^3.0.0, hoist-non-react-statics@^3.3.0:
@@ -5695,9 +5695,9 @@ toidentifier@1.0.1:
   integrity sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==
 
 traverse@>=0.2.4:
-  version "0.6.6"
-  resolved "https://npm.efixdata.pl:4873/traverse/-/traverse-0.6.6.tgz"
-  integrity sha1-y99WD9e5r2MlAv7UD5GMFX6pcTc=
+  version "0.6.7"
+  resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.6.7.tgz#46961cd2d57dd8706c36664acde06a248f1173fe"
+  integrity sha512-/y956gpUo9ZNCb99YjxG7OaslxZWHfCHAUUfshwqOXmxUIvqLjVO581BT+gM59+QV9tFe6/CGG53tsA1Y7RSdg==
 
 trim-newlines@^3.0.0:
   version "3.0.1"

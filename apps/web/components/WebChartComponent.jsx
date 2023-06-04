@@ -66,6 +66,22 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
+      const timeRangeId = chart.toolDrawer.drawTimeRange({
+        startTime: 1663027200000,
+        timeRange: 18000000,
+        text: "5h",
+        config:  {
+          editable: false,
+          color: "#14f7ab20",
+          secondaryColor: "#ffffff10",
+          textColor: "white",
+        }
+      });
+
+      // setTimeout(() => {
+        
+      //   chart.toolDrawer.deleteTool(futureTimeRangeId);
+      // }, 1000)
   
       return chart;
   }
@@ -106,6 +122,45 @@ export function WebChartComponent() {
       chart.setMainSeriesData(getCandles(skyrocketData1h, 0.0000001), { symbol: "1h", milis: 2700000 });
     }
   };
+
+  const theme = {
+    background: "blue",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    accentColor: "green",
+    icons: {
+        color: "white",
+        activeColor: "red",
+        groupBackgroundColor: "purple",
+        backgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+    },
+    menu: {
+        hoverBackgroundColor: "pink",
+        splitButtonBackgroundColor: "black",
+        activeBackgroundColor: "#888",
+        activeBackgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+        textColor: "white",
+        textActiveColor: "red"
+    },
+    dialog: {
+        backgroundColor: "#333",
+        titleColor: "white",
+        textColor: "white",
+        dividerColor: "rgba(255, 255, 255, 0.1)",
+        itemTitleColor: "white",
+        itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
+        itemHoverBackgroundColor: "rgba(255, 255, 255, 0.1)"
+    },
+    inputs: {
+        backgroundColor: "black",
+        placeholderColor: "grey",
+        textColor: "white",
+    },
+    scrollBar: {
+        trackColor: "rgba(255, 255, 255, 0.02)",
+        thumbColor: "rgba(255, 255, 255, 0.1)",
+        thumbHoverColor: "tomato",
+  }
+}
 
   return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>

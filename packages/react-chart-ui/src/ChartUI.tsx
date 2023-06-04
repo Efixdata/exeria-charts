@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu";
 import { TopMenu } from "./components/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
+import {Theme, ThemeObject} from "ui";
 
 interface ChartUIProps {
   chart: any;
@@ -13,6 +14,7 @@ interface ChartUIProps {
   topMenuHeight?: string;
   loading?: boolean;
   onIntervalChange?: (symbol: string) => void;
+  theme?: ThemeObject;
 }
 
 const Container = styled.div`
@@ -80,17 +82,19 @@ class ChartUI extends React.Component {
     const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
 
     return (
-      <Container ref={this.containerRef} className="UI-container">
-        <WrapperOuter className="wrapperOuter">
-          <ContainerOffsetContext.Provider value={this.containerOffset}>
-            <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-            <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight})`}>
-              <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-              <div style={{ position: 'absolute', inset: `${topMenuHeight} 0 0 ${leftMenuWidth}` }}>{this.props.children}</div>
-            </WrapperInner>
-          </ContainerOffsetContext.Provider>
-        </WrapperOuter>
-      </Container>
+      <Theme theme={this.props.theme}>
+        <Container ref={this.containerRef} className="UI-container">
+          <WrapperOuter className="wrapperOuter">
+            <ContainerOffsetContext.Provider value={this.containerOffset}>
+              <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange} />
+              <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight})`}>
+                <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
+                <div style={{ position: 'absolute', inset: `${topMenuHeight} 0 0 ${leftMenuWidth}` }}>{this.props.children}</div>
+              </WrapperInner>
+            </ContainerOffsetContext.Provider>
+          </WrapperOuter>
+        </Container>
+      </Theme>
     );
   }
 

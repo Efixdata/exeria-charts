@@ -3,8 +3,8 @@ import styled from "styled-components";
 import { iconButton } from "../theme"; 
 
 const IconContainer = styled.div`
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
   background-color: transparent;
   border: none;
   outline: none;
@@ -14,14 +14,13 @@ align-items: center;
   height: ${iconButton.buttonSize}px;
   border-radius: ${iconButton.borderRadius}px;
 
-  &:hover, &.focus {
-    background-color: ${iconButton.backgroundActiveColor};
-    cursor: pointer;
+  path, circle {
+    fill: ${props => props.theme.icons.color };
   }
 
   &.active {
     path, circle {
-      fill: ${iconButton.iconActiveColor};
+      fill: ${props => props.theme.icons.activeColor };
     }
   }
 
