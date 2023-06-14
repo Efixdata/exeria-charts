@@ -848,7 +848,7 @@ const Renderer = function (settings, context, controller) {
 			ctx.fill();
 
 			ctx.fillStyle = textColor;
-			const vp1 = v1;
+			let vp1 = v1;
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = LIB._converterLog.axisToReal(v1,1);
 			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
 			renderPriceText({
@@ -935,7 +935,7 @@ const Renderer = function (settings, context, controller) {
 			var labelUp = (Math.abs((rv1-rv2)/v2)*100).toFixed(2)+"%";
 			var label = (Math.abs(rv1-rv2)).toFixed(this.getPrecision(model, panel));
 
-			const vp2 = v2
+			let vp2 = v2
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = LIB._converterLog.axisToReal(v2,1);
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
 

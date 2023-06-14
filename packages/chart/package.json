@@ -1,6 +1,6 @@
 {
   "name": "@dexer-io/chart",
-  "version": "0.1.16",
+  "version": "0.2.2",
   "description": "Chart",
   "main": "src/index.js",
   "publishConfig": {
