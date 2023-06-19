@@ -8459,7 +8459,7 @@ FUSION.scripts['FISHERTRANSFORM'] = {
                 var max = FUSION.lib.getMax(this.PRICE, index, this.PERIODS);
                 var min = FUSION.lib.getMin(this.PRICE, index, this.PERIODS);
 
-                x = round(.66 * ((price - min) / Math.max(max - min, 0.001) - .5) + .67 * this.X.getValue(index - 1));
+                var x = round(.66 * ((price - min) / Math.max(max - min, 0.001) - .5) + .67 * this.X.getValue(index - 1));
                 this.X.setValue(index, x);
 
                 var fisherTransform = 0.5 * Math.log((1 + x) / Math.max(1 - x, 0.001)) + 0.5 * this.FISHERTRANSFORM.getValue(index - 1);

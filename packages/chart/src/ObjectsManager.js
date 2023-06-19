@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { Shape } from "./Objects2";
 

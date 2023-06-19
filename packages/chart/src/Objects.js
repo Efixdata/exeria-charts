@@ -622,7 +622,7 @@ var SeriesObject	=	function () {
 
 	this.renderAsLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
 
-		var indexX = 0; var valueY = 0; var midX = 0; var lastX = 0; let value = 0;
+		var indexX = 0; var valueY = 0; var midX = 0;
 
 		var stroke = o.color;
 
@@ -663,10 +663,6 @@ var SeriesObject	=	function () {
 			} else {
 				ctx.lineTo (midX, valueY);
 			}
-
-
-			lastX = indexX;
-
 		}
 
 		ctx.stroke();
@@ -1676,7 +1672,7 @@ var IndicatorObject	=	function () {
 			
 			
 			if (midX-lastX>=50) {
-				if(i == seriesManager[link].data.length-1 )
+				if(i == seriesManager[o.dataLink].data.length-1 )
 					midX = indexX+parseInt(model._midOffset*2);
 
 					ctx.beginPath();
@@ -2563,7 +2559,6 @@ var FractalsObject = function() {
 			}
 
 			ctx.fill();
-			lastX = midX;
 		}
 
 		ctx.restore();
@@ -2829,7 +2824,7 @@ var TradeObject = class TradeObject {
 			interactor.doCloseTradeObject(o);
 
 		}else if(o.modified){
-			if (o.parentId) var p = getTradeObjectById(o.parentId, model);
+			if (o.parentId) var p = this.getTradeObjectById(o.parentId, model);
 			interactor.doModifyTradeObject(o, p);
 
 		}else if(o.relatedAllowed && o.related){

@@ -281,10 +281,6 @@ export default class Chart {
           continue;
 
         if (!this.fusion.getMainSeries() || !this.fusion.getMainSeries().data) {
-          log.trace(
-            "Update extreme on object ommited: main series not loaded yet!",
-            panel.objects[i]
-          );
           continue;
         }
         var ext = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
@@ -398,7 +394,7 @@ export default class Chart {
     });
   }
 
-  async setMainSeriesData(data, interval) {
+  async setMainSeriesData(data, interval, moveToEnd = true) {
     if (!this.fusion) return;
 
     const mainSeries = this.fusion.getMainSeries();
@@ -412,7 +408,7 @@ export default class Chart {
 
     try {
       await this.recalculateScripts({ rerender: false });
-      this.moveToEnd({ rerender: false });
+      if (moveToEnd) this.moveToEnd({ rerender: false });
       this.rerender();
     } catch (error) {
       console.error(error);

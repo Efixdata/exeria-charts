@@ -86,7 +86,7 @@ LIB.getOHLCSeriesWrapper = function (series) {
 			return series.data[index]['i'] = value;
 		},
 		getStamp: function (index) {
-			return series.data[index]['stamp'] = value;
+			return series.data[index]['stamp'];
 		},
 		setStamp: function (index, value) {
 			return series.data[index]['stamp'] = value;
@@ -95,7 +95,7 @@ LIB.getOHLCSeriesWrapper = function (series) {
 			return series.data.length;
 		},
 		getValue: function (index) {
-			return getClose(index);
+			return this.getClose(index);
 		},
 		update: function (tick) {
 			console.log("Update ohlcv series", tick);
@@ -388,7 +388,7 @@ LIB.ValueConverterPerc = function(){
 		try{
 			return 100+ 100*(rV-fV)/fV;
 		}catch(err){
-			console.error("ValueConverterPerc->realToAxis:"+error);
+			console.error("ValueConverterPerc->realToAxis:"+err);
 			return 0;
 		}
 	}
@@ -397,7 +397,7 @@ LIB.ValueConverterPerc = function(){
 		try{
 			return aV*fV/100;
 		}catch(err){
-			console.error("ValueConverterPerc->axisToreal:"+error);
+			console.error("ValueConverterPerc->axisToreal:"+err);
 			return 0;
 		}
 	}
@@ -413,7 +413,7 @@ LIB.ValueConverterLog = function(){
 			else
 				return v;
 		}catch(err){
-			console.error("ValueConverterLog->realToAxis:"+error);
+			console.error("ValueConverterLog->realToAxis:"+err);
 			return 0;
 		}
 	}
@@ -426,7 +426,7 @@ LIB.ValueConverterLog = function(){
 			else
 				return v;
 		}catch(err){
-			console.error("ValueConverterLog->axisToreal:"+error);
+			console.error("ValueConverterLog->axisToreal:"+err);
 			return 0;
 		}
 	}

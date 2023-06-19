@@ -649,17 +649,17 @@ export default function WebRCPUtils () {
               return transformed;
           };
 
-          SERVICES.datasource.getMixedBrokerInstruments(instruments)
-              .then((newInstruments) => {          
-                  if (transformToReplacedInstruments(newInstruments)) {
-                      this.showReplaceInstrumentsDialog(this.extractInstrumentsSymbols(instruments), newInstruments, onSuccess, onError, quickhide);
-                  } else {
-                      onSuccess(this.transformInstruments(newInstruments));
-                  }
-              })
-              .catch(() => {
-                  this.showReplaceInstrumentsDialog(this.extractInstrumentsSymbols(instruments), [], onSuccess, onError, quickhide, replacementInfo);
-              });
+        //   SERVICES.datasource.getMixedBrokerInstruments(instruments)
+        //       .then((newInstruments) => {          
+        //           if (transformToReplacedInstruments(newInstruments)) {
+        //               this.showReplaceInstrumentsDialog(this.extractInstrumentsSymbols(instruments), newInstruments, onSuccess, onError, quickhide);
+        //           } else {
+        //               onSuccess(this.transformInstruments(newInstruments));
+        //           }
+        //       })
+        //       .catch(() => {
+        //           this.showReplaceInstrumentsDialog(this.extractInstrumentsSymbols(instruments), [], onSuccess, onError, quickhide, replacementInfo);
+        //       });
       };
 
       this.checkChartModel = function (originalModel, onSuccess, onError) {

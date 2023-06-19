@@ -258,7 +258,7 @@ function Shape(){
 			anchor.expanded = !anchor.expanded;
 	};
 
-	this.isValid = function(){
+	this.isValid = function(o){
 		for(var k in o.anchors){
 			if(o.anchors[k]._index < 0) return false;
 			if(o.anchors[k].stamp - o.anchors[k].offset <= 0) return false;
@@ -3530,9 +3530,9 @@ function TimeRangeObject() {
 		if (o.startTime === "now" && typeof o.timeRange === "number") {
 			var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
 			var lastIndex = seriesManager[model.mainSeries].data.length-1;
-
-			startStamp = lastStamp;
-			endStamp = lastStamp + o.timeRange;
+			const now = Date.now();
+			startStamp = now;
+			endStamp = now + o.timeRange;
 
 			pts[0] = {
 				x: renderer.getIndexPoint(lastIndex, model) + model.periodWidth / 2,
@@ -3560,6 +3560,10 @@ function TimeRangeObject() {
 			stamp: endStamp
 		};
 
+		if (pts[1].x === pts[0].x) {
+			pts[1].x += 1;
+			pts[0].x -= 2;
+		}
 		return pts;
 		
 	}

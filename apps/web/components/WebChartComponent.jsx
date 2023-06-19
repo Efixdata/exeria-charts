@@ -68,7 +68,7 @@ const getChartLibrary = (containerElement) => {
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
       const timeRangeId = chart.toolDrawer.drawTimeRange({
         startTime: 1663027200000,
-        timeRange: 18000000,
+        timeRange: 1,
         text: "5h",
         config:  {
           editable: false,

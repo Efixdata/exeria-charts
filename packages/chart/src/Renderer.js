@@ -198,7 +198,7 @@ const Renderer = function (settings, context, controller) {
 		for (var i = 0; i < panel.objects.length; i++) {
 			let object = panel.objects[i];
 
-			if (object.isValid && !object.isValid()) continue;
+			if (object.isValid && !object.isValid(object)) continue;
 			if (object.permHide) object.hidden = true;
 			if (object.hidden && object.hidden === true) continue;
 			if (object.isBeingDragged) continue;
@@ -1123,7 +1123,8 @@ const Renderer = function (settings, context, controller) {
 				if(s > stamp && s < stamp+intervalInMilis) return i;
 			}
 		}
-		return i + Math.round( (s-stamp) / seriesManager[model.mainSeries].interval.milis);
+		stamp += intervalInMilis;
+		return i + Math.floor( (s-stamp) / seriesManager[model.mainSeries].interval.milis);
 	};
 
 
