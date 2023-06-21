@@ -35,7 +35,12 @@ const Container = styled.div`
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   background: ${props => props.theme.background || "#100c22"};
-  border-bottom: ${props => props.theme.border || "1px solid rgba(255, 255, 255, 0.1)"};
+
+  border-bottom: ${props => props.theme.border.inner || "none"};
+  border-left: ${props => props.theme.border.outter || "none"};
+  border-right: ${props => props.theme.border.outter || "none"};
+  border-top: ${props => props.theme.border.outter || "none"};
+  border-radius: ${props => props.theme.border.radius + 'px' || 0};
 `
 const LeftSection = styled.div`
   display: flex;

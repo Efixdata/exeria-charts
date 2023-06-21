@@ -123,48 +123,63 @@ export function WebChartComponent() {
     }
   };
 
-  const theme = {
-    background: "blue",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    accentColor: "green",
+  const blueLight = '#21C1F2';
+  const blue = '#1EA1CD';
+  const whiteTransparent = 'rgba(255,255,255,0.1)';
+  const white = '#fff';
+  const greenLight = '#3CC3AF';
+  const green = '#25AD98';
+  const greenDark = '#1f9e8b';
+  const red = '#ce3e5b';
+  const redDark = '#af1d57';
+
+  const swipperTheme = {
+    background: 'transparent',
+    border: {
+      inner: '1px solid rgba(255,255,255,0.1)',
+      outter: '1px solid rgba(255,255,255,0.1)',
+      radius: 6
+    },
+    gap: 8,
+    accentColor: greenLight,
     icons: {
-        color: "white",
-        activeColor: "red",
-        groupBackgroundColor: "purple",
-        backgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+      color: white,
+      activeColor: greenLight,
+      groupBackgroundColor: 'rgba(255, 255, 255, 0.05)',
+      backgroundHoverColor: 'rgba(255, 255, 255, 0.1)',
     },
     menu: {
-        hoverBackgroundColor: "pink",
-        splitButtonBackgroundColor: "black",
-        activeBackgroundColor: "#888",
-        activeBackgroundHoverColor: "rgba(255, 255, 255, 0.1)",
-        textColor: "white",
-        textActiveColor: "red"
+      hoverBackgroundColor: 'rgba(255, 255, 255, 0.1)',
+      splitButtonBackgroundColor: blue,
+      activeBackgroundColor: blue,
+      activeBackgroundHoverColor: 'rgba(255, 255, 255, 0.1)',
+      textColor: 'purple',
+      textActiveColor: greenLight,
     },
     dialog: {
-        backgroundColor: "#333",
-        titleColor: "white",
-        textColor: "white",
-        dividerColor: "rgba(255, 255, 255, 0.1)",
-        itemTitleColor: "white",
-        itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
-        itemHoverBackgroundColor: "rgba(255, 255, 255, 0.1)"
+      backgroundColor: blue,
+      titleColor: 'white',
+      textColor: 'white',
+      dividerColor: 'rgba(255, 255, 255, 0.1)',
+      itemTitleColor: 'white',
+      itemSubTitleColor: 'rgba(255, 255, 255, 0.7)',
+      itemHoverBackgroundColor: 'rgba(255, 255, 255, 0.2)',
     },
     inputs: {
-        backgroundColor: "black",
-        placeholderColor: "grey",
-        textColor: "white",
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      placeholderColor: 'rgba(255, 255, 255, 0.5)',
+      textColor: 'white',
     },
     scrollBar: {
-        trackColor: "rgba(255, 255, 255, 0.02)",
-        thumbColor: "rgba(255, 255, 255, 0.1)",
-        thumbHoverColor: "tomato",
+      trackColor: 'rgba(255, 255, 255, 0.02)',
+      thumbColor: 'rgba(255, 255, 255, 0.1)',
+      thumbHoverColor: greenLight,
+    }
   }
-}
 
   return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22'}}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={swipperTheme}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

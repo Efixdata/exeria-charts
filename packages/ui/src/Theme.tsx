@@ -1,9 +1,14 @@
 import React from "react";
 import { ThemeProvider } from "styled-components";
 
-export interface ThemeObject {
+export interface ThemeInterface {
     background: string;
-    border: string;
+    border: {
+        inner?: string;
+        outter?: string;
+        radius?: number;
+    }
+    gap?: number;
     accentColor: string;
     icons: {
         color: string;
@@ -42,12 +47,14 @@ export interface ThemeObject {
 
 interface ThemeProps {
     children: any;
-    theme?: ThemeObject;
+    theme?: ThemeInterface;
 }
 
-const defaultTheme: ThemeObject = {
+const defaultTheme: ThemeInterface = {
     background: "#100c22",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
+    border: {
+        inner: "1px solid rgba(255, 255, 255, 0.1)"
+    },
     accentColor: "#14f7ab",
     icons: {
         color: "#7F9DCC",

@@ -6,7 +6,11 @@ import { DrawingTools } from "./DrawingTools";
 const Container = styled.div`
   box-sizing: border-box;
   background: ${props => props.theme.background || "#100c22"};
-  border-right: ${props => props.theme.border || "#100c22"};
+  border-right: ${props => props.theme.border.inner || "none"};
+  border-left: ${props => props.theme.border.outter || "none"};
+  border-bottom: ${props => props.theme.border.outter || "none"};
+  border-top: ${props => props.theme.border.outter || "none"};
+  border-radius: ${props => props.theme.border.radius + 'px' || 0};
   display: flex;
   flex-direction: column;
   align-items: flex-start;
