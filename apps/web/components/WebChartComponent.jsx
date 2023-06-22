@@ -179,7 +179,7 @@ export function WebChartComponent() {
       arrowOpenColor: swipperBlueLight
     },
     dialog: {
-      backgroundColor: swipperBlue,
+      backgroundColor: '#144869',
       titleColor: 'white',
       textColor: 'white',
       dividerColor: 'rgba(255, 255, 255, 0.1)',
