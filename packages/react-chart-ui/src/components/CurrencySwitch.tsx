@@ -1,5 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 import {useEffect, useState} from "react";
+import styled from "styled-components";
+
+const Currency = styled.div`
+    color: ${props => props.theme.toolbar.buttons.color}
+}`
 
 interface CurrencySwitchProps {
   chart: any;
@@ -21,7 +26,7 @@ export const CurrencySwitch = (props: CurrencySwitchProps) => {
 
     return ( 
         <div style={{ width: valueAxisWidth, borderLeft: "1px solid rgba(255, 255, 255, 0.1)", display: "flex", alignItems: "center"}}>
-            <div style={{ color: "#7f9dcc", marginLeft: "auto", marginRight: "8px" }}>{props?.chart?.getCurrency()}</div>
+            <Currency style={{marginLeft: "auto", marginRight: "8px" }}>{props?.chart?.getCurrency()}</Currency>
         </div>
     );
 };
