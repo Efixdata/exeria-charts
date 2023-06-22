@@ -84,7 +84,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
         <DialogHeader>ADD INDICATOR TO CHART<TextButton onClick={props.onClose} style={{ marginLeft: "auto" }}><X size={24}/></TextButton></DialogHeader>
           <form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
             <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." />
-            <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: themeContext.icons.color, opacity: 0.5 }}/>
+            <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: themeContext.buttons.color, opacity: 0.5 }}/>
           </form>
         
         <DialogBody style={{ margin: 12, paddingRight: 12}}>

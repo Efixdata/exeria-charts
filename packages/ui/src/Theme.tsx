@@ -1,4 +1,3 @@
-import React from "react";
 import { ThemeProvider } from "styled-components";
 
 interface buttonProps {
@@ -66,6 +65,7 @@ interface ThemeProps {
 
 const violetDark = '#100c22';
 const violet = '#323b53';
+const violetBg = '#201e3e';
 const violetLight = "#7F9DCC";
 const green = "#14f7ab";
 const transparentWhite = "rgba(255, 255, 255, 0.1)";
@@ -104,13 +104,13 @@ const defaultTheme: ThemeInterface = {
         arrowOpenColor: violetLight
     },
     dialog: {
-        backgroundColor: "red",
-        titleColor: "white",
+        backgroundColor: violetBg,
+        titleColor: violetLight,
         textColor: "white",
-        dividerColor: "rgba(255, 255, 255, 0.1)",
+        dividerColor: transparentWhite,
         itemTitleColor: "white",
         itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
-        itemHoverBackgroundColor: "rgba(255, 255, 255, 0.1)"
+        itemHoverBackgroundColor: transparentWhite
     },
     inputs: {
         backgroundColor: "#0F0C22",
@@ -118,8 +118,8 @@ const defaultTheme: ThemeInterface = {
         textColor: "white",
     },
     scrollBar: {
-        trackColor: "rgba(255, 255, 0.02)",
-        thumbColor: "rgba(255, 255, 0.1)",
+        trackColor: transparentWhite,
+        thumbColor: transparentWhite,
         thumbHoverColor: "#7F9DCC",
     }
 }
