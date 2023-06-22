@@ -17,11 +17,11 @@ export const chartTheme = {
     primaryTextColor: { dark: white },
     disabledTextColor: { dark: 'rgba(255, 255, 255, 0.5)' },
     iconColor: { dark: blueLight },
-    backgroundColor: { dark: 'transparent' },
+    backgroundColor: { dark: '#113D59' },
 
     handlerColor: { dark: whiteTransparent }, // price and time axis line color, panel divider color
-    timeAxisBackground: { dark: 'transparent' },
-    priceAxisBackground: { dark: 'transparent' },
+    timeAxisBackground: { dark: '#113D59' },
+    priceAxisBackground: { dark: '#113D59' },
     timeAxisTextColor: { dark: blue },
     priceAxisTextColor: { dark: blue },
     gridColor: { dark: whiteTransparent },

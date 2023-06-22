@@ -5,7 +5,7 @@ import { DrawingTools } from "./DrawingTools";
 
 const Container = styled.div`
   box-sizing: border-box;
-  background: ${props => props.theme.background || "#100c22"};
+  background: ${props => props.theme.toolbar.background || "#100c22"};
   border-right: ${props => props.theme.border.inner || "none"};
   border-left: ${props => props.theme.border.outter || "none"};
   border-bottom: ${props => props.theme.border.outter || "none"};

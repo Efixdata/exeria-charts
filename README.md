@@ -2,6 +2,8 @@
 
 This is an official Yarn v1 starter turborepo.
 
+## The chart instance is initialized in `apps/web/components`
+
 ## What's inside?
 
 This turborepo uses [Yarn](https://classic.yarnpkg.com/lang/en/) as a package manager. It includes the following packages/apps:

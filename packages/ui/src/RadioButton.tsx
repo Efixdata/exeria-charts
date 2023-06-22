@@ -8,7 +8,7 @@ const Container = styled.div`
   width: fit-content;
   border-radius: ${radioButton.borderRadius}px;
   overflow: hidden;
-  background-color: ${props => props.theme.icons.groupBackgroundColor };
+  background-color: ${props => props.theme.radioButton.background };
   grid-gap: ${radioButton.gap}px;
 `
 

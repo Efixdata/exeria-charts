@@ -134,7 +134,6 @@ export function WebChartComponent() {
   const redDark = '#af1d57';
 
   const swipperTheme = {
-    background: 'transparent',
     border: {
       inner: '1px solid rgba(255,255,255,0.1)',
       outter: '1px solid rgba(255,255,255,0.1)',
@@ -142,19 +141,47 @@ export function WebChartComponent() {
     },
     gap: 8,
     accentColor: greenLight,
-    icons: {
-      color: white,
-      activeColor: greenLight,
-      groupBackgroundColor: 'rgba(255, 255, 255, 0.05)',
-      backgroundHoverColor: 'rgba(255, 255, 255, 0.1)',
+    buttons: {
+      color: 'white',
+      activeColor: 'white',
+      hoverColor: 'white',
+      hoverBackground: 'rgba(255, 255, 255, 0.1)',
     },
-    menu: {
-      hoverBackgroundColor: 'rgba(255, 255, 255, 0.1)',
-      splitButtonBackgroundColor: blue,
-      activeBackgroundColor: blue,
-      activeBackgroundHoverColor: 'rgba(255, 255, 255, 0.1)',
-      textColor: 'purple',
-      textActiveColor: greenLight,
+    radioButton: {
+      background: 'rgba(255, 255, 255, 0.1)',
+      buttons: {
+        color: blue,
+        activeColor: greenLight,
+        hoverColor: blue,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      },
+    },
+    toolbar: {
+      background: '#113D59',
+      buttons: {
+        color: blueLight,
+        activeColor: greenLight,
+        hoverColor: blueLight,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      } 
+    },
+    subMenu: {
+      background: blue,
+      buttons: {
+        color: white,
+        activeColor: greenLight,
+        hoverColor: 'rgba(255, 255, 255, 0.1)',
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      }
+    },
+    splitButton: {
+      openBackground: blue,
+      hoverBackground: blue,
+      openColor: white,
+      hoverColor: white,
+      arrowHoverBackground: 'rgba(255, 255, 255, 0.1)',
+      arrowColor: blueLight,
+      arrowOpenColor: blueLight
     },
     dialog: {
       backgroundColor: blue,

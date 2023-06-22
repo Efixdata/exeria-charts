@@ -18,8 +18,9 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
     if (!instrument) return null;
 
     return [{}, ...instrument.availableIntervals].reduce((previous, current) => {
+      const context = intervalSymbol === current.symbol ? 'toolbar' : 'subMenu';
       previous[current.symbol] = {
-        text: <TextButton>{ current.symbol }</TextButton>,
+        text: <TextButton themeContext={context}>{ current.symbol }</TextButton>,
         id: current.symbol
       }
       return previous;

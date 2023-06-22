@@ -1,29 +1,43 @@
 import React from "react";
 import { ThemeProvider } from "styled-components";
 
+interface buttonProps {
+    color?: string,
+    activeColor?: string,
+    hoverColor?: string,
+    hoverBackground?: string
+}
+
 export interface ThemeInterface {
-    background: string;
-    border: {
+    border?: {
         inner?: string;
         outter?: string;
         radius?: number;
     }
     gap?: number;
-    accentColor: string;
-    icons: {
-        color: string;
-        activeColor: string;
-        groupBackgroundColor: string;
-        backgroundHoverColor: string;
+    accentColor?: string;
+    buttons?: buttonProps;
+    radioButton?: {
+        buttons?: buttonProps;
+        background?: string;
+    }
+    toolbar?: {
+        buttons?: buttonProps;
+        background?: string;
+    }
+    subMenu: {
+        buttons?: buttonProps;
+        background?: string;
     },
-    menu: {
-        hoverBackgroundColor: string;
-        splitButtonBackgroundColor: string;
-        activeBackgroundColor: string;
-        activeBackgroundHoverColor: string;
-        textColor: string;
-        textActiveColor: string; 
-    },
+    splitButton: {
+        openBackground: string;
+        hoverBackground: string;
+        openColor: string;
+        hoverColor: string;
+        arrowHoverBackground: string;
+        arrowColor: string;
+        arrowOpenColor: string;
+    }
     dialog: {
         backgroundColor: string;
         titleColor: string;
@@ -60,7 +74,7 @@ const defaultTheme: ThemeInterface = {
         color: "#7F9DCC",
         activeColor: "#14f7ab",
         groupBackgroundColor: "rgba(255, 255, 255, 0.1)",
-        backgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+        hoverBackground: "rgba(255, 255, 255, 0.1)",
     },
     menu: {
         hoverBackgroundColor: "#555",
