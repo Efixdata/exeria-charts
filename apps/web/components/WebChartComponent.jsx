@@ -123,15 +123,10 @@ export function WebChartComponent() {
     }
   };
 
-  const blueLight = '#21C1F2';
-  const blue = '#1EA1CD';
-  const whiteTransparent = 'rgba(255,255,255,0.1)';
-  const white = '#fff';
-  const greenLight = '#3CC3AF';
-  const green = '#25AD98';
-  const greenDark = '#1f9e8b';
-  const red = '#ce3e5b';
-  const redDark = '#af1d57';
+  const swipperBlueLight = '#21C1F2';
+  const swipperBlue = '#1EA1CD';
+  const swipperWhite = '#fff';
+  const swipperGreenLight = '#3CC3AF';
 
   const swipperTheme = {
     border: {
@@ -140,7 +135,7 @@ export function WebChartComponent() {
       radius: 6
     },
     gap: 8,
-    accentColor: greenLight,
+    accentColor: swipperGreenLight,
     buttons: {
       color: 'white',
       activeColor: 'white',
@@ -150,41 +145,41 @@ export function WebChartComponent() {
     radioButton: {
       background: 'rgba(255, 255, 255, 0.1)',
       buttons: {
-        color: blue,
-        activeColor: greenLight,
-        hoverColor: blue,
+        color: swipperBlue,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlue,
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
       },
     },
     toolbar: {
       background: '#113D59',
       buttons: {
-        color: blueLight,
-        activeColor: greenLight,
-        hoverColor: blueLight,
+        color: swipperBlueLight,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlueLight,
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
       } 
     },
     subMenu: {
-      background: blue,
+      background: swipperBlue,
       buttons: {
-        color: white,
-        activeColor: greenLight,
+        color: swipperWhite,
+        activeColor: swipperGreenLight,
         hoverColor: 'rgba(255, 255, 255, 0.1)',
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
       }
     },
     splitButton: {
-      openBackground: blue,
-      hoverBackground: blue,
-      openColor: white,
-      hoverColor: white,
+      openBackground: swipperBlue,
+      hoverBackground: swipperBlue,
+      openColor: swipperWhite,
+      hoverColor: swipperWhite,
       arrowHoverBackground: 'rgba(255, 255, 255, 0.1)',
-      arrowColor: blueLight,
-      arrowOpenColor: blueLight
+      arrowColor: swipperBlueLight,
+      arrowOpenColor: swipperBlueLight
     },
     dialog: {
-      backgroundColor: blue,
+      backgroundColor: swipperBlue,
       titleColor: 'white',
       textColor: 'white',
       dividerColor: 'rgba(255, 255, 255, 0.1)',
@@ -200,13 +195,13 @@ export function WebChartComponent() {
     scrollBar: {
       trackColor: 'rgba(255, 255, 255, 0.02)',
       thumbColor: 'rgba(255, 255, 255, 0.1)',
-      thumbHoverColor: greenLight,
+      thumbHoverColor: swipperGreenLight,
     }
   }
 
   return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22'}}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={swipperTheme}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
             <div ref={objectRef} />
           </ChartUI>
         </div>
