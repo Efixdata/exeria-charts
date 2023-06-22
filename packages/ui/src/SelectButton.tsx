@@ -56,11 +56,13 @@ const Option = styled.div`
   }
 
   &.active {
+    background-color: ${props => props.theme.subMenu.buttons.activeBackground};
+
     button {
-      color: ${props => props.theme.subMenu.buttons.activeColor}
+      color: ${props => props.theme.subMenu.buttons.activeColor};
     }
     path, circle {
-      fill: ${props => props.theme.subMenu.buttons.activeColor}
+      fill: ${props => props.theme.subMenu.buttons.activeColor};
     }
   }
 `

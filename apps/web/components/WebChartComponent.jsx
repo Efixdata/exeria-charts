@@ -139,6 +139,7 @@ export function WebChartComponent() {
     buttons: {
       color: 'white',
       activeColor: 'white',
+      activeBackground: 'transparent',
       hoverColor: 'white',
       hoverBackground: 'rgba(255, 255, 255, 0.1)',
     },
@@ -164,7 +165,8 @@ export function WebChartComponent() {
       background: swipperBlue,
       buttons: {
         color: swipperWhite,
-        activeColor: swipperGreenLight,
+        activeColor: swipperWhite,
+        activeBackground: swipperGreenLight,
         hoverColor: 'rgba(255, 255, 255, 0.1)',
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
       }
@@ -201,7 +203,7 @@ export function WebChartComponent() {
 
   return (
         <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22'}}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={swipperTheme}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

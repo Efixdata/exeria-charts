@@ -5,6 +5,7 @@ interface buttonProps {
     activeColor?: string,
     hoverColor?: string,
     hoverBackground?: string
+    activeBackground?: string
 }
 
 export interface ThemeInterface {
@@ -74,6 +75,7 @@ const buttonsTheme =  {
     activeColor: green,
     hoverColor: violetLight,
     hoverBackground: transparentWhite,
+    activeBackground: 'transparent'
 }
 
 const defaultTheme: ThemeInterface = {

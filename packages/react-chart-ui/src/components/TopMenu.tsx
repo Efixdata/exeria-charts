@@ -34,7 +34,7 @@ const Container = styled.div`
   flex-direction: row;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
-  background: ${props => props.theme.toolbar.background || "#100c22"};
+  background: ${props => props.theme.toolbar.background};
 
   border-bottom: ${props => props.theme.border.inner || "none"};
   border-left: ${props => props.theme.border.outter || "none"};
