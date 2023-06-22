@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled from "styled-components";
+import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
@@ -9,6 +9,7 @@ import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./IndicatorsButton";
+import { useContext } from "react";
 
 interface TopMenuProps {
   chart: any;
@@ -56,6 +57,7 @@ const Icons = styled.div`
 
 export const TopMenu = (props: TopMenuProps) => {
   const instrument = props?.chart?.getInstrument();
+  const tc = useContext(ThemeContext);
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return [];
@@ -64,6 +66,11 @@ export const TopMenu = (props: TopMenuProps) => {
     });
   };
   
+  const renderShareChartButton = () => {
+    if (tc.showShareChartButton)
+      return <ShareChartButton chart={props.chart} />
+  }
+
   return (
     <Container style={props.style}>
       <LeftSection>
@@ -76,7 +83,7 @@ export const TopMenu = (props: TopMenuProps) => {
           <ChartScaleSwitch chart={props.chart} />
           <Icons>
             <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
-            <ShareChartButton chart={props.chart} />
+            {renderShareChartButton()}
           </Icons>
         </RightSection>
       </LeftSection>

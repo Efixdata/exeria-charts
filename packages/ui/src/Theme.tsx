@@ -56,7 +56,8 @@ export interface ThemeInterface {
         trackColor?: string;
         thumbColor?: string;
         thumbHoverColor?: string;
-    }
+    },
+    showShareChartButton?: boolean;
 }
 
 interface ThemeProps {
@@ -123,7 +124,8 @@ const defaultTheme: ThemeInterface = {
         trackColor: transparentWhite,
         thumbColor: transparentWhite,
         thumbHoverColor: "#7F9DCC",
-    }
+    },
+    showShareChartButton: true
 }
 
 export const Theme = (props: ThemeProps) => {

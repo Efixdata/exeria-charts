@@ -198,7 +198,7 @@ export function WebChartComponent() {
       trackColor: 'rgba(255, 255, 255, 0.02)',
       thumbColor: 'rgba(255, 255, 255, 0.1)',
       thumbHoverColor: swipperGreenLight,
-    }
+    },
   }
 
   return (
