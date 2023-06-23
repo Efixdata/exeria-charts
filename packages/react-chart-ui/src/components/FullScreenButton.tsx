@@ -76,7 +76,7 @@ export const FullScreenButton = (props) => {
 
   if (isFullScreenAvailable()) {
     return (
-      <IconButton onClick={onClick}>
+      <IconButton onClick={onClick} themeContext="toolbar">
         { icon }
       </IconButton>
     );

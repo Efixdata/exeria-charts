@@ -28,6 +28,7 @@ interface CursorsProps {
             id={'DEFAULT'}
             key={'DEFAULT'}
             active={selectedCursor === 'DEFAULT'}
+            themeContext='radioButton'
         >
             <Default />
         </IconButton>,
@@ -35,6 +36,7 @@ interface CursorsProps {
             id={'CROSSHAIR'}
             key={'CROSSHAIR'}
             active={selectedCursor === 'CROSSHAIR'}
+            themeContext='radioButton'
         >
             <Cross />
         </IconButton>,
@@ -42,6 +44,7 @@ interface CursorsProps {
             id={'ERASER'}
             key={'ERASER'}
             active={selectedCursor === 'ERASER'}
+            themeContext='radioButton'
         >
             <Eraser />
         </IconButton>

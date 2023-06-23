@@ -73,8 +73,8 @@ export const IndicatorsButton = (props) => {
 
   return (
     <>
-      <TextButton onClick={onClick}>
-        <Icon style={{ marginLeft: -6 }}><Indicators/></Icon> <IndicatorsText>Indicators</IndicatorsText>
+      <TextButton themeContext="toolbar" onClick={onClick}>
+        <Icon themeContext="toolbar" style={{ marginLeft: -6 }}><Indicators/></Icon> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
       <Portal node={getPortalNode()}>
         <Modal

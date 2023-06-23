@@ -1,5 +1,6 @@
-import * as React from "react";
-import styled from "styled-components";
+// @ts-nocheck
+import React, { useState, useContext } from "react";
+import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
@@ -18,14 +19,14 @@ interface TopMenuProps {
 }
 
 const RightSection = styled.div`
-display: flex;
-flex-direction: row;
-margin-left: auto;
-gap: 16px;
-align-items: center;
-@media (max-width: 600px) {
-  gap: 4px;
-}
+  display: flex;
+  flex-direction: row;
+  margin-left: auto;
+  gap: 16px;
+  align-items: center;
+  @media (max-width: 600px) {
+    gap: 4px;
+  }
 `
 
 const Container = styled.div`
@@ -34,8 +35,13 @@ const Container = styled.div`
   flex-direction: row;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
-  background: ${props => props.theme.background || "#100c22"};
-  border-bottom: ${props => props.theme.border || "1px solid rgba(255, 255, 255, 0.1)"};
+  background: ${props => props.theme.toolbar.background};
+
+  border-bottom: ${props => props.theme.border.inner || "none"};
+  border-left: ${props => props.theme.border.outter || "none"};
+  border-right: ${props => props.theme.border.outter || "none"};
+  border-top: ${props => props.theme.border.outter || "none"};
+  border-radius: ${props => props.theme.border.radius + 'px' || 0};
 `
 const LeftSection = styled.div`
   display: flex;
@@ -51,6 +57,7 @@ const Icons = styled.div`
 
 export const TopMenu = (props: TopMenuProps) => {
   const instrument = props?.chart?.getInstrument();
+  const tc = useContext(ThemeContext);
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return [];
@@ -59,6 +66,11 @@ export const TopMenu = (props: TopMenuProps) => {
     });
   };
   
+  const renderShareChartButton = () => {
+    if (tc.showShareChartButton)
+      return <ShareChartButton chart={props.chart} />
+  }
+
   return (
     <Container style={props.style}>
       <LeftSection>
@@ -71,7 +83,7 @@ export const TopMenu = (props: TopMenuProps) => {
           <ChartScaleSwitch chart={props.chart} />
           <Icons>
             <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
-            <ShareChartButton chart={props.chart} />
+            {renderShareChartButton()}
           </Icons>
         </RightSection>
       </LeftSection>
@@ -79,3 +91,4 @@ export const TopMenu = (props: TopMenuProps) => {
     </Container>
   );
 };
+

@@ -123,48 +123,87 @@ export function WebChartComponent() {
     }
   };
 
-  const theme = {
-    background: "blue",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    accentColor: "green",
-    icons: {
-        color: "white",
-        activeColor: "red",
-        groupBackgroundColor: "purple",
-        backgroundHoverColor: "rgba(255, 255, 255, 0.1)",
+  const swipperBlueLight = '#21C1F2';
+  const swipperBlue = '#1EA1CD';
+  const swipperWhite = '#fff';
+  const swipperGreenLight = '#3CC3AF';
+
+  const swipperTheme = {
+    border: {
+      inner: '1px solid rgba(255,255,255,0.1)',
+      outter: '1px solid rgba(255,255,255,0.1)',
+      radius: 6
     },
-    menu: {
-        hoverBackgroundColor: "pink",
-        splitButtonBackgroundColor: "black",
-        activeBackgroundColor: "#888",
-        activeBackgroundHoverColor: "rgba(255, 255, 255, 0.1)",
-        textColor: "white",
-        textActiveColor: "red"
+    gap: 8,
+    accentColor: swipperGreenLight,
+    buttons: {
+      color: 'white',
+      activeColor: 'white',
+      activeBackground: 'transparent',
+      hoverColor: 'white',
+      hoverBackground: 'rgba(255, 255, 255, 0.1)',
+    },
+    radioButton: {
+      background: 'rgba(255, 255, 255, 0.1)',
+      buttons: {
+        color: swipperBlue,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlue,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      },
+    },
+    toolbar: {
+      background: '#113D59',
+      buttons: {
+        color: swipperBlueLight,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlueLight,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      } 
+    },
+    subMenu: {
+      background: swipperBlue,
+      buttons: {
+        color: swipperWhite,
+        activeColor: swipperWhite,
+        activeBackground: swipperGreenLight,
+        hoverColor: 'rgba(255, 255, 255, 0.1)',
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      }
+    },
+    splitButton: {
+      openBackground: swipperBlue,
+      hoverBackground: swipperBlue,
+      openColor: swipperWhite,
+      hoverColor: swipperWhite,
+      arrowHoverBackground: 'rgba(255, 255, 255, 0.1)',
+      arrowColor: swipperBlueLight,
+      arrowOpenColor: swipperBlueLight
     },
     dialog: {
-        backgroundColor: "#333",
-        titleColor: "white",
-        textColor: "white",
-        dividerColor: "rgba(255, 255, 255, 0.1)",
-        itemTitleColor: "white",
-        itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
-        itemHoverBackgroundColor: "rgba(255, 255, 255, 0.1)"
+      backgroundColor: '#144869',
+      titleColor: 'white',
+      textColor: 'white',
+      dividerColor: 'rgba(255, 255, 255, 0.1)',
+      itemTitleColor: 'white',
+      itemSubTitleColor: 'rgba(255, 255, 255, 0.7)',
+      itemHoverBackgroundColor: 'rgba(255, 255, 255, 0.2)',
     },
     inputs: {
-        backgroundColor: "black",
-        placeholderColor: "grey",
-        textColor: "white",
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      placeholderColor: 'rgba(255, 255, 255, 0.5)',
+      textColor: 'white',
     },
     scrollBar: {
-        trackColor: "rgba(255, 255, 255, 0.02)",
-        thumbColor: "rgba(255, 255, 255, 0.1)",
-        thumbHoverColor: "tomato",
+      trackColor: 'rgba(255, 255, 255, 0.02)',
+      thumbColor: 'rgba(255, 255, 255, 0.1)',
+      thumbHoverColor: swipperGreenLight,
+    },
   }
-}
 
   return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22'}}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={swipperTheme}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

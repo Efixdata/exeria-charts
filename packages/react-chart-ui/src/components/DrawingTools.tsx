@@ -383,6 +383,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
             <IconButton 
                 onClick={() => {onSelectTool(tool.props)}}
                 active={tool.props.id === selectedTool}
+                themeContext='toolbar'
             >
                 { tool.icon }
             </IconButton>
@@ -408,8 +409,8 @@ export const DrawingTools = (props: DrawingToolsProps) => {
 
     function renderSplitButtonOption(options: any, option: any) {
         options[option.props.id] = {
-            text: <TextButton>{option.props.name}</TextButton>,
-            icon: <IconButton>{option.icon}</IconButton>,
+            text: <TextButton themeContext='subMenu'>{option.props.name}</TextButton>,
+            icon: <IconButton themeContext='subMenu'>{option.icon}</IconButton>,
             callback: () => { onSelectTool(option.props) }
         };
 

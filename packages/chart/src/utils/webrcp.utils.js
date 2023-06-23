@@ -2,7 +2,7 @@
 /* exported WebRCPUtils*/
 
 import { isSmallScreen } from "./environment";
-import theme from "../themes/dexer";
+import theme from "../themes/swipper";
 
 export default function WebRCPUtils () {
   // UTLIS GET ISTANCE IS CALLED AFTER COMPONENTS ARE LOADED

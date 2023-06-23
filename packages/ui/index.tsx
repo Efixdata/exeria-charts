@@ -5,7 +5,6 @@ export * from "./src/IconButton";
 export * from "./src/Icon";
 export * from "./src/SelectButton";
 export * from "./src/RadioButton";
-export * from "./src/IconTextButton";
 export * from "./src/SplitButton";
 export * from "./src/Loading";
 export * from "./src/Modal";
