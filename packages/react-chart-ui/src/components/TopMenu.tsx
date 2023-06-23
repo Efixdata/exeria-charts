@@ -1,4 +1,5 @@
-import * as React from "react";
+// @ts-nocheck
+import React, { useState, useContext } from "react";
 import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
@@ -9,7 +10,6 @@ import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./IndicatorsButton";
-import { useContext } from "react";
 
 interface TopMenuProps {
   chart: any;
@@ -19,14 +19,14 @@ interface TopMenuProps {
 }
 
 const RightSection = styled.div`
-display: flex;
-flex-direction: row;
-margin-left: auto;
-gap: 16px;
-align-items: center;
-@media (max-width: 600px) {
-  gap: 4px;
-}
+  display: flex;
+  flex-direction: row;
+  margin-left: auto;
+  gap: 16px;
+  align-items: center;
+  @media (max-width: 600px) {
+    gap: 4px;
+  }
 `
 
 const Container = styled.div`
@@ -91,3 +91,4 @@ export const TopMenu = (props: TopMenuProps) => {
     </Container>
   );
 };
+
