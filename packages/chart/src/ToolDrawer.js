@@ -71,6 +71,44 @@ export default class ToolDrawer {
 
     return this.drawTool(formattedConfig);
   }
+
+  drawTimeBet(initialOptions) {
+    const formattedConfig = {
+      ...initialOptions.config,
+      type: "timeBet",
+      price: initialOptions.price,
+      predictedDirection: initialOptions.predictedDirection,
+      reward: initialOptions.reward,
+      bet: initialOptions.bet,
+      startTime: initialOptions.startTime,
+      timeRange: initialOptions.timeRange,
+      status: initialOptions.status,
+      isWinning: initialOptions.isWinning,
+      editable: false,
+      anchors: [
+        {
+          prawilnyStamp: initialOptions.startTime,
+          offset: 0,
+          value: initialOptions.price,
+          _index: 0,
+          expandable: false,
+          expanded: false,
+          defaultDirection: "left",
+        },
+        {
+          prawilnyStamp: initialOptions.startTime + initialOptions.timeRange,
+          offset: 0,
+          value: initialOptions.price,
+          _index: 0,
+          expandable: false,
+          expanded: false,
+          defaultDirection: "right",
+        },
+      ],
+    };
+
+    return this.drawTool(formattedConfig);
+  }
  
   deleteTool(id) {
     this.chart.onDelete(id);

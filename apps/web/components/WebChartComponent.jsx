@@ -66,15 +66,23 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
-      const timeRangeId = chart.toolDrawer.drawTimeRange({
+      const timeRangeId = chart.toolDrawer.drawTimeBet({
         startTime: 1663027200000,
-        timeRange: 1,
-        text: "5h",
+        timeRange: 50000000,
+        price: 0.000028700,
+        reward: 458,
+        bet: 700,
+        predictedDirection: 'DOWN',
+        status: "ACTIVE",
+        isWinning: false,
         config:  {
           editable: false,
-          color: "#14f7ab20",
+          color: "#1C6897",
+          winningColor: "#25AD98",
+          losingColor: "#D12E59",
           secondaryColor: "#ffffff10",
           textColor: "white",
+          priceTag: true
         }
       });
 
