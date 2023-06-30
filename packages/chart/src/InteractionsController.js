@@ -1048,7 +1048,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 					if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
 						const valueY1 = this.initialMinMax.value;
 						const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-						const delta = valueY2 - valueY1;
+						const delta = valueY1 - valueY2;
 
 						if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
 							panel.vMax = this.initialMinMax.max + delta;
