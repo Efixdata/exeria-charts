@@ -79,8 +79,9 @@ class ChartUI extends React.Component {
 
   render() {
     const gap = this.props.theme?.gap || 0;
-    const leftMenuWidth = this.props.leftMenuWidth || 41;
-    const topMenuHeight = this.props.topMenuHeight || 41;
+    const borders = (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
+    const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
+    const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
 
     return (
       <Theme theme={this.props.theme}>
