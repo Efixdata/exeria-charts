@@ -16,7 +16,7 @@ const Container = styled.div`
   align-items: flex-start;
   width: 100%;
   height: max-content;
-  min-height: calc(100% - 17px);
+  min-height: 100%;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   z-index: 1;
