@@ -3586,8 +3586,19 @@ function TimeBetObject() {
 
 	this.render	= function(o, ctx, renderer, model, panel, seriesManager) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-		const isWinning = o.isWinning;
 		const status = o.status;
+		if (status === "ACTIVE") {
+			const lastPrice = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['close'];
+			if (o.predictedDirection === "UP") {
+				if (lastPrice > o.openPrice) o.isWinning = true;
+				else o.isWinning = false;
+			} else if (o.predictedDirection === "DOWN") {
+				if (lastPrice < o.openPrice) o.isWinning = true;
+				else o.isWinning = false;
+			}
+		}
+		
+		const isWinning = o.isWinning;
 
 		let toolColor = this.getColor(o);
 		let globalAlpha = 1;
@@ -3701,8 +3712,10 @@ function TimeBetObject() {
 		ctx.setLineDash([3, 2]);	
 
 		ctx.beginPath();
-		ctx.moveTo(x1 + rightArrowWidth, y1);
-		ctx.lineTo(panel._width, y1);
+		if (o.priceTag) {
+			ctx.moveTo(x1 + rightArrowWidth, y1);
+			ctx.lineTo(panel._width, y1);
+		}
 		ctx.moveTo(x1, 0);
 		ctx.lineTo(x1, panel._offset + panel._height);
 		ctx.stroke();		
