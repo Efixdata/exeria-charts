@@ -3571,36 +3571,42 @@ function TimeRangeObject() {
 
 function TimeBetObject() {
 
-	this.getColor = function(o) {
+	this.getColor = function(o, isWinning) {
 		const defaultColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		const winningColor = o.winningColor ? o.winningColor : WEBRCP.utils.colorManager.getColor('chartGreen');
 		const losingColor = o.losingColor ? o.losingColor : WEBRCP.utils.colorManager.getColor('chartRed');
 
 		if (o.status === "PENDING_START" || o.status === "ACTIVE") {
-			if (o.isWinning) return winningColor;
+			if (isWinning) return winningColor;
 			else return losingColor;
 		}
 
 		return defaultColor;
 	}
 
+	this.isWinning = function(o, model, seriesManager) {
+		let isWinning = o.isWinning;
+
+		if (o.status === "ACTIVE") {
+			const lastPrice = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['c'];
+			if (o.predictedDirection === "UP") {
+				if (lastPrice > o.price) isWinning = true;
+				else isWinning = false;
+			} else if (o.predictedDirection === "DOWN") {
+				if (lastPrice < o.price) isWinning = true;
+				else isWinning = false;
+			}
+		}
+
+		return isWinning;
+	}
+
 	this.render	= function(o, ctx, renderer, model, panel, seriesManager) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		const status = o.status;
-		if (status === "ACTIVE") {
-			const lastPrice = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['close'];
-			if (o.predictedDirection === "UP") {
-				if (lastPrice > o.openPrice) o.isWinning = true;
-				else o.isWinning = false;
-			} else if (o.predictedDirection === "DOWN") {
-				if (lastPrice < o.openPrice) o.isWinning = true;
-				else o.isWinning = false;
-			}
-		}
-		
-		const isWinning = o.isWinning;
+		let isWinning = this.isWinning(o, model, seriesManager);
 
-		let toolColor = this.getColor(o);
+		let toolColor = this.getColor(o, isWinning);
 		let globalAlpha = 1;
 
 		if (status === "PENDING_START" || status === "PENDING_FINISH") {
@@ -3820,7 +3826,7 @@ function TimeBetObject() {
 	this.postRenderOverlay = function(o, ctx, renderer, model, panel, seriesManager) {
 		if (o.priceTag) {
 			const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-			const color = this.getColor(o);
+			const color = this.getColor(o, this.isWinning(o, model, seriesManager));
 			const textColor = WEBRCP.utils.getContrastColor(color);
 			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
 		}
