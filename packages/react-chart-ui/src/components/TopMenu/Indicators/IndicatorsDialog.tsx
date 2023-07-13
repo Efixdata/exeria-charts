@@ -13,7 +13,6 @@ interface IndicatorsDialogProps {
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
-  const [query, setQuery] = useState("");
   const [filteredIndicators, setFilteredIndicators] = useState(props.indicators);
   const [chosenIndicator, setChosenIndicator] = useState(null)
 
@@ -60,15 +59,13 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   const onQueryChange = (e) => {
     const value = e.target.value;
-    setQuery(value);
-
     if (!value) {
       setFilteredIndicators(props.indicators);
       return;
     }
 
     const queryResult = allIndicators
-      .search(query)
+      .search(value)
       .map(result => result.item)
 
     setFilteredIndicators(queryResult);
@@ -76,9 +73,6 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   const onSubmit = (event: React.FormEventHandler<HTMLFormElement>) => {
     event.preventDefault();
-    if (filteredIndicators[0]) {
-      onIndicatorPick(filteredIndicators[0]);
-    }
   }
 
   const renderSearchBar = () => {

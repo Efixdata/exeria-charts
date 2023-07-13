@@ -641,7 +641,8 @@ const Renderer = function (settings, context, controller) {
 
 		let color = object.color;
 		if (object.renderAs == "OHLC" && series && series.data && series.data[series.data.length - 1].o) {
-			name += ' (' + series.instrument.interval.symbol + ')';
+			if (series.instrument)
+				name += ' (' + series.instrument.interval.symbol + ')';
 			const o = series.data[series.data.length - 1].o;
 			const c = series.data[series.data.length - 1].c;
 			if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");

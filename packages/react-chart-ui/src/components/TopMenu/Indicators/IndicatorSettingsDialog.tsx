@@ -96,6 +96,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         return;
       }
 
+      const translate = (text) => {
+        return props.chart.translate(text);
+      }
       
       const renderOptions = () => {
         const options = [];
@@ -104,7 +107,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
           const series = seriesManager[key];
           for (let i in series.labels) {
             const value = series.seriesId + ':' + series.fields[i];
-            options.push(<option key={value} value={value}>{series.title}.{series.labels[i]}</option>);
+            options.push(<option key={value} value={value}>{translate(series.title)}.{translate(series.labels[i])}</option>);
           }
         }
         return options;
@@ -146,7 +149,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   const renderDialogBody = () => {
       return <Form onSubmit={(e) => {
         e.preventDefault();
-        onIndicatorPick();
+        onIndicatorAdd();
       }
         }>
         { renderInputs() }
@@ -162,7 +165,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     return true;
   }
 
-  const onIndicatorPick = () => {
+  const onIndicatorAdd = () => {
     const isFormValid = validateForm();
 
     if (!isFormValid) {
@@ -190,7 +193,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         <DialogFooter style={{ margin: "10px" }}>
           <TextButton
             style={{ marginLeft: "auto", padding: "24px" }}
-            onClick={onIndicatorPick}
+            onClick={onIndicatorAdd}
           >
             OK
           </TextButton>

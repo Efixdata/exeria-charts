@@ -868,6 +868,10 @@ export default class Chart {
     return scripts;
   }
 
+  translate(text) {
+    return WEBRCP.locale.fusion.getMessage(text, text);
+  }
+
   removePanelFromModel(panel) {
 		var basis = panel.basis;
 
