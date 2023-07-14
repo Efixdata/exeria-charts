@@ -583,7 +583,9 @@ const Renderer = function (settings, context, controller) {
 
 		for (var i=0; i<panel.objects.length; i++) {
 			if (panel.objects[i].hidden!=true && panel.objects[i].dataLink) {
-				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) legendCount++;
+				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) {
+					legendCount++;
+				} 
 			}
 		};
 
@@ -607,7 +609,7 @@ const Renderer = function (settings, context, controller) {
 			}
 			return null;
 		}
-		if (object.renderLegend === false) return true;
+		if (object.renderLegend === false) return false;
 		const seriesManager = fusion.getSeriesManager();
 		const series = seriesManager[object.dataLink];
 		const script = isThisSeriesOutputOfScript(object.dataLink);

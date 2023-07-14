@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import { labelColor } from "ui/theme";
 
 interface LabelProps {
   children?: JSX.Element|JSX.Element[]
@@ -9,7 +8,7 @@ interface LabelProps {
 }
 
 const StyledLabel = styled.label`
-    color: ${labelColor};
+color: ${props => props.theme.inputs.labelColor};
     display: flex;
     flex-direction: column;
     align-items: start;

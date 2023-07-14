@@ -51,6 +51,7 @@ export interface ThemeInterface {
         backgroundColor?: string;
         placeholderColor?: string;
         textColor?: string;
+        labelColor?: string;
     },
     scrollBar: {
         trackColor?: string;
@@ -119,6 +120,7 @@ const defaultTheme: ThemeInterface = {
         backgroundColor: "#0F0C22",
         placeholderColor: "#c3c2cc80",
         textColor: "white",
+        labelColor: "white",
     },
     scrollBar: {
         trackColor: transparentWhite,

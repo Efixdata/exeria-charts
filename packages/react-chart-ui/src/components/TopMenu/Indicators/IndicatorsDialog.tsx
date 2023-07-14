@@ -1,9 +1,10 @@
 // @ts-nocheck
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { DialogHeader, DialogBody, DialogContainer, ListItem, ListItemsWrapper, TextInput, TextButton, Form } from "ui";
 import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
 import { IndicatorSettingsDialog } from "./IndicatorSettingsDialog";
+import { ThemeContext } from 'styled-components';
 
 interface IndicatorsDialogProps {
   onClick: any;
@@ -14,7 +15,8 @@ interface IndicatorsDialogProps {
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
   const [filteredIndicators, setFilteredIndicators] = useState(props.indicators);
-  const [chosenIndicator, setChosenIndicator] = useState(null)
+  const [chosenIndicator, setChosenIndicator] = useState(null);
+  const themeContext = useContext(ThemeContext);
 
   const allIndicators = new Fuse(props.indicators, {
     includeScore: false,
@@ -41,7 +43,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     }
 
     if (listItems.length === 0) {
-      return <div style={{ color: "#7F9DCC", textAlign: "center", marginTop: "30px" }}>NO RESULTS</div>;
+      return <div style={{ color: themeContext.dialog.textColor, textAlign: "center", marginTop: "30px" }}>NO RESULTS</div>;
     }
 
     return (
@@ -78,7 +80,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const renderSearchBar = () => {
     return (<Form onSubmit={onSubmit} style={{ padding: 20, borderBottom: "1px solid rgba(255, 255, 255, 0.1)", position: "relative" }}>
       <TextInput autoFocus type="text" onChange={onQueryChange} placeholder="Search..." style={{width: "100%"}} />
-      <MagnifyingGlass size={20} style={{ position: "absolute", right: 39, top: 29, color: "#7F9DCC", opacity: 0.5 }}/>
+      <MagnifyingGlass size={20} style={{ position: "absolute", right: 29, top: 29, color: themeContext.buttons.color, opacity: 0.5 }}/>
     </Form>);
   }
 
