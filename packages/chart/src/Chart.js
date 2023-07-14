@@ -493,8 +493,12 @@ export default class Chart {
     this.onScriptEditorApply(this.createScriptConfig(scriptKey));
 	}
 
-  createScriptConfig(scriptKey) {
-    const proto = FUSION.getScript(scriptKey);
+  addScript(scriptKey, proto) {
+    this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
+	}
+
+  createScriptConfig(scriptKey, proto) {
+    if (!proto) proto = FUSION.getScript(scriptKey);
     var scriptCfg = {
       id: null,
       inputs: {},
@@ -519,7 +523,7 @@ export default class Chart {
     Object.keys(proto.inputs).forEach((k) => {
       const input = proto.inputs[k];
 
-      if (input.type == "series") {
+      if (input.type == "series" && !input.value) {
         scriptCfg.inputs[k] = getDefaultSeries(input);
       } else {
         scriptCfg.inputs[k] = input.value;
@@ -866,6 +870,10 @@ export default class Chart {
     }
 
     return scripts;
+  }
+
+  translate(text) {
+    return WEBRCP.locale.fusion.getMessage(text, text);
   }
 
   removePanelFromModel(panel) {

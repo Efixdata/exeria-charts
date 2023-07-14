@@ -583,7 +583,9 @@ const Renderer = function (settings, context, controller) {
 
 		for (var i=0; i<panel.objects.length; i++) {
 			if (panel.objects[i].hidden!=true && panel.objects[i].dataLink) {
-				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) legendCount++;
+				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) {
+					legendCount++;
+				} 
 			}
 		};
 
@@ -607,7 +609,7 @@ const Renderer = function (settings, context, controller) {
 			}
 			return null;
 		}
-		if (object.renderLegend === false) return true;
+		if (object.renderLegend === false) return false;
 		const seriesManager = fusion.getSeriesManager();
 		const series = seriesManager[object.dataLink];
 		const script = isThisSeriesOutputOfScript(object.dataLink);
@@ -645,7 +647,8 @@ const Renderer = function (settings, context, controller) {
 
 		let color = object.color;
 		if (object.renderAs == "OHLC" && series && series.data && series.data[series.data.length - 1].o) {
-			name += ' (' + series.instrument.interval.symbol + ')';
+			if (series.instrument)
+				name += ' (' + series.instrument.interval.symbol + ')';
 			const o = series.data[series.data.length - 1].o;
 			const c = series.data[series.data.length - 1].c;
 			if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");

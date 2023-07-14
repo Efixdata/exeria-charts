@@ -48,9 +48,10 @@ export interface ThemeInterface {
         itemHoverBackgroundColor?: string;
     },
     inputs: {
-        backgroundColor?: string;
+        backgroundColor?: string; // should be solid to override native select drop-down color
         placeholderColor?: string;
         textColor?: string;
+        labelColor?: string;
     },
     scrollBar: {
         trackColor?: string;
@@ -119,6 +120,7 @@ const defaultTheme: ThemeInterface = {
         backgroundColor: "#0F0C22",
         placeholderColor: "#c3c2cc80",
         textColor: "white",
+        labelColor: "white",
     },
     scrollBar: {
         trackColor: transparentWhite,

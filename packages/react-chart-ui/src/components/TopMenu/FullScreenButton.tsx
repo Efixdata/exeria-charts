@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as React from "react";
 import { IconButton } from "ui";
-import { Fullscreen, ExitFullscreen } from "../img/icons";
+import { Fullscreen, ExitFullscreen } from "../../img/icons";
 import { useState } from "react";
 
 export const FullScreenButton = (props) => {

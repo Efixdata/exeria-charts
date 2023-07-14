@@ -1,11 +1,12 @@
 // @ts-nocheck
 import * as React from "react";
 import { TextButton, Modal } from "ui";
-import { Indicators } from "../img/icons";
+import { Indicators } from "../../../img/icons";
 import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
 import styled from "styled-components";
 import { Portal } from 'react-portal';
+import { usePortalNode } from "../../../hooks/usePortalNode";
 import { Icon } from "ui/src/Icon";
 
 const IndicatorsText = styled.span`
@@ -60,23 +61,12 @@ export const IndicatorsButton = (props) => {
     setModalVisible(false);
   };
 
-  const getPortalNode = () => {
-    if (!document) return null;
-
-    if (document.fullscreenElement) return document.fullscreenElement;
-    if (document.webkitFullscreenElement) return document.webkitFullscreenElement;
-    if (document.mozFullScreenElement) return document.mozFullScreenElement;
-    if (document.msFullscreenElement) return document.msFullscreenElement;
-
-    return null;
-  };
-
   return (
     <>
       <TextButton themeContext="toolbar" onClick={onClick}>
         <Icon themeContext="toolbar" style={{ marginLeft: -6 }}><Indicators/></Icon> <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
-      <Portal node={getPortalNode()}>
+      <Portal node={usePortalNode(document)}>
         <Modal
           visible={isModalVisible}
           onCloseOutsideClick={true}

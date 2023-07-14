@@ -3,9 +3,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { buttonOption, selectButton } from "ui/theme";
-import useShareChartImage, { ActionEnum } from "../hooks/useShareChartImage";
-import { Share, Twitter, Telegram, Copy , Download} from "../img/icons";
-import useGenerateWatermark from "../hooks/useGenerateWatermark";
+import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
+import { Share, Twitter, Telegram, Copy , Download} from "../../img/icons";
+import useGenerateWatermark from "../../hooks/useGenerateWatermark";
 
 const ShareButtonWrapper = styled.div`
   position: relative;

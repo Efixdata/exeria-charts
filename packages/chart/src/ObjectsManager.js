@@ -38,6 +38,7 @@ export default function ObjectsManager(chart){
 	}
 
 	this.detachObject = function(objectId){
+
 		const findRelatedScript = (o) => {
 			for(var k in this.chart.model.scripts){
 				var s = this.chart.model.scripts[k];
@@ -53,23 +54,22 @@ export default function ObjectsManager(chart){
 
 		if(objectId){
 			var o = LIB.getObjectById(this.chart.model, objectId);
+
+			if (!o) return;
 			if( this.chart.renderer.objects[o.type] instanceof Shape){
 				this.detachToolObject(o.id);
 				var relatedScript = findRelatedScript(o);
 				if(relatedScript){
 					var plotters = LIB.getPlottersForScriptByScriptId(this.chart.model, relatedScript.id);
 					if(plotters.length > 0)
-					this.detachSeriesObject(plotters[0]);
+						this.detachSeriesObject(plotters[0]);
 				}
 			}else if( o.type == 'SeriesObject' || o.type=='StrategyObject' || o.type=='CandlestickPatternStrategyObject' || o.type=='FractalsObject'){
 				this.detachSeriesObject(o);
 			}else{
 				console.log("DELETE: not series object, not tool object....WTF ?", o);
 			}
-			console.log("After delete model:", this.chart.model);
-			console.log("After delete chart.options:", this.chart.options);
 		}
-	
 	}
 	
 	this.detachAllToolObjects = function(){
@@ -83,9 +83,6 @@ export default function ObjectsManager(chart){
 				}
 			}
 		}
-		
-		console.log("After delete model:", this.chart.model);
-		console.log("After delete chart.options:", this.chart.options);
 	}
 	
 	this.detachAllScriptObjects = function(){
@@ -107,8 +104,6 @@ export default function ObjectsManager(chart){
 				}
 			}
 		}
-		console.log("After delete model:", this.chart.model);
-		console.log("After delete chart.options:", this.chart.options);
 	}
 	
 	this.detachPanel	= function(panelId){
@@ -348,9 +343,6 @@ export default function ObjectsManager(chart){
 		}
 		return null;
 	}
-
-
 }
-
 
 //# sourceURL=./platform/components/newchart/js/objectsManager.js
