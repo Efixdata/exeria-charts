@@ -48,7 +48,7 @@ export interface ThemeInterface {
         itemHoverBackgroundColor?: string;
     },
     inputs: {
-        backgroundColor?: string;
+        backgroundColor?: string; // should be solid to override native select drop-down color
         placeholderColor?: string;
         textColor?: string;
         labelColor?: string;
