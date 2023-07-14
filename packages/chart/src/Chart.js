@@ -438,14 +438,44 @@ export default class Chart {
     } catch (_) {}
   }
 
-  appendTick(tick) {
+  appendTick(tick, recalculate = true) {
     const newCandleAdded = LIB.getOHLCSeriesWrapper(
       this.fusion.getMainSeries()
     ).update(tick);
 
     try {
       // TODO: short synchronization instead of full
-      this.recalculateScripts();
+      if (recalculate) this.recalculateScripts();
+    } catch (_) {}
+
+    return newCandleAdded;
+  }
+
+  appendTicks(ticks, recalculate = true) {
+    const mainSeries = LIB.getOHLCSeriesWrapper(this.fusion.getMainSeries());
+    let newCandleAdded = false;
+
+    for (let i in ticks) {
+      const tick = ticks[i];
+      if (mainSeries.update(tick)) newCandleAdded = true;
+    }
+
+    try {
+      // TODO: short synchronization instead of full
+      if (recalculate) this.recalculateScripts();
+    } catch (_) {}
+
+    return newCandleAdded;
+  }
+
+  upsertCandle(candle, recalculate = true) {
+    const newCandleAdded = LIB.getOHLCSeriesWrapper(
+      this.fusion.getMainSeries()
+    ).upsertCandle(candle);
+
+    try {
+      // TODO: short synchronization instead of full
+      if (recalculate) this.recalculateScripts();
     } catch (_) {}
 
     return newCandleAdded;

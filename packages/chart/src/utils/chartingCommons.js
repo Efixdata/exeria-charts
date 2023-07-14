@@ -98,7 +98,6 @@ LIB.getOHLCSeriesWrapper = function (series) {
 			return this.getClose(index);
 		},
 		update: function (tick) {
-			console.log("Update ohlcv series", tick);
 			var l = series.data.length;
 			var lastStamp = series.data[l - 1]['stamp'];
 			var flooredTickStamp = LIB.florStampToInterval(tick.stamp, series.interval, lastStamp);
@@ -134,6 +133,36 @@ LIB.getOHLCSeriesWrapper = function (series) {
 				if (price < lastCandle.l) lastCandle.l = price;
 				lastCandle.c = price;
 				lastCandle.v = calculateNewVolume(lastCandle, tick);
+				return false;
+			}
+		},
+		upsertCandle: function (candle) {
+			const l = series.data.length;
+			const lastStamp = series.data[l - 1]['stamp'];
+			const flooredCandleStamp = LIB.florStampToInterval(candle.stamp, series.interval, lastStamp);
+
+			if (flooredCandleStamp < lastStamp) {
+				console.warn("Attempting to update earlier candle than last. This is not supported.");
+				return false;
+			} else if (lastStamp < flooredCandleStamp) {
+				series.data.push({
+					o: candle.o,
+					h: candle.h,
+					l: candle.l,
+					c: candle.c,
+					v: candle.v,
+					i: candle.i || 0,
+					stamp: flooredCandleStamp
+				});
+				return true;
+			} else {
+				var lastCandle = series.data[l - 1];
+				lastCandle.o = candle.o;
+				lastCandle.h = candle.h;
+				lastCandle.l = candle.l;
+				lastCandle.c = candle.c;
+				lastCandle.v = candle.v;
+				lastCandle.i = candle.i || 0;
 				return false;
 			}
 		},
