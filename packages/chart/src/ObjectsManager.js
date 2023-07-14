@@ -67,7 +67,7 @@ export default function ObjectsManager(chart){
 			}else if( o.type == 'SeriesObject' || o.type=='StrategyObject' || o.type=='CandlestickPatternStrategyObject' || o.type=='FractalsObject'){
 				this.detachSeriesObject(o);
 			}else{
-				console.log("DELETE: not series object, not tool object....WTF ?", o);
+				console.warn("DELETE: unknown object ", o);
 			}
 		}
 	}
@@ -192,7 +192,6 @@ export default function ObjectsManager(chart){
 			var script = this.isThisSeriesOutputOfScript(o.dataLink);
 			if(script) result.push(script);
 			this.getScriptsRelatedToSeries(o.dataLink, result);
-			console.log("DELETE SERIES: related scripts:", result );
 			for(var i =result.length-1; i>=0; i--){
 				this.removeScript(result[i]);
 			}
@@ -217,7 +216,7 @@ export default function ObjectsManager(chart){
 		if (o.dataLink) {
 			var model = this.chart.model;
 			if (o.dataLink == model.mainSeries) {
-				console.log("Can't delete main series!");				
+				console.warn("Can't delete main series!");				
 			} else {
 				for(var k in this.chart.model.instrumentsSeries){
 					if(this.chart.model.instrumentsSeries[k].seriesId == o.dataLink){

@@ -10604,7 +10604,7 @@ FUSION.engine = function () {
     }
 
     this.calculateAll		=	function () {
-        console.log('##################################FUSION CALCULATE ALL#####################################');
+        // console.log('##################################FUSION CALCULATE ALL#####################################');
         for (var key in this.model.scripts) { //w modelu skrypty są w kolejności!!! wrappery już nie koniecznie
             var script = this.scriptsManager[this.model.scripts[key].id];
             this.calculate(script, this.getMainSeries());
@@ -10615,8 +10615,8 @@ FUSION.engine = function () {
                     var outWrap = script[series.fields[f]];
                     var lastIdx = outWrap.getSeriesLength()-1;
                     var secondLastIdx = outWrap.getSeriesLength()-2;
-                    console.log("FUSION: " + this.getMainSeries().title + ":" + series.data[lastIdx].stamp + ":" +series.fields[f]+ " "
-                        + "...," + outWrap.getValue(secondLastIdx) + "," + outWrap.getValue(lastIdx));
+                    // console.log("FUSION: " + this.getMainSeries().title + ":" + series.data[lastIdx].stamp + ":" +series.fields[f]+ " "
+                    //     + "...," + outWrap.getValue(secondLastIdx) + "," + outWrap.getValue(lastIdx));
                 }
             }
         }

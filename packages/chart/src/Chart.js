@@ -709,7 +709,7 @@ export default class Chart {
 	onDrawingDone() {
     // TODO: fire subscription for
 		// this.setActiveTool();
-    console.log(this.interactor.model);
+    // console.log(this.interactor.model);
 	}
 
   getValueAxisWidth() {

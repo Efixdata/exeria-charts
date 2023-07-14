@@ -16,19 +16,19 @@ function Series() {
 	this.drawSelectionLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {};
 
 	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log('OHLC', 'Mouse Down');
+		// console.log('OHLC', 'Mouse Down');
 	};
 
 	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log('OHLC', 'Mouse Drag');
+		// console.log('OHLC', 'Mouse Drag');
 	};
 
 	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log('OHLC', 'Mouse Up');
+		// console.log('OHLC', 'Mouse Up');
 	};
 
 	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log('OHLC', 'Mouse Out');
+		// console.log('OHLC', 'Mouse Out');
 	};
 
 	this.clearHits = function(o){
@@ -1313,7 +1313,6 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
 		if (between(indexX, x, indexX + model.periodWidth, this.hitTolerance) && 
 			between(indexY, y, panel._height + panel._offset, this.hitTolerance)) {
 			hitResult = true;
-			console.log("hit");
 		}
 
 		o._hit = hitResult==true ? {x:x, y:y} : false;
@@ -2786,10 +2785,9 @@ var TradeObject = class TradeObject {
 			if(between(valueY-1, y, valueY+1, self.hitTolerance) && between(0, x, model._timeAxisWidth, self.hitTolerance)){
 				o._hit = true;
 				hitResult = true;
-				console.log("Trade object hit", o);
+
 				if(between(this.settings.bar.closeBtn.x, x, this.settings.bar.closeBtn.x+this.settings.bar.closeBtn.w, 0)){
 					o._hitCloseButton = true;
-					console.log("Trade object hit close button", o);
 				}
 				if(o.relatedAllowed && between(this.settings.bar.dragTpSlHandler.x, x, this.settings.bar.dragTpSlHandler.x+this.settings.bar.dragTpSlHandler.w, 0)){
 
@@ -2798,7 +2796,6 @@ var TradeObject = class TradeObject {
 					//var sl = getSlForPosition(o, model);
 					//if(!o.modified && (!tp || !sl)){
 						o._hitDragHandler = true;
-						console.log("Trade object hit drag handler", o);	
 					}
 				}
 			}

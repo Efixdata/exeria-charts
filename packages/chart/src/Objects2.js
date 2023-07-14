@@ -434,7 +434,6 @@ function Shape(){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = LIB.round(v,renderer.getPrecision(model,panel));
 				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-				console.log("stage move",i, o.anchors[i]);
 			}
 		}
 	};
@@ -653,7 +652,6 @@ function TrendLineObject(){
 		for(var i =0; i<pts.length;i++){
 			//is on anchor?
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -696,7 +694,6 @@ function TrendLineObject(){
 		if(!this.wasDrag && o._hitArrow){
 			for(var i =0; i<pts.length;i++){
 				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					console.log("Clicked arrow :",i,pts[i]);
 					this.expandAnchor(o.anchors[i]);
 				}
 			}
@@ -776,7 +773,6 @@ function TrendLineObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("TRENDLINE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -988,7 +984,6 @@ var FibonLinesObject	=	function () {
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -1028,7 +1023,6 @@ var FibonLinesObject	=	function () {
 			var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 			for(var i =0; i<pts.length;i++){
 				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					console.log("Clicked arrow :",i,pts[i]);
 					this.expandAnchor(o.anchors[i]);
 				}
 			}
@@ -1081,7 +1075,6 @@ var FibonLinesObject	=	function () {
 	// };
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("stage up", interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 
@@ -1095,7 +1088,7 @@ var FibonLinesObject	=	function () {
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("stage out");
+		// console.log("stage out");
 	};
 
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1168,9 +1161,6 @@ var ParallelChannelObject	=	function () {
 		ctx.moveTo(p3.x, p3.y);
 		ctx.lineTo(p4.x, p4.y);
 		ctx.stroke();
-
-		console.log("CHANNEL RENDER ANCHORS:", o.anchors);
-		console.log("CHANNEL RENDER PANE:", panel);
 	}
 
 	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
@@ -1274,7 +1264,6 @@ var ParallelChannelObject	=	function () {
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -1298,7 +1287,6 @@ var ParallelChannelObject	=	function () {
 
 		// if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 
-		console.log("TRENDLINE mouse drag start :", xOffset, yOffset, this.hitTolerance);
 		// if(i!=null){
 		// 	if(i===0 || i == 1){
 		// 		let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
@@ -1330,7 +1318,6 @@ var ParallelChannelObject	=	function () {
 		if(!this.wasDrag){
 			for(var i =0; i<pts.length;i++){
 				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					console.log("Clicked arrow :",i,pts[i]);
 					this.expandAnchor(o.anchors[i]);
 				}
 			}
@@ -1369,22 +1356,18 @@ var ParallelChannelObject	=	function () {
 	// };
 
 	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("start drag ");
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("real drag ");
 			interactor.currentAnchor.drag = true;
 		}
 		this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("stage up", interactor.currentAnchor);
-		console.log("stage up2", o.anchors);
 		interactor.popPanel(this, o, panel);
 
 
@@ -1398,7 +1381,7 @@ var ParallelChannelObject	=	function () {
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("stage out");
+		// console.log("stage out");
 	};
 
 	this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1415,7 +1398,7 @@ var ParallelChannelObject	=	function () {
 		}
 		// var self = this;
 		// if(panel === null )return;
-		console.log("stage move", interactor.currentAnchor);
+		
 		// if(interactor.currentAnchor){
 		// 	var i = interactor.currentAnchor.selected;
 		// 	var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -1578,7 +1561,6 @@ var ArrowObject	=	function () {
 	// };
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("ARROW stage up", interactor.currentAnchor);
 		interactor.popPanel(this, o, panel);
 
 
@@ -1591,9 +1573,7 @@ var ArrowObject	=	function () {
 
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("ARROW stage out");
-	};
+	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {};
 
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
 	// 	console.log("ARROW stage move", interactor.currentAnchor);
@@ -1713,7 +1693,6 @@ function HorizontalLineObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -1768,7 +1747,6 @@ function HorizontalLineObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("HORIZONTALLINE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 }
@@ -1845,7 +1823,6 @@ function VerticalLineObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -1868,7 +1845,6 @@ function VerticalLineObject(){
 	 */
 
 	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("VERTICALLINE stage down start", interactor.currentAnchor);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
@@ -1879,7 +1855,6 @@ function VerticalLineObject(){
 			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 			//panel.objects.push(o);
 			var ca = {selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			console.log("VERTICALLINE stage down start", ca);
 			return ca;
 		}
 		interactor.pushPanel(this, o, panel);
@@ -1892,7 +1867,6 @@ function VerticalLineObject(){
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("VERTICALLINE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
 			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
@@ -1900,7 +1874,6 @@ function VerticalLineObject(){
 			o.anchors[0]._index = idx;
 			o.anchors[0].value = v;
 			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
-			console.log("VERTICALLINE after drag",i, o.anchors[0]);
 		}
 	};
 
@@ -1916,12 +1889,10 @@ function VerticalLineObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("VERTICALLINE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("VERTICALLINE stage move", interactor.currentAnchor);
 		if(interactor.currentAnchor!==null){
 			var i = interactor.currentAnchor.selected;
 			var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -1931,7 +1902,6 @@ function VerticalLineObject(){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
 				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-				console.log("VERTICALLINE stage move",i, o.anchors);
 			}
 		}
 	};
@@ -2138,7 +2108,6 @@ function DiNapoliLevels(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -2210,7 +2179,6 @@ function DiNapoliLevels(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("MULTILINE stage out");
 		// this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 }
@@ -2298,7 +2266,6 @@ function MultiLineObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -2574,7 +2541,6 @@ function AbcdObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -2593,7 +2559,6 @@ function AbcdObject(){
 		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
 		if(!this.wasDrag){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[3].x, pts[3].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-				console.log("Clicked arrow :",pts[3]);
 				this.expandAnchor(o.anchors[2]);
 			}
 		}
@@ -2608,7 +2573,6 @@ function AbcdObject(){
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("ABCD long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
 			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
@@ -2617,7 +2581,6 @@ function AbcdObject(){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
 				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(idx, model, seriesManager);
-				console.log("ABCD after drag",i, o.anchors[i]);
 
 				for(var ii=i+1; ii< o.anchors.length; ii++){
 					o.anchors[ii].value = v;
@@ -2642,7 +2605,6 @@ function AbcdObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("ABCD stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -2875,7 +2837,6 @@ function DiNapoliAbcObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -2894,7 +2855,6 @@ function DiNapoliAbcObject(){
 		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
 		if(!this.wasDrag){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[2].x, pts[2].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-				console.log("Clicked arrow :",pts[3]);
 				this.expandAnchor(o.anchors[2]);
 			}
 		}
@@ -2909,7 +2869,6 @@ function DiNapoliAbcObject(){
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("ABCD long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
 			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
@@ -2918,7 +2877,6 @@ function DiNapoliAbcObject(){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
 				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(idx, model, seriesManager);
-				console.log("ABCD after drag",i, o.anchors[i]);
 
 				for(var ii=i+1; ii< o.anchors.length; ii++){
 					o.anchors[ii].value = v;
@@ -2945,7 +2903,6 @@ function DiNapoliAbcObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("ABCD stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -3061,7 +3018,6 @@ function EllipseObject(){
 				o._hit = true;
 				hitResult = true;
 			}
-			console.log("Ellipse: ", x, y, ey1, ey2);
 		}
 		return hitResult;
 	}
@@ -3074,7 +3030,6 @@ function EllipseObject(){
 
 		for (var i = 0; i < pts.length; i++) {
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, this.hitTolerance)) {
-				console.log("Clicked point :", i, pts[i]);
 				return {
 					selected: i, 
 					anchors: JSON.parse(JSON.stringify(o.anchors))
@@ -3150,7 +3105,6 @@ function EllipseObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("ELLIPSE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -3286,7 +3240,6 @@ function HorizontalRangeObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -3321,7 +3274,6 @@ function HorizontalRangeObject(){
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("HRANGE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
 			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
@@ -3329,7 +3281,6 @@ function HorizontalRangeObject(){
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
 				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-				console.log("HRANGE after drag",i, o.anchors[i]);
 			}
 		}
 	};
@@ -3346,7 +3297,6 @@ function HorizontalRangeObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("HRANGE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -3949,7 +3899,6 @@ function VerticalRangeObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -3989,7 +3938,6 @@ function VerticalRangeObject(){
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 		if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-			console.log("TRENDLINE long drag ");
 			interactor.currentAnchor.drag = true;
 			var i = interactor.currentAnchor.selected;
 			var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
@@ -3997,7 +3945,6 @@ function VerticalRangeObject(){
 			if(i!=null && i < o.anchors.length){
 				//o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
-				console.log("TRENDLINE after drag",i, o.anchors[i]);
 			}
 		}
 	};
@@ -4014,7 +3961,6 @@ function VerticalRangeObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("TRENDLINE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 	
@@ -4136,7 +4082,6 @@ function CycleObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -4196,7 +4141,6 @@ function CycleObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("HRANGE stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -4421,7 +4365,6 @@ function TextObject(){
 		interactor.pushPanel(this, o, panel);
 		for(var i =0; i<pts.length;i++){
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("Clicked point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -4470,7 +4413,6 @@ function TextObject(){
 	 */
 
 	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("TEXT ANNOTATION stage down start", interactor.currentAnchor);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
@@ -4484,7 +4426,6 @@ function TextObject(){
 			o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 			//panel.objects.push(o);
 			var ca = {selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			console.log("TEXT ANNOTATION stage down start", ca);
 			return ca;
 		}
 		interactor.pushPanel(this, o, panel);
@@ -4505,7 +4446,6 @@ function TextObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("TEXT ANNOTATION stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -4632,7 +4572,6 @@ function BoxObject(){
 		for(var i =0; i<pts.length;i++){
 			//is on anchor?
 			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				console.log("BOX point :",i,pts[i]);
 				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			}
 		}
@@ -4674,7 +4613,6 @@ function BoxObject(){
 		if(!this.wasDrag){
 			for(var i =0; i<pts.length;i++){
 				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					console.log("Clicked BOX :",i,pts[i]);
 					this.expandAnchor(o.anchors[i]);
 				}
 			}
@@ -4710,7 +4648,6 @@ function BoxObject(){
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		console.log("BOX stage out");
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
@@ -4825,7 +4762,6 @@ var TriangleObject	=	function () {
 				for(var i =0; i<pts.length;i++){
 					//is on anchor?
 					if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-						console.log("BOX point :",i,pts[i]);
 						return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 					}
 				}
@@ -4867,7 +4803,6 @@ var TriangleObject	=	function () {
 				if(!this.wasDrag){
 					for(var i =0; i<pts.length;i++){
 						if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-							console.log("Clicked BOX :",i,pts[i]);
 							this.expandAnchor(o.anchors[i]);
 						}
 					}
@@ -4945,7 +4880,6 @@ var TriangleObject	=	function () {
 			};
 		
 			this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				console.log("BOX stage out");
 				this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 			};
 	}
@@ -5055,7 +4989,6 @@ var TriangleObject	=	function () {
 				interactor.pushPanel(this, o, panel);
 				for(var i =0; i<pts.length;i++){
 					if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-						console.log("Clicked point :",i,pts[i]);
 						return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
 					}
 				}
@@ -5092,7 +5025,6 @@ var TriangleObject	=	function () {
 				var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
 				var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 				if(Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance){
-					console.log("PriceTag long drag ");
 					interactor.currentAnchor.drag = true;
 					var i = interactor.currentAnchor.selected;
 					var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
@@ -5100,7 +5032,6 @@ var TriangleObject	=	function () {
 					if(i!=null && i < o.anchors.length){
 						o.anchors[i]._index = idx;
 						o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-						console.log("PriceTag after drag",i, o.anchors[i]);
 					}
 				}
 			};

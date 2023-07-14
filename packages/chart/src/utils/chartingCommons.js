@@ -216,7 +216,6 @@ LIB.synchronizeSeries = function(seriesManager){
 }
 
 LIB.synchronizeAllWithAll = function(seriesManager, model){
-	console.log("SYNCHRONIZE ALL WITH ALL");
 	var l = 1;
 	var wrappers = {};
 	var stampIndex = {};
@@ -274,7 +273,6 @@ LIB.synchronizeAllWithAll = function(seriesManager, model){
  * Export stratgii
  */
 LIB.createStrategyToExport = function(o, chart){
-	console.log("Export strategy", o);
 	var model = chart.model;
 	var strategy = {
 			series: [],
