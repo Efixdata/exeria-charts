@@ -26,11 +26,19 @@ const ButtonContainer = styled.div`
   display: flex;
 
   &:hover {
-    background-color: ${splitButton.backgroundHoverColor};
+    background-color: ${props => props.theme.splitButton.hoverBackground};
+
+    path, circle {
+      fill: ${props => props.theme.splitButton.hoverColor}
+    }
   }
 
   .open &, .open:hover & {
-    background-color: ${splitButton.backgroundActiveColor};
+    background-color: ${props => props.theme.splitButton.openBackground};
+
+    path, circle {
+      fill: ${props => props.theme.splitButton.openColor}
+    }
   }
 `
 
@@ -46,12 +54,16 @@ const ChevronContainer = styled.div`
   box-sizing: border-box;
 
   &:hover {
-    background-color: ${splitButton.buttonHoverColor};
+    background-color: ${props => props.theme.splitButton.arrowHoverBackground};
   }
   
-  & svg {
+  svg {
     transform: scale(0.5);
     transition: all 100ms ease-in-out;
+  }
+
+  path, circle {
+    fill: ${props => props.theme.splitButton.arrowColor};
   }
 `
 
@@ -61,7 +73,7 @@ const OptionsContainer = styled.div<{top: number}>`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: ${splitButton.backgroundActiveColor};
+  background-color: ${props => props.theme.subMenu.background};
   padding: ${splitButton.menuPadding}px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
@@ -76,25 +88,24 @@ const Option = styled.div`
   padding-top: ${buttonOption.basePadding}px;
   padding-right: ${buttonOption.basePadding * 4}px;
   padding-bottom: ${buttonOption.basePadding}px;
-  grid-gap: ${buttonOption.basePadding * 2}px;
 
   &:hover {
-    background-color: ${buttonOption.backgroundActiveColor};
+    background-color: ${props => props.theme.subMenu.buttons.hoverBackground};
+
+    button > div, button {
+      background-color: transparent !important
+    }
   }
 
   &.active {
-    button {
-      color: ${buttonOption.fillActiveColor};
-    }
-    
-    & path, & circle {
-      fill: ${buttonOption.fillActiveColor};
-    }
-  }
+    background-color: ${props => props.theme.subMenu.buttons.activeBackground};
 
-  & button {
-    pointer-events: none;
-    padding: 0;
+    button {
+      color: ${props => props.theme.subMenu.buttons.activeColor};
+    }
+    path, circle {
+      fill: ${props => props.theme.subMenu.buttons.activeColor};
+    }
   }
 `
 
@@ -127,7 +138,8 @@ export const SplitButton = (props: SplitButtonProps) => {
   const currentButton = React.cloneElement(activeOptionProps.icon, {
     style: { borderRadius: 0 },
     onClick: () => onActiveOptionClick(activeOptionProps.callback),
-    active: !!props.activeOption
+    active: !!props.activeOption,
+    themeContext: 'toolbar'
   });
 
   useEffect(() => {

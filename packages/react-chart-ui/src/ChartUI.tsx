@@ -5,14 +5,16 @@ import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu/LeftMenu";
 import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
+import {Theme, ThemeInterface} from "ui";
 
 interface ChartUIProps {
   chart: any;
   children?: JSX.Element|JSX.Element[];
-  leftMenuWidth?: string;
-  topMenuHeight?: string;
+  leftMenuWidth?: number;
+  topMenuHeight?: number;
   loading?: boolean;
   onIntervalChange?: (symbol: string) => void;
+  theme?: ThemeInterface;
 }
 
 const Container = styled.div`
@@ -76,21 +78,25 @@ class ChartUI extends React.Component {
   }
 
   render() {
-    const leftMenuWidth = this.props.leftMenuWidth ? this.props.leftMenuWidth : "41px";
-    const topMenuHeight = this.props.topMenuHeight ? this.props.topMenuHeight : "41px";
+    const gap = this.props.theme?.gap || 0;
+    const borders = (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
+    const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
+    const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
 
     return (
-      <Container ref={this.containerRef} className="UI-container">
-        <WrapperOuter className="wrapperOuter">
-          <ContainerOffsetContext.Provider value={this.containerOffset}>
-            <TopMenu chart={this.props.chart} style={{ height: topMenuHeight }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange}/>
-            <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight})`}>
-              <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth }} />
-              <div style={{ position: 'absolute', inset: `${topMenuHeight} 0 0 ${leftMenuWidth}` }}>{this.props.children}</div>
-            </WrapperInner>
-          </ContainerOffsetContext.Provider>
-        </WrapperOuter>
-      </Container>
+      <Theme theme={this.props.theme}>
+        <Container ref={this.containerRef} className="UI-container">
+          <WrapperOuter className="wrapperOuter">
+            <ContainerOffsetContext.Provider value={this.containerOffset}>
+              <TopMenu chart={this.props.chart} style={{ height: topMenuHeight, marginBottom: gap }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange} />
+              <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight + gap + 'px'})`}>
+                <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth, marginRight: gap }} />
+                <div style={{ position: 'absolute', inset: `${topMenuHeight + gap + 'px'} 0 0 ${leftMenuWidth + gap + 'px'}` }}>{this.props.children}</div>
+              </WrapperInner>
+            </ContainerOffsetContext.Provider>
+          </WrapperOuter>
+        </Container>
+      </Theme>
     );
   }
 

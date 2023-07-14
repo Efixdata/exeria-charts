@@ -11,19 +11,19 @@ const Body = styled.div`
 
     /* Track */
     &&::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.02);
+      background: ${props => props.theme.scrollBar.trackColor};
       border-radius: 6px;
     }
 
     /* Handle */
     &&::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
+      background: ${props => props.theme.scrollBar.thumbColor};
       border-radius: 6px;
     }
 
     /* Handle on hover */
     &&::-webkit-scrollbar-thumb:hover {
-      background: #7F9DCC;
+      background:${props => props.theme.scrollBar.thumbHoverColor};
     }
 `
 

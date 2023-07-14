@@ -44,7 +44,7 @@ export const textButton = {
 export const splitButton = {
     borderRadius,
     spacerColor: violet_ll + backgroundTransparency15,
-    backgroundHoverColor: violet_background,
+    hoverBackground: violet_background,
     backgroundActiveColor: violet_l,
     buttonHoverColor: violet_ll + backgroundTransparency15,
     buttonSize,
@@ -54,7 +54,7 @@ export const splitButton = {
 export const selectButton = {
     borderRadius,
     spacerColor: violet_ll + backgroundTransparency15,
-    backgroundHoverColor: violet_background,
+    hoverBackground: violet_background,
     backgroundActiveColor: violet_l,
     buttonHoverColor: violet_ll + backgroundTransparency15,
     buttonSize,

@@ -1,7 +1,7 @@
 import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
-import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
+import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 
 const Renderer = function (settings, context, controller) {
@@ -64,6 +64,8 @@ const Renderer = function (settings, context, controller) {
 		EllipseObject.prototype = shape;
 		HorizontalRangeObject.prototype = shape;
 		VerticalRangeObject.prototype = shape;
+		TimeRangeObject.prototype = shape;
+		TimeBetObject.prototype = shape;
 		CycleObject.prototype = shape;
 		BoxObject.prototype = shape;
 		TextObject.prototype = shape;
@@ -85,6 +87,8 @@ const Renderer = function (settings, context, controller) {
 	this.objects['box'] = new BoxObject();
 	this.objects['hRange'] = new HorizontalRangeObject();
 	this.objects['vRange'] = new VerticalRangeObject();
+	this.objects['timeRange'] = new TimeRangeObject();
+	this.objects['timeBet'] = new TimeBetObject();
 	this.objects['cycle'] = new CycleObject();
 	this.objects['textAnnotation'] = new TextObject();
 	this.objects['triangle'] = new TriangleObject();
@@ -196,7 +200,7 @@ const Renderer = function (settings, context, controller) {
 		for (var i = 0; i < panel.objects.length; i++) {
 			let object = panel.objects[i];
 
-			if (object.isValid && !object.isValid()) continue;
+			if (object.isValid && !object.isValid(object)) continue;
 			if (object.permHide) object.hidden = true;
 			if (object.hidden && object.hidden === true) continue;
 			if (object.isBeingDragged) continue;
@@ -847,7 +851,7 @@ const Renderer = function (settings, context, controller) {
 			ctx.fill();
 
 			ctx.fillStyle = textColor;
-			const vp1 = v1;
+			let vp1 = v1;
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = LIB._converterLog.axisToReal(v1,1);
 			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
 			renderPriceText({
@@ -934,7 +938,7 @@ const Renderer = function (settings, context, controller) {
 			var labelUp = (Math.abs((rv1-rv2)/v2)*100).toFixed(2)+"%";
 			var label = (Math.abs(rv1-rv2)).toFixed(this.getPrecision(model, panel));
 
-			const vp2 = v2
+			let vp2 = v2
 			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = LIB._converterLog.axisToReal(v2,1);
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
 
@@ -1122,7 +1126,8 @@ const Renderer = function (settings, context, controller) {
 				if(s > stamp && s < stamp+intervalInMilis) return i;
 			}
 		}
-		return i + Math.round( (s-stamp) / seriesManager[model.mainSeries].interval.milis);
+		stamp += intervalInMilis;
+		return i + Math.floor( (s-stamp) / seriesManager[model.mainSeries].interval.milis);
 	};
 
 

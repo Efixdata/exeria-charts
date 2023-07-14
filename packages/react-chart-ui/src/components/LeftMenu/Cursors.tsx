@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { IconButton, RadioButton } from "ui";
 
-import { Cross, Default, Eraser } from "../../img/icons/cursors/index.js";
+import { Cross, Default, Eraser } from "../../img/icons/cursors";
 
 interface CursorsProps {
     chart: any;
@@ -29,6 +29,7 @@ interface CursorsProps {
             id={'DEFAULT'}
             key={'DEFAULT'}
             active={selectedCursor === 'DEFAULT'}
+            themeContext='radioButton'
         >
             <Default />
         </IconButton>,
@@ -36,6 +37,7 @@ interface CursorsProps {
             id={'CROSSHAIR'}
             key={'CROSSHAIR'}
             active={selectedCursor === 'CROSSHAIR'}
+            themeContext='radioButton'
         >
             <Cross />
         </IconButton>,
@@ -43,6 +45,7 @@ interface CursorsProps {
             id={'ERASER'}
             key={'ERASER'}
             active={selectedCursor === 'ERASER'}
+            themeContext='radioButton'
         >
             <Eraser />
         </IconButton>

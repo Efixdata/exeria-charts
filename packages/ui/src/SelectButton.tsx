@@ -23,14 +23,6 @@ const ButtonContainer = styled.div`
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
-
-  &:hover {
-    background-color: ${selectButton.backgroundHoverColor};
-  }
-
-  .open &, .open:hover & {
-    background-color: ${selectButton.backgroundActiveColor};
-  }
 `
 
 const OptionsContainer = styled.div`
@@ -39,7 +31,7 @@ const OptionsContainer = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: ${selectButton.backgroundActiveColor};
+  background-color: ${props => props.theme.subMenu.background };
   padding: 4px 0;
   position: absolute;
   top: calc(-${buttonOption.basePadding}px - 4px);
@@ -54,25 +46,24 @@ const Option = styled.div`
   padding-top: ${buttonOption.basePadding}px;
   padding-right: ${buttonOption.basePadding * 4}px;
   padding-bottom: ${buttonOption.basePadding}px;
-  grid-gap: ${buttonOption.basePadding * 2}px;
 
   &:hover {
-    background-color: ${buttonOption.backgroundActiveColor};
+    background-color: ${props => props.theme.subMenu.buttons.hoverBackground};
+
+    button > div, button {
+      background-color: transparent !important
+    }
   }
 
   &.active {
-    button {
-      color: ${buttonOption.fillActiveColor};
-    }
-    
-    & path, & circle {
-      fill: ${buttonOption.fillActiveColor};
-    }
-  }
+    background-color: ${props => props.theme.subMenu.buttons.activeBackground};
 
-  & button {
-    pointer-events: none;
-    padding: 0;
+    button {
+      color: ${props => props.theme.subMenu.buttons.activeColor};
+    }
+    path, circle {
+      fill: ${props => props.theme.subMenu.buttons.activeColor};
+    }
   }
 `
 
@@ -156,10 +147,8 @@ export const SelectButton = (props: SelectButtonProps) => {
     if (selected) {
       return (
         <div onClick={() => setOpen(!isOpen)}>
-          { selected.icon && <Icon>
-            { props.options[selectedOption].icon }
-          </Icon> }
-          { !selected.icon && selected.text && props.options[selectedOption].text }
+          {selected.icon}
+          {!selected.icon && selected.text}
         </div>
       );
     } else {

@@ -66,6 +66,30 @@ const getChartLibrary = (containerElement) => {
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
+      const timeRangeId = chart.toolDrawer.drawTimeBet({
+        startTime: 1663027200000,
+        timeRange: 50000000,
+        price: 0.000028700,
+        reward: 458,
+        bet: 700,
+        predictedDirection: 'DOWN',
+        status: "ACTIVE",
+        isWinning: false,
+        config:  {
+          editable: false,
+          color: "#1C6897",
+          winningColor: "#25AD98",
+          losingColor: "#D12E59",
+          secondaryColor: "#ffffff10",
+          textColor: "white",
+          priceTag: true
+        }
+      });
+
+      // setTimeout(() => {
+        
+      //   chart.toolDrawer.deleteTool(futureTimeRangeId);
+      // }, 1000)
   
       return chart;
   }
@@ -107,9 +131,87 @@ export function WebChartComponent() {
     }
   };
 
+  const swipperBlueLight = '#21C1F2';
+  const swipperBlue = '#1EA1CD';
+  const swipperWhite = '#fff';
+  const swipperGreenLight = '#3CC3AF';
+
+  const swipperTheme = {
+    border: {
+      inner: '1px solid rgba(255,255,255,0.1)',
+      outter: '1px solid rgba(255,255,255,0.1)',
+      radius: 6
+    },
+    gap: 8,
+    accentColor: swipperGreenLight,
+    buttons: {
+      color: 'white',
+      activeColor: 'white',
+      activeBackground: 'transparent',
+      hoverColor: 'white',
+      hoverBackground: 'rgba(255, 255, 255, 0.1)',
+    },
+    radioButton: {
+      background: 'rgba(255, 255, 255, 0.1)',
+      buttons: {
+        color: swipperBlue,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlue,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      },
+    },
+    toolbar: {
+      background: '#113D59',
+      buttons: {
+        color: swipperBlueLight,
+        activeColor: swipperGreenLight,
+        hoverColor: swipperBlueLight,
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      } 
+    },
+    subMenu: {
+      background: swipperBlue,
+      buttons: {
+        color: swipperWhite,
+        activeColor: swipperWhite,
+        activeBackground: swipperGreenLight,
+        hoverColor: 'rgba(255, 255, 255, 0.1)',
+        hoverBackground: 'rgba(255, 255, 255, 0.1)'
+      }
+    },
+    splitButton: {
+      openBackground: swipperBlue,
+      hoverBackground: swipperBlue,
+      openColor: swipperWhite,
+      hoverColor: swipperWhite,
+      arrowHoverBackground: 'rgba(255, 255, 255, 0.1)',
+      arrowColor: swipperBlueLight,
+      arrowOpenColor: swipperBlueLight
+    },
+    dialog: {
+      backgroundColor: '#144869',
+      titleColor: 'white',
+      textColor: 'white',
+      dividerColor: 'rgba(255, 255, 255, 0.1)',
+      itemTitleColor: 'white',
+      itemSubTitleColor: 'rgba(255, 255, 255, 0.7)',
+      itemHoverBackgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    inputs: {
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      placeholderColor: 'rgba(255, 255, 255, 0.5)',
+      textColor: 'white',
+    },
+    scrollBar: {
+      trackColor: 'rgba(255, 255, 255, 0.02)',
+      thumbColor: 'rgba(255, 255, 255, 0.1)',
+      thumbHoverColor: swipperGreenLight,
+    },
+  }
+
   return (
-        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22' }}>
-          <ChartUI chart={chart} onIntervalChange={onIntervalChange}>
+        <div style={{ width: '100%', height: '100%', backgroundColor: '#100c22'}}>
+          <ChartUI chart={chart} onIntervalChange={onIntervalChange} theme={swipperTheme}>
             <div ref={objectRef} />
           </ChartUI>
         </div>

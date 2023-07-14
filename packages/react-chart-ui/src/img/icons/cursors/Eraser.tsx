@@ -1,5 +1,5 @@
 import * as React from "react";
-const SvgEraser = (props) => (
+export const Eraser = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 18 18"
@@ -17,4 +17,6 @@ const SvgEraser = (props) => (
     />
   </svg>
 );
-export default SvgEraser;
+
+export default Eraser;
+

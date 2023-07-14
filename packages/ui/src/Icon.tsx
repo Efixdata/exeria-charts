@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { iconButton } from "../theme"; 
 
-const IconContainer = styled.div`
-display: flex;
-align-items: center;
+const IconContainer = styled.div<{themeContext: string}>`
+  display: flex;
+  align-items: center;
   background-color: transparent;
   border: none;
   outline: none;
@@ -14,14 +14,19 @@ align-items: center;
   height: ${iconButton.buttonSize}px;
   border-radius: ${iconButton.borderRadius}px;
 
-  &:hover, &.focus {
-    background-color: ${iconButton.backgroundActiveColor};
-    cursor: pointer;
+  path, circle {
+    fill: ${props => {
+      const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+      return parent['color'];
+    }};
   }
 
   &.active {
     path, circle {
-      fill: ${iconButton.iconActiveColor};
+      fill:  ${props => {
+        const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+        return parent['activeColor'];
+      }};
     }
   }
 
@@ -45,10 +50,10 @@ interface IconProps {
   iconStyle?: React.CSSProperties
   active?: boolean
   id?: string
+  themeContext?: string
 }
 
 export const Icon = (props: IconProps) => {
-
   const renderImage = () => {
     if (props.image)
       return (<picture>
@@ -57,7 +62,7 @@ export const Icon = (props: IconProps) => {
       </picture>);
   }
 
-  return <IconContainer className={props.active ? "active" : ""} style={props.style}>
+  return <IconContainer className={props.active ? "active" : ""} style={props.style} themeContext={props.themeContext || 'buttons'}>
     {renderImage()}
     {props.children}
   </IconContainer>;

@@ -180,7 +180,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		var scriptKey = 'OBJECT';
 		var script = FUSION.getScript('OBJECT');
 		var os =this.chart. getObjectsForIndicator();
-		FUSION.dialogs.script.show({key: scriptKey, config: null}, onApply, onCancel, this.fusion, panels = false, os, WEBRCP.locale.fusion);
+		var panels = false
+		FUSION.dialogs.script.show({key: scriptKey, config: null}, onApply, onCancel, this.fusion, panels, os, WEBRCP.locale.fusion);
 		function onCancel(){
 			FUSION.dialogs.script.hide();
 		}
@@ -391,243 +392,243 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	};
 
-	this.buildContextMenu = function(e){
-		$.contextMenu('destroy', '.context-menu-topLayer');
+	// this.buildContextMenu = function(e){
+	// 	$.contextMenu('destroy', '.context-menu-topLayer');
 		
-		var self = this;
-		var eo = this.getEventOffset(e);
+	// 	var self = this;
+	// 	var eo = this.getEventOffset(e);
 		
-		var panel = this.getPanel(eo.offsetY);
-		if(!panel) return;
+	// 	var panel = this.getPanel(eo.offsetY);
+	// 	if(!panel) return;
 
-		var seriesId = self.model.instrumentsSeries[0].seriesId;
+	// 	var seriesId = self.model.instrumentsSeries[0].seriesId;
 
-		const panelProps = {
-			panelHeight: panel._height,
-			minValue: panel.vMin,
-			maxValue: panel.vMax,
-			valueAxisMode: panel.valueAxisMode,fV
-		}
+	// 	const panelProps = {
+	// 		panelHeight: panel._height,
+	// 		minValue: panel.vMin,
+	// 		maxValue: panel.vMax,
+	// 		valueAxisMode: panel.valueAxisMode,fV
+	// 	}
 
-		var idx = self.fusion.getSeriesManager()[seriesId].data.length-1;
-		var fV = LIB.getFirstAvailableValue(self.model, self.fusion.getSeriesManager()[seriesId].data, 'c');
-		var closeY 	= self.renderer.getYCoordinateForPrice(self.fusion.getSeriesManager()[seriesId].data[idx]['c'], panelProps) + panel._offset;
-		var valueY = self.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
+	// 	var idx = self.fusion.getSeriesManager()[seriesId].data.length-1;
+	// 	var fV = LIB.getFirstAvailableValue(self.model, self.fusion.getSeriesManager()[seriesId].data, 'c');
+	// 	var closeY 	= self.renderer.getYCoordinateForPrice(self.fusion.getSeriesManager()[seriesId].data[idx]['c'], panelProps) + panel._offset;
+	// 	var valueY = self.renderer.getPriceForYCoordinate(eo.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
-		var zone = null;
-		if(eo.offsetY > closeY){
-			zone = "abovePrice";
-		}else if(eo.offsetY < closeY){
-			zone = "belowPrice";
-		}
+	// 	var zone = null;
+	// 	if(eo.offsetY > closeY){
+	// 		zone = "abovePrice";
+	// 	}else if(eo.offsetY < closeY){
+	// 		zone = "belowPrice";
+	// 	}
 
-		function openNewOrderWidged(o){
-			if (self.chart.options.openNewOrderWidget) {
-				const instrument = self.model.instrumentsSeries[0].instrument;
-				const roundedPrice = WEBRCP.utils.roundPrice(valueY, instrument.priceChangeStep, instrument.precision);
-				// o.onCreate = createOrderFromDialog; // showing unchecked orders on chart, not supported
-				self.chart.options.openNewOrderWidget({
-					instrument: instrument,
-					stopPrice: roundedPrice,
-					limitPrice: roundedPrice
-				});
-			}
-		}
+	// 	function openNewOrderWidged(o){
+	// 		if (self.chart.options.openNewOrderWidget) {
+	// 			const instrument = self.model.instrumentsSeries[0].instrument;
+	// 			const roundedPrice = WEBRCP.utils.roundPrice(valueY, instrument.priceChangeStep, instrument.precision);
+	// 			// o.onCreate = createOrderFromDialog; // showing unchecked orders on chart, not supported
+	// 			self.chart.options.openNewOrderWidget({
+	// 				instrument: instrument,
+	// 				stopPrice: roundedPrice,
+	// 				limitPrice: roundedPrice
+	// 			});
+	// 		}
+	// 	}
 
-		function onPositionMenuCallback(o){
-			if(o.type == 'close')
-				//self.doClosePosition(o.position);
-				self.chart.options.doClosePositionCallback(o.position.object);
-			else if(o.type == 'addSL'){
-				self.chart.options.openAddSLWidget({parent: o.position, onCreate: createOrderFromDialog});
-			}else if(o.type == 'addTP'){
-				self.chart.options.openAddTPWidget({parent: o.position, onCreate: createOrderFromDialog});
-			}
-		}
+	// 	function onPositionMenuCallback(o){
+	// 		if(o.type == 'close')
+	// 			//self.doClosePosition(o.position);
+	// 			self.chart.options.doClosePositionCallback(o.position.object);
+	// 		else if(o.type == 'addSL'){
+	// 			self.chart.options.openAddSLWidget({parent: o.position, onCreate: createOrderFromDialog});
+	// 		}else if(o.type == 'addTP'){
+	// 			self.chart.options.openAddTPWidget({parent: o.position, onCreate: createOrderFromDialog});
+	// 		}
+	// 	}
 
-		function onOrderMenuCallback(o){
-			if (o.type == 'deleteOrder')
-				self.doCloseTradeObject(o.order);
+	// 	function onOrderMenuCallback(o){
+	// 		if (o.type == 'deleteOrder')
+	// 			self.doCloseTradeObject(o.order);
 
-			else if (o.type == 'modifyOrder'){
-				self.chart.options.openModifyOrderWidget(o.order.object);
-			}
-		}
+	// 		else if (o.type == 'modifyOrder'){
+	// 			self.chart.options.openModifyOrderWidget(o.order.object);
+	// 		}
+	// 	}
 
-		function createOrderFromDialog(order, price, type) {
-			var getType = function(type) {
-				if (type === 'Buy' || type === 'Sell') {  return 'POSITION'; }
-				return type.toUpperCase();
-			}
+	// 	function createOrderFromDialog(order, price, type) {
+	// 		var getType = function(type) {
+	// 			if (type === 'Buy' || type === 'Sell') {  return 'POSITION'; }
+	// 			return type.toUpperCase();
+	// 		}
 
-			var getTitle = function(title) {
-				if (type === 'tp' || type === 'sl') { return title.toUpperCase(); }
-				return title;
-			}
+	// 		var getTitle = function(title) {
+	// 			if (type === 'tp' || type === 'sl') { return title.toUpperCase(); }
+	// 			return title;
+	// 		}
 
-			var orderCandidate = {
-				id: "empty",
-				price: price * 1,
-				instrument: order.instrument || order.object.intrument,
-				parentId: order.id || null,
-				selected: true,
-				modified: true,
-				title: getTitle(type),
-				type: getType(type)
-			}
-			self.model.orders.list.push(orderCandidate);
-		};
+	// 		var orderCandidate = {
+	// 			id: "empty",
+	// 			price: price * 1,
+	// 			instrument: order.instrument || order.object.intrument,
+	// 			parentId: order.id || null,
+	// 			selected: true,
+	// 			modified: true,
+	// 			title: getTitle(type),
+	// 			type: getType(type)
+	// 		}
+	// 		self.model.orders.list.push(orderCandidate);
+	// 	};
 
-		function getParent(order){
-			for(var i in self.model.positions.list){
-				var p = self.model.positions.list[i];
-				if(p.id == order.parentId) return p;
-			}
+	// 	function getParent(order){
+	// 		for(var i in self.model.positions.list){
+	// 			var p = self.model.positions.list[i];
+	// 			if(p.id == order.parentId) return p;
+	// 		}
 
-			for(var i in self.model.orders.list){
-				var p = self.model.orders.list[i];
-				if(p.id == order.parentId) return p;
-			}
+	// 		for(var i in self.model.orders.list){
+	// 			var p = self.model.orders.list[i];
+	// 			if(p.id == order.parentId) return p;
+	// 		}
 
-			return null;
-		}
+	// 		return null;
+	// 	}
 
-		function getTpForPosition(p, model){
-			for(var i in model.orders.list){
-				if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'TP')
-					return model.orders.list[i];
-			}
-			return null;
-		}
+	// 	function getTpForPosition(p, model){
+	// 		for(var i in model.orders.list){
+	// 			if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'TP')
+	// 				return model.orders.list[i];
+	// 		}
+	// 		return null;
+	// 	}
 
-		function getSlForPosition(p, model){
-			for(var i in model.orders.list){
-				if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'SL')
-					return model.orders.list[i];
-			}
-			return null;
-		}
-
-
-		function checkIfHasIcons(items) {
-			for (var i in items) {
-				if (items[i].icon) return 'webrcp-has-icons';
-			}
-
-			return false;
-		}
+	// 	function getSlForPosition(p, model){
+	// 		for(var i in model.orders.list){
+	// 			if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'SL')
+	// 				return model.orders.list[i];
+	// 		}
+	// 		return null;
+	// 	}
 
 
+	// 	function checkIfHasIcons(items) {
+	// 		for (var i in items) {
+	// 			if (items[i].icon) return 'webrcp-has-icons';
+	// 		}
 
-		var items = {};
-		if(!this.currentSelectedObject){
-			var builder = new ContextMenuBuilder();
+	// 		return false;
+	// 	}
 
-			if(self.trading==true){
-				builder
-					.addTradeMenu(self.chart, zone, openNewOrderWidged)
-					.addShowPositionsAndOrders(self.chart)
-			}
 
-			builder
-				.addShowGrid(self.chart, panel)
-				.addAutoScale(self.chart)
-				.addCrosshair(self.chart)
-				.addScaleMode(self.chart)
-				.addRefresh(self.chart);
 
-			if (isSmallScreen) {
-				builder
-					.addGoToHome(self.chart)
-					.addGoToEnd(self.chart);
-			}
+	// 	var items = {};
+	// 	if(!this.currentSelectedObject){
+	// 		var builder = new ContextMenuBuilder();
+
+	// 		if(self.trading==true){
+	// 			builder
+	// 				.addTradeMenu(self.chart, zone, openNewOrderWidged)
+	// 				.addShowPositionsAndOrders(self.chart)
+	// 		}
+
+	// 		builder
+	// 			.addShowGrid(self.chart, panel)
+	// 			.addAutoScale(self.chart)
+	// 			.addCrosshair(self.chart)
+	// 			.addScaleMode(self.chart)
+	// 			.addRefresh(self.chart);
+
+	// 		if (isSmallScreen) {
+	// 			builder
+	// 				.addGoToHome(self.chart)
+	// 				.addGoToEnd(self.chart);
+	// 		}
 			
-			if(self.config.multiInstrumentChart){
-				builder
-				.addSeparator()
-				.addNewInstrument(chart);
-			}
+	// 		if(self.config.multiInstrumentChart){
+	// 			builder
+	// 			.addSeparator()
+	// 			.addNewInstrument(chart);
+	// 		}
 
 
-			if(		self.fusion.getMainSeries().instrument.related &&
-					Array.isArray(self.chart.fusion.getMainSeries().instrument.related) &&
-					self.fusion.getMainSeries().instrument.related.length > 0 ){
+	// 		if(		self.fusion.getMainSeries().instrument.related &&
+	// 				Array.isArray(self.chart.fusion.getMainSeries().instrument.related) &&
+	// 				self.fusion.getMainSeries().instrument.related.length > 0 ){
 
-				builder.addRelatedInstrument(chart);
-			}
+	// 			builder.addRelatedInstrument(chart);
+	// 		}
 
-			builder.addSeparator();
+	// 		builder.addSeparator();
 
-			if(!self.config.storageDisabled){
-				builder.addExportChartMenu(self.chart);
-			}
+	// 		if(!self.config.storageDisabled){
+	// 			builder.addExportChartMenu(self.chart);
+	// 		}
 
-			builder
-				.addDeleteObjectsMenu(self.chart)
-				.addDeleteScriptsAndObjectsMenu(self.chart)
-				.addSeparator()
-				.addToolboxLayoutPosition(self.chart);
+	// 		builder
+	// 			.addDeleteObjectsMenu(self.chart)
+	// 			.addDeleteScriptsAndObjectsMenu(self.chart)
+	// 			.addSeparator()
+	// 			.addToolboxLayoutPosition(self.chart);
 
-			items = builder.build();
+	// 		items = builder.build();
 
-		}else{
+	// 	}else{
 
-			var builder = new ContextMenuBuilder();
-			builder
-			.addSelectedObjectSubMenus(self.chart)
-			.addPositionMenu(self.chart, onPositionMenuCallback)
-			.addOrdersMenu(self.chart, onOrderMenuCallback)
-			.addMoveToPanelMenu(self.chart, panel)
-			.addScriptConfigMenu(self.chart);
+	// 		var builder = new ContextMenuBuilder();
+	// 		builder
+	// 		.addSelectedObjectSubMenus(self.chart)
+	// 		.addPositionMenu(self.chart, onPositionMenuCallback)
+	// 		.addOrdersMenu(self.chart, onOrderMenuCallback)
+	// 		.addMoveToPanelMenu(self.chart, panel)
+	// 		.addScriptConfigMenu(self.chart);
 			
-			if(!self.config.storageDisabled){
-				builder.addScriptExportMenu(self.chart);
-			}
+	// 		if(!self.config.storageDisabled){
+	// 			builder.addScriptExportMenu(self.chart);
+	// 		}
 
-			builder.addDeleteSelectedObjectMenu(self.chart);
+	// 		builder.addDeleteSelectedObjectMenu(self.chart);
 
-			builder
-				.addSeparator()
-				.addToolboxLayoutPosition(self.chart);
+	// 		builder
+	// 			.addSeparator()
+	// 			.addToolboxLayoutPosition(self.chart);
 
-			items = builder.build();
+	// 		items = builder.build();
 
-			this.currentSelectedObject._hit = false;
-		}
+	// 		this.currentSelectedObject._hit = false;
+	// 	}
 
-		$.contextMenu({
-			selector: '.context-menu-topLayer',
-			className: checkIfHasIcons(items),
-			position: (WEBRCP.platformManifest.AccountType == 'anonymous') ? function(opt,b,c) {
-				var offset = $('#' + Efix.options.parentId).offset();
-				opt.$menu.css({top: c - offset.top, left: b - offset.left})
-			} : undefined,
-			appendTo: '.chart-context-menu-layer',
-			trigger: 'none',
-			build: function($trigger, e) {
-				return {
-					callback: function(key, options) {
-						var m = "clicked: " + key;
-					},
-					items: items
-				};
-			},
-			events: {
-				show: function(opt) {
-					var $this = this;
-					//nope
-				},
-				hide: function(opt) {
-					self.clearOverlay()
-					self.controller.fit();
-					self.controller.render()
-					$('.chart-context-menu-layer').empty();
-				}
-			}
-		});
+	// 	$.contextMenu({
+	// 		selector: '.context-menu-topLayer',
+	// 		className: checkIfHasIcons(items),
+	// 		position: (WEBRCP.platformManifest.AccountType == 'anonymous') ? function(opt,b,c) {
+	// 			var offset = $('#' + Efix.options.parentId).offset();
+	// 			opt.$menu.css({top: c - offset.top, left: b - offset.left})
+	// 		} : undefined,
+	// 		appendTo: '.chart-context-menu-layer',
+	// 		trigger: 'none',
+	// 		build: function($trigger, e) {
+	// 			return {
+	// 				callback: function(key, options) {
+	// 					var m = "clicked: " + key;
+	// 				},
+	// 				items: items
+	// 			};
+	// 		},
+	// 		events: {
+	// 			show: function(opt) {
+	// 				var $this = this;
+	// 				//nope
+	// 			},
+	// 			hide: function(opt) {
+	// 				self.clearOverlay()
+	// 				self.controller.fit();
+	// 				self.controller.render()
+	// 				$('.chart-context-menu-layer').empty();
+	// 			}
+	// 		}
+	// 	});
 
-		this.topLayer.addClass("context-menu-topLayer");
-	}
+	// 	this.topLayer.addClass("context-menu-topLayer");
+	// }
 
 	this.requestChartTitleAndShareChart = function(chart){
 		var self = this;
@@ -694,12 +695,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 									data.thumbnail = chart.canvas.toDataURL();
 									if(props['Title']) data.title = props['Title'];
 									if(props['Description']) data.description = props['Description'];
-									SERVICES.charts.sendChart(SERVICES.token, data,
-											function(rsp){
-									},
-									function(errorMessage){
-										console.error(errorMessage);
-									});
+									// SERVICES.charts.sendChart(SERVICES.token, data,
+									// 		function(rsp){
+									// },
+									// function(errorMessage){
+									// 	console.error(errorMessage);
+									// });
 									this.dismiss();
 								}
 		              		}
@@ -763,12 +764,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.requestStrategyTitleAndExportStrategy = function (strategy) {
 		var sendStrategy = function (titleAndDescObject) {
 			titleAndDescObject.data = JSON.stringify(strategy);
-			SERVICES.strategies.sendStrategy(SERVICES.token, titleAndDescObject,
-				function (data) {
-				},
-				function (errorMessage) {
-					console.error(errorMessage);
-				});
+			// SERVICES.strategies.sendStrategy(SERVICES.token, titleAndDescObject,
+			// 	function (data) {
+			// 	},
+			// 	function (errorMessage) {
+			// 		console.error(errorMessage);
+			// 	});
 		};
 		this.requestTitleAndDescription(sendStrategy);
 	};
@@ -1047,7 +1048,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 					if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
 						const valueY1 = this.initialMinMax.value;
 						const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-						const delta = valueY2 - valueY1;
+						const delta = valueY1 - valueY2;
 
 						if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
 							panel.vMax = this.initialMinMax.max + delta;

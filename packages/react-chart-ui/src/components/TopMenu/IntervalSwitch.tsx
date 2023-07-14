@@ -12,13 +12,15 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
   const instrument = props?.chart?.getInstrument();
   const interval = props?.chart?.getInterval();
   const [intervalSymbol, setIntervalSymbol] = useState(interval);
+  console.log('🚀 ~ file: IntervalSwitch.tsx:15 ~ IntervalSwitch ~ intervalSymbol:', intervalSymbol)
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return null;
 
     return [{}, ...instrument.availableIntervals].reduce((previous, current) => {
+      const context = intervalSymbol === current.symbol ? 'toolbar' : 'subMenu';
       previous[current.symbol] = {
-        text: <TextButton>{ current.symbol }</TextButton>,
+        text: <TextButton themeContext={context}>{ current.symbol }</TextButton>,
         id: current.symbol
       }
       return previous;
@@ -50,7 +52,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
                 onSelect={(option) => { 
                   if (props.onIntervalChange && option != undefined) props.onIntervalChange(option);
                 }}
-                selectedOption={intervalSymbol}
+                selectedOption={intervalSymbol || '1h'}
             />
         )
     } else {

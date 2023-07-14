@@ -258,7 +258,7 @@ function Shape(){
 			anchor.expanded = !anchor.expanded;
 	};
 
-	this.isValid = function(){
+	this.isValid = function(o){
 		for(var k in o.anchors){
 			if(o.anchors[k]._index < 0) return false;
 			if(o.anchors[k].stamp - o.anchors[k].offset <= 0) return false;
@@ -471,7 +471,6 @@ Shape.prototype = new Shape();//{	constructor: Shape }
 function TrendLineObject(){
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
-
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 
@@ -3366,6 +3365,474 @@ function HorizontalRangeObject(){
 	// };
 }
 
+function TimeRangeObject() {
+
+	this.render	= function (o, ctx, renderer, model, panel, seriesManager) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+
+		ctx.save();
+		ctx.lineWidth = o.width;
+		ctx.setLineDash(o.dash ? o.dash : []);
+
+		if (o.secondaryColor) {
+			ctx.fillStyle = o.secondaryColor;
+		} else {
+			ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+			ctx.globalAlpha = 0.1;
+		}
+
+		ctx.fillRect(pts[0].x, panel._offset, pts[1].x-pts[0].x, panel._height-22);
+
+		ctx.globalAlpha = 1;
+		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		ctx.fillRect(pts[0].x, panel._offset+panel._height - 22, pts[1].x-pts[0].x, 22);
+
+		const measuredText = ctx.measureText(o.text);
+		ctx.textBaseline = "middle";
+		ctx.fillStyle = o.textColor ? o.textColor : WEBRCP.utils.colorManager.getColor('defaultToolTextColor');
+		ctx.fillText(
+			o.text,
+			(pts[0].x + pts[1].x)/2 - measuredText.width/2,
+			panel._offset + panel._height - 22/2
+		);
+
+		ctx.restore();
+	}
+
+	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+		if (o.editable === false) return;
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+
+		if (o._hitAnchor) {
+			for(var i =0; i< pts.length; i++){
+				var p = pts[i];
+				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
+					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
+			}
+		}
+
+		if(o._hit || o.selected){
+			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
+			octx.save();
+			octx.setLineDash([2,5]);
+			octx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+			octx.beginPath();
+			octx.moveTo(pts[0].x,panel._offset);
+			octx.lineTo(pts[0].x, panel._height+panel._offset);
+			octx.moveTo(pts[1].x,panel._offset);
+			octx.lineTo(pts[1].x, panel._height+panel._offset);
+			octx.stroke();
+			octx.closePath();
+
+			octx.restore();
+		}
+	}
+
+	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+		if (o.editable === false) return false;
+		var self = this;
+
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var hitResult = false;
+		this.clearHits(o);
+
+		if (between(pts[0].x, x, pts[0].x, self.hitTolerance) || between(pts[1].x, x, pts[1].x, self.hitTolerance)) {
+			hitResult = true;
+			o._hit = true;
+			var p = findAnchorPointForXY(pts, x, y, self.hitTolerance);
+			if(p){
+				o._hitAnchor = {x:p.x, y:p.y};
+			}
+		}
+		return hitResult;
+	}
+
+	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+		if (o.editable === false) {
+			return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
+		}
+		
+		var self = this;
+		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
+		interactor.pushPanel(this, o, panel);
+
+		for (var i =0; i<pts.length;i++) {
+			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
+				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
+			}
+		}
+		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
+
+	}
+	this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		if (o.editable === false) return;
+
+		var idx = interactor.currentAnchor.selected;
+		var baseAnchors = interactor.currentAnchor.anchors;
+		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
+		var fV = LIB.getReferenceValue(o, model, seriesManager);
+		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
+
+		if (idx!=null) {
+			let index = renderer.getStampIndex(baseAnchors[idx].prawilnyStamp, model, seriesManager);
+			o.anchors[idx]._index = index+xOffset;
+			o.anchors[idx].prawilnyStamp = renderer.getIndexStamp(o.anchors[idx]._index, model, seriesManager);
+		} else {
+			for (var i=0; i< o.anchors.length ;i++) {
+				let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+				o.anchors[i]._index = index+xOffset;
+				o.anchors[i].value = baseAnchors[i].value+yOffset;
+				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+			}
+		}
+	};
+
+	this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		if (o.editable === false) return;
+		
+		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
+		var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
+
+		if (Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance) {
+			interactor.currentAnchor.drag = true;
+			var i = interactor.currentAnchor.selected;
+			var idx = renderer.getPointIndex (e._offset.offsetX, model);
+
+			if (i!=null && i < o.anchors.length) {
+				o.anchors[i]._index = idx;
+				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+			}
+		}
+	};
+
+	this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		if (o.editable === false) return;
+		interactor.popPanel(this, o, panel);
+
+		if (interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
+
+		if (interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length) {
+			interactor.currentAnchor = null;
+			return true;
+		}
+	};
+
+	this.stageOut =	function (e, o, renderer, interactor, model, panel, seriesManager) {
+		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	};
+
+	this.getPoints	= function (o, renderer, panel, model, seriesManager) {
+		const y = panel._offset + panel._height / 2 - this.anchorPointSize / 2;
+		let startStamp;
+		let endStamp;
+		let pts = [];
+
+		if (o.startTime === "now" && typeof o.timeRange === "number") {
+			var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
+			var lastIndex = seriesManager[model.mainSeries].data.length-1;
+			const now = Date.now();
+			startStamp = now;
+			endStamp = now + o.timeRange;
+
+			pts[0] = {
+				x: Math.floor(renderer.getIndexPoint(lastIndex, model) + model.periodWidth / 2),
+				y,
+				index: lastIndex,
+				stamp: startStamp
+			}
+		} else if (typeof o.startTime === "number" && typeof o.timeRange === "number") {
+			endStamp = o.startTime + o.timeRange;
+
+			pts[0] = {
+					x: Math.floor(renderer.getStampPoint(o.startTime, model, seriesManager) + model.periodWidth / 2),
+					y: y,
+					index: renderer.getStampIndex(o.startTime, model, seriesManager),
+					stamp: o.startTime
+				}
+		} else {
+			throw Error("Invalid TimeRange config. startTime should be numeric or 'now' and timeRange should be numeric.")
+		}
+
+		pts[1] = {
+			x: Math.floor(renderer.getStampPoint(endStamp, model, seriesManager) + model.periodWidth / 2),
+			y: y,
+			index: renderer.getStampIndex(endStamp, model, seriesManager),
+			stamp: endStamp
+		};
+
+		if (pts[1].x === pts[0].x) {
+			pts[1].x += 1;
+			pts[0].x -= 2;
+		}
+		return pts;
+		
+	}
+}
+
+function TimeBetObject() {
+
+	this.getColor = function(o, isWinning) {
+		const defaultColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+		const winningColor = o.winningColor ? o.winningColor : WEBRCP.utils.colorManager.getColor('chartGreen');
+		const losingColor = o.losingColor ? o.losingColor : WEBRCP.utils.colorManager.getColor('chartRed');
+
+		if (o.status === "PENDING_START" || o.status === "ACTIVE") {
+			if (isWinning) return winningColor;
+			else return losingColor;
+		}
+
+		return defaultColor;
+	}
+
+	this.isWinning = function(o, model, seriesManager) {
+		let isWinning = o.isWinning;
+
+		if (o.status === "ACTIVE") {
+			const lastPrice = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['c'];
+			if (o.predictedDirection === "UP") {
+				if (lastPrice > o.price) isWinning = true;
+				else isWinning = false;
+			} else if (o.predictedDirection === "DOWN") {
+				if (lastPrice < o.price) isWinning = true;
+				else isWinning = false;
+			}
+		}
+
+		return isWinning;
+	}
+
+	this.render	= function(o, ctx, renderer, model, panel, seriesManager) {
+		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		const status = o.status;
+		let isWinning = this.isWinning(o, model, seriesManager);
+
+		let toolColor = this.getColor(o, isWinning);
+		let globalAlpha = 1;
+
+		if (status === "PENDING_START" || status === "PENDING_FINISH") {
+			globalAlpha = 0.5;
+		}
+
+		ctx.save();
+		ctx.lineWidth = o.width;
+		ctx.setLineDash(o.dash ? o.dash : []);
+		ctx.fillStyle = toolColor;
+		ctx.strokeStyle = toolColor;
+		ctx.globalAlpha = globalAlpha;
+
+		let text;
+
+		if (isWinning) {
+			text = '+$' + o.reward;
+		} else {
+			text = "-$" + o.bet;
+		}
+
+		let x0 = pts[0].x;
+		let y0 = pts[0].y;
+		let x1 = pts[1].x;
+		let y1 = pts[1].y;
+
+		const measuredText = ctx.measureText(text);
+		const rightArrowWidth = 10;
+		const rightArrowHeight = 10;
+		const halfRightArrowHeight = rightArrowHeight/2;
+		const leftArrowWidth = 20;
+		const leftArrowHeight = 20;
+		const halfLeftArrowHeight = leftArrowHeight/2;
+		const directionBoxWidth = 20;
+		const boxPadding = {
+			left: 5,
+			right: 2
+		};
+		const boxWidth = Math.ceil(measuredText.width + boxPadding.left + boxPadding.right + directionBoxWidth);
+		let boxBeginningX = x0 - leftArrowWidth - boxWidth;
+		
+		// Rounded box
+		ctx.beginPath();
+		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
+		ctx.fill();
+
+		// Image arrow
+		ctx.strokeStyle = "white";
+		ctx.lineCap = "round";
+		ctx.beginPath();
+
+		if (o.predictedDirection === "UP") {
+			ctx.moveTo(boxBeginningX + 8, y0 - 3);
+			ctx.lineTo(boxBeginningX + 14, y0 - 3);
+			ctx.lineTo(boxBeginningX + 14, y0 + 3);
+			ctx.moveTo(boxBeginningX + 14, y0 - 3);
+			ctx.lineTo(boxBeginningX + 7, y0 + 4);
+		} else if (o.predictedDirection === "DOWN") {
+			ctx.moveTo(boxBeginningX + 14, y0 - 2);
+			ctx.lineTo(boxBeginningX + 14, y0 + 3);
+			ctx.lineTo(boxBeginningX + 8, y0 + 3);
+			ctx.moveTo(boxBeginningX + 14, y0 + 3);
+			ctx.lineTo(boxBeginningX + 7, y0 - 3);
+		}
+		
+		ctx.stroke();
+		ctx.strokeStyle = toolColor;
+
+		// Reward text
+		ctx.textBaseline = "middle";
+		ctx.fillStyle = o.textColor ? o.textColor : WEBRCP.utils.colorManager.getColor('defaultToolTextColor');
+		ctx.fillText(
+			text,
+			boxBeginningX + directionBoxWidth + boxPadding.left,
+			y0
+		);
+		ctx.fillStyle = toolColor;
+		ctx.lineWidth = 1;
+
+		// Left arrow
+		ctx.beginPath();
+		ctx.moveTo(x0, y0);
+		ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight);
+		ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight);
+		ctx.closePath();
+		ctx.fill();
+
+		// Right arrow
+		ctx.beginPath();
+		ctx.moveTo(x1, pts[1].y);
+		ctx.lineTo(x1 + rightArrowWidth, y1 + halfRightArrowHeight);
+		ctx.lineTo(x1 + rightArrowWidth, y1 - halfRightArrowHeight);
+		ctx.closePath();
+		ctx.fill();
+
+		x0 += 0.5;
+		y0 += 0.5;
+		x1 += 0.5;
+		y1 += 0.5;
+		boxBeginningX += 0.5;
+
+		// Middle line
+		ctx.beginPath();
+		ctx.moveTo(x0 - 2 , y0);
+		ctx.lineTo(x1, y1);
+		ctx.stroke();
+
+		// Line
+		ctx.setLineDash([3, 2]);	
+
+		ctx.beginPath();
+		if (o.priceTag) {
+			ctx.moveTo(x1 + rightArrowWidth, y1);
+			ctx.lineTo(panel._width, y1);
+		}
+		ctx.moveTo(x1, 0);
+		ctx.lineTo(x1, panel._offset + panel._height);
+		ctx.stroke();		
+
+		// Separator
+		ctx.setLineDash([]);
+		ctx.beginPath();
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = "#ffffff33";
+		ctx.moveTo(boxBeginningX + directionBoxWidth, y0 - halfLeftArrowHeight);
+		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight);
+		ctx.stroke();
+
+		// WON text
+		if (isWinning && status === "FINISHED") {
+			ctx.textBaseline = "middle";
+			ctx.fillStyle = "#FFBB3D";
+			ctx.fillText(
+				"WON",
+				boxBeginningX - 30,
+				y0
+			);
+		}
+
+		ctx.restore();
+	}
+
+	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+		return;
+	}
+
+	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+		return false;
+	}
+
+	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+		return;
+	}
+	this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		return;
+	};
+
+	this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		return;
+	};
+
+	this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+		return;
+	};
+
+	this.stageOut =	function (e, o, renderer, interactor, model, panel, seriesManager) {
+		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	};
+
+	this.getPoints	= function (o, renderer, panel, model, seriesManager) {
+		var fV = LIB.getReferenceValue(o, model, seriesManager);
+		const y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
+		let startStamp;
+		let endStamp;
+		let pts = [];
+
+		if (o.startTime === "now" && typeof o.timeRange === "number") {
+			var lastIndex = seriesManager[model.mainSeries].data.length-1;
+			const now = Date.now();
+			startStamp = now;
+			endStamp = now + o.timeRange;
+
+			pts[0] = {
+				x: Math.floor(renderer.getIndexPoint(lastIndex, model) + model.periodWidth / 2),
+				y,
+				index: lastIndex,
+				stamp: startStamp
+			}
+		} else if (typeof o.startTime === "number" && typeof o.timeRange === "number") {
+			endStamp = o.startTime + o.timeRange;
+
+			pts[0] = {
+					x: Math.floor(renderer.getStampPoint(o.startTime, model, seriesManager) + model.periodWidth / 2),
+					y: y,
+					index: renderer.getStampIndex(o.startTime, model, seriesManager),
+					stamp: o.startTime
+				}
+		} else {
+			throw Error("Invalid TimeRange config. startTime should be numeric or 'now' and timeRange should be numeric.")
+		}
+
+		pts[1] = {
+			x: Math.floor(renderer.getStampPoint(endStamp, model, seriesManager) + model.periodWidth / 2),
+			y: y,
+			index: renderer.getStampIndex(endStamp, model, seriesManager),
+			stamp: endStamp
+		};
+
+		if (pts[1].x === pts[0].x) {
+			pts[1].x += 1;
+			pts[0].x -= 2;
+		}
+
+		return pts;
+	}
+
+	this.postRenderOverlay = function(o, ctx, renderer, model, panel, seriesManager) {
+		if (o.priceTag) {
+			const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+			const color = this.getColor(o, this.isWinning(o, model, seriesManager));
+			const textColor = WEBRCP.utils.getContrastColor(color);
+			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
+		}
+	}
+}
+
 function VerticalRangeObject(){
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 
@@ -4640,6 +5107,6 @@ var TriangleObject	=	function () {
 		}
 
 
-export { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject }
+export { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject }
 
 //# sourceURL=./platform/components/newchart/js/objects2.js

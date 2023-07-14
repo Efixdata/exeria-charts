@@ -5,14 +5,18 @@ import { DrawingTools } from "./DrawingTools";
 
 const Container = styled.div`
   box-sizing: border-box;
-  background-color: #100c22;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: ${props => props.theme.toolbar.background || "#100c22"};
+  border-right: ${props => props.theme.border.inner || "none"};
+  border-left: ${props => props.theme.border.outter || "none"};
+  border-bottom: ${props => props.theme.border.outter || "none"};
+  border-top: ${props => props.theme.border.outter || "none"};
+  border-radius: ${props => props.theme.border.radius + 'px' || 0};
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
   height: max-content;
-  min-height: calc(100% - 17px);
+  min-height: 100%;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
   z-index: 1;
@@ -20,7 +24,7 @@ const Container = styled.div`
 
 interface LeftMenuProps {
     chart: any;
-    style?: React.CSSProperties
+    style?: React.CSSProperties;
 }
 
 

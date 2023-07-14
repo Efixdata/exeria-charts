@@ -35,6 +35,7 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
         key={mode}
         id={mode}
         active={selectedMode == mode || (selectedMode === 'perc' && mode === '%')}
+        themeContext="radioButton"
       >
         {mode}
       </TextButton>
@@ -42,7 +43,7 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
 
     selectButtons[mode] = {
       id: mode,
-      text: <TextButton>{mode}</TextButton>
+      text: <TextButton themeContext="radioButton">{mode}</TextButton>
     }
   }
 

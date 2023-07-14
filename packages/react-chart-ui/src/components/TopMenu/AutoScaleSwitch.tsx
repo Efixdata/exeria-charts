@@ -33,6 +33,7 @@ export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
         changeMode();
       }}
       active={autoScale}
+      themeContext="toolbar"
     >
       auto scale
     </TextButton>
