@@ -3521,6 +3521,8 @@ function TimeRangeObject() {
 
 function TimeBetObject() {
 
+	this.boxBeginningX = 0;
+
 	this.getColor = function(o, isWinning) {
 		const defaultColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		const winningColor = o.winningColor ? o.winningColor : WEBRCP.utils.colorManager.getColor('chartGreen');
@@ -3569,6 +3571,10 @@ function TimeBetObject() {
 		ctx.fillStyle = toolColor;
 		ctx.strokeStyle = toolColor;
 		ctx.globalAlpha = globalAlpha;
+		// ctx.shadowColor = "black";
+		// ctx.shadowBlur = 2;
+		// ctx.shadowOffsetX = 1;
+		// ctx.shadowOffsetY = 1;
 
 		let text;
 
@@ -3597,6 +3603,7 @@ function TimeBetObject() {
 		};
 		const boxWidth = Math.ceil(measuredText.width + boxPadding.left + boxPadding.right + directionBoxWidth);
 		let boxBeginningX = x0 - leftArrowWidth - boxWidth;
+		this.boxBeginningX = boxBeginningX;
 		
 		// Rounded box
 		ctx.beginPath();
@@ -3704,6 +3711,15 @@ function TimeBetObject() {
 	}
 
 	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		const fromY = pts[0].y - 10;
+		const toY = fromY + 20;
+		if (x > this.boxBeginningX &&
+			x < pts[1].x &&
+			y > fromY &&
+			y < toY) {
+			return true;
+		}
 		return false;
 	}
 
