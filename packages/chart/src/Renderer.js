@@ -111,6 +111,7 @@ const Renderer = function (settings, context, controller) {
 
 		try {
 			//ctx.translate(0.5, 0.5);
+			ctx.clearRect(-1, -1, model._width + 2, model._height + 2);
 			var seriesManager = fusion.getSeriesManager();
 			
 			this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
