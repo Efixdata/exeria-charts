@@ -406,6 +406,7 @@ export default class Chart {
     const mainSeries = this.fusion.getMainSeries();
     if (interval) {
       mainSeries.interval = interval;
+      mainSeries.instrument.interval = interval;
       this.model.interval = interval;
     }
     mainSeries.data = data;
