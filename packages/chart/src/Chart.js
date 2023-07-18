@@ -111,11 +111,16 @@ export default class Chart {
     this.initialized = true;
   }
 
-  async recalculateScripts({ rerender = true } = {}) {
+  async recalculateScripts({ rerender = true, shortSynchronization = false } = {}) {
     try {
-      this.fusion.fullSynchronization();
-      this.fusion.configureScripts();
-      await this.fusion.initAll();
+      if (shortSynchronization) {
+        this.fusion.shortSynchronization;
+      } else {
+        this.fusion.fullSynchronization();
+        this.fusion.configureScripts();
+        await this.fusion.initAll();
+      }
+      
       this.fusion.calculateAll();
   
       if (rerender) this.rerender();
@@ -128,8 +133,9 @@ export default class Chart {
     if (!this.initialized) return;
 
     this.fit();
-    this.renderOverlay();
+    
     this.render(this.objectOnlyOnOverlay);
+    this.renderOverlay();
   }
 
   render(objectOnlyOnOverlay) {
@@ -443,9 +449,10 @@ export default class Chart {
       this.fusion.getMainSeries()
     ).update(tick);
 
+    if (newCandleAdded) this.moveChartAfterNewCandle();
+
     try {
-      // TODO: short synchronization instead of full
-      if (recalculate) this.recalculateScripts();
+      if (recalculate) this.recalculateScripts({ shortSynchronization: true });
     } catch (_) {}
 
     return newCandleAdded;
@@ -460,9 +467,10 @@ export default class Chart {
       if (mainSeries.update(tick)) newCandleAdded = true;
     }
 
+    if (newCandleAdded) this.moveChartAfterNewCandle();
+
     try {
-      // TODO: short synchronization instead of full
-      if (recalculate) this.recalculateScripts();
+      if (recalculate) this.recalculateScripts({ shortSynchronization: true });
     } catch (_) {}
 
     return newCandleAdded;
@@ -474,13 +482,34 @@ export default class Chart {
     ).upsertCandle(candle);
 
     try {
-      // TODO: short synchronization instead of full
-      if (recalculate) this.recalculateScripts();
+      if (newCandleAdded) this.moveChartAfterNewCandle();
+      if (recalculate) this.recalculateScripts({ shortSynchronization: true });
     } catch (_) {}
 
     return newCandleAdded;
   }
 
+  moveChartAfterNewCandle() {
+    const margin = this.checkMargin();
+    if (margin) {
+      this.moveIndexToPoint(margin.i, this.model._width-this.model.valueAxisWidth-this.model.endMargin);
+    }
+  }
+
+  checkMargin() {
+		const lastIndex = this.fusion.getMainSeries().data.length >0 ? this.fusion.getMainSeries().data.length-1 : 0;
+		const lastIndexPoint = this.renderer.getIndexPoint(lastIndex, this.model);
+		if(lastIndexPoint >= (this.model._width-this.model.valueAxisWidth-this.model.endMargin) && lastIndexPoint < this.model._width-this.model.valueAxisWidth)
+			return {i: lastIndex, x: lastIndexPoint};
+		else
+			return null;
+	}
+
+  moveIndexToPoint(index, x) {
+		var vpl = (this.model.periodWidth * index)-x; if (vpl<0) vpl = 0;
+		this.model.viewportLeft = vpl;
+	}
+  
   prependMainSeriesData(data) {
     // this.model.instrumentsSeries[0].data = data.append(this.model.instrumentsSeries[0].data);
     // this.calculateAll();
