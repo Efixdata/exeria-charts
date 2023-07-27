@@ -1008,7 +1008,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if (this.model.instrumentsSeries[0] &&  this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
 			const sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
 			const newOffset = this.currentViewportLeft - currentOffset;
-			console.log('EVENT', currentOffset, newOffset, '<=', this.model.periodWidth * (sl - 1));
 
 			if (newOffset <= this.model.periodWidth * (sl - 1)) {
 				if (newOffset < 0) {
@@ -1148,8 +1147,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.triggerWheelCallback = (function() {
 		let wheelUpDelta = 0;
 		let wheelDownDelta = 0;
-		let wheelLeftDelta = 0;
-		let wheelRightDelta = 0;
 
 		return function(event) {
 			self.currentViewportLeft = self.model.viewportLeft;
@@ -1168,28 +1165,22 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				accumulateAndTriggerScroll.call(self, wheelDownDelta, event, onMouseWheelDown);
 			}
 
-			if (event.deltaX < 0) { // two fingers pan right
-				accumulateAndTriggerPan.call(self, wheelRightDelta, event);
-			} else if (event.deltaX > 0) { // two fingers pan left
-				accumulateAndTriggerPan.call(self, wheelLeftDelta, event);
-			} 
+			if (event.deltaX !== 0 && Math.abs(event.deltaX) > Math.abs(event.deltaY)) { // two fingers pan left/right
+				accumulateAndTriggerPan.call(self, event);
+			}
 		}
 
-		function accumulateAndTriggerPan(currentDelta, event) {
-			currentDelta += event.deltaX;
-
-			if (Math.abs(currentDelta) > 0) {
+		function accumulateAndTriggerPan(event) {
+			if (Math.abs(event.deltaX) > 0) {
 				let delta;
 
-				if (currentDelta < 0) { delta = -10; }
-				else { delta = 10; }
+				if (event.deltaX < 0) { delta = 10; }
+				else { delta = -10; }
 
 				this.doFrame(() => {
 					event._offset = this.getEventOffset(event);
 					this.onPan.call(this, event, event, 0, delta);
 				})
-
-				currentDelta = 0;
 			}
 		}
 
