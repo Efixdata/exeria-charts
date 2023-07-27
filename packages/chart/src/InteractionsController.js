@@ -1145,8 +1145,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 
 	this.triggerWheelCallback = (function() {
-		let wheelUpDelta = 0;
-		let wheelDownDelta = 0;
+		const wheelUpDelta = {v:0};
+		const wheelDownDelta = {v:0};
 
 		return function(event) {
 			self.currentViewportLeft = self.model.viewportLeft;
@@ -1157,20 +1157,23 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			event.preventDefault();
 			clearInterval(self.swipe.hook);
 
-			if (event.deltaY < 0) { // scrolling up
-				wheelDownDelta = 0;
-				accumulateAndTriggerScroll.call(self, wheelUpDelta, event, onMouseWheelUp);
-			} else { // scrolling down
-				wheelUpDelta = 0;
-				accumulateAndTriggerScroll.call(self, wheelDownDelta, event, onMouseWheelDown);
-			}
+			const deltaY = event.deltaY;
+			const deltaX = event.deltaX;
 
-			if (event.deltaX !== 0 && Math.abs(event.deltaX) > Math.abs(event.deltaY)) { // two fingers pan left/right
-				accumulateAndTriggerPan.call(self, event);
+			if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+				triggerPan.call(self, event);
+			} else {
+				if (event.deltaY < 0) { // scrolling up
+					wheelDownDelta.v = 0;
+					accumulateAndTriggerScroll.call(self, wheelUpDelta, event, onMouseWheelUp);
+				} else { // scrolling down
+					wheelUpDelta.v = 0;
+					accumulateAndTriggerScroll.call(self, wheelDownDelta, event, onMouseWheelDown);
+				}
 			}
 		}
 
-		function accumulateAndTriggerPan(event) {
+		function triggerPan(event) {
 			if (Math.abs(event.deltaX) > 0) {
 				let delta;
 
@@ -1185,9 +1188,9 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 
 		function accumulateAndTriggerScroll(currentDelta, event, callback) {
-			currentDelta += event.deltaY;
+			currentDelta.v += event.deltaY;
 
-			if (Math.abs(currentDelta) >= 10) {
+			if (Math.abs(currentDelta.v) >= 5) {
 				this.doFrame(() => {
 					const eventOffset = this.getEventOffset(event);
 					const index = this.renderer.getPointIndex(eventOffset.offsetX, this.model);
@@ -1201,7 +1204,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 					self.controller.rerender();
 				})
 
-				currentDelta = 0;
+				currentDelta.v = 0;
 			}
 		}
 
@@ -1209,12 +1212,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			let periodWidth;
 
 			const minPeriodWidth = this.getMinPeriodWidth();
-			const _d = Math.round(visibleIndexes * 1.1);
+			const _d = Math.round(visibleIndexes * 1.05);
 
 			if (canvasWidth / _d > 5) {
 				periodWidth = Math.round(canvasWidth / _d);
 
-				let factor = 0.9
+				let factor = 0.95
 				while (periodWidth >= this.model.periodWidth) {
 					periodWidth = Math.round(periodWidth * factor);
 					factor -= 0.1;
@@ -1243,7 +1246,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 
 		function onMouseWheelUp(index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset) {
-			var _d = Math.round(visibleIndexes * 0.9); // new amount of candles
+			var _d = Math.round(visibleIndexes * 0.95); // new amount of candles
 			if (_d < 6) return; // if less than 6 candles, abort
 
 			if (canvasWidth/_d > 5) { // candle width > 1px
