@@ -81,6 +81,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.hammer.on('pan', self.onTouchEvent);
 
 			self.hammer.get('pinch').set({ enable: true });
+
 			self.hammer.on('pinch pinchstart pinchend', self.onPinch);
 
 			self.hammer.on('swipe', self.onSwipe);
@@ -209,6 +210,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onPinch = function (event) {
+		// check the scale
 		self.body.click()
 		if (self.controller.isChartEmpty(self.chart)) return;
 		event.preventDefault();
@@ -864,7 +866,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	}
 
-	this.onMouseUp			=	function (e) {
+	this.onMouseUp = function (e) {
 		if (self.controller.isChartEmpty(self.chart)) return;
 		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
 
@@ -997,21 +999,20 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
 		
-		var io = this.getEventOffset(this.initialMouseEvent);
-		var eo = this.getEventOffset(e);
+		var io = this.getEventOffset(this.initialMouseEvent, true);
+		var eo = this.getEventOffset(e, true);
 		
 		var initialX = io.offsetX;
 		var currentX = eo.offsetX;
 
 		var currentOffset = currentX - initialX;
-
 		var offset = 0;
 
 		if (this.model.instrumentsSeries[0] &&  this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
 			var sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
 
 			if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
-				if (this.currentViewportLeft-currentOffset < 0){
+				if (this.currentViewportLeft - currentOffset < 0){
 					this.model.viewportLeft = 0;
 				} else if (currentX !== this.lastOffsetX) {
 					offset = currentOffset;
@@ -1042,7 +1043,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 					};
 
 					if (!this.initialMinMax.value) {
-						this.initialMinMax.value =  this.renderer.getPriceForYCoordinate( io.offsetY-panel._offset, panelOptions);
+						this.initialMinMax.value =  this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
 					}
 
 					if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
@@ -1062,7 +1063,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 						panel.vMax = this.initialMinMax.max - delta;
 						panel.vMin = this.initialMinMax.min - delta;
 					}
-
 				}
 			}
 
@@ -1073,7 +1073,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		return true;
 	};
 
-	this.onDragHandler		=	function (e) {
+	this.onDragHandler = function (e) {
 		var self = this;
 		var io = this.getEventOffset(this.initialMouseEvent);
 		var eo = this.getEventOffset(e);
@@ -1151,8 +1151,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.triggerWheelCallback = (function() {
 		let wheelUpDelta = 0;
 		let wheelDownDelta = 0;
+		let wheelLeftDelta = 0;
+		let wheelRightDelta = 0;
 
 		return function(event) {
+			self.currentViewportLeft = self.model.viewportLeft;
+
 			if (self.config.mouseWheelZoomEnabled === false) return;
 			if (self.controller.isChartEmpty(self.chart)) return;
 
@@ -1161,12 +1165,111 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			if (event.deltaY < 0) { // scrolling up
 				wheelDownDelta = 0;
-				accumulateAndTrigger.call(self, wheelUpDelta, event, onMouseWheelUp)
+				accumulateAndTrigger.call(self, wheelUpDelta, event, onMouseWheelUp);
 			} else { // scrolling down
 				wheelUpDelta = 0;
-				accumulateAndTrigger.call(self, wheelDownDelta, event, onMouseWheelDown)
+				accumulateAndTrigger.call(self, wheelDownDelta, event, onMouseWheelDown);
+			}
+
+			if (event.deltaX < 0) { // two fingers pan left
+				accumulateAndTriggerPan.call(self, wheelLeftDelta, event);
+			} else if (event.deltaX > 0) { // two fingers pan right
+				accumulateAndTriggerPan.call(self, wheelRightDelta, event);
+			} 
+		}
+
+		function accumulateAndTriggerPan(currentDelta, event) {
+			currentDelta += event.deltaX;
+			console.log('EVENT', event);
+
+			if (Math.abs(currentDelta) > 0) {
+				let delta;
+
+				if (currentDelta < 0) { delta = -10; }
+				else { delta = 10; }
+
+				this.doFrame(() => {
+					onWheelPan.call(this, event, 0, delta);
+				})
+
+				currentDelta = 0;
 			}
 		}
+
+		function onWheelPan (e, initialX, currentX) {
+			if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
+				this.chart.style.cursor = this.currentMode.cursorOnDrag;
+			}
+			
+			e._offset = self.getEventOffset(e);
+
+			var eo = this.getEventOffset(e, true);
+			var io = this.getEventOffset(e, true);
+	
+			var currentOffset = currentX - initialX;
+	
+			if (this.model.instrumentsSeries[0] && this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
+				var sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
+
+				if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
+					if (this.currentViewportLeft - currentOffset < 0){
+						this.model.viewportLeft = 0;
+					} else if (this.model.viewportLeft !== this.currentViewportLeft - currentOffset) {
+						this.model.viewportLeft = this.currentViewportLeft - currentOffset;
+					}
+				}
+	
+				var panel = this.getPanel(io.offsetY);
+				if (!panel) return;
+	
+				// const isAboveValueAxis = this.isAboveValueAxis(e);
+	
+				// if (isAboveValueAxis && this.valueAxisClicked) {
+				// 	if (this.model.autoScale == true) this.controller.setAutoScale(false);
+				// 	this.chart.style.cursor = "ns-resize";
+				// }
+	
+				if (this.model.autoScale == false) {
+					var panel2 = this.getPanel(eo.offsetY);
+					if (!panel2) return;
+	
+					if (panel == panel2 && this.initialMinMax){
+						const panelOptions = {
+							panelHeight: panel._height,
+							minValue: panel.vMin,
+							maxValue: panel.vMax
+						};
+	
+						if (!this.initialMinMax.value) {
+							this.initialMinMax.value =  this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
+						}
+	
+						if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
+							const valueY1 = this.initialMinMax.value;
+							const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+							const delta = valueY1 - valueY2;
+	
+							if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
+								panel.vMax = this.initialMinMax.max + delta;
+								panel.vMin = this.initialMinMax.min - delta;
+							}
+						} else if (this.isMouseDown && this.isRightButton === false) {
+							const valueY1 = this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
+							const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+							const delta = valueY2 - valueY1;
+	
+							panel.vMax = this.initialMinMax.max - delta;
+							panel.vMin = this.initialMinMax.min - delta;
+						}
+					}
+				}
+	
+			}
+	
+			this.controller.fitAndRepaint();
+	
+			return true;
+		};
 
 		function accumulateAndTrigger(currentDelta, event, callback) {
 			currentDelta += event.deltaY;
@@ -1182,9 +1285,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	
 					callback.call(this, index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset);
 
-					// this.fit();
-					// this.renderOverlay();
-					// this.render();
 					self.controller.rerender();
 				})
 
@@ -1261,7 +1361,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		
 		return minPeriodWidth;
 	}
-
 
 	this.onKeyUp	=	function (e) {
 		if(this.controller.isChartEmpty(this.chart)) return;
@@ -1723,13 +1822,14 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.controller.rerender();
 	}
 	
-	this.getEventOffset = function(e){
+	this.getEventOffset = function(e) {
 		var targetRect = this.topLayer.getBoundingClientRect();
 		var clientX = e.clientX || e.deltaX;
 		var clientY = e.clientY || e.deltaY;
-		var x = clientX-targetRect.left;
-		var y = clientY-targetRect.top;
-		return {offsetX:x,offsetY:y}
+		var x = clientX - targetRect.left;
+		var y = clientY - targetRect.top;
+
+		return {offsetX: x, offsetY: y}
 	}
 
 	this.isAboveValueAxis = function(e) {
