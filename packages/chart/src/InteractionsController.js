@@ -81,7 +81,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.hammer.on('pan', self.onTouchEvent);
 
 			self.hammer.get('pinch').set({ enable: true });
-
 			self.hammer.on('pinch pinchstart pinchend', self.onPinch);
 
 			self.hammer.on('swipe', self.onSwipe);
@@ -210,7 +209,6 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onPinch = function (event) {
-		// check the scale
 		self.body.click()
 		if (self.controller.isChartEmpty(self.chart)) return;
 		event.preventDefault();
@@ -999,8 +997,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
 		
-		const io = this.getEventOffset(initialEvent || this.initialMouseEvent, true);
-		const eo = this.getEventOffset(event, true);
+		const io = this.getEventOffset(initialEvent || this.initialMouseEvent);
+		const eo = this.getEventOffset(event);
 		
 		const initialX = initialXValue !== undefined ? initialXValue : io.offsetX;
 		const currentX = currentXValue !== undefined ? currentXValue : eo.offsetX;
@@ -1164,16 +1162,16 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 			if (event.deltaY < 0) { // scrolling up
 				wheelDownDelta = 0;
-				accumulateAndTrigger.call(self, wheelUpDelta, event, onMouseWheelUp);
+				accumulateAndTriggerScroll.call(self, wheelUpDelta, event, onMouseWheelUp);
 			} else { // scrolling down
 				wheelUpDelta = 0;
-				accumulateAndTrigger.call(self, wheelDownDelta, event, onMouseWheelDown);
+				accumulateAndTriggerScroll.call(self, wheelDownDelta, event, onMouseWheelDown);
 			}
 
-			if (event.deltaX < 0) { // two fingers pan left
-				accumulateAndTriggerPan.call(self, wheelLeftDelta, event);
-			} else if (event.deltaX > 0) { // two fingers pan right
+			if (event.deltaX < 0) { // two fingers pan right
 				accumulateAndTriggerPan.call(self, wheelRightDelta, event);
+			} else if (event.deltaX > 0) { // two fingers pan left
+				accumulateAndTriggerPan.call(self, wheelLeftDelta, event);
 			} 
 		}
 
@@ -1183,8 +1181,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			if (Math.abs(currentDelta) > 0) {
 				let delta;
 
-				if (currentDelta < 0) { delta = 10; }
-				else { delta = -10; }
+				if (currentDelta < 0) { delta = -10; }
+				else { delta = 10; }
 
 				this.doFrame(() => {
 					event._offset = this.getEventOffset(event);
@@ -1195,81 +1193,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		// function onWheelPan (e, initialX, currentX) {
-		// 	if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
-		// 		this.chart.style.cursor = this.currentMode.cursorOnDrag;
-		// 	}
-
-		// 	var eo = this.getEventOffset(e, true);
-		// 	var io = this.getEventOffset(e, true);
-	
-		// 	var currentOffset = currentX - initialX;
-	
-		// 	if (this.model.instrumentsSeries[0] && this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
-		// 		const sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
-		// 		const newOffset = this.currentViewportLeft + currentOffset;
-
-		// 		if (newOffset <= this.model.periodWidth * (sl - 1)){
-		// 			if (newOffset < 0){
-		// 				this.model.viewportLeft = 0;
-		// 			} else if (this.model.viewportLeft !== newOffset) {
-		// 				this.model.viewportLeft = newOffset;
-		// 			}
-		// 		}
-	
-		// 		var panel = this.getPanel(io.offsetY);
-		// 		if (!panel) return;
-	
-		// 		const isAboveValueAxis = this.isAboveValueAxis(e);
-	
-		// 		if (isAboveValueAxis && this.valueAxisClicked) {
-		// 			if (this.model.autoScale == true) this.controller.setAutoScale(false);
-		// 			this.chart.style.cursor = "ns-resize";
-		// 		}
-	
-		// 		if (this.model.autoScale == false) {
-		// 			var panel2 = this.getPanel(eo.offsetY);
-		// 			if (!panel2) return;
-	
-		// 			if (panel == panel2 && this.initialMinMax){
-		// 				const panelOptions = {
-		// 					panelHeight: panel._height,
-		// 					minValue: panel.vMin,
-		// 					maxValue: panel.vMax
-		// 				};
-	
-		// 				if (!this.initialMinMax.value) {
-		// 					this.initialMinMax.value =  this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
-		// 				}
-	
-		// 				if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
-		// 					const valueY1 = this.initialMinMax.value;
-		// 					const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-		// 					const delta = valueY1 - valueY2;
-	
-		// 					if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
-		// 						panel.vMax = this.initialMinMax.max + delta;
-		// 						panel.vMin = this.initialMinMax.min - delta;
-		// 					}
-		// 				} else if (this.isMouseDown && this.isRightButton === false) {
-		// 					const valueY1 = this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
-		// 					const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-		// 					const delta = valueY2 - valueY1;
-	
-		// 					panel.vMax = this.initialMinMax.max - delta;
-		// 					panel.vMin = this.initialMinMax.min - delta;
-		// 				}
-		// 			}
-		// 		}
-	
-		// 	}
-	
-		// 	this.controller.fitAndRepaint();
-	
-		// 	return true;
-		// };
-
-		function accumulateAndTrigger(currentDelta, event, callback) {
+		function accumulateAndTriggerScroll(currentDelta, event, callback) {
 			currentDelta += event.deltaY;
 
 			if (Math.abs(currentDelta) >= 10) {
