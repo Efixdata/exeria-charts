@@ -994,37 +994,36 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		);
 	};
 
-	this.onPan = function (e) {
+	this.onPan = function (event, initialEvent, initialXValue, currentXValue) {
 		if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
 		
-		var io = this.getEventOffset(this.initialMouseEvent, true);
-		var eo = this.getEventOffset(e, true);
+		const io = this.getEventOffset(initialEvent || this.initialMouseEvent, true);
+		const eo = this.getEventOffset(event, true);
 		
-		var initialX = io.offsetX;
-		var currentX = eo.offsetX;
+		const initialX = initialXValue !== undefined ? initialXValue : io.offsetX;
+		const currentX = currentXValue !== undefined ? currentXValue : eo.offsetX;
 
-		var currentOffset = currentX - initialX;
-		var offset = 0;
+		const currentOffset = currentX - initialX;
 
 		if (this.model.instrumentsSeries[0] &&  this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
-			var sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
+			const sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
+			const newOffset = this.currentViewportLeft - currentOffset;
+			console.log('EVENT', currentOffset, newOffset, '<=', this.model.periodWidth * (sl - 1));
 
-			if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
-				if (this.currentViewportLeft - currentOffset < 0){
+			if (newOffset <= this.model.periodWidth * (sl - 1)) {
+				if (newOffset < 0) {
 					this.model.viewportLeft = 0;
-				} else if (currentX !== this.lastOffsetX) {
-					offset = currentOffset;
-					this.model.viewportLeft=this.currentViewportLeft-offset;
-					this.lastOffsetX = currentX;
+				} else if (this.model.viewportLeft !== newOffset) {
+					this.model.viewportLeft = newOffset;
 				}
 			}
 
-			var panel = this.getPanel(io.offsetY);
+			const panel = this.getPanel(io.offsetY);
 			if (!panel) return;
 
-			const isAboveValueAxis = this.isAboveValueAxis(e);
+			const isAboveValueAxis = this.isAboveValueAxis(event);
 
 			if (isAboveValueAxis && this.valueAxisClicked) {
 				if (this.model.autoScale == true) this.controller.setAutoScale(false);
@@ -1032,7 +1031,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 
 			if (this.model.autoScale == false) {
-				var panel2 = this.getPanel(eo.offsetY);
+				const panel2 = this.getPanel(eo.offsetY);
 				if (!panel2) return;
 
 				if (panel == panel2 && this.initialMinMax){
@@ -1180,96 +1179,95 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		function accumulateAndTriggerPan(currentDelta, event) {
 			currentDelta += event.deltaX;
-			console.log('EVENT', event);
 
 			if (Math.abs(currentDelta) > 0) {
 				let delta;
 
-				if (currentDelta < 0) { delta = -10; }
-				else { delta = 10; }
+				if (currentDelta < 0) { delta = 10; }
+				else { delta = -10; }
 
 				this.doFrame(() => {
-					onWheelPan.call(this, event, 0, delta);
+					event._offset = this.getEventOffset(event);
+					this.onPan.call(this, event, event, 0, delta);
 				})
 
 				currentDelta = 0;
 			}
 		}
 
-		function onWheelPan (e, initialX, currentX) {
-			if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
-				this.chart.style.cursor = this.currentMode.cursorOnDrag;
-			}
-			
-			e._offset = self.getEventOffset(e);
+		// function onWheelPan (e, initialX, currentX) {
+		// 	if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
+		// 		this.chart.style.cursor = this.currentMode.cursorOnDrag;
+		// 	}
 
-			var eo = this.getEventOffset(e, true);
-			var io = this.getEventOffset(e, true);
+		// 	var eo = this.getEventOffset(e, true);
+		// 	var io = this.getEventOffset(e, true);
 	
-			var currentOffset = currentX - initialX;
+		// 	var currentOffset = currentX - initialX;
 	
-			if (this.model.instrumentsSeries[0] && this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
-				var sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
+		// 	if (this.model.instrumentsSeries[0] && this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data) {
+		// 		const sl = this.fusion.getSeriesManager()[this.model.instrumentsSeries[0].seriesId].data.length;
+		// 		const newOffset = this.currentViewportLeft + currentOffset;
 
-				if ((this.currentViewportLeft - currentOffset) <= this.model.periodWidth * (sl - 1)){
-					if (this.currentViewportLeft - currentOffset < 0){
-						this.model.viewportLeft = 0;
-					} else if (this.model.viewportLeft !== this.currentViewportLeft - currentOffset) {
-						this.model.viewportLeft = this.currentViewportLeft - currentOffset;
-					}
-				}
+		// 		if (newOffset <= this.model.periodWidth * (sl - 1)){
+		// 			if (newOffset < 0){
+		// 				this.model.viewportLeft = 0;
+		// 			} else if (this.model.viewportLeft !== newOffset) {
+		// 				this.model.viewportLeft = newOffset;
+		// 			}
+		// 		}
 	
-				var panel = this.getPanel(io.offsetY);
-				if (!panel) return;
+		// 		var panel = this.getPanel(io.offsetY);
+		// 		if (!panel) return;
 	
-				// const isAboveValueAxis = this.isAboveValueAxis(e);
+		// 		const isAboveValueAxis = this.isAboveValueAxis(e);
 	
-				// if (isAboveValueAxis && this.valueAxisClicked) {
-				// 	if (this.model.autoScale == true) this.controller.setAutoScale(false);
-				// 	this.chart.style.cursor = "ns-resize";
-				// }
+		// 		if (isAboveValueAxis && this.valueAxisClicked) {
+		// 			if (this.model.autoScale == true) this.controller.setAutoScale(false);
+		// 			this.chart.style.cursor = "ns-resize";
+		// 		}
 	
-				if (this.model.autoScale == false) {
-					var panel2 = this.getPanel(eo.offsetY);
-					if (!panel2) return;
+		// 		if (this.model.autoScale == false) {
+		// 			var panel2 = this.getPanel(eo.offsetY);
+		// 			if (!panel2) return;
 	
-					if (panel == panel2 && this.initialMinMax){
-						const panelOptions = {
-							panelHeight: panel._height,
-							minValue: panel.vMin,
-							maxValue: panel.vMax
-						};
+		// 			if (panel == panel2 && this.initialMinMax){
+		// 				const panelOptions = {
+		// 					panelHeight: panel._height,
+		// 					minValue: panel.vMin,
+		// 					maxValue: panel.vMax
+		// 				};
 	
-						if (!this.initialMinMax.value) {
-							this.initialMinMax.value =  this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
-						}
+		// 				if (!this.initialMinMax.value) {
+		// 					this.initialMinMax.value =  this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
+		// 				}
 	
-						if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
-							const valueY1 = this.initialMinMax.value;
-							const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-							const delta = valueY1 - valueY2;
+		// 				if ((this.isMouseDown && this.isRightButton === true) || (isAboveValueAxis && this.valueAxisClicked)){
+		// 					const valueY1 = this.initialMinMax.value;
+		// 					const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+		// 					const delta = valueY1 - valueY2;
 	
-							if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
-								panel.vMax = this.initialMinMax.max + delta;
-								panel.vMin = this.initialMinMax.min - delta;
-							}
-						} else if (this.isMouseDown && this.isRightButton === false) {
-							const valueY1 = this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
-							const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
-							const delta = valueY2 - valueY1;
+		// 					if (delta > 0 || (delta < 0 && Math.abs(this.initialMinMax.max + delta - this.initialMinMax.min - delta) > 0.000000000000000001)){
+		// 						panel.vMax = this.initialMinMax.max + delta;
+		// 						panel.vMin = this.initialMinMax.min - delta;
+		// 					}
+		// 				} else if (this.isMouseDown && this.isRightButton === false) {
+		// 					const valueY1 = this.renderer.getPriceForYCoordinate(io.offsetY - panel._offset, panelOptions);
+		// 					const valueY2 = this.renderer.getPriceForYCoordinate(eo.offsetY - panel._offset, panelOptions);
+		// 					const delta = valueY2 - valueY1;
 	
-							panel.vMax = this.initialMinMax.max - delta;
-							panel.vMin = this.initialMinMax.min - delta;
-						}
-					}
-				}
+		// 					panel.vMax = this.initialMinMax.max - delta;
+		// 					panel.vMin = this.initialMinMax.min - delta;
+		// 				}
+		// 			}
+		// 		}
 	
-			}
+		// 	}
 	
-			this.controller.fitAndRepaint();
+		// 	this.controller.fitAndRepaint();
 	
-			return true;
-		};
+		// 	return true;
+		// };
 
 		function accumulateAndTrigger(currentDelta, event, callback) {
 			currentDelta += event.deltaY;
