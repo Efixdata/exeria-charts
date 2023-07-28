@@ -705,6 +705,20 @@ export default class Chart {
     }
 	}
 
+  moveToStamp(stamp) {
+    if (!this.isChartEmpty()) {
+      const index = this.renderer.getStampIndex(stamp, this.model, this.getSeriesManager());
+      const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;
+
+      let vpl = (this.model.periodWidth * index) - (this.canvasWidth - valueAxisWidth) + this.model.endMargin;;
+
+      if (vpl < 0) { vpl = 0; }
+
+      this.model.viewportLeft = vpl;
+      this.rerender();
+    }
+	}
+
   setInstrument(instrument) {
     if (!instrument) return;
 
