@@ -3565,16 +3565,27 @@ function TimeBetObject() {
 			globalAlpha = 0.5;
 		}
 
+		const addShadow = () => {
+			ctx.shadowColor = "#0b1b28";//"rgba(0, 0, 0, 0.7)";
+			ctx.shadowBlur = 2;
+			ctx.shadowOffsetX = 1;
+			ctx.shadowOffsetY = 1;
+		}
+
+		const removeShadow = () => {
+			ctx.shadowColor = "rgba(0, 0, 0, 0)";
+			ctx.shadowBlur = 0;
+			ctx.shadowOffsetX = 0;
+			ctx.shadowOffsetY = 0;
+		}
+
 		ctx.save();
 		ctx.lineWidth = o.width;
 		ctx.setLineDash(o.dash ? o.dash : []);
 		ctx.fillStyle = toolColor;
 		ctx.strokeStyle = toolColor;
 		ctx.globalAlpha = globalAlpha;
-		// ctx.shadowColor = "black";
-		// ctx.shadowBlur = 2;
-		// ctx.shadowOffsetX = 1;
-		// ctx.shadowOffsetY = 1;
+		
 
 		let text;
 
@@ -3605,14 +3616,19 @@ function TimeBetObject() {
 		let boxBeginningX = x0 - leftArrowWidth - boxWidth;
 		this.boxBeginningX = boxBeginningX;
 		
+		addShadow();
+
 		// Rounded box
 		ctx.beginPath();
 		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
 		ctx.fill();
 
+		removeShadow();
+
 		// Image arrow
 		ctx.strokeStyle = "white";
 		ctx.lineCap = "round";
+		ctx.shadowBlur = 0;
 		ctx.beginPath();
 
 		if (o.predictedDirection === "UP") {
@@ -3642,6 +3658,9 @@ function TimeBetObject() {
 		);
 		ctx.fillStyle = toolColor;
 		ctx.lineWidth = 1;
+		ctx.shadowBlur = 2;
+
+		addShadow();
 
 		// Left arrow
 		ctx.beginPath();
@@ -3665,11 +3684,14 @@ function TimeBetObject() {
 		y1 += 0.5;
 		boxBeginningX += 0.5;
 
+
 		// Middle line
 		ctx.beginPath();
 		ctx.moveTo(x0 - 2 , y0);
 		ctx.lineTo(x1, y1);
 		ctx.stroke();
+
+		removeShadow();
 
 		// Line
 		ctx.setLineDash([3, 2]);	
