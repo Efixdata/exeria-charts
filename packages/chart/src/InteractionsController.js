@@ -1177,8 +1177,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			if (Math.abs(event.deltaX) > 0) {
 				let delta;
 
-				if (event.deltaX < 0) { delta = 10; }
-				else { delta = -10; }
+				if (event.deltaX < 0) { delta = 15; }
+				else { delta = -15; }
 
 				this.doFrame(() => {
 					event._offset = this.getEventOffset(event);
