@@ -3523,17 +3523,26 @@ function TimeBetObject() {
 
 	this.boxBeginningX = 0;
 
-	this.getColor = function(o, isWinning) {
+	this.getColors = function(o, isWinning) {
 		const defaultColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
+
+		const colors = {
+			toolColor: defaultColor,
+			arrowColor: defaultColor
+		};
+		
 		const winningColor = o.winningColor ? o.winningColor : WEBRCP.utils.colorManager.getColor('chartGreen');
 		const losingColor = o.losingColor ? o.losingColor : WEBRCP.utils.colorManager.getColor('chartRed');
 
 		if (o.status === "PENDING_START" || o.status === "ACTIVE") {
-			if (isWinning) return winningColor;
-			else return losingColor;
+			if (isWinning) colors.toolColor = winningColor;
+			else colors.toolColor = losingColor;
+
+			if (o.predictedDirection === 'UP') colors.arrowColor = winningColor;
+			else colors.arrowColor = losingColor;
 		}
 
-		return defaultColor;
+		return colors;
 	}
 
 	this.isWinning = function(o, model, seriesManager) {
@@ -3558,7 +3567,7 @@ function TimeBetObject() {
 		const status = o.status;
 		let isWinning = this.isWinning(o, model, seriesManager);
 
-		let toolColor = this.getColor(o, isWinning);
+		let { toolColor, arrowColor } = this.getColors(o, isWinning);
 		let globalAlpha = 1;
 
 		if (status === "PENDING_START" || status === "PENDING_FINISH") {
@@ -3586,7 +3595,6 @@ function TimeBetObject() {
 		ctx.strokeStyle = toolColor;
 		ctx.globalAlpha = globalAlpha;
 		
-
 		let text;
 
 		if (isWinning) {
@@ -3625,24 +3633,35 @@ function TimeBetObject() {
 
 		removeShadow();
 
+		// Arrow box
+		ctx.fillStyle = arrowColor;
+		ctx.beginPath();
+		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
+		ctx.fill();
+
 		// Image arrow
 		ctx.strokeStyle = "white";
 		ctx.lineCap = "round";
 		ctx.shadowBlur = 0;
 		ctx.beginPath();
 
+		const arrowLeftEdge = boxBeginningX + 6.5;
+		const arrowRightEdge = boxBeginningX + 13.5;
+		const arrowBottomEdge = y0 + 3.5;
+		const arrowTopEdge = y0 - 3.5;
+
 		if (o.predictedDirection === "UP") {
-			ctx.moveTo(boxBeginningX + 8, y0 - 3);
-			ctx.lineTo(boxBeginningX + 14, y0 - 3);
-			ctx.lineTo(boxBeginningX + 14, y0 + 3);
-			ctx.moveTo(boxBeginningX + 14, y0 - 3);
-			ctx.lineTo(boxBeginningX + 7, y0 + 4);
+			ctx.moveTo(arrowLeftEdge, arrowBottomEdge);
+			ctx.lineTo(arrowRightEdge, arrowTopEdge);
+			ctx.lineTo(arrowRightEdge, arrowTopEdge + 6);
+			ctx.moveTo(arrowRightEdge, arrowTopEdge);
+			ctx.lineTo(arrowRightEdge - 6, arrowTopEdge);
 		} else if (o.predictedDirection === "DOWN") {
-			ctx.moveTo(boxBeginningX + 14, y0 - 2);
-			ctx.lineTo(boxBeginningX + 14, y0 + 3);
-			ctx.lineTo(boxBeginningX + 8, y0 + 3);
-			ctx.moveTo(boxBeginningX + 14, y0 + 3);
-			ctx.lineTo(boxBeginningX + 7, y0 - 3);
+			ctx.moveTo(arrowLeftEdge, arrowTopEdge);
+			ctx.lineTo(arrowRightEdge, arrowBottomEdge);
+			ctx.lineTo(arrowRightEdge - 6, arrowBottomEdge);
+			ctx.moveTo(arrowRightEdge, arrowBottomEdge);
+			ctx.lineTo(arrowRightEdge, arrowBottomEdge - 6);
 		}
 		
 		ctx.stroke();
@@ -3711,7 +3730,7 @@ function TimeBetObject() {
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = "#ffffff33";
 		ctx.moveTo(boxBeginningX + directionBoxWidth, y0 - halfLeftArrowHeight);
-		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight);
+		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight - 1);
 		ctx.stroke();
 
 		// WON text

@@ -85,6 +85,7 @@ export default class ToolDrawer {
       status: initialOptions.status,
       isWinning: initialOptions.isWinning,
       editable: false,
+      width: 1,
       anchors: [
         {
           prawilnyStamp: initialOptions.startTime,

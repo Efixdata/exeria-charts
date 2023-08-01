@@ -69,11 +69,11 @@ const getChartLibrary = (containerElement) => {
       const timeRangeId = chart.toolDrawer.drawTimeBet({
         startTime: 1663027200000,
         timeRange: 50000000,
-        price: 0.000029300,
+        price: 0.000029550,
         reward: 458,
         bet: 700,
-        predictedDirection: 'DOWN',
-        status: "ACTIVE",
+        predictedDirection: 'UP',
+        status: "PENDING_FINISH",
         isWinning: false,
         config:  {
           editable: false,
@@ -88,11 +88,11 @@ const getChartLibrary = (containerElement) => {
       chart.toolDrawer.drawTimeBet({
         startTime: 1663027200000,
         timeRange: 50000000,
-        price: 0.000029200,
+        price: 0.000029660,
         reward: 458,
         bet: 700,
         predictedDirection: 'DOWN',
-        status: "ACTIVE",
+        status: "FINISHED",
         isWinning: false,
         config:  {
           editable: false,
