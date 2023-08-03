@@ -3564,6 +3564,7 @@ function TimeBetObject() {
 
 	this.render	= function(o, ctx, renderer, model, panel, seriesManager) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		if (!pts) return;
 		const status = o.status;
 		let isWinning = this.isWinning(o, model, seriesManager);
 
@@ -3753,6 +3754,7 @@ function TimeBetObject() {
 
 	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		if (!pts) return;
 		const fromY = pts[0].y - 10;
 		const toY = fromY + 20;
 		if (x > this.boxBeginningX &&
@@ -3784,6 +3786,8 @@ function TimeBetObject() {
 	};
 
 	this.getPoints	= function (o, renderer, panel, model, seriesManager) {
+		var s0 = seriesManager[model.mainSeries].data[0]['stamp'];
+		if (typeof o.startTime === "number" && o.startTime < s0) return undefined;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		const y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
 		let startStamp;
@@ -3833,6 +3837,7 @@ function TimeBetObject() {
 	this.postRenderOverlay = function(o, ctx, renderer, model, panel, seriesManager) {
 		if (o.priceTag) {
 			const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+			if (!pts) return;
 			const color = this.getColor(o, this.isWinning(o, model, seriesManager));
 			const textColor = WEBRCP.utils.getContrastColor(color);
 			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
