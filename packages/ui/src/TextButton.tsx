@@ -36,6 +36,10 @@ const Button = styled.button<{themeContext: string}>`
       const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
       return parent['activeColor'];
     }};
+    background-color:  ${props => {
+      const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+      return parent['activeBackground'];
+    }};
   }
 `
 

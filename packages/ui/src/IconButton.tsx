@@ -5,12 +5,23 @@ import { Icon } from "./Icon";
 const Button = styled.button<{themeContext: string}>`
   display: contents;
   &>div:hover, &>div:focus {
-      background-color:  ${props => {
-        const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
-        return parent['hoverBackground'];
-      }};
-      cursor: pointer;
-    }
+    background-color:  ${props => {
+      const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+      return parent['hoverBackground'];
+    }};
+    cursor: pointer;
+  }
+  &>div.active {
+    background-color:  ${props => {
+      const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+      return parent['activeBackground'];
+    }};
+    color:  ${props => {
+      const parent = props.themeContext === 'buttons' ? props.theme.buttons : props.theme[props.themeContext].buttons
+      return parent['activeColor'];
+    }};
+    border-radius: 4px !important;
+  }
 `
 
 interface IconButtonProps {

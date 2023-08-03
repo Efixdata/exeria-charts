@@ -183,7 +183,8 @@ export function WebChartComponent() {
       background: '#113D59',
       buttons: {
         color: swipperBlueLight,
-        activeColor: swipperGreenLight,
+        activeColor: swipperWhite,
+        activeBackground: swipperBlue,
         hoverColor: swipperBlueLight,
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
       } 
