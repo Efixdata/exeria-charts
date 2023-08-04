@@ -3838,7 +3838,7 @@ function TimeBetObject() {
 		if (o.priceTag) {
 			const pts = this.getPoints(o, renderer, panel, model, seriesManager);
 			if (!pts) return;
-			const color = this.getColor(o, this.isWinning(o, model, seriesManager));
+			const color = this.getColors(o, this.isWinning(o, model, seriesManager)).toolColor;
 			const textColor = WEBRCP.utils.getContrastColor(color);
 			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
 		}
