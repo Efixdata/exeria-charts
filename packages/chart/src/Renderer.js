@@ -549,7 +549,7 @@ const Renderer = function (settings, context, controller) {
 		const hidden = {
 			year: isInCurrentYear,
 			month: isInCurrentDay && diffInHours <= 2,
-			day: (isInCurrentDay  && diffInHours <= 2) || diffInHours > 720,
+			day: isInCurrentDay  && diffInHours <= 2,
 			hour: diffInHours > 24
 		};
 
@@ -1279,12 +1279,13 @@ const Renderer = function (settings, context, controller) {
 		return niceFraction * Math.pow(10, exponent);
 	}
 
+	this.months = ['01', '02', '03', '04' , '05', '06', '07', '08', '09', '10', '11', '12'];
 	this.getPrettyDate = function (stamp, hidden) {
 		const date = new Date(stamp);
 		let str = '';
 
 		if (!hidden || !hidden.day) str += this.zeroLead(date.getDate())
-		if (!hidden || !hidden.month) str += '.' + this.zeroLead(date.getMonth());
+		if (!hidden || !hidden.month) str += '.' + this.months[date.getMonth()];
 		if (!hidden || !hidden.year) str += '.' + String(date.getFullYear()).substring(2, 4);
 		if (!hidden || !hidden.hour) str += ' ' + this.zeroLead(date.getHours()) + ':' + this.zeroLead(date.getMinutes());
 
