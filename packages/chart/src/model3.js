@@ -51,7 +51,7 @@ const a = {
   valueAxisPadding: 6,
   timeAxisHeight: 24,
   minValueTickHeight: 30,
-  minTimeTickWidth: 120,
+  minTimeTickWidth: 90,
   handlerColor: "#c2c2c2",
   font: "normal 11px Roboto, Tahoma, Arial, sans-serif",
   valueFont: "normal 700 11px/11px Roboto, Tahoma, Arial, sans-serif",

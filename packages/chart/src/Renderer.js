@@ -497,35 +497,28 @@ const Renderer = function (settings, context, controller) {
 
 	};
 
-	this.renderVGrid		=	function (ctx, model, panel, ticks) {
-
+	this.renderVGrid = function (ctx, model, panel, ticks) {
 		var tickIndex = 0;
 		var tickX = 0;
 
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
 		ctx.lineWidth = 1;
 
-		for (var i=0; i<ticks.length; i++) {
-
-			//if (i==0) continue;
-
+		for (var i = 0; i < ticks.length; i++) {
 			tickIndex = ticks[i];
 			tickX = this.getIndexPoint(tickIndex, model);
 
-			if (tickX>panel._width) continue;
+			if (tickX > panel._width) continue;
 
 			ctx.beginPath();
-			ctx.moveTo(tickX, 0+panel._offset);
-			ctx.lineTo(tickX, panel._offset+panel._height);
+			ctx.moveTo(tickX + 0.5, 0 + panel._offset);
+			ctx.lineTo(tickX + 0.5, panel._offset + panel._height);
 			ctx.stroke();
 			ctx.closePath();
-
 		}
-
 	};
 
-	this.renderTimeAxis		=	function (ctx, model, ticks, fusion) {
-
+	this.renderTimeAxis	= function (ctx, model, ticks, fusion) {
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
 		ctx.fillRect (0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight);
 		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
@@ -541,11 +534,21 @@ const Renderer = function (settings, context, controller) {
 		ctx.lineWidth = 1;
 		ctx.font = WEBRCP.utils.colorManager.getFont("time");
 
-		for (var i=0; i<ticks.length; i++) {
 
-			//if (i==0) continue;
+		const stamp0 = fusion.getMainSeries().data[0].stamp;
+		const stamp1 = fusion.getMainSeries().data[1].stamp;
+		const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
+		const firstYear = (new Date(stamp0)).getFullYear();
+		const currentYear = (new Date(Date.now())).getFullYear();
 
+		const hidden = {
+			year: firstYear === currentYear,
+			month: diffInHours < 1,
+			day: diffInHours > 720 || diffInHours < 1,
+			hour: diffInHours > 24
+		};
 
+		for (var i = 0; i < ticks.length; i++) {
 			tickIndex = ticks[i];
 
 			if (!fusion.getMainSeries().data || tickIndex > fusion.getMainSeriesLastIndex()) return;
@@ -553,11 +556,15 @@ const Renderer = function (settings, context, controller) {
 			tickX = this.getIndexPoint(tickIndex, model);
 			stamp = fusion.getMainSeries().data[tickIndex].stamp;
 
-			if (tickX>model._width-this.priceRenderingOptions.valueAxisWidth) continue;
+			if (tickX > model._width - this.priceRenderingOptions.valueAxisWidth) continue;
 
-			ctx.fillText(this.getPrettyDate(stamp), tickX, tickY+12);
+			ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + 18);
+
+			ctx.beginPath();
+			ctx.moveTo(tickX + 0.5, tickY);
+			ctx.lineTo(tickX + 0.5, tickY + 6);
+			ctx.stroke();
 		}
-
 	};
 
 	this.renderHandler		=	function (ctx, model, panel) {
@@ -986,10 +993,10 @@ const Renderer = function (settings, context, controller) {
 
 			var stamp = fusion.getMainSeries().data[index].stamp;
 			var prettyDate = this.getPrettyDate(stamp);
-			var y = model._height-20/2 - 5;
-			var yT = model._height-20 - 5;
-			var yB = model._height - 5;
-			var w = 120;
+			var y = model._height-20/2;
+			var yT = model._height-20;
+			var yB = model._height;
+			var w = 90;
 
 			ctx.fillStyle = color;
 
@@ -1203,28 +1210,20 @@ const Renderer = function (settings, context, controller) {
 			return nv;
 	};
 
-	this.calculateTimeTicks	=	function (model, seriesManager) {
-
+	this.calculateTimeTicks = function (model) {
 		this.timeTicks = new Array();
 
-		var lastIndex = 0;
-		var lastIndexPoint = -10;
+		var lastIndexPoint = 4 - model.minTimeTickWidth;
 		var indexPoint = 0;
 
-
-		for (var i=model['_leftIndex']; i<model['_rightIndex']; i++) {
-
+		for (var i = model._leftIndex; i < model._rightIndex; i++) {
 			indexPoint = this.getIndexPoint(i, model);
 
-			if (indexPoint-lastIndexPoint>=model.minTimeTickWidth) {
+			if (indexPoint - lastIndexPoint >= model.minTimeTickWidth) {
 				lastIndexPoint = indexPoint;
 				this.timeTicks.push(i);
 			}
-
-
 		}
-
-
 
 		return this.timeTicks;
 	};
@@ -1275,22 +1274,16 @@ const Renderer = function (settings, context, controller) {
 		return niceFraction * Math.pow(10, exponent);
 	}
 
-	this.months	= ['JAN', 'FEB', 'MAR', 'APR' , 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-	this.getPrettyDate	=	function (stamp, notime) {
+	this.getPrettyDate = function (stamp, hidden) {
+		const date = new Date(stamp);
+		let str = '';
 
-		var date = new Date(stamp);
-
-		var day = date.getDate();
-		var mon	= date.getMonth();
-		var yer = date.getFullYear();
-		var h	= date.getHours();
-		var m	= date.getMinutes();
-		var str = day+' '+this.months[mon]+' '+yer;
-
-		if (!notime) str += ' | '+this.zeroLead(h)+':'+this.zeroLead(m);
+		if (!hidden || !hidden.day) str += this.zeroLead(date.getDate())
+		if (!hidden || !hidden.month) str += '.' + this.zeroLead(date.getMonth());
+		if (!hidden || !hidden.year) str += '.' + String(date.getFullYear()).substring(2, 4);
+		if (!hidden || !hidden.hour) str += ' ' + this.zeroLead(date.getHours()) + ':' + this.zeroLead(date.getMinutes());
 
 		return str;
-
 	};
 
 	this.zeroLead = function (num) {
