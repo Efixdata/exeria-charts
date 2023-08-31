@@ -93,12 +93,13 @@ const getChartLibrary = (containerElement) => {
         bet: 700,
         predictedDirection: 'DOWN',
         status: "FINISHED",
-        isWinning: false,
+        isWinning: true,
         config:  {
           editable: false,
           color: "#1C6897",
           winningColor: "#25AD98",
           losingColor: "#D12E59",
+          wonColor: "#e99700",
           secondaryColor: "#ffffff10",
           textColor: "white",
           priceTag: true

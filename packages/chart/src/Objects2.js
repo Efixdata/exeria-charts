@@ -3533,6 +3533,7 @@ function TimeBetObject() {
 		
 		const winningColor = o.winningColor ? o.winningColor : WEBRCP.utils.colorManager.getColor('chartGreen');
 		const losingColor = o.losingColor ? o.losingColor : WEBRCP.utils.colorManager.getColor('chartRed');
+		const wonColor = o.wonColor ? o.wonColor : WEBRCP.utils.colorManager.getColor('chartGreen');
 
 		if (o.status === "PENDING_START" || o.status === "ACTIVE") {
 			if (isWinning) colors.toolColor = winningColor;
@@ -3540,6 +3541,9 @@ function TimeBetObject() {
 
 			if (o.predictedDirection === 'UP') colors.arrowColor = winningColor;
 			else colors.arrowColor = losingColor;
+		} else if (o.status === "FINISHED" && isWinning) {
+			colors.toolColor = wonColor;
+			colors.arrowColor = wonColor;
 		}
 
 		return colors;
@@ -3733,17 +3737,6 @@ function TimeBetObject() {
 		ctx.moveTo(boxBeginningX + directionBoxWidth, y0 - halfLeftArrowHeight);
 		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight - 1);
 		ctx.stroke();
-
-		// WON text
-		if (isWinning && status === "FINISHED") {
-			ctx.textBaseline = "middle";
-			ctx.fillStyle = "#FFBB3D";
-			ctx.fillText(
-				"WON",
-				boxBeginningX - 30,
-				y0
-			);
-		}
 
 		ctx.restore();
 	}
