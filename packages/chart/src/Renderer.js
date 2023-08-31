@@ -534,17 +534,22 @@ const Renderer = function (settings, context, controller) {
 		ctx.lineWidth = 1;
 		ctx.font = WEBRCP.utils.colorManager.getFont("time");
 
+		const data = fusion.getMainSeries().data;
 
-		const stamp0 = fusion.getMainSeries().data[0].stamp;
-		const stamp1 = fusion.getMainSeries().data[1].stamp;
+		const stamp0 = data[ticks[0]].stamp;
+		const stamp1 = data[ticks[1]].stamp;
+		//const lastStamp = data[data.length - 1].stamp;
 		const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
-		const firstYear = (new Date(stamp0)).getFullYear();
-		const currentYear = (new Date(Date.now())).getFullYear();
+		const currentDate = new Date(Date.now());
+		const firstDate = new Date(stamp0);
+
+		const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
+		const isInCurrentDay = isInCurrentYear && firstDate.getDay() === currentDate.getDay() && firstDate.getMonth() === currentDate.getMonth();
 
 		const hidden = {
-			year: firstYear === currentYear,
-			month: diffInHours < 1,
-			day: diffInHours > 720 || diffInHours < 1,
+			year: isInCurrentYear,
+			month: isInCurrentDay && diffInHours <= 2,
+			day: (isInCurrentDay  && diffInHours <= 2) || diffInHours > 720,
 			hour: diffInHours > 24
 		};
 
