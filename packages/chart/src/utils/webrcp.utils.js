@@ -243,8 +243,10 @@ export default function WebRCPUtils () {
       }
 
       function encodeText(str) {
+        if (!textarea) return str;
+
           textarea.innerHTML = str;
-          return textarea.innerHTML;
+        return textarea.innerHTML;
       }
   };
 

@@ -785,7 +785,7 @@ const Renderer = function (settings, context, controller) {
 
 	//------------------------------------------------------------------------------
 
-	this.drawPriceTag = function (ctx, model, panel, y, color, textColor, value, valueType) {
+	this.drawPriceTag = function (ctx, model, panel, y, color, textColor, value, valueType, style = 'RECTANGLE') {
 		try {
 			ctx.save();
 			ctx.beginPath();
@@ -794,15 +794,26 @@ const Renderer = function (settings, context, controller) {
 
 			ctx.fillStyle = color;
 			ctx.font = WEBRCP.utils.colorManager.getFont("price");
-
-			ctx.beginPath();
-			ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
-			ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
-			ctx.lineTo(model._width, y - 10);
-			ctx.lineTo(model._width, y + 10);
-			ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
-			ctx.closePath();
-			ctx.fill();
+			if (style === "TRADE") {
+				ctx.save();
+				ctx.fillStyle = "#fff";
+				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
+				ctx.fillStyle = "#000";
+				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
+				ctx.restore();
+				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
+			} else if (style === "RECTANGLE") {
+				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 9, this.priceRenderingOptions.valueAxisWidth, 16);
+			} else {
+				ctx.beginPath();
+				ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
+				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
+				ctx.lineTo(model._width, y - 10);
+				ctx.lineTo(model._width, y + 10);
+				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
+				ctx.closePath();
+				ctx.fill();	
+			}
 
 			ctx.fillStyle = textColor;
 
@@ -815,7 +826,7 @@ const Renderer = function (settings, context, controller) {
 				renderPriceText({
 					text: vs,
 					ctx,
-					x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
+					x: model._width - this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding,
 					y: y + 3,
 					zerosToReduce: this.priceRenderingOptions.zerosToReduce
 				});

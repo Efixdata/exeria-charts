@@ -27,7 +27,7 @@ const instrument = {
   symbol: "BTC/USD",
   name: "BTC/USD",
   currency: "USD",
-  precision: 10,
+  precision: 2,
   chart: "ohlc",
   availableIntervals: [
     { symbol: "1m", milis: 60000 },
@@ -62,7 +62,7 @@ const getChartLibrary = (containerElement) => {
         instrument: instrument
       });
   
-      const candles = getCandles(skyrocketData1h, 0.0000001);
+      const candles = getCandles(skyrocketData1h, 1);
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });
@@ -88,11 +88,53 @@ const getChartLibrary = (containerElement) => {
       chart.toolDrawer.drawTimeBet({
         startTime: 1663027200000,
         timeRange: 50000000,
-        price: 0.000029660,
+        price: 296.60,
         reward: 458,
         bet: 700,
         predictedDirection: 'DOWN',
         status: "FINISHED",
+        isWinning: true,
+        config:  {
+          editable: false,
+          color: "#1C6897",
+          winningColor: "#25AD98",
+          losingColor: "#D12E59",
+          wonColor: "#e99700",
+          secondaryColor: "#ffffff10",
+          textColor: "white",
+          priceTag: true
+        }
+      });
+
+      chart.toolDrawer.drawTimeBet({
+        startTime: 1663007200000,
+        timeRange: 10000000,
+        price: 290.50,
+        reward: 458,
+        bet: 700,
+        predictedDirection: 'DOWN',
+        status: "FINISHED",
+        isWinning: false,
+        config:  {
+          editable: false,
+          color: "#1C6897",
+          winningColor: "#25AD98",
+          losingColor: "#D12E59",
+          wonColor: "#e99700",
+          secondaryColor: "#ffffff10",
+          textColor: "white",
+          priceTag: false
+        }
+      });
+
+      chart.toolDrawer.drawTimeBet({
+        startTime: 1663007200000,
+        timeRange: 150000000,
+        price: 299.50,
+        reward: 458,
+        bet: 700,
+        predictedDirection: 'DOWN',
+        status: "ACTIVE",
         isWinning: true,
         config:  {
           editable: false,
@@ -158,9 +200,9 @@ export function WebChartComponent() {
 
   const swipperTheme = {
     border: {
-      inner: '1px solid rgba(255,255,255,0.1)',
-      outter: '1px solid rgba(255,255,255,0.1)',
-      radius: 6
+      inner: '4px solid #fff',
+      outter: '4px solid #fff',
+      radius: 0
     },
     gap: 8,
     accentColor: swipperGreenLight,

@@ -1024,7 +1024,7 @@ var SeriesObject	=	function () {
 		ctx.beginPath();
 		ctx.setLineDash([5, 5]);
 		ctx.moveTo(0, roundedY);
-		ctx.lineTo(panel._width - model.valueAxisWidth, roundedY);
+		ctx.lineTo(panel._width, roundedY);
 		ctx.stroke();
 		ctx.setLineDash([]);
 		ctx.closePath();

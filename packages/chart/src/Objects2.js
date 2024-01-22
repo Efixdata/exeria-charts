@@ -3628,20 +3628,46 @@ function TimeBetObject() {
 		const boxWidth = Math.ceil(measuredText.width + boxPadding.left + boxPadding.right + directionBoxWidth);
 		let boxBeginningX = x0 - leftArrowWidth - boxWidth;
 		this.boxBeginningX = boxBeginningX;
-		
-		addShadow();
+		// Border
+		ctx.save();
+		const outerBorderWidth = 4;
+		ctx.fillStyle = "#fff"
+		ctx.beginPath();
+		ctx.moveTo(x0 + outerBorderWidth + outerBorderWidth, y0);
+		ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
+		ctx.lineTo(boxBeginningX - outerBorderWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
+		ctx.lineTo(boxBeginningX - outerBorderWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
+		ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
+		ctx.closePath();
+		ctx.fill();
+
+		// Border
+		const innerBorderWidth = 1;
+		ctx.fillStyle = "#000"
+		ctx.beginPath();
+		ctx.moveTo(x0 + innerBorderWidth + innerBorderWidth, y0);
+		ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
+		ctx.lineTo(boxBeginningX - innerBorderWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
+		ctx.lineTo(boxBeginningX - innerBorderWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
+		ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
+		ctx.closePath();
+		ctx.fill();
+		ctx.restore();
+		// addShadow();
 
 		// Rounded box
 		ctx.beginPath();
-		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
+		// ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
+		ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight);
 		ctx.fill();
 
-		removeShadow();
+		// removeShadow();
 
 		// Arrow box
 		ctx.fillStyle = arrowColor;
 		ctx.beginPath();
-		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
+		// ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
+		ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight);
 		ctx.fill();
 
 		// Image arrow
@@ -3684,7 +3710,7 @@ function TimeBetObject() {
 		ctx.lineWidth = 1;
 		ctx.shadowBlur = 2;
 
-		addShadow();
+		// addShadow();
 
 		// Left arrow
 		ctx.beginPath();
@@ -3711,11 +3737,11 @@ function TimeBetObject() {
 
 		// Middle line
 		ctx.beginPath();
-		ctx.moveTo(x0 - 2 , y0);
+		ctx.moveTo(x0 + outerBorderWidth + outerBorderWidth, y0);
 		ctx.lineTo(x1, y1);
 		ctx.stroke();
 
-		removeShadow();
+		// removeShadow();
 
 		// Line
 		ctx.setLineDash([3, 2]);	
@@ -3733,7 +3759,7 @@ function TimeBetObject() {
 		ctx.setLineDash([]);
 		ctx.beginPath();
 		ctx.lineWidth = 1;
-		ctx.strokeStyle = "#ffffff33";
+		ctx.strokeStyle = "#000";
 		ctx.moveTo(boxBeginningX + directionBoxWidth, y0 - halfLeftArrowHeight);
 		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight - 1);
 		ctx.stroke();
@@ -3833,7 +3859,7 @@ function TimeBetObject() {
 			if (!pts) return;
 			const color = this.getColors(o, this.isWinning(o, model, seriesManager)).toolColor;
 			const textColor = WEBRCP.utils.getContrastColor(color);
-			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real');
+			renderer.drawPriceTag(ctx, model, panel, pts[0].y, color, textColor, o.anchors[0].value, 'real', 'TRADE');
 		}
 	}
 }
