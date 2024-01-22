@@ -24,6 +24,10 @@ export interface ThemeInterface {
     toolbar?: {
         buttons?: buttonProps;
         background?: string;
+        showShareChartButton?: boolean;
+        showChartScaleSwitch?: boolean;
+        showCurrency?: boolean;
+        topMenuPosition?: string;
     }
     subMenu: {
         buttons?: buttonProps;
@@ -58,7 +62,6 @@ export interface ThemeInterface {
         thumbColor?: string;
         thumbHoverColor?: string;
     },
-    showShareChartButton?: boolean;
 }
 
 interface ThemeProps {
@@ -92,7 +95,11 @@ const defaultTheme: ThemeInterface = {
     },
     toolbar: {
         buttons: buttonsTheme,
-        background: violetDark
+        background: violetDark,
+        showChartScaleSwitch: false,
+        showShareChartButton: false,
+        showCurrency: false,
+        topMenuPosition: 'right'
     },
     subMenu: {
         buttons: buttonsTheme,
@@ -127,7 +134,6 @@ const defaultTheme: ThemeInterface = {
         thumbColor: transparentWhite,
         thumbHoverColor: "#7F9DCC",
     },
-    showShareChartButton: true
 }
 
 export const Theme = (props: ThemeProps) => {

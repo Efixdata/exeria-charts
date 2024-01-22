@@ -82,13 +82,17 @@ class ChartUI extends React.Component {
     const borders = (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
     const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
     const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
+    let topMenuStyles: any = {
+      height: topMenuHeight,
+      marginBottom: gap,
+    };
 
     return (
       <Theme theme={this.props.theme}>
         <Container ref={this.containerRef} className="UI-container">
           <WrapperOuter className="wrapperOuter">
             <ContainerOffsetContext.Provider value={this.containerOffset}>
-              <TopMenu chart={this.props.chart} style={{ height: topMenuHeight, marginBottom: gap }} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange} />
+              <TopMenu chart={this.props.chart} className={this.props.theme?.toolbar?.topMenuPosition === 'right' ? 'right' : ''} style={topMenuStyles} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange} />
               <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight + gap + 'px'})`}>
                 <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth, marginRight: gap }} />
                 <div style={{ position: 'absolute', inset: `${topMenuHeight + gap + 'px'} 0 0 ${leftMenuWidth + gap + 'px'}` }}>{this.props.children}</div>

@@ -200,8 +200,8 @@ export function WebChartComponent() {
 
   const swipperTheme = {
     border: {
-      inner: '4px solid #fff',
-      outter: '4px solid #fff',
+      inner: '1px solid #fff',
+      outter: '1px solid #fff',
       radius: 0
     },
     gap: 8,
@@ -230,7 +230,11 @@ export function WebChartComponent() {
         activeBackground: swipperBlue,
         hoverColor: swipperBlueLight,
         hoverBackground: 'rgba(255, 255, 255, 0.1)'
-      } 
+      },
+      showCurrency: false,
+      showShareChartButton: false,
+      showChartScaleSwitch: false,
+      topMenuPosition: 'right'
     },
     subMenu: {
       background: swipperBlue,
