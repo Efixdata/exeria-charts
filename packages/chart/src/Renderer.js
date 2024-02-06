@@ -794,17 +794,16 @@ const Renderer = function (settings, context, controller) {
 
 			ctx.fillStyle = color;
 			ctx.font = WEBRCP.utils.colorManager.getFont("price");
-			if (style === "TRADE") {
-				ctx.save();
-				ctx.fillStyle = "#fff";
-				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
-				ctx.fillStyle = "#000";
-				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
-				ctx.restore();
-				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
-			} else if (style === "RECTANGLE") {
-				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 9, this.priceRenderingOptions.valueAxisWidth, 16);
-			} else {
+			// if (style === "TRADE") {
+			// 	ctx.save();
+			// 	ctx.fillStyle = "#fff";
+			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
+			// 	ctx.fillStyle = "#000";
+			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
+			// 	ctx.restore();
+			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
+			// } 
+			if (style === "ARROW") {
 				ctx.beginPath();
 				ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
 				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
@@ -813,6 +812,8 @@ const Renderer = function (settings, context, controller) {
 				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
 				ctx.closePath();
 				ctx.fill();	
+			} else {
+				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 9, this.priceRenderingOptions.valueAxisWidth, 16);
 			}
 
 			ctx.fillStyle = textColor;

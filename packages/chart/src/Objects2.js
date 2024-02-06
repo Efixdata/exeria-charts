@@ -3628,18 +3628,19 @@ function TimeBetObject() {
 		const boxWidth = Math.ceil(measuredText.width + boxPadding.left + boxPadding.right + directionBoxWidth);
 		let boxBeginningX = x0 - leftArrowWidth - boxWidth;
 		this.boxBeginningX = boxBeginningX;
-		// Border
+		
 		ctx.save();
-		const outerBorderWidth = 4;
-		ctx.fillStyle = "#fff"
-		ctx.beginPath();
-		ctx.moveTo(x0 + outerBorderWidth + outerBorderWidth, y0);
-		ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
-		ctx.lineTo(boxBeginningX - outerBorderWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
-		ctx.lineTo(boxBeginningX - outerBorderWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
-		ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
-		ctx.closePath();
-		ctx.fill();
+		const outerBorderWidth = 0;
+		// White Border
+		// ctx.fillStyle = "#fff"
+		// ctx.beginPath();
+		// ctx.moveTo(x0 + outerBorderWidth + outerBorderWidth, y0);
+		// ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
+		// ctx.lineTo(boxBeginningX - outerBorderWidth, y0 + halfLeftArrowHeight + outerBorderWidth);
+		// ctx.lineTo(boxBeginningX - outerBorderWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
+		// ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - outerBorderWidth);
+		// ctx.closePath();
+		// ctx.fill();
 
 		// Border
 		const innerBorderWidth = 1;
