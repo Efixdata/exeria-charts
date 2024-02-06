@@ -216,7 +216,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.body.click()
 		if (self.controller.isChartEmpty(self.chart)) return;
 		event.preventDefault();
-
+		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+		self.isMouseDown = false;
+		self.deselectAll();
+		self.initialMouseEvent = null;
+		self.startEvent = null;
+		
 		clearInterval(self.swipe.hook);
 
 		var rect = event.target.getBoundingClientRect();
@@ -296,6 +301,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.body.click()
 		clearInterval(self.swipe.hook);
 
+		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+		self.isMouseDown = false;
+		self.deselectAll();
+		self.initialMouseEvent = null;
+		self.startEvent = null;
+		
+
 		if(!self.currentMode.allowSwipe || self.model.periodWidth < 2) return;
 
 		self.currentViewportLeft = self.model.viewportLeft;
@@ -365,6 +377,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onContextMenu		=	function (e) {
+		return;
 		self.body.click()
 		if (!isTouchDevice()) e.preventDefault();
 		if (this.model.mode=='plain') return;
@@ -1013,6 +1026,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.onPan = function (event, initialEvent, initialXValue, currentXValue) {
 		if (event.isPrimary === false) return;
+		if (!this.initialMouseEvent) return;
 		if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
@@ -1868,7 +1882,7 @@ function DefaultTool(interactor){
 		this.finishEvent = e;
 
 		if (this.interactor.currentHandler >-1) return this.interactor.onDragHandler(e);
-		if (this.interactor.currentHitObject != null) return this.interactor.onDragObject(e);
+		if (this.interactor.currentHitObject != null && this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].isDraggable !== false) return this.interactor.onDragObject(e);
 
 		return this.interactor.onPan(e);
 	};
