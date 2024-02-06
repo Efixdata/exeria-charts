@@ -148,12 +148,16 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if (touches.length > 0) {
 			const ox = touches[0].pageX - window.scrollX;
 			const oy = touches[0].pageY - window.scrollY;
+			// identifier on ios safari has different values like -871896472
+			let which = evt.changedPointers ? evt.changedPointers[0].pointerId : touches[0].identifier;
 
 			touchEvent = {
 				clientX: ox,
 				clientY: oy,
 				offsetX: ox,
-				offsetY: oy
+				offsetY: oy,
+				which: which,
+				isPrimary: touches[0].isPrimary || touches[0].identifier === self.initialMouseEvent?.which
 			}
 		}
 
@@ -162,10 +166,10 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				self.onMouseDown(touchEvent);
 				break;
 			case 'pan': // previously mousemove
-				self.onMouseMove(touchEvent);
+				self.onMouseMove(touchEvent, evt);
 				break;
 			case 'touchend': // previously mouseup
-				self.onMouseUp(touchEvent);
+				self.onMouseUp(touchEvent, evt);
 				self.body.click();
 				break;
 			case 'touchcancel': // previously mouseout
@@ -212,7 +216,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.body.click()
 		if (self.controller.isChartEmpty(self.chart)) return;
 		event.preventDefault();
-
+		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+		self.isMouseDown = false;
+		self.deselectAll();
+		self.initialMouseEvent = null;
+		self.startEvent = null;
+		
 		clearInterval(self.swipe.hook);
 
 		var rect = event.target.getBoundingClientRect();
@@ -292,6 +301,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.body.click()
 		clearInterval(self.swipe.hook);
 
+		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+		self.isMouseDown = false;
+		self.deselectAll();
+		self.initialMouseEvent = null;
+		self.startEvent = null;
+		
+
 		if(!self.currentMode.allowSwipe || self.model.periodWidth < 2) return;
 
 		self.currentViewportLeft = self.model.viewportLeft;
@@ -361,6 +377,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onContextMenu		=	function (e) {
+		return;
 		self.body.click()
 		if (!isTouchDevice()) e.preventDefault();
 		if (this.model.mode=='plain') return;
@@ -791,6 +808,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
     };
 
 	this.onMouseDown = function (e) {
+		if (self.initialMouseEvent) return;
 		if (self.controller.isChartEmpty(self.chart)) return;
 		if (e.preventDefault) e.preventDefault();
 
@@ -864,7 +882,18 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 	}
 
-	this.onMouseUp = function (e) {
+	this.onMouseUp = function (e, evt) {
+		if (isTouchDevice()) {
+			const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
+			let resume = false;
+
+			for (let i = 0; i < touches.length; ++i) {
+				const which = touches[i].pointerId || touches[i].identifier || 0;
+				if (self.initialMouseEvent && self.initialMouseEvent?.which == which) resume = true;
+			}
+
+			if (!resume) return;
+		}
 		if (self.controller.isChartEmpty(self.chart)) return;
 		if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
 
@@ -929,14 +958,17 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		self.onMouseMove(evt);
 	}
 
-	this.onMouseMove = function (e) {
+	this.onMouseMove = function (e, evt) {
+		if (e.isPrimary === false) return;
 		if (this.controller.isChartEmpty(this.chart)) {
 			this.chart.repaint(); 
 			return;
 		};
 
 		e._offset = this.getEventOffset(e);
-		if (this.isMouseDown && (this.isRightButton === false)) return this.onMouseDrag(e);
+		if (this.isMouseDown && (this.isRightButton === false)) {
+			return this.onMouseDrag(e, evt);
+		}
 		if (this.isMouseDown && this.isRightButton) return this.onRightMouseDrag(e);
 
 		const path = e.path || (e.composedPath && e.composedPath());
@@ -993,6 +1025,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.onPan = function (event, initialEvent, initialXValue, currentXValue) {
+		if (event.isPrimary === false) return;
+		if (!this.initialMouseEvent) return;
 		if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
 			this.chart.style.cursor = this.currentMode.cursorOnDrag;
 		}
@@ -1843,14 +1877,18 @@ function DefaultTool(interactor){
 		}
 	}
 
-	this.onMouseDrag		=	function (e) {
-		this.startEvent = this.interactor.initialMouseEvent;
+	this.onMouseDrag = function (e) {
+		const interactor = this.interactor
+
+		this.startEvent = interactor.initialMouseEvent;
 		this.finishEvent = e;
 
-		if (this.interactor.currentHandler >-1) return this.interactor.onDragHandler(e);
-		if (this.interactor.currentHitObject != null) return this.interactor.onDragObject(e);
+		if (interactor.currentHandler > -1) return this.interactor.onDragHandler(e);
 
-		return this.interactor.onPan(e);
+		const hitObject = interactor.currentHitObject
+		if (hitObject != null && interactor.controller.renderer.objects[hitObject.type].isDraggable !== false) return interactor.onDragObject(e);
+
+		return interactor.onPan(e);
 	};
 
 	this.onRightMouseDrag	=	function (e) {

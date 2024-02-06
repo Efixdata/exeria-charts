@@ -7,6 +7,7 @@ import imageCandleChartWhite from "./img/icons/candle_chart_white.svg";
 
 function Series() {
 	this.hitTolerance 	= hitTolerance; //2;
+	this.isDraggable = false;
 	this.getMenuItems = function(){};
 
 	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager){};
