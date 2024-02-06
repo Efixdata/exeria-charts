@@ -1877,14 +1877,18 @@ function DefaultTool(interactor){
 		}
 	}
 
-	this.onMouseDrag		=	function (e) {
-		this.startEvent = this.interactor.initialMouseEvent;
+	this.onMouseDrag = function (e) {
+		const interactor = this.interactor
+
+		this.startEvent = interactor.initialMouseEvent;
 		this.finishEvent = e;
 
-		if (this.interactor.currentHandler >-1) return this.interactor.onDragHandler(e);
-		if (this.interactor.currentHitObject != null && this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].isDraggable !== false) return this.interactor.onDragObject(e);
+		if (interactor.currentHandler > -1) return this.interactor.onDragHandler(e);
 
-		return this.interactor.onPan(e);
+		const hitObject = interactor.currentHitObject
+		if (hitObject != null && interactor.controller.renderer.objects[hitObject.type].isDraggable !== false) return interactor.onDragObject(e);
+
+		return interactor.onPan(e);
 	};
 
 	this.onRightMouseDrag	=	function (e) {
