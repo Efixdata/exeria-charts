@@ -857,7 +857,9 @@ const Renderer = function (settings, context, controller) {
 				v2 = b;
 			}
 
-			var fontSize = parseInt(ctx.font);
+			ctx.font = WEBRCP.utils.colorManager.getFont("price");
+			var fontMetrics = ctx.measureText('8');
+			var fontSize = fontMetrics.fontBoundingBoxAscent + fontMetrics.fontBoundingBoxDescent;
 			var hMin = 4 * fontSize;
 			var h = y2 - y1 - 20;
 			var labelY = (y1 + h / 2) + 8;
@@ -867,7 +869,6 @@ const Renderer = function (settings, context, controller) {
 			const xL = model._width;
 
 			ctx.fillStyle = color;
-			ctx.font = WEBRCP.utils.colorManager.getFont("price");
 			ctx.beginPath();
 			ctx.moveTo(x, y1);
 			ctx.lineTo(x+5, y1-10);
@@ -980,6 +981,7 @@ const Renderer = function (settings, context, controller) {
 
 			ctx.fillStyle = innerTextColor;
 			ctx.font = WEBRCP.utils.colorManager.getFont("text");
+			console.log(fontSize)
 			ctx.fillText(labelUp, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
 			renderPriceText({
 				text: label,
