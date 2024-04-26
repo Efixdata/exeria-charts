@@ -970,4 +970,9 @@ export default class Chart {
       this.model.panels[i].basis += sub;
     }
 	}
+
+  setObjectSelectionAllowed(isAllowed) {
+    this.interactor.setObjectSelectionAllowed(isAllowed);
+  }
+
 }

@@ -37,6 +37,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.currentStagingObject = null;
 	this.model = model;
 	this.renderer = renderer;
+	this.isObjectSelectionAllowed = true;
 
 	this.pinch = { trackedIndex: null, leftGrabbedIndex: null, rightGrabbedIndex: null };
 	this.swipe = {
@@ -1450,6 +1451,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
+		if (!this.isObjectSelectionAllowed) return null;
+
 		var lastObjectIndex = this.currentPanel.objects.length - 1;
 		for(var i = lastObjectIndex; i > -1; --i){
 			if (this.hit(x, y, this.currentPanel.objects[i]))
@@ -1786,6 +1789,14 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if (this.currentPanel)
 			return e._offset.offsetX > (this.currentPanel._width - this.controller.renderer.getPriceRenderingOptions().valueAxisWidth);
 		return false;
+	}
+
+	this.setObjectSelectionAllowed = (isObjectSelectionAllowed) => {
+		this.isObjectSelectionAllowed = isObjectSelectionAllowed;
+		this.controller.emitEvent({
+			topic: 'OBJECT_SELECTION_ALLOWED_CHANGE',
+			data: isObjectSelectionAllowed
+		  });
 	}
 
 	bindDomEvents();
@@ -2466,6 +2477,7 @@ function StageTool (interactor, tool, onFinished) {
 
 	this.onMouseDown = function(e) {
 		if (this.cancelled) return;
+		this.interactor.setObjectSelectionAllowed(true);
 
 		if (this.currentStep === 0) {
 			const eventOffset = this.interactor.getEventOffset(e).offsetY;

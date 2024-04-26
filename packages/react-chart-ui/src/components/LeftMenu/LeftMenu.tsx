@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Cursors } from "./Cursors";
 import { DrawingTools } from "./DrawingTools";
+import { LockButton } from "./LockButton";
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -33,6 +34,7 @@ export const LeftMenu = (props: LeftMenuProps) => {
   return (
     <Container style={props.style}>
       <Cursors chart={props.chart}/>
+      <LockButton chart={props.chart} />
       <DrawingTools chart={props.chart}/>
     </Container>
   )
