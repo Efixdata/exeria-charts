@@ -1,6 +1,6 @@
 {
   "name": "@dexer-io/react-chart-ui",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
@@ -21,7 +21,6 @@
     "dist",
     "README.md"
   ],
-
   "license": "UNLICENSED",
   "scripts": {
     "lint": "eslint *.ts*",
@@ -53,6 +52,7 @@
     "ts-loader": "^9.4.1",
     "tsconfig": "*",
     "typescript": "^4.5.2",
+    "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
   "peerDependencies": {
