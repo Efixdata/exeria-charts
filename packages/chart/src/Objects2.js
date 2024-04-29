@@ -3643,23 +3643,24 @@ function TimeBetObject() {
 		// ctx.fill();
 
 		// Border
-		const innerBorderWidth = 1;
-		ctx.fillStyle = "#000"
-		ctx.beginPath();
-		ctx.moveTo(x0 + innerBorderWidth + innerBorderWidth, y0);
-		ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
-		ctx.lineTo(boxBeginningX - innerBorderWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
-		ctx.lineTo(boxBeginningX - innerBorderWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
-		ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
-		ctx.closePath();
-		ctx.fill();
+		// const innerBorderWidth = 1;
+		// ctx.fillStyle = "#000"
+		// ctx.beginPath();
+		// ctx.moveTo(x0 + innerBorderWidth + innerBorderWidth, y0);
+		// ctx.lineTo(x0 - leftArrowWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
+		// ctx.lineTo(boxBeginningX - innerBorderWidth, y0 + halfLeftArrowHeight + innerBorderWidth);
+		// ctx.lineTo(boxBeginningX - innerBorderWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
+		// ctx.lineTo(x0 - leftArrowWidth, y0 - halfLeftArrowHeight - innerBorderWidth);
+		// ctx.closePath();
+		// ctx.fill();
+
 		ctx.restore();
 		// addShadow();
 
 		// Rounded box
 		ctx.beginPath();
-		// ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
-		ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight);
+		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
+		// ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight);
 		ctx.fill();
 
 		// removeShadow();
@@ -3667,8 +3668,8 @@ function TimeBetObject() {
 		// Arrow box
 		ctx.fillStyle = arrowColor;
 		ctx.beginPath();
-		// ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
-		ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight);
+		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
+		// ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight);
 		ctx.fill();
 
 		// Image arrow
@@ -3760,7 +3761,8 @@ function TimeBetObject() {
 		ctx.setLineDash([]);
 		ctx.beginPath();
 		ctx.lineWidth = 1;
-		ctx.strokeStyle = "#000";
+		ctx.globalAlpha = 0.2;
+		ctx.strokeStyle = "#ffffff";
 		ctx.moveTo(boxBeginningX + directionBoxWidth, y0 - halfLeftArrowHeight);
 		ctx.lineTo(boxBeginningX + directionBoxWidth, y0 + halfLeftArrowHeight - 1);
 		ctx.stroke();

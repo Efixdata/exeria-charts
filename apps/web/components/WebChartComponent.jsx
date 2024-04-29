@@ -77,7 +77,7 @@ const getChartLibrary = (containerElement) => {
         isWinning: false,
         config:  {
           editable: false,
-          color: "#1C6897",
+          color: "#3d4463",
           winningColor: "#25AD98",
           losingColor: "#D12E59",
           secondaryColor: "#ffffff10",
@@ -96,7 +96,7 @@ const getChartLibrary = (containerElement) => {
         isWinning: true,
         config:  {
           editable: false,
-          color: "#1C6897",
+          color: "#3d4463",
           winningColor: "#25AD98",
           losingColor: "#D12E59",
           wonColor: "#e99700",
@@ -117,7 +117,7 @@ const getChartLibrary = (containerElement) => {
         isWinning: false,
         config:  {
           editable: false,
-          color: "#1C6897",
+          color: "#3d4463",
           winningColor: "#25AD98",
           losingColor: "#D12E59",
           wonColor: "#e99700",
