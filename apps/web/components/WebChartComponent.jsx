@@ -3,6 +3,7 @@ import {ChartUI} from '@dexer-io/react-chart-ui';
 import Chart from "@dexer-io/chart";
 import skyrocketData1h from "../data/BNBUSD.json";
 import skyrocketData5m from "../data/BNBUSD-5m.json";
+import exampleData from "../data/EXAMPLE-0-100.json";
 
 const getCandles = (candles, multiplier) => {
   const result = [];
@@ -62,7 +63,7 @@ const getChartLibrary = (containerElement) => {
         instrument: instrument
       });
   
-      const candles = getCandles(skyrocketData1h, 1);
+      const candles = getCandles(exampleData, 1);
   
       chart.init();
       chart.setMainSeriesData(candles, { symbol: "1h", milis: 2700000 });

@@ -1343,7 +1343,7 @@ const Renderer = function (settings, context, controller) {
 		}
 
 		magnitude = (Math.log(Math.floor(greatestNumber)) * Math.LOG10E + 1 | 0) || 1;
-		zerosToReduce = -Math.floor(Math.log10(greatestFraction) + 1);
+		zerosToReduce = greatestFraction > 0 && greatestFraction !== Number.MIN_VALUE ? -Math.floor(Math.log10(greatestFraction) + 1) : 0;
 
 		for (let i = 0; i < magnitude; i++) {
 			text += '8';

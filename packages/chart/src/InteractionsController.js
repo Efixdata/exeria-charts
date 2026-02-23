@@ -1997,7 +1997,7 @@ function DefaultTool(interactor){
 						octx.save();
 						// octx.translate (0.5, 0.5);
 						tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
-						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision > 4 ? self.interactor.model.instrumentsSeries[0].instrument.precision : 4//self.interactor.model.instrumentsSeries[0].instrument.precision;
+						tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision;
 						self.currentTip = tip;
 						drawTip(tip, hitObject._hit.x, hitObject._hit.y, octx, self.interactor.model, self.interactor.controller);
 
