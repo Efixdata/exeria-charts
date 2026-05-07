@@ -2,7 +2,6 @@ import rendererSettings from "./rendererSettings";
 import ChartRenderer from "./Renderer";
 import model from "./model";
 import FUSION from "./fusion";
-import instrumentsSeries from "./instrumentsSeries";
 import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
@@ -10,55 +9,107 @@ import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
 import englishLocale from "./locale/en-US";
 import ToolDrawer from "./ToolDrawer";
+import type {
+  ChartConfig,
+  ChartEventPayloads,
+  ChartOptions,
+  DrawMode,
+  Instrument,
+  Interval,
+  ScriptDefinition,
+  Tick,
+  ValueAxisMode,
+} from "./types";
+import type {
+  ChartEventEnvelope,
+  ChartMarginInfo,
+  ChartRecalculateOptions,
+  ChartRuntimeObject,
+  CoreChartController,
+  CoreChartModel,
+  CoreChartPanel,
+  CoreFusionRuntime,
+  CoreFusionStatic,
+  CoreInteractor,
+  CoreInteractorConstructor,
+  CoreRenderer,
+  CoreRendererConstructor,
+  OhlcvCandle,
+  RuntimeScriptConfig,
+  RuntimeScriptDefinition,
+  TickLike,
+  UnknownFn,
+  ValueConverterLike,
+} from "./internalTypes";
 
-export default class Chart {
-  containerId;
-  ctx;
-  octx;
-  canvas;
-  container;
-  renderer;
-  initialized;
-  instrument;
-  objectsManager;
-  subscriptionManager;
-  theme;
-  toolDrawer;
+export default class Chart implements CoreChartController {
+  [key: string]: any;
 
-  constructor(options) {
-    if (typeof window == undefined) return;
+  containerId?: string;
+  ctx!: CanvasRenderingContext2D;
+  octx!: CanvasRenderingContext2D;
+  canvas!: HTMLCanvasElement;
+  overlay!: HTMLCanvasElement;
+  topLayer!: HTMLDivElement;
+  container!: HTMLElement;
+  renderer!: CoreRenderer;
+  initialized = false;
+  instrument?: Instrument;
+  objectsManager!: ObjectsManager;
+  subscriptionManager!: SubscriptionManager;
+  theme?: unknown;
+  toolDrawer!: ToolDrawer;
+  config!: ChartConfig;
+  model!: CoreChartModel;
+  fusion!: CoreFusionRuntime;
+  interactor!: CoreInteractor;
+  objectOnlyOnOverlay = false;
+  canvasWidth = 0;
+  canvasHeight = 0;
+  currentAnimationFrame?: number;
+  resizeObserver?: ResizeObserver;
+  containerPositionBeforeInit = "";
+  valueConverter?: ValueConverterLike;
+
+  constructor(options: ChartOptions) {
+    if (typeof window === "undefined") return;
     this.config = {
       mouseWheelZoomEnabled: true,
       multiInstrumentChart: true,
       storageDisabled: true,
     };
 
-    this.model = model;
-    // this.model.instrumentsSeries = instrumentsSeries;
-    // this.model.mainSeries = instrumentsSeries[0].seriesId;
+    this.model = model as CoreChartModel;
 
     this.container = options.container;
     this.config = { ...this.config, ...options.config };
-    this.model = { ...model, ...options.model };
+    this.model = {
+      ...(model as CoreChartModel),
+      ...((options.model as Partial<CoreChartModel> | undefined) ?? {}),
+    } as CoreChartModel;
     this.setInstrument(options.instrument);
     this.toolDrawer = new ToolDrawer(this);
 
     if (options.theme) {
-      WEBRCP.utils.colorManager.setTheme(options.theme, options?.themeVariant)
+      WEBRCP.utils.colorManager.setTheme(options.theme, options?.themeVariant);
     }
   }
 
   init() {
-    if (!document) return;
+    if (typeof document === "undefined") return;
     if (this.initialized) return;
 
     this.canvas = document.createElement("canvas");
     this.overlay = document.createElement("canvas");
+    this.containerPositionBeforeInit = this.container.style.position;
     this.container.style.position = "relative";
     this.overlay.style.position = "absolute";
     this.overlay.style.inset = "0 0 0 0";
-    this.ctx = this.canvas.getContext("2d");
-    this.octx = this.overlay.getContext("2d");
+    const ctx = this.canvas.getContext("2d");
+    const octx = this.overlay.getContext("2d");
+    if (!ctx || !octx) return;
+    this.ctx = ctx;
+    this.octx = octx;
 
     this.topLayer = document.createElement("div");
     this.topLayer.style.position = "absolute";
@@ -67,13 +118,18 @@ export default class Chart {
     this.container.append(this.canvas, this.overlay, this.topLayer);
 
     this.objectOnlyOnOverlay = false;
-    this.renderer = new ChartRenderer(rendererSettings, this.ctx, this);
+    this.renderer = new (ChartRenderer as unknown as CoreRendererConstructor)(
+      rendererSettings,
+      this.ctx,
+      this,
+    );
     this.objectsManager = new ObjectsManager(this);
     this.subscriptionManager = new SubscriptionManager(this);
 
-    this.fusion = new FUSION.builder().setModel(this.model).build();
+    const FusionBuilder = (FUSION as unknown as CoreFusionStatic).builder;
+    this.fusion = new FusionBuilder().setModel(this.model).build();
 
-    this.interactor = new InteractionsController(
+    this.interactor = new (InteractionsController as unknown as CoreInteractorConstructor)(
       this.container,
       this.canvas,
       this.overlay,
@@ -107,14 +163,54 @@ export default class Chart {
       );
     };
 
-    new ResizeObserver(onSizeChange).observe(this.container);
+    this.resizeObserver = new ResizeObserver(onSizeChange);
+    this.resizeObserver.observe(this.container);
     this.initialized = true;
   }
 
-  async recalculateScripts({ rerender = true, shortSynchronization = false } = {}) {
+  destroy() {
+    if (typeof window === "undefined") return;
+
+    this.currentAnimationFrame !== undefined && window.cancelAnimationFrame(this.currentAnimationFrame);
+    this.currentAnimationFrame = undefined;
+
+    if (this.interactor?.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.interactor.currentAnimationFrame);
+    }
+
+    if (this.interactor?.swipe?.hook) {
+      clearInterval(this.interactor.swipe.hook);
+      this.interactor.swipe.hook = null;
+    }
+
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
+
+    this.interactor?.currentMode?.onCancel?.();
+    this.interactor?.offDOMEvents?.();
+    this.subscriptionManager?.clear?.();
+
+    this.topLayer?.remove();
+    this.overlay?.remove();
+    this.canvas?.remove();
+
+    if (this.container) {
+      this.container.style.position = this.containerPositionBeforeInit;
+    }
+
+    this.canvasWidth = 0;
+    this.canvasHeight = 0;
+    this.objectOnlyOnOverlay = false;
+    this.valueConverter = undefined;
+    this.initialized = false;
+  }
+
+  async recalculateScripts(
+    { rerender = true, shortSynchronization = false }: ChartRecalculateOptions = {},
+  ) {
     try {
       if (shortSynchronization) {
-        this.fusion.shortSynchronization;
+        this.fusion.shortSynchronization();
       } else {
         this.fusion.fullSynchronization();
         this.fusion.configureScripts();
@@ -138,7 +234,7 @@ export default class Chart {
     this.renderOverlay();
   }
 
-  render(objectOnlyOnOverlay) {
+  render(objectOnlyOnOverlay?: ChartRuntimeObject | boolean | null) {
 
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visibled
@@ -168,6 +264,11 @@ export default class Chart {
     // this.thumbnail = this.canvas.toDataURL();
   }
 
+  renderEmpty() {
+    this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+    this.octx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+  }
+
   saveInstance() {
     // TODO: save instance
     // if (this.content){
@@ -180,7 +281,7 @@ export default class Chart {
     // }
   }
 
-  isChartEmpty() {
+  isChartEmpty(_chart?: unknown) {
     // TODO: check if chart is not empty
     if (this.model.mainSeries) return false;
 
@@ -212,13 +313,13 @@ export default class Chart {
       this.canvas.height = heightWithRatio;
       this.canvas.style.width = widthPx;
       this.canvas.style.height = heightPx;
-      this.canvas.getContext("2d").scale(ratio, ratio);
+      this.ctx.scale(ratio, ratio);
 
       this.overlay.width = widthWithRatio;
       this.overlay.height = heightWithRatio;
       this.overlay.style.width = widthPx;
       this.overlay.style.height = heightPx;
-      this.overlay.getContext("2d").scale(ratio, ratio);
+      this.octx.scale(ratio, ratio);
 
       // this.model['axisGrid'] = this.mainAxisGrid;
       this.model["_width"] = this.canvasWidth;
@@ -228,7 +329,7 @@ export default class Chart {
       this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
       this.model["_rightIndex"] = this.renderer.getPointIndex(this.model._timeAxisWidth, this.model);
 
-      this.model["_midOffset"] = parseInt(this.model.periodWidth / 2);
+      this.model["_midOffset"] = Math.trunc(this.model.periodWidth / 2);
 
       let panel = null;
       let offset = 0;
@@ -246,7 +347,9 @@ export default class Chart {
   }
 
   fitAndRepaint() {
-    window.cancelAnimationFrame(this.currentAnimationFrame);
+    if (this.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.currentAnimationFrame);
+    }
 
     var self = this;
 
@@ -257,7 +360,7 @@ export default class Chart {
     });
   }
 
-  fitPanel(panel, index, offset) {
+  fitPanel(panel: CoreChartPanel, index: number, offset: number) {
     if (
       !this.valueConverter ||
       this.valueConverter.mode !== panel.valueAxisMode
@@ -290,7 +393,7 @@ export default class Chart {
           continue;
         }
         var ext = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
-        this.renderer.objects[panel.objects[i].type].updateExtremes(
+        this.renderer.objects[panel.objects[i].type]?.updateExtremes?.(
           panel.objects[i],
           ext,
           this.model,
@@ -353,14 +456,14 @@ export default class Chart {
     return panel["_height"];
   }
 
-  chartStructureChanged(mode) {
+  chartStructureChanged(mode?: unknown) {
     // if(mode == 'empty')
     // 	WEBRCP.triggerQueueEvent('WEBRCP_ACTIVE_CHART_CHANGED', null);
     // else
     // 	WEBRCP.triggerQueueEvent('WEBRCP_ACTIVE_CHART_CHANGED', this.inspector);
   }
 
-  updateToolsOptions(config) {}
+  updateToolsOptions(config: Record<string, unknown>) {}
 
   renderOverlay() {
 
@@ -391,16 +494,18 @@ export default class Chart {
     }
   }
 
-  doFrame(callback) {
+  doFrame(callback: UnknownFn) {
     var self = this;
 
-    window.cancelAnimationFrame(this.currentAnimationFrame);
+    if (this.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.currentAnimationFrame);
+    }
     this.currentAnimationFrame = window.requestAnimationFrame(function () {
       callback.call(self);
     });
   }
 
-  async setMainSeriesData(data, interval, moveToEnd = true) {
+  async setMainSeriesData(data: OhlcvCandle[], interval?: Interval, moveToEnd = true) {
     if (!this.fusion) return;
 
     const mainSeries = this.fusion.getMainSeries();
@@ -411,7 +516,11 @@ export default class Chart {
     }
     mainSeries.data = data;
 
-    this.renderer.calculatePriceRenderingOptions(mainSeries.data, this.model, mainSeries.instrument.precision);
+    this.renderer.calculatePriceRenderingOptions(
+      mainSeries.data,
+      this.model,
+      mainSeries.instrument.precision ?? this.instrument?.precision ?? 0,
+    );
 
     try {
       await this.recalculateScripts({ rerender: false });
@@ -427,15 +536,17 @@ export default class Chart {
           data: this.renderer.getPriceRenderingOptions().valueAxisWidth
         });
 
-        this.emitEvent({
-          topic: 'INTERVAL_CHANGE',
-          data: interval
-        });
+        if (interval) {
+          this.emitEvent({
+            topic: 'INTERVAL_CHANGE',
+            data: interval,
+          });
+        }
       }, 0);
     }
   }
 
-  appendMainSeriesData(data) {
+  appendMainSeriesData(data: OhlcvCandle[]) {
     if (!this.fusion) return;
     const mainSeries = this.fusion.getMainSeries();
     mainSeries.data = mainSeries.data.concat(data);
@@ -445,7 +556,7 @@ export default class Chart {
     } catch (_) {}
   }
 
-  appendTick(tick, recalculate = true) {
+  appendTick(tick: TickLike, recalculate = true) {
     const newCandleAdded = LIB.getOHLCSeriesWrapper(
       this.fusion.getMainSeries()
     ).update(tick);
@@ -459,7 +570,7 @@ export default class Chart {
     return newCandleAdded;
   }
 
-  appendTicks(ticks, recalculate = true) {
+  appendTicks(ticks: TickLike[], recalculate = true) {
     const mainSeries = LIB.getOHLCSeriesWrapper(this.fusion.getMainSeries());
     let newCandleAdded = false;
 
@@ -477,7 +588,7 @@ export default class Chart {
     return newCandleAdded;
   }
 
-  upsertCandle(candle, recalculate = true) {
+  upsertCandle(candle: OhlcvCandle, recalculate = true) {
     const newCandleAdded = LIB.getOHLCSeriesWrapper(
       this.fusion.getMainSeries()
     ).upsertCandle(candle);
@@ -497,7 +608,7 @@ export default class Chart {
     }
   }
 
-  checkMargin() {
+  checkMargin(): ChartMarginInfo | null {
 		const lastIndex = this.fusion.getMainSeries().data.length >0 ? this.fusion.getMainSeries().data.length-1 : 0;
 		const lastIndexPoint = this.renderer.getIndexPoint(lastIndex, this.model);
 		if(lastIndexPoint >= (this.model._width-this.model.valueAxisWidth-this.model.endMargin) && lastIndexPoint < this.model._width-this.model.valueAxisWidth)
@@ -506,12 +617,12 @@ export default class Chart {
 			return null;
 	}
 
-  moveIndexToPoint(index, x) {
+  moveIndexToPoint(index: number, x: number) {
 		var vpl = (this.model.periodWidth * index)-x; if (vpl<0) vpl = 0;
 		this.model.viewportLeft = vpl;
 	}
   
-  prependMainSeriesData(data) {
+  prependMainSeriesData(_data: OhlcvCandle[]) {
     // this.model.instrumentsSeries[0].data = data.append(this.model.instrumentsSeries[0].data);
     // this.calculateAll();
     // this.rerender();
@@ -537,7 +648,9 @@ export default class Chart {
   }
 
   repaint() {
-    window.cancelAnimationFrame(this.currentAnimationFrame);
+    if (this.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.currentAnimationFrame);
+    }
 		var self = this;
 
 		this.currentAnimationFrame = window.requestAnimationFrame(function () {
@@ -545,43 +658,42 @@ export default class Chart {
 		});
   }
 
-  setAutoScale(autoScale) {
-    this.model.autoScale = autoScale;
-  }
-
-  addScript(scriptKey) {
-    this.onScriptEditorApply(this.createScriptConfig(scriptKey));
-	}
-
-  addScript(scriptKey, proto) {
+  addScript(scriptKey: string): void;
+  addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  addScript(scriptKey: string, proto?: ScriptDefinition) {
     this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
 	}
 
-  createScriptConfig(scriptKey, proto) {
-    if (!proto) proto = FUSION.getScript(scriptKey);
-    var scriptCfg = {
-      id: null,
+  createScriptConfig(scriptKey: string, proto?: ScriptDefinition) {
+    const resolvedProto =
+      (proto as RuntimeScriptDefinition | undefined) ??
+      (FUSION as unknown as CoreFusionStatic).getScript(scriptKey);
+    const scriptCfg: RuntimeScriptConfig = {
+      id: undefined,
       inputs: {},
+      outputs: {},
       key: scriptKey,
-      pane: proto.newPane ? "new" : "1",
+      pane: resolvedProto.newPane ? "new" : "1",
       userName: scriptKey,
       visible: true,
     };
 
-    const getDefaultSeries = (input) => {
+    const getDefaultSeries = (input: RuntimeScriptDefinition["inputs"][string]) => {
       for (var key in this.fusion.getSeriesManager()) {
         const series = this.fusion.getSeriesManager()[key];
   
         for (var i = 0; i < series.fields.length; i++) {
-          if (input.properties.def === series.fields[i]) {
+          if (input.properties?.def === series.fields[i]) {
             return series.seriesId + ":" + series.fields[i];
           }
         }
       }
+
+      return undefined;
     };
 
-    Object.keys(proto.inputs).forEach((k) => {
-      const input = proto.inputs[k];
+    Object.keys(resolvedProto.inputs).forEach((k) => {
+      const input = resolvedProto.inputs[k];
 
       if (input.type == "series" && !input.value) {
         scriptCfg.inputs[k] = getDefaultSeries(input);
@@ -593,10 +705,10 @@ export default class Chart {
     this.fusion.configureScript(scriptCfg);
 
     return scriptCfg;
-  };
+  }
 
-  async onScriptEditorApply(config){
-		var proto = FUSION.getScript(config.key);
+  async onScriptEditorApply(config: RuntimeScriptConfig){
+    const proto = (FUSION as unknown as CoreFusionStatic).getScript(config.key);
 
 		if(config.id){
 			await this.fusion.modifyScript(config);
@@ -604,7 +716,7 @@ export default class Chart {
 		}else{
 			await this.fusion.addScript(config);
 
-			var pane=this.interactor.getMainPanel();
+      let pane = this.interactor.getMainPanel() as CoreChartPanel;
 			if(config.pane){
 				if(config.pane=='new'){
 					pane = this.addPanelToModel();
@@ -623,20 +735,21 @@ export default class Chart {
 				}
 			}
 
+      const plotters = proto.plotters ?? [];
 
-			for (var i=0; i<proto.plotters.length; i++) {
+      for (var i=0; i<plotters.length; i++) {
 
-				let plotter = JSON.parse(JSON.stringify(proto.plotters[i]));
-				plotter['id']=FUSION.uniqueId();
+        const plotter = JSON.parse(JSON.stringify(plotters[i])) as ChartRuntimeObject;
+        plotter['id']=(FUSION as unknown as CoreFusionStatic).uniqueId();
 				var link = plotter.dataLink;
-				plotter.dataLink = config.outputs[link];
+        plotter.dataLink = config.outputs[link as string];
 				plotter.reference = config.reference;
 				plotter.hidden = !config.visible && proto.permHide;
 				pane.objects.push(plotter);
 			}
 		}
 
-		var s = config;
+    const s = config;
     const seriesManager = this.fusion.getSeriesManager();
 		for (var key in s.outputs) {
 			if(seriesManager[s.outputs[key]])
@@ -658,9 +771,10 @@ export default class Chart {
 		// 	this.options.controller.chartStructureChanged();
 	}
 
-  addPanelToModel () {
+  addPanelToModel (): CoreChartPanel {
 
-		var panel = {
+    const panel = {
+        id: LIB.getUniqueId(),
 				valueAxisMode: "lin",
 				hGrid: true,
 				vGrid: true,
@@ -670,13 +784,15 @@ export default class Chart {
 				precision: this.instrument?.precision || 4,
 				centerZero: false,
 				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
-				objects: []
-		}
-
-		panel.id = LIB.getUniqueId();
+        objects: [],
+        _visible: true,
+        _width: this.canvasWidth,
+        _height: 0,
+        _offset: 0,
+    } as CoreChartPanel;
 
 		//make room
-		var sub = parseInt(25/this.model.panels.length);
+    var sub = Math.trunc(25 / this.model.panels.length);
 		for (var i=0; i<this.model.panels.length; i++){
 			if(this.model.panels[i].basis > sub)
 				this.model.panels[i].basis-=sub;
@@ -688,7 +804,7 @@ export default class Chart {
 		return panel;
 	}
 
-  moveToEnd({ rerender = true } = {}) {
+  moveToEnd({ rerender = true }: { rerender?: boolean } = {}) {
     if (!this.isChartEmpty()) {
       this.doMoveToEnd = (this.canvasWidth == 0);
 
@@ -705,7 +821,7 @@ export default class Chart {
     }
 	}
 
-  moveToStamp(stamp) {
+  moveToStamp(stamp: number) {
     if (!this.isChartEmpty()) {
       const index = this.renderer.getStampIndex(stamp, this.model, this.getSeriesManager());
       const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;
@@ -719,7 +835,7 @@ export default class Chart {
     }
 	}
 
-  setInstrument(instrument) {
+  setInstrument(instrument?: Instrument) {
     if (!instrument) return;
 
     this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...instrument };
@@ -747,8 +863,8 @@ export default class Chart {
   }
 
   onCancelTool() {
-		this.interactor.currentMode.onCancel();
-	}
+    this.interactor.currentMode.onCancel?.();
+  }
 
 	onDrawingDone() {
     // TODO: fire subscription for
@@ -762,14 +878,14 @@ export default class Chart {
 
   getCurrency() {
     // console.log("asd", this.fusion.getMainSeries());
-    return this.instrument.currency;
+    return this.instrument?.currency;
   }
 
   getValueAxisMode() {
     return this.model.panels[0].valueAxisMode;
   }
 
-  setValueAxisMode (mode){
+  setValueAxisMode (mode: ValueAxisMode){
     if (mode === '%') mode = "perc";
     if (this.model.panels[0].valueAxisMode == mode) return;
 
@@ -794,7 +910,7 @@ export default class Chart {
     return this.model.autoScale;
   }
 
-  setAutoScale (autoScale){
+  setAutoScale (autoScale: boolean){
     if (this.model.autoScale == autoScale) return;
 
 		this.model.autoScale = autoScale;
@@ -810,14 +926,14 @@ export default class Chart {
 		// this.refreshTools();
 	}
 
-  onDelete(objectId) {
+  onDelete(objectId?: string | number) {
     if (!objectId) return;
 
     this.objectsManager.detachObject(objectId);
     this.rerender();
   }
 
-  setCursor(mode) {
+  setCursor(mode: string) {
     if (this.interactor.currentMode.symbol === mode) return;
 
 		this.interactor.setMode(mode);
@@ -832,12 +948,15 @@ export default class Chart {
     return this.fusion.getSeriesManager();
   }
 
-  subscribe(topic, callback) {
+  subscribe<TTopic extends keyof ChartEventPayloads>(
+    topic: TTopic,
+    callback: (data: ChartEventPayloads[TTopic]) => void,
+  ) {
     // TOPICS: AUTOSCALE, CURSOR_CHANGE, VALUE_AXIS_WIDTH_CHANGE
     this.subscriptionManager.subscribe(topic, callback);
   }
 
-  emitEvent(event) {
+  emitEvent<TTopic extends keyof ChartEventPayloads>(event: ChartEventEnvelope<TTopic>) {
     // event = {
     //   topic: '',
     //   data: any
@@ -846,7 +965,7 @@ export default class Chart {
     this.subscriptionManager.onEvent(event);
   }
 
-  setMainDrawMode(mode) {
+  setMainDrawMode(mode: DrawMode) {
     // mode: OHLC, Bars, Line, Histogram, Line and Histogram
     this.onDrawModeSelected({
       type: mode,
@@ -855,24 +974,25 @@ export default class Chart {
     })
   }
 
-  onDrawModeSelected(data) {
-		var object 		= data.object;
-		var drawMode 	= data.type;
-		var selected 	= data.selected;
+  onDrawModeSelected(data: { object?: ChartRuntimeObject | string; type?: DrawMode | string; selected?: boolean; [key: string]: unknown }) {
+    let object 		= data.object;
+    const drawMode 	= data.type;
+    const selected 	= data.selected;
 
-		if (object === 'main@link' || (object && object.id === 'main@link')) {
+    if (object === 'main@link' || (object && typeof object !== 'string' && object.id === 'main@link')) {
 			var objects = this.model.panels[0].objects;
 			var mainInstrumentSeries = this.model.instrumentsSeries[0];
-			var length = objects.length,
-			i = 0;
+      var length = objects.length;
 
-			for (var i; i < length; i++) {
-				if (objects[i].dataLink === mainInstrumentSeries.seriesId) {
-					var object = objects[i];
+      for (let index = 0; index < length; index++) {
+        if (objects[index].dataLink === mainInstrumentSeries.seriesId) {
+          object = objects[index];
 					break;
 				}
 			}
 		}
+
+    if (!object || typeof object === 'string' || !drawMode) return;
 
 		object.renderAs = drawMode;
 
@@ -884,11 +1004,11 @@ export default class Chart {
 		this.rerender();
 	}
 
-  onDownload(watermark, watermarkWidth, watermarkHeight) {
+  onDownload(watermark?: string, watermarkWidth = 0, watermarkHeight = 0) {
 		var link = document.createElement('a');
     const positionY = this.canvasHeight / 2 - watermarkHeight / 2;
     const positionX = this.canvasWidth / 2 - watermarkWidth / 2;
-    const title = this.instrument.name + "_" + this.model.interval.symbol;
+    const title = `${this.instrument?.name ?? "chart"}_${this.model.interval?.symbol ?? ""}`;
 
     if (!watermark) {
       link.href = this.canvas.toDataURL();
@@ -898,7 +1018,7 @@ export default class Chart {
     } else {
       var image = new Image();
       image.src = watermark;
-      image.onload = function() {
+      image.onload = () => {
         image.width = watermarkWidth;
         image.height = watermarkHeight;
         this.ctx.drawImage(image, positionX, positionY, watermarkWidth, watermarkHeight);
@@ -906,7 +1026,7 @@ export default class Chart {
         link.download = title + "_" + Date.now() + ".png";
         link.click();
         this.render();
-      }.bind(this);
+      };
     }
 	}
 
@@ -915,7 +1035,7 @@ export default class Chart {
   }
 
   getScripts() {
-    const scripts = FUSION.getFreeScripts();
+    const scripts = (FUSION as unknown as CoreFusionStatic).getFreeScripts();
     const translator = WEBRCP.utils.getMessages(englishLocale);
 
     for (let key in scripts) {
@@ -932,12 +1052,19 @@ export default class Chart {
       for (let outputKey in script.outputs) {
         const output = script.outputs[outputKey];
 
-        if (output.type === "series") {
+        if (output.type === "series" && output.series) {
           const series = output.series;
           series.title = translator.getMessage(series.title, series.title);
           
-          for (let labelKey in output.labels) {
-            series.labels[labelKey] = translator.getMessage(series.labels[labelKey] , series.labels[labelKey]);
+          if (output.labels) {
+            const seriesLabels = (series.labels ?? {}) as Record<string, string>;
+            for (let labelKey in output.labels) {
+              const label = seriesLabels[labelKey];
+              if (label !== undefined) {
+                seriesLabels[labelKey] = translator.getMessage(label, label);
+              }
+            }
+            series.labels = seriesLabels;
           }
         }  
       }
@@ -946,16 +1073,16 @@ export default class Chart {
     return scripts;
   }
 
-  translate(text) {
+  translate(text: string) {
     return WEBRCP.locale.fusion.getMessage(text, text);
   }
 
-  removePanelFromModel(panel) {
+  removePanelFromModel(panel: CoreChartPanel) {
 		var basis = panel.basis;
 
 		for (var i = 0; i < this.model.panels.length; i++) {
 			if (panel.id === this.model.panels[i].id) {
-				this.model.panels[i].objects.forEach(function(e){
+				this.model.panels[i].objects.forEach((e) => {
           this.objectsManager.detachObject(e.id);
         });
 
@@ -964,14 +1091,14 @@ export default class Chart {
 			}
 		}
 
-		var sub = parseInt(basis / this.model.panels.length);
+    var sub = Math.trunc(basis / this.model.panels.length);
 
 		for (var i = 0; i < this.model.panels.length; i++) {
       this.model.panels[i].basis += sub;
     }
 	}
 
-  setObjectSelectionAllowed(isAllowed) {
+  setObjectSelectionAllowed(isAllowed: boolean) {
     this.interactor.setObjectSelectionAllowed(isAllowed);
   }
 

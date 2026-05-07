@@ -2,13 +2,14 @@
 import React from "react";
 import {useEffect, useState} from "react";
 import styled from "styled-components";
+import type { NullableChartInstance } from "../../chartTypes";
 
 const Currency = styled.div`
     color: ${props => props.theme.toolbar.buttons.color}
 }`
 
 interface CurrencySwitchProps {
-  chart: any;
+    chart: NullableChartInstance;
 }
 
 export const CurrencySwitch = (props: CurrencySwitchProps) => {
@@ -27,7 +28,7 @@ export const CurrencySwitch = (props: CurrencySwitchProps) => {
 
     return ( 
         <div style={{ width: valueAxisWidth, borderLeft: "1px solid rgba(255, 255, 255, 0.1)", display: "flex", alignItems: "center"}}>
-            <Currency style={{marginLeft: "auto", marginRight: "8px" }}>{props?.chart?.getCurrency()}</Currency>
+            <Currency style={{marginLeft: "auto", marginRight: "8px" }}>{props.chart?.getCurrency()}</Currency>
         </div>
     );
 };

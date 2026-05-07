@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useState } from "react";
 import { TextButton } from "ui";
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface AutoScaleSwitchProps {
-  chart: any;
+  chart: NullableChartInstance;
   style?: React.CSSProperties;
 }
 
@@ -11,12 +12,12 @@ export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
   const defaultAutoScaleValue = props.chart ? props.chart.getAutoScale() : true;
   const [autoScale, setAutoScale] = useState(defaultAutoScaleValue);
   const changeMode = () => {
-    props.chart.setAutoScale(!autoScale);
+    props.chart?.setAutoScale(!autoScale);
     setAutoScale(!autoScale);
   };
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe("AUTOSCALE", (data: any) => {
+    const subscription = props?.chart?.subscribe("AUTOSCALE", (data) => {
       setAutoScale(data.autoScale);
     });
 

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { IconButton, RadioButton } from "ui";
 
 import { Cross, Default, Eraser } from "../../img/icons/cursors";
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface CursorsProps {
-    chart: any;
+    chart: NullableChartInstance;
     style?: React.CSSProperties;
   }
   
@@ -60,7 +61,7 @@ interface CursorsProps {
 
     function onCursorClick(id: string) {
         setSelectedCursor(id);
-        props.chart.setCursor(id);
+        props.chart?.setCursor(id);
     }
   };
   

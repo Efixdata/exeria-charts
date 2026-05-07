@@ -2,52 +2,101 @@ import WEBRCP from "./WebRCP";
 import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { between, isPointInCircle, pointsDistance, getLinePointNearestMouse, roundAndTranslate } from './utils/objects-lib';
-import { hitTolerance } from "./utils/environment";
 import imageCandleChartWhite from "./img/icons/candle_chart_white.svg";
+import { Series } from "./objectRuntimeBases";
 
-function Series() {
-	this.hitTolerance 	= hitTolerance; //2;
-	this.isDraggable = false;
-	this.getMenuItems = function(){};
+declare const $: any;
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager){};
-	this.updateExtremes	=	function (o, extremes, model, seriesManager) {};
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {};
-	this.postRender		=	function (o, ctx, renderer, model, panel, seriesManager) {};
-	this.drawSelectionLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {};
+type BaseSeriesRuntime = Omit<
+	InstanceType<typeof Series>,
+	| "getMenuItems"
+	| "getRenderMode"
+	| "render"
+	| "postRender"
+	| "drawSelectionLine"
+	| "updateExtremes"
+	| "getToolTip"
+	| "hit"
+	| "mouseDown"
+	| "mouseDrag"
+	| "mouseUp"
+	| "mouseOut"
+> & Record<string, any>;
+type LegacyAnyMethod = (...args: any[]) => any;
+type SeriesRuntime = BaseSeriesRuntime & {
+	getMenuItems: LegacyAnyMethod;
+	getRenderMode: LegacyAnyMethod;
+	render: LegacyAnyMethod;
+	renderOverlay: LegacyAnyMethod;
+	postRender: LegacyAnyMethod;
+	renderPriceTag: LegacyAnyMethod;
+	renderAsHistogram: LegacyAnyMethod;
+	renderAsVolumeHistogram: LegacyAnyMethod;
+	renderAsBand: LegacyAnyMethod;
+	drawSelectionLine: LegacyAnyMethod;
+	drawHit: LegacyAnyMethod;
+	getStartIndex: LegacyAnyMethod;
+	getEndIndex: LegacyAnyMethod;
+	renderAsLine: LegacyAnyMethod;
+	renderAsOHLC: LegacyAnyMethod;
+	renderAsBars: LegacyAnyMethod;
+	renderAsChartShape: LegacyAnyMethod;
+	renderPriceLine: LegacyAnyMethod;
+	updateExtremes: LegacyAnyMethod;
+	updateExtremesOHLC: LegacyAnyMethod;
+	updateExtremesLine: LegacyAnyMethod;
+	getToolTip: LegacyAnyMethod;
+	hit: LegacyAnyMethod;
+	isHitEmpty: LegacyAnyMethod;
+	hitOHLC: LegacyAnyMethod;
+	hitBars: LegacyAnyMethod;
+	getLineHitResult: LegacyAnyMethod;
+	hitLine: LegacyAnyMethod;
+	hitHistogram: LegacyAnyMethod;
+	hitVolumeHistogram: LegacyAnyMethod;
+	hitBand: LegacyAnyMethod;
+	getMin: LegacyAnyMethod;
+	getMax: LegacyAnyMethod;
+	getValuesY4StrategyValue: LegacyAnyMethod;
+	getPointY4StrategyValue: LegacyAnyMethod;
+	drawBuy: LegacyAnyMethod;
+	drawSell: LegacyAnyMethod;
+	drawExitAll: LegacyAnyMethod;
+	mouseDown: LegacyAnyMethod;
+	mouseDrag: LegacyAnyMethod;
+	mouseUp: LegacyAnyMethod;
+	mouseOut: LegacyAnyMethod;
+	drawLine: LegacyAnyMethod;
+	drawBar: LegacyAnyMethod;
+	drawRect: LegacyAnyMethod;
+	drawDragHandler: LegacyAnyMethod;
+	drawRunnerMarker: LegacyAnyMethod;
+	drawRelations: LegacyAnyMethod;
+	drawTradeObject: LegacyAnyMethod;
+	isDragHandlerAllowedForObject: LegacyAnyMethod;
+	prepareRunnerMarker: LegacyAnyMethod;
+	getTpForPosition: LegacyAnyMethod;
+	getSlForPosition: LegacyAnyMethod;
+	getTradeObjectById: LegacyAnyMethod;
+	getDragPrice: LegacyAnyMethod;
+	getReferenceValue: LegacyAnyMethod;
+	getOperationTitle: LegacyAnyMethod;
+	drawFieldBetweenTrades: LegacyAnyMethod;
+	makeStopObject: LegacyAnyMethod;
+	init?: LegacyAnyMethod;
+	opts: Record<string, any>;
+	settings: Record<string, any>;
+	downRenderedValues: number[];
+	upperRenderedValues: number[];
+	relativeOffset?: { x: number; y: number } | null;
+	tmpIndex?: any;
+	tmpPoint?: any;
+	tmpValue?: any;
+};
+type PatternStrategyRuntime = SeriesRuntime & { candleChartImage: HTMLImageElement };
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		// console.log('OHLC', 'Mouse Down');
-	};
-
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		// console.log('OHLC', 'Mouse Drag');
-	};
-
-	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		// console.log('OHLC', 'Mouse Up');
-	};
-
-	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		// console.log('OHLC', 'Mouse Out');
-	};
-
-	this.clearHits = function(o){
-		o._hit=false;
-		o._hitAnchor=null;
-		o._hitArrow=null;
-	};
-
-	this.getToolTip = function(){};
-	
-	this.getRenderMode = function(o, model){
-		return o.renderAs;
-	};
-}
-Series.prototype = {constructor: Series }
-
-function getScriptTitle(o, model, seriesManager, scriptManager) {
-	function findRelatedScriptName(o, model, scriptManager){
+function getScriptTitle(o: any, model: any, seriesManager: any, scriptManager: any) {
+	function findRelatedScriptName(o: any, model: any, scriptManager: any){
 		var scriptInstance = null;
 	
 		for (var property in scriptManager) {
@@ -81,21 +130,21 @@ function getScriptTitle(o, model, seriesManager, scriptManager) {
 	return WEBRCP.locale.fusion.getMessage(title, title, true);
 }
 
-var SeriesObject	=	function () {
+var SeriesObject	=	function (this: SeriesRuntime) {
 	this.getMenuItems	=	function (o, chart) {
 		var object = o;
 		if(o.renderAs == 'Band') return null;
 
-		var menuItems	=	{
+		var menuItems: any	=	{
 				radio1: {
 					name: chart.options.locale.getMessage('candles'),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "OHLC"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						chart.onDrawModeSelected({
 							type: 'OHLC',
 							object: o,
@@ -106,13 +155,13 @@ var SeriesObject	=	function () {
 				},
 				radio2: {
 					name: chart.options.locale.getMessage('line'),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Line"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						chart.onDrawModeSelected({
 							type: 'Line',
 							object: o,
@@ -123,13 +172,13 @@ var SeriesObject	=	function () {
 				},
 				radio3: {
 					name: chart.options.locale.getMessage('line_and_histogram',"Line and Histogram"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Line and Histogram"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						chart.onDrawModeSelected({
 							type: 'Line and Histogram',
 							object: o,
@@ -140,13 +189,13 @@ var SeriesObject	=	function () {
 				},
 				radio4: {
 					name: chart.options.locale.getMessage('histogram', "Histogram"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Histogram"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						chart.onDrawModeSelected({
 							type: 'Histogram',
 							object: o,
@@ -157,13 +206,13 @@ var SeriesObject	=	function () {
 				},
 				radio5: {
 					name: chart.options.locale.getMessage('bars', "Bars"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Bars"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						chart.onDrawModeSelected({
 							type: 'Bars',
 							object: o,
@@ -175,26 +224,26 @@ var SeriesObject	=	function () {
 				"sep1": "---------",
 				priceMarker: {
 					name: chart.options.locale.getMessage('show_price_marker', "Show price marker"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['priceTag'] == true){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['priceTag'] = !o['priceTag'];
 						return true;
 					}
 				},
 				priceLine: {
 					name: chart.options.locale.getMessage('show_price_line', "Show price line"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['priceLine'] == true){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['priceLine'] = !o['priceLine'];
 						return true;
 					}
@@ -371,7 +420,7 @@ var SeriesObject	=	function () {
 
 		var indexX = 0; var valueY = 0;
 
-		const getColor = (i) => {
+		const getColor = (i: number) => {
 			const close = seriesManager[model.mainSeries].data[i]["c"];
 			const open = seriesManager[model.mainSeries].data[i]["o"];
 			if(close > open)
@@ -590,15 +639,15 @@ var SeriesObject	=	function () {
 
 				renderPoint(ctx, x, (yC + yO) / 2, r);
 			} else if (this.getRenderMode(o, model) == 'Volume Histogram') {
-				var y = panel._height + panel._offset - 10;
-				renderPoint(ctx, x, y, r);
+				var volumeY = panel._height + panel._offset - 10;
+				renderPoint(ctx, x, volumeY, r);
 			}
 
 		} catch (e) {
 			console.log("Cant render series hit point", e, index);
 		}
 
-		function renderPoint(ctx, x, y ,r , color){
+		function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number ,r: number , color?: string){
 			ctx.beginPath();
 			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor('hitColor');
 			ctx.arc(x, y, r, 0, 2 * Math.PI, false);
@@ -982,7 +1031,7 @@ var SeriesObject	=	function () {
 			});
 		}
 
-		function getFirstValueBeforeStart(leftIndex, data, field) {
+		function getFirstValueBeforeStart(leftIndex: number, data: any[], field: string) {
 			let start = leftIndex;
 
 			if (!data[leftIndex] || !data[leftIndex][field]) {
@@ -995,7 +1044,7 @@ var SeriesObject	=	function () {
 			return start;
 		}
 
-		function getFirstValueAfterEnd(rightIndex, data, field) {
+		function getFirstValueAfterEnd(rightIndex: number, data: any[], field: string) {
 			let end = rightIndex;
 
 			if (!data[rightIndex] || !data[rightIndex][field]) {
@@ -1102,7 +1151,7 @@ var SeriesObject	=	function () {
 		const precisions = seriesManager[o.dataLink].precisions;
 
 		for (var f in fields) {
-			const value = {
+			const value: any = {
 				label: WEBRCP.locale.fusion.getMessage(labels[f], labels[f]),
 				value: seriesManager[o.dataLink].data[index][fields[f]]
 			};
@@ -1170,7 +1219,7 @@ var SeriesObject	=	function () {
 	};
 
 	this.hitOHLC	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-		if (this.isHitEmpty.apply(this, arguments)) return false;
+		if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
 
 		this.tmpIndex = renderer.getPointIndex(x, model);
 		
@@ -1198,7 +1247,7 @@ var SeriesObject	=	function () {
 	}
 	
 	this.hitBars	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-		if (this.isHitEmpty.apply(this, arguments)) return false;
+		if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
 
 		var hitResult = false;
 		var dfH = o.highDataField ? o.highDataField : o.dataField;
@@ -1228,7 +1277,7 @@ var SeriesObject	=	function () {
 	}
 
 	this.getLineHitResult = function (x, y, o, renderer, interactor, model, panel, seriesManager, dataField) {
-		if (this.isHitEmpty.apply(this, arguments)) return false;
+		if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
 		var index = renderer.getPointIndex(x, model);
 		if (!seriesManager[o.dataLink]) return false;
 		if (index > seriesManager[o.dataLink].data.length - 1) return false;
@@ -1277,7 +1326,7 @@ var SeriesObject	=	function () {
 	};
 
 this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-		if (this.isHitEmpty.apply(this, arguments)) return false;
+		if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
 
 		var index = renderer.getPointIndex(x, model);
 
@@ -1299,7 +1348,7 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
 	}
 
 	this.hitVolumeHistogram	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-		if (this.isHitEmpty.apply(this, arguments)) return false;
+		if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
 
 		var index = renderer.getPointIndex(x, model);
 
@@ -1365,47 +1414,47 @@ this.hitHistogram	=	function (x, y, o, renderer, interactor, model, panel, serie
  * Próba wydzielenia z SeriesObjecta oddzielnego renderera dla seri wskaźników
  * - sporo przeróbek w fusion - narazie ostawione na bok
  */
-var IndicatorObject	=	function () {
+var IndicatorObject	=	function (this: SeriesRuntime) {
 	this.getMenuItems	=	function (o, chart) {
 		var object = o;
 		if(o.renderAs == 'Band') return null;
 
-		var menuItems	=	{
+		var menuItems: any	=	{
 				radio1: {
 					name: chart.options.locale.getMessage('line'),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Line"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['renderAs'] = "Line";
 						return true;
 					}
 				},
 				radio2: {
 					name: chart.options.locale.getMessage('line_and_histogram',"Line and Histogram"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Line and Histogram"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['renderAs'] = "Line and Histogram";
 						return true;
 					}
 				},
 				radio3: {
 					name: chart.options.locale.getMessage('histogram', "Histogram"),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['renderAs'] == "Histogram"){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['renderAs'] = "Histogram";
 						return true;
 					}
@@ -1414,13 +1463,13 @@ var IndicatorObject	=	function () {
 
 				priceMarker: {
 					name: chart.options.locale.getMessage('show_price_marker'),
-					icon: function($element, key, item){
+					icon: function($element: any, key: any, item: any){
 						if(o['priceTag'] == true){
 							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
 						}
 						return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
 					},
-					callback: function(key, options){
+					callback: function(key: any, options: any){
 						o['priceTag'] = !o['priceTag'];
 						o['priceLine'] = o['priceTag'];
 						return true;
@@ -1590,7 +1639,7 @@ var IndicatorObject	=	function () {
 				else if(i == model._rightIndex)
 					midX = model._width;
 				else if(i == seriesManager[o.dataLink].data.length-1 )
-					midX = indexX+parseInt(model._midOffset*2);
+					midX = indexX+Math.trunc(model._midOffset * 2);
 				else
 					midX = indexX+parseInt(model._midOffset);
 
@@ -1623,7 +1672,7 @@ var IndicatorObject	=	function () {
 				else if(i == model._rightIndex)
 					midX = model._width;
 				else if(i == seriesManager[o.dataLink].data.length-1 )
-					midX = indexX+parseInt(model._midOffset*2);
+					midX = indexX+Math.trunc(model._midOffset * 2);
 				else
 					midX = indexX+parseInt(model._midOffset);
 
@@ -1673,7 +1722,7 @@ var IndicatorObject	=	function () {
 			
 			if (midX-lastX>=50) {
 				if(i == seriesManager[o.dataLink].data.length-1 )
-					midX = indexX+parseInt(model._midOffset*2);
+					midX = indexX+Math.trunc(model._midOffset * 2);
 
 					ctx.beginPath();
 					ctx.arc(midX, valueY, 3, 0, 2 * Math.PI, false);
@@ -1721,7 +1770,7 @@ var IndicatorObject	=	function () {
 				else if(i == model._rightIndex)
 					midX = model._width;
 				else if(i == seriesManager[link].data.length-1 )
-					midX = indexX+parseInt(model._midOffset*2);
+					midX = indexX+Math.trunc(model._midOffset * 2);
 				else
 					midX = indexX+parseInt(model._midOffset);
 			}
@@ -1844,7 +1893,7 @@ var IndicatorObject	=	function () {
 
 
 
-var StrategyObject	=	function () {
+var StrategyObject	=	function (this: SeriesRuntime) {
 	this.downRenderedValues = [1,2,-3];
 	this.upperRenderedValues = [-1,-2,-3];
 
@@ -1938,7 +1987,7 @@ var StrategyObject	=	function () {
 
 			return data;
 
-			function valToString(v){
+			function valToString(v: any){
 				switch(v){
 					case 1: return "BUY";
 					case -1: return "SELL";
@@ -1953,7 +2002,7 @@ var StrategyObject	=	function () {
 	this.drawSelectionLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
 
 		var indexX = 0;
-		var valuesY = {};
+		var valuesY: any = {};
 		var midX = 0;
 		var lastX = 0;
 
@@ -2023,7 +2072,7 @@ var StrategyObject	=	function () {
 			console.log("Cant render series hit point", e);
 		}
 
-		function renderPoint(ctx, x, y ,r , color){
+		function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number ,r: number , color?: string){
 			ctx.save();
 			ctx.beginPath();
 			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
@@ -2175,8 +2224,7 @@ var StrategyObject	=	function () {
 		ctx.restore();
 	}
 
-	function drawExitShort(ctx, midX, valueY){
-		var self = this;
+	function drawExitShort(ctx: CanvasRenderingContext2D, midX: number, valueY: number){
 		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("sellColor");
@@ -2193,8 +2241,7 @@ var StrategyObject	=	function () {
 		ctx.restore();
 	}
 
-	function drawExitLong(ctx, midX, valueY){
-		var self = this;
+	function drawExitLong(ctx: CanvasRenderingContext2D, midX: number, valueY: number){
 		ctx.save();
 		ctx.globalAlpha = 1;
 		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("buyColor");
@@ -2260,7 +2307,7 @@ var StrategyObject	=	function () {
 }
 
 var CandlestickPatternStrategyObject = function() {
-	var candleStickPatternStrategyObject = new StrategyObject();
+	var candleStickPatternStrategyObject = new StrategyObjectCtor() as PatternStrategyRuntime;
 	candleStickPatternStrategyObject.candleChartImage = new Image();
 	candleStickPatternStrategyObject.candleChartImage.src = imageCandleChartWhite.src;
 	candleStickPatternStrategyObject.candleChartImage.onload = function() {
@@ -2284,7 +2331,7 @@ var CandlestickPatternStrategyObject = function() {
 
 		return data;
 
-		function valToString(v){
+		function valToString(v: any){
 			switch(v){
 				case 1: return "BUY";
 				case -1: return "SELL";
@@ -2392,7 +2439,7 @@ var CandlestickPatternStrategyObject = function() {
 };
 
 var FractalsObject = function() {
-	var fractalsObject = new StrategyObject();
+	var fractalsObject = new StrategyObjectCtor() as SeriesRuntime;
 
 	fractalsObject.getToolTip = function(o, index, model, seriesManager, scriptManager) {
 		const values = [];
@@ -2415,7 +2462,7 @@ var FractalsObject = function() {
 
 		return data;
 
-		function valToString(v){
+		function valToString(v: any){
 			switch(v){
 				case 1: return "DOWN";
 				case -1: return "UP";
@@ -2513,7 +2560,7 @@ var FractalsObject = function() {
 
 	fractalsObject.drawSelectionLine	=	function (o, ctx, renderer, model, panel, seriesManager, forceField) {
 		var indexX = 0;
-		var valuesY = {};
+		var valuesY: any = {};
 		var midX = 0;
 
 		var field = o.dataField;
@@ -2591,7 +2638,7 @@ var FractalsObject = function() {
 			console.log("Cant render series hit point", e);
 		}
 
-		function renderPoint(ctx, x, y ,r , color){
+		function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number ,r: number , color?: string){
 			ctx.save();
 			ctx.beginPath();
 			ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
@@ -2607,17 +2654,21 @@ var FractalsObject = function() {
 };
 
 var TradeObject = class TradeObject {
-	constructor(settings){
-		var self = this;
+	settings: Record<string, any>;
+	hitTolerance: number;
+	relativeOffset: { x: number; y: number } | null;
+
+	constructor(settings: Record<string, any>){
 		this.settings = settings;
 		this.hitTolerance = 2;
+		this.relativeOffset = null;
 	}
 	
-	getMenuItems(o, chart) {
+	getMenuItems(o: any, chart: any) {
 		return null;
 	};
 
-	render(o, ctx, renderer, model, panel, seriesManager) {
+	render(o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		this.drawTradeObject(o, ctx, renderer, model, panel, seriesManager);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
@@ -2628,7 +2679,7 @@ var TradeObject = class TradeObject {
 		if (runnerMarker) this.drawRunnerMarker(line_y, ctx, runnerMarker);
 	};
 
-	drawTradeObject(o, ctx, renderer, model, panel, seriesManager){
+	drawTradeObject(o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var line_y = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var line_x = this.settings.bar.x+this.settings.bar.w;
@@ -2650,7 +2701,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 	
-	isDragHandlerAllowedForObject(o, model){
+	isDragHandlerAllowedForObject(o: any, model: any){
 		if (o.object.instrument.type !== "OTC") return false;
 		if(o.relatedAllowed && !o.modified && !o.object.runner){
 			var tp = this.getTpForPosition(o, model);
@@ -2661,7 +2712,7 @@ var TradeObject = class TradeObject {
 		return false;
 	}
 	
-	prepareRunnerMarker(o){
+	prepareRunnerMarker(o: any){
 		if(o.object && o.object.runner){
 			var marker = {
 				bg: this.settings.runnerMarker.activeBg,
@@ -2684,17 +2735,17 @@ var TradeObject = class TradeObject {
 	
 	
 
-	postRender (o, ctx, renderer, model, panel, seriesManager) {
+	postRender (o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		this.drawPriceTag(o, ctx, renderer, model, panel, seriesManager);
 	};
 
-	drawPriceTag(o, ctx, renderer, model, panel, seriesManager){
+	drawPriceTag(o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var valueY = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		renderer.drawPriceTag (ctx, model, panel, valueY, this.settings.bar.color, this.settings.bar.text_color, o.price, 'real');
 	};
 
-	renderOverlay (o, octx, renderer, model, panel, seriesManager) {
+	renderOverlay (o: any, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		if(o.related){
 			var fV = LIB.getReferenceValue(o.related, model, seriesManager);
 			var line_y = renderer.getYCoordinateForPrice(o.related.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
@@ -2753,7 +2804,7 @@ var TradeObject = class TradeObject {
 		}
 	};
 
-	postRenderOverlay (o, octx, renderer, model, panel, seriesManager) {
+	postRenderOverlay (o: any, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		if(o.related){
 			var fV = LIB.getReferenceValue(o.related, model, seriesManager);
 			var line_y = renderer.getYCoordinateForPrice(o.related.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
@@ -2764,9 +2815,9 @@ var TradeObject = class TradeObject {
 		}
 	};
 
-	updateExtremes(o, extremes, model, seriesManager, panel, renderer) {};
+	updateExtremes(o: any, extremes: any, model: any, seriesManager: any, panel: any, renderer: any) {};
 
-	hit	(x, y, o, renderer, interactor, model, panel, seriesManager) {
+	hit	(x: number, y: number, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var self = this;
 		var hitResult = false;
 
@@ -2804,18 +2855,18 @@ var TradeObject = class TradeObject {
 	};
 
 
-	mouseDown (e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseDown (e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o._hitDragHandler) o.related = null;
 
 		var offset = interactor.chart.topLayer[0].getBoundingClientRect();
 		
-		self.relativeOffset = {
+		this.relativeOffset = {
 			x: offset.left,
 			y: offset.top
 		}
 	}
 
-	mouseUp	(e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseUp	(e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 
 		if(o._hitCloseButton){
 			o.modified = true;
@@ -2843,7 +2894,7 @@ var TradeObject = class TradeObject {
 
 	
 
-	mouseDrag (e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseDrag (e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var dragPrice = this.getDragPrice(e, o, renderer, interactor, model, panel, seriesManager);
 		const stopTypes = ["BUY STOP", "SELL STOP", "BUY TRAILING_STOP", "SELL TRAILING_STOP", "BUY TAKE_PROFIT", "SELL TAKE_PROFIT", "BUY TAKE_PROFIT_MARKET", "SELL TAKE_PROFIT_MARKET"];
 		const limitTypes = ["BUY LIMIT", "SELL LIMIT", "BUY TAKE_PROFIT_LIMIT", "SELL TAKE_PROFIT_LIMIT"];
@@ -2856,23 +2907,24 @@ var TradeObject = class TradeObject {
 		}
 	}
 
-	mouseOut (e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseOut (e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		o.related = null;
 		o.modified = false;
 	}
 
-	getDragPrice(e, o, renderer, interactor, model, panel, seriesManager) {
+	getDragPrice(e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		const instrument = model.instrumentsSeries[0].instrument;
 		const offset = getOffset(e).offsetY;
+		const relativeOffset = this.relativeOffset;
 		
 		const fV = this.getReferenceValue(e, o, renderer, interactor, model, panel, seriesManager);
 		const dragPrice = parseFloat(renderer.getPriceForYCoordinate(offset-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}).toFixed(instrument.precision));
 		
 		return WEBRCP.utils.roundPrice(dragPrice, instrument.priceChangeStep, instrument.precision);
 
-		function getOffset(e) {
-			var x = e.pageX - self.relativeOffset.x;
-			var y = e.pageY - self.relativeOffset.y;
+		function getOffset(e: any) {
+			var x = e.pageX - (relativeOffset?.x ?? 0);
+			var y = e.pageY - (relativeOffset?.y ?? 0);
 			return {
 				offsetX: x,
 				offsetY: y
@@ -2880,12 +2932,12 @@ var TradeObject = class TradeObject {
 		}
 	}
 
-	getReferenceValue(e, o, renderer, interactor, model, panel, seriesManager) {
+	getReferenceValue(e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		return LIB.getReferenceValue(o, model, seriesManager);
 	}
 
 
-	drawLine(x, y, w, color, ctx){
+	drawLine(x: number, y: number, w: number, color: string, ctx: CanvasRenderingContext2D){
 		ctx.save();
 		ctx.setLineDash(this.settings.line.dash || []);
 		ctx.lineWidth = this.settings.line.w;
@@ -2899,7 +2951,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 
-	drawBar(title, y, color, ctx){
+	drawBar(title: string, y: number, color: string, ctx: CanvasRenderingContext2D){
 		var x = this.settings.bar.x;
 		var close_x = this.settings.bar.closeBtn.x;
 		//bar
@@ -2928,7 +2980,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 
-	drawRect(y1, y2, ctx, color){
+	drawRect(y1: number, y2: number, ctx: CanvasRenderingContext2D, color: string){
 		ctx.save();
 		ctx.fillStyle = color;
 		ctx.globalAlpha = 0.05;
@@ -2938,7 +2990,7 @@ var TradeObject = class TradeObject {
 		
 	}
 
-	drawDragHandler(y, ctx){
+	drawDragHandler(y: number, ctx: CanvasRenderingContext2D){
 		ctx.save();
 		ctx.fillStyle = this.settings.bar.text_color;
 		ctx.strokeStyle = this.settings.bar.text_color;
@@ -2952,7 +3004,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 	
-	drawRunnerMarker(y, ctx, marker){
+	drawRunnerMarker(y: number, ctx: CanvasRenderingContext2D, marker: any){
 		ctx.save();
 		ctx.fillStyle = marker.bg;
 		ctx.strokeStyle = this.settings.bar.color;
@@ -2965,7 +3017,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 
-	drawRelations(y, y1, y2, ctx, renderer, model, panel, seriesManager){
+	drawRelations(y: number, y1: number | null, y2: number | null, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any){
 		var r = 9;
 		ctx.save();
 		if(y1){
@@ -3018,7 +3070,7 @@ var TradeObject = class TradeObject {
 		ctx.restore();
 	}
 
-	getTpForPosition(p, model){
+	getTpForPosition(p: any, model: any){
 		for(var i in model.orders.list){
 			if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'TP')
 				return model.orders.list[i];
@@ -3026,7 +3078,7 @@ var TradeObject = class TradeObject {
 		return null;
 	}
 
-	getSlForPosition(p, model){
+	getSlForPosition(p: any, model: any){
 		for(var i in model.orders.list){
 			if(model.orders.list[i].parentId == p.id && model.orders.list[i].type == 'SL')
 				return model.orders.list[i];
@@ -3034,7 +3086,7 @@ var TradeObject = class TradeObject {
 		return null;
 	}
 
-	getTradeObjectById(id, model){
+	getTradeObjectById(id: any, model: any){
 		for(var i in model.orders.list){
 			if(model.orders.list[i].id == id)
 				return model.orders.list[i];
@@ -3049,17 +3101,17 @@ var TradeObject = class TradeObject {
 
 var StopLimitObject = class StopLimitObject extends TradeObject{
 
-	constructor(settings){
+	constructor(settings: Record<string, any>){
 		super(settings);
 		this.settings = settings;
 		this.hitTolerance = 2;
 	}
 
-	getOperationTitle(operation) {
+	getOperationTitle(operation: string) {
 		return WEBRCP.locale.fusion.getMessage(operation, operation);
 	};
 
-	render (o, ctx, renderer, model, panel, seriesManager) {
+	render (o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		this.drawFieldBetweenTrades(o, ctx, model, panel, seriesManager, renderer);
 		let orderTypeText = ' Limit';
 		if (o.type.includes("TAKE_PROFIT")) orderTypeText = ' TP' + orderTypeText;
@@ -3068,7 +3120,7 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		this.drawTradeObject(this.makeStopObject(o), ctx, renderer, model, panel, seriesManager);
 	}
 
-	drawFieldBetweenTrades(o, ctx, model, panel, seriesManager, renderer){
+	drawFieldBetweenTrades(o: any, ctx: CanvasRenderingContext2D, model: any, panel: any, seriesManager: any, renderer: any){
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var lineY = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
 		var fV = LIB.getReferenceValue(this.makeStopObject(o), model, seriesManager);
@@ -3078,7 +3130,7 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		else this.drawRect(lineStopY, lineY, ctx, color);
 	}
 
-	makeStopObject(o){
+	makeStopObject(o: any){
 		var stopObject = $.extend(true,{},o);
 		let orderTypeText = ' Stop';
 		if (o.type.includes("TAKE_PROFIT")) orderTypeText = ' TP' + orderTypeText;
@@ -3088,7 +3140,7 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		return(stopObject);
 	}
 
-	hit (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	hit (x: number, y: number, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		o.stop = false;
 		if(super.hit(x, y, o, renderer, interactor, model, panel, seriesManager)){
 			o.hitStop = false;
@@ -3101,12 +3153,12 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		}
 	}
 
-	postRender (o, ctx, renderer, model, panel, seriesManager){
+	postRender (o: any, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any){
 		this.drawPriceTag(o, ctx, renderer, model, panel, seriesManager);
 		this.drawPriceTag(this.makeStopObject(o), ctx, renderer, model, panel, seriesManager);
 	}
 
-	renderOverlay (o, octx, renderer, model, panel, seriesManager) {
+	renderOverlay (o: any, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		if (o._hit) {
 			var fVLimit = LIB.getReferenceValue(o, model, seriesManager);
 			var lineLimit = renderer.getYCoordinateForPrice(o.price, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV: fVLimit})+panel._offset;
@@ -3125,12 +3177,12 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		}		
 	};
 
-	mouseUp	(e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseUp	(e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		super.mouseUp(e, o, renderer, interactor, model, panel, seriesManager);
 		o.drag = false;
 	}
 
-	mouseDrag (e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseDrag (e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var dragPrice = this.getDragPrice(e, o, renderer, interactor, model, panel, seriesManager);
 
 		const candles = seriesManager[model.instrumentsSeries[0].seriesId].data;
@@ -3155,14 +3207,14 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 		o.drag = true;
 	}
 
-	getReferenceValue(e, o, renderer, interactor, model, panel, seriesManager) {
+	getReferenceValue(e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.limitPrice && o.stopPrice && o.hitStop) 
 			return LIB.getReferenceValue(this.makeStopObject(o), model, seriesManager);
 		else 
 			return LIB.getReferenceValue(o, model, seriesManager);
 	}
 
-	mouseOut (e, o, renderer, interactor, model, panel, seriesManager) {
+	mouseOut (e: any, o: any, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		super.mouseOut(e, o, renderer, interactor, model, panel, seriesManager);
 		o.drag = false;
 		o.stopPrice = o.object.stopPrice;
@@ -3171,7 +3223,7 @@ var StopLimitObject = class StopLimitObject extends TradeObject{
 }
 
 
-var MovePaneArrows	=	function () {
+var MovePaneArrows	=	function (this: SeriesRuntime) {
 	this.opts = {
 			color: WEBRCP.utils.colorManager.getColor("iconColor"),
 			alpha: 0.54,
@@ -3209,7 +3261,7 @@ var MovePaneArrows	=	function () {
 		ctx.restore();
 	}
 
-	function createArrowDn(panel, renderer, opts){
+	function createArrowDn(panel: any, renderer: any, opts: any){
 		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
 		var arrowDn = {
@@ -3229,7 +3281,7 @@ var MovePaneArrows	=	function () {
 		return arrowDn;
 	}
 
-	function createArrowUp(panel, renderer, opts){
+	function createArrowUp(panel: any, renderer: any, opts: any){
 		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
 		var arrowUp = {
@@ -3249,7 +3301,7 @@ var MovePaneArrows	=	function () {
 		return arrowUp;
 	}
 
-	function drawArrow(ctx,a){
+	function drawArrow(ctx: CanvasRenderingContext2D, a: any){
 		ctx.save();
 		ctx.beginPath();
 		ctx.moveTo(a.x[0], a.y[0]);
@@ -3269,7 +3321,7 @@ var MovePaneArrows	=	function () {
 
 	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
 		var self = this;
-		var hitResult = false;
+		var hitResult: any = false;
 		const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
 		var x1 = panel._width-valueAxisWidth-this.opts.offsetX-this.opts.width*2-this.opts.spacing;
@@ -3302,7 +3354,7 @@ var MovePaneArrows	=	function () {
 		return hitResult;
 	}
 
-	function getHoveredArrow(o){
+	function getHoveredArrow(o: any){
 		return null;
 	}
 
@@ -3317,8 +3369,26 @@ var MovePaneArrows	=	function () {
 	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {}
 
 }
+const SeriesCtor: new (...args: any[]) => any = Series as any;
+const SeriesObjectCtor: new (...args: any[]) => any = SeriesObject as any;
+const StrategyObjectCtor: new (...args: any[]) => any = StrategyObject as any;
+const IndicatorObjectCtor: new (...args: any[]) => any = IndicatorObject as any;
+const CandlestickPatternStrategyObjectCtor: new (...args: any[]) => any = CandlestickPatternStrategyObject as any;
+const FractalsObjectCtor: new (...args: any[]) => any = FractalsObject as any;
+const TradeObjectCtor: new (...args: any[]) => any = TradeObject as any;
+const StopLimitObjectCtor: new (...args: any[]) => any = StopLimitObject as any;
+const MovePaneArrowsCtor: new (...args: any[]) => any = MovePaneArrows as any;
 
-
-export { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows}
+export {
+	SeriesCtor as Series,
+	SeriesObjectCtor as SeriesObject,
+	StrategyObjectCtor as StrategyObject,
+	IndicatorObjectCtor as IndicatorObject,
+	CandlestickPatternStrategyObjectCtor as CandlestickPatternStrategyObject,
+	FractalsObjectCtor as FractalsObject,
+	TradeObjectCtor as TradeObject,
+	StopLimitObjectCtor as StopLimitObject,
+	MovePaneArrowsCtor as MovePaneArrows,
+}
 
 //# sourceURL=./platform/components/newchart/js/objects.js

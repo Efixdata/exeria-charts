@@ -1,10 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import React, {useState} from "react";
+import type { ValueAxisMode } from "@dexer-io/chart";
 import { TextButton, RadioButton, SelectButton } from "ui";
 import styled from "styled-components";
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface ChartScaleSwitchProps {
-  chart: any;
+  chart: NullableChartInstance;
   style?: React.CSSProperties;
 }
 
@@ -22,8 +24,8 @@ const RadioWrapper = styled.div`
 `
 
 export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
-  const modes = ["lin", "log", "%"];
-  const defaultMode = props.chart ? props.chart.getValueAxisMode() : "lin";
+  const modes: ValueAxisMode[] = ["lin", "log", "%"];
+  const defaultMode: ValueAxisMode = props.chart ? props.chart.getValueAxisMode() : "lin";
 
   const [selectedMode, setSelectedMode] = useState(defaultMode);
   const radioButtons = [];
@@ -68,8 +70,8 @@ export const ChartScaleSwitch = (props: ChartScaleSwitchProps) => {
 
   function changeMode(mode: string | undefined) {
     if (mode) {
-      props.chart.setValueAxisMode(mode);
-      setSelectedMode(mode);
+      props.chart?.setValueAxisMode(mode as ValueAxisMode);
+      setSelectedMode(mode as ValueAxisMode);
     }
   }
 };

@@ -1,3 +1,5 @@
+import type { CoreChartModel } from "./internalTypes";
+
 const model2 = {
   mainSeries: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb",
   instrumentsSeries: [
@@ -90,6 +92,6 @@ const model2 = {
     }
   ],
   id: "1498208873150@989ae815-e237-249e-23d7-47d488777f46", // data model
-};
+} as unknown as CoreChartModel;
 
 export default model2;

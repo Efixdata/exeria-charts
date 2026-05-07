@@ -2,11 +2,12 @@
 import React, { useState } from "react";
 import { DialogHeader, DialogBody, DialogContainer, DialogFooter, TextInput, TextButton, Label, CheckboxInput, Select, Form } from "ui";
 import { X } from "phosphor-react";
+import type { NullableChartInstance } from "../../../chartTypes";
 
 interface IndicatorSettingsDialogProps {
   onClick: any;
   indicator: any;
-  chart: any;
+  chart: NullableChartInstance;
 }
 
 const initializeConfig = (indicator, seriesManager) => {

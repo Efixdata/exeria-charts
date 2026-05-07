@@ -1,4 +1,4 @@
-const locale = {
+const locale: Record<string, unknown> = {
     "BUY": "Buy",
     "BUY_TO_OPEN": "Buy To Open",
     "BUY_TO_CLOSE": "Buy To Close",

@@ -1,16 +1,18 @@
 import * as React from "react";
 import { useState } from "react";
+import type { DrawMode } from "@dexer-io/chart";
 import { ChartHistogram, ChartLine, ChartBars, ChartCandles, ChartHistogramLine } from "../../img/icons/chartTypes/index.js";
 import { SelectButton, TextButton, IconButton } from "ui";
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface MainChartTypeSelectProps {
-  chart: any;
+  chart: NullableChartInstance;
   style?: React.CSSProperties;
 }
 
 export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
-  const defaultDrawMode = 'OHLC';
-  const [selectedDrawMode, setSelectedDrawMode] = useState(defaultDrawMode);
+  const defaultDrawMode: DrawMode = 'OHLC';
+  const [selectedDrawMode, setSelectedDrawMode] = useState<DrawMode>(defaultDrawMode);
 
   function getOptions() {
     const options = {
@@ -52,8 +54,9 @@ export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
         <SelectButton
           options={getOptions()}
           onSelect={(option) => {
-            props.chart.setMainDrawMode(option);
-            setSelectedDrawMode(option || defaultDrawMode);
+            if (!option) return;
+            props.chart?.setMainDrawMode(option as DrawMode);
+            setSelectedDrawMode(option as DrawMode);
           }}
           selectedOption={selectedDrawMode}
         />

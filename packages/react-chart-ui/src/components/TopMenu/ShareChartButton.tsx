@@ -56,9 +56,10 @@ const OptionsHeader = styled.div`
 export const ShareChartButton = (props) => {
   const { waterMark64 } = useGenerateWatermark();
   const { shareImage, actionLoading } =
-    useShareChartImage(props);
+    useShareChartImage(props.chart);
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
+  const instrumentSymbol = props.chart?.getInstrument()?.symbol || "";
 
   const renderOptions = () => {
     return options.map((option, i) => {
@@ -87,13 +88,13 @@ export const ShareChartButton = (props) => {
     {
       social: "Twitter",
       logo: <Twitter height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet', `$${props.chart.instrument.symbol} chart from @Dexer_io`),
+      action: ()=> shareImage('twitter', ActionEnum.share, 'https://twitter.com/intent/tweet', `$${instrumentSymbol} chart from @Dexer_io`),
       loading: actionLoading.twitter
     },
     {
       social: "Telegram",
       logo: <Telegram height={18} width={18} fill="#fff" />,
-      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url', `${props.chart.instrument.symbol} chart from Dexer.io`),
+      action: ()=> shareImage('telegram', ActionEnum.share, 'https://t.me/share/url', `${instrumentSymbol} chart from Dexer.io`),
       loading: actionLoading.telegram
     },
     {

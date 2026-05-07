@@ -6,9 +6,10 @@ import { LeftMenu } from "./components/LeftMenu/LeftMenu";
 import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 import {Theme, ThemeInterface} from "ui";
+import type { NullableChartInstance } from "./chartTypes";
 
 interface ChartUIProps {
-  chart: any;
+  chart: NullableChartInstance;
   children?: JSX.Element|JSX.Element[];
   leftMenuWidth?: number;
   topMenuHeight?: number;

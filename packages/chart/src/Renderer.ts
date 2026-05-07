@@ -3,8 +3,20 @@ import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
+import type { CoreRenderer, CoreRendererConstructor, ValueAxisTick } from "./internalTypes";
 
-const Renderer = function (settings, context, controller) {
+type LegendRenderValue = {
+	label: { text?: string; x?: number; y?: number };
+	value: { text?: string; x?: number; y?: number; zerosToReduce?: number };
+	separator: { text?: string; x?: number; y?: number };
+};
+
+const Renderer: CoreRendererConstructor = function (
+	this: CoreRenderer,
+	settings: any,
+	context: CanvasRenderingContext2D | null,
+	controller: any,
+) {
 	this.context = context;
 	this.controller = controller;
 	this.settings = settings;
@@ -15,8 +27,8 @@ const Renderer = function (settings, context, controller) {
 	};
 	this.volumePrecision = 2;
 
-	this.objects	=	new Array();
-	this.timeTicks	=	new Array();
+	this.objects = {};
+	this.timeTicks = [];
 
 	var series = new Series(); //instancja bazowa
 	SeriesObject.prototype = series;
@@ -102,7 +114,7 @@ const Renderer = function (settings, context, controller) {
 		try {
 			if (!series.data[0])
 				throw {type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series"}
-		} catch(e) {
+		} catch(e: any) {
 			throw {type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series"}
 		}
 	}
@@ -145,7 +157,7 @@ const Renderer = function (settings, context, controller) {
 					this.postRenderPlotPane(ctx, model, panel, seriesManager, omitObject);
 			}
 
-		} catch(err) {
+		} catch(err: any) {
 			if (err.type && err.type === "EMPTY_SERIES")
 				console.warn(err.message);
 			else
@@ -337,7 +349,7 @@ const Renderer = function (settings, context, controller) {
 						}
 					}
 				}
-			} catch(e) {
+			} catch(e: any) {
 				console.error(e,e.stack)
 			} finally {
 				//permamently close all earlier paths (some can be unclosed)
@@ -384,7 +396,7 @@ const Renderer = function (settings, context, controller) {
 						}
 					}
 				}
-			}catch(e){
+			}catch(e: any){
 				console.error(e, e.stack)
 			}finally{
 				//permamently close all earlier paths (some can be unclosed)
@@ -421,7 +433,7 @@ const Renderer = function (settings, context, controller) {
 				let value = tickValue;
 
 				if (mode == 'log') {
-					value = LIB._converterLog.axisToReal(tickValue, 1);
+					value = (LIB._converterLog as any).axisToReal(tickValue, 1);
 				}
 
 				let text = value.toFixed(precision);
@@ -464,7 +476,7 @@ const Renderer = function (settings, context, controller) {
 				zerosToReduce: this.priceRenderingOptions.zerosToReduce,
 				mode
 			}));
-		} catch(error) {
+		} catch(error: any) {
 			console.error(error, error.stack)
 		} finally {
 			ctx.closePath();
@@ -591,7 +603,7 @@ const Renderer = function (settings, context, controller) {
 		var seriesManager = fusion.getSeriesManager();
 
 		var legendCount = 0;
-		var legendsRendered = [];
+		const legendsRendered: string[] = [];
 		var idx = fusion.getMainSeriesLastIndex();
 
 		for (var i=0; i<panel.objects.length; i++) {
@@ -605,7 +617,7 @@ const Renderer = function (settings, context, controller) {
 	};
 
 	this.renderLegendLine = function (ctx, model, panel, object, count, fusion, legendsRendered) {
-		function isThisSeriesOutputOfScript(dataLink) {
+		function isThisSeriesOutputOfScript(dataLink: string) {
 			const sm = fusion.getScriptsManager();
 			for (const property in sm) {
 				if (sm.hasOwnProperty(property)) {
@@ -640,7 +652,7 @@ const Renderer = function (settings, context, controller) {
 		}
 
 		if (script) {
-			const formattedInputs = [];
+			const formattedInputs: string[] = [];
 			for (const key in script.inputs) {
 				let input = script.inputs[key];
 				if (input === null) continue;
@@ -679,13 +691,13 @@ const Renderer = function (settings, context, controller) {
 
 		x += ctx.measureText(objectTitle).width;
 
-		const valuesToRender = [];
+		const valuesToRender: LegendRenderValue[] = [];
 
 		for (var i = 0; i < series.fields.length; i++) {
 			const field = series.data[index][series.fields[i]];
 			if (!field) continue;
 			
-			const valueToRender = {
+			const valueToRender: LegendRenderValue = {
 				label: {},
 				value: {},
 				separator: {}
@@ -754,8 +766,7 @@ const Renderer = function (settings, context, controller) {
 		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
 		ctx.fillText(objectTitle, startX, y);
 
-		for (i in valuesToRender) {
-			const valueToRender = valuesToRender[i];
+		for (const valueToRender of valuesToRender) {
 			if (valueToRender.label.text) {
 				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
 				ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
@@ -821,7 +832,7 @@ const Renderer = function (settings, context, controller) {
 			var v = value;
 			if (v) {
 				if (panel.valueAxisMode == 'log' && valueType != 'real') {
-					v = LIB._converterLog.axisToReal(value, 1);
+					v = (LIB._converterLog as any).axisToReal(value, 1);
 				}
 				var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
 				renderPriceText({
@@ -832,7 +843,7 @@ const Renderer = function (settings, context, controller) {
 					zerosToReduce: this.priceRenderingOptions.zerosToReduce
 				});
 			}
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e, e.stack);
 		} finally {
 			ctx.restore();
@@ -880,7 +891,7 @@ const Renderer = function (settings, context, controller) {
 
 			ctx.fillStyle = textColor;
 			let vp1 = v1;
-			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = LIB._converterLog.axisToReal(v1,1);
+			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = (LIB._converterLog as any).axisToReal(v1,1);
 			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
 			renderPriceText({
 				text: vs1,
@@ -967,7 +978,7 @@ const Renderer = function (settings, context, controller) {
 			var label = (Math.abs(rv1-rv2)).toFixed(this.getPrecision(model, panel));
 
 			let vp2 = v2
-			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = LIB._converterLog.axisToReal(v2,1);
+			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = (LIB._converterLog as any).axisToReal(v2,1);
 			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
 
 			ctx.fillStyle = textColor;
@@ -992,7 +1003,7 @@ const Renderer = function (settings, context, controller) {
 			});
 			ctx.fillText(labelDn, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
 
-		}catch(e){
+		}catch(e: any){
 			console.error(e, e.stack)
 		}finally{
 			ctx.restore();
@@ -1037,7 +1048,7 @@ const Renderer = function (settings, context, controller) {
 			var tw =  ctx.measureText(prettyDate).width;
 			var txtX = x + w/2 -tw/2;
 			ctx.fillText(prettyDate, txtX, y+4);
-		}catch(e){
+		}catch(e: any){
 			console.error(e, e.stack)
 		}finally{
 			ctx.restore();
@@ -1117,7 +1128,7 @@ const Renderer = function (settings, context, controller) {
 			var txtX = x1 + w/2 -tw/2;
 
 			ctx.fillText(label, txtX, y+4);
-		}catch(e){
+		}catch(e: any){
 			console.error(e, e.stack)
 		}finally{
 			ctx.restore();
@@ -1188,15 +1199,15 @@ const Renderer = function (settings, context, controller) {
 		if (valueAxisMode == 'perc')
 			nv = LIB._converterPerc.realToAxis(price, fV);
 		else if (valueAxisMode == 'log')
-			nv = LIB._converterLog.realToAxis(price, fV);
+			nv = (LIB._converterLog as any).realToAxis(price, fV);
 		else
-			nv = LIB._converterLin.realToAxis(price, fV);
+			nv = (LIB._converterLin as any).realToAxis(price, fV);
 
 		if (minValue<0) {
 
 			min = 0;
 			max += Math.abs(minValue);
-			nv = parseFloat(nv) + Math.abs(minValue);
+			nv = Number(nv) + Math.abs(minValue);
 
 		} else {
 			nv -= Math.abs(minValue);
@@ -1221,9 +1232,9 @@ const Renderer = function (settings, context, controller) {
 		if(valueAxisMode == 'perc')
 			nv = LIB._converterPerc.axisToReal(aV, fV)
 		else if(valueAxisMode == 'log')
-			nv = LIB._converterLog.axisToReal(aV, fV)
+			nv = (LIB._converterLog as any).axisToReal(aV, fV)
 		else
-			nv = LIB._converterLin.axisToReal(aV, fV)
+			nv = (LIB._converterLin as any).axisToReal(aV, fV)
 
 			//return Math.floor(nv*100000)/100000;
 			return nv;
@@ -1249,13 +1260,19 @@ const Renderer = function (settings, context, controller) {
 
 	this.calculateNiceTick	=	 function (model, panel) {
 
-		var tick = {};
+		const tick: ValueAxisTick = {
+			maxTicks: 0,
+			range: 0,
+			tickSpacing: 0,
+			niceMin: 0,
+			niceMax: 0,
+		};
 
-		tick['maxTicks'] 		= panel._height / model.minValueTickHeight;
-		tick['range'] 			= this.niceNum(panel.vMax - panel.vMin, false);
-		tick['tickSpacing']		= this.niceNum(tick['range']  / tick['maxTicks'], true);
-		tick['niceMin']			= Math.floor(panel.vMin / tick['tickSpacing']) * tick['tickSpacing'];
-		tick['niceMax']			= Math.ceil(panel.vMax / tick['tickSpacing']) * tick['tickSpacing'];
+		tick.maxTicks 		= panel._height / model.minValueTickHeight;
+		tick.range 			= this.niceNum(panel.vMax - panel.vMin, false);
+		tick.tickSpacing		= this.niceNum(tick.range / tick.maxTicks, true);
+		tick.niceMin			= Math.floor(panel.vMin / tick.tickSpacing) * tick.tickSpacing;
+		tick.niceMax			= Math.ceil(panel.vMax / tick.tickSpacing) * tick.tickSpacing;
 
 		return tick;
 
@@ -1365,7 +1382,7 @@ const Renderer = function (settings, context, controller) {
 			magnitude, zerosToReduce, valueAxisWidth
 		};
 
-		function getGreater(current, proposal) {
+		function getGreater(current: number, proposal: number) {
 			const positiveProposal = Math.abs(proposal);
 			const y = positiveProposal - Math.floor(positiveProposal);
 			return y > current ? y : current;
@@ -1375,7 +1392,7 @@ const Renderer = function (settings, context, controller) {
 	this.getPriceRenderingOptions = function() {
 		return this.priceRenderingOptions;
 	}
-};
+} as unknown as CoreRendererConstructor;
 
 export default Renderer;
 

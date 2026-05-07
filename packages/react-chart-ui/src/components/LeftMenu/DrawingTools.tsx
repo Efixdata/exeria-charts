@@ -4,9 +4,10 @@ import styled from "styled-components";
 import { Fibonacci, Channel, Triangle, Arrow, LineTrend, LineHorizontal, LineVertical, LineMulti, Abcd, Oval, RangeVertical, RangeHorizontal, Cycles, Rectangle, Text, PriceTag } from "../../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from 'ui';
 import ContainerOffsetContext from '../../contexts/ContainerOffsetContext';
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface DrawingToolsProps {
-    chart: any;
+    chart: NullableChartInstance;
     style?: React.CSSProperties;
 }
 
@@ -418,6 +419,8 @@ export const DrawingTools = (props: DrawingToolsProps) => {
     }
 
     function onSelectTool(tool: any) {
+        if (!props.chart) return;
+
         const interactor = props.chart.getInteractor();
         if (interactor.currentMode && interactor.currentMode.onCancel) interactor.currentMode.onCancel();
 

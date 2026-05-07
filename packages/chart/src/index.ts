@@ -1,4 +1,5 @@
-// const Chart = require("./Chart").default;
 import Chart from "./Chart";
 
+export * from "./types";
+export { Chart };
 export default Chart;

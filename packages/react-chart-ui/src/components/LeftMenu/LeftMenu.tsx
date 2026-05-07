@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Cursors } from "./Cursors";
 import { DrawingTools } from "./DrawingTools";
 import { LockButton } from "./LockButton";
+import type { NullableChartInstance } from "../../chartTypes";
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -24,7 +25,7 @@ const Container = styled.div`
 `
 
 interface LeftMenuProps {
-    chart: any;
+  chart: NullableChartInstance;
     style?: React.CSSProperties;
 }
 

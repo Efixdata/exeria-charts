@@ -6,18 +6,43 @@ import { Series } from './Objects'
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js"
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
+import type {
+	ChartRuntimeObject,
+	CoreChartController,
+	CoreChartModel,
+	CoreChartPanel,
+	CoreFusionRuntime,
+	CoreInteractor,
+	CoreInteractorConstructor,
+	CoreInteractionMode,
+	CoreRenderer,
+	PointerEventLike,
+} from "./internalTypes";
 
-var InteractionsController	=	function (chart, canvas, overlay, model, renderer, topLayer, config, fusion, controller) {
+declare const $: any;
+
+var InteractionsController: CoreInteractorConstructor = function (
+	this: CoreInteractor,
+	chart: any,
+	canvas: HTMLCanvasElement,
+	overlay: HTMLCanvasElement,
+	model: CoreChartModel,
+	renderer: CoreRenderer,
+	topLayer: HTMLDivElement,
+	config: Record<string, unknown>,
+	fusion: CoreFusionRuntime,
+	controller: CoreChartController,
+) {
 	var self = this;
 	this.chart = chart;
-	this.currentMode = new DefaultTool(this);
+	this.currentMode = new (DefaultTool as any)(this);
 	this.topLayer = topLayer;
 	this.config = config;
 	this.fusion = fusion;
 	this.controller = controller;
 
 	this.currentViewportLeft = 0;
-	this.initialMouseEvent = 0;
+	this.initialMouseEvent = null;
 	this.isMouseDown = false;
 	this.isRightButton = false;
 
@@ -25,9 +50,9 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.currentHandler = -1;
 	this.initialOffsets = [];
 
-	this.ctx = canvas.getContext('2d');
-	this.octx = overlay.getContext('2d');
-	this.body = document.getElementsByTagName('body')[0];
+	this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+	this.octx = overlay.getContext('2d') as CanvasRenderingContext2D;
+	this.body = document.getElementsByTagName('body')[0] as HTMLBodyElement;
 
 	this.currentHitObject = null;
 	this.currentPanel = null;
@@ -61,6 +86,16 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 	
 	function bindDomEvents(){
+		self.preventContextMenu = function (evt: Event) { evt.preventDefault(); return true; };
+		self.onHammerPress = self.onContextMenu;
+		self.onHammerSwipe = self.onSwipe;
+		self.onBodyKeyUp = function (event: KeyboardEvent) {
+			self.onKeyUp(event);
+		};
+		self.onBodyKeyDown = function (event: KeyboardEvent) {
+			self.onKeyDown(event);
+		};
+
 		self.topLayer.addEventListener('wheel', self.triggerWheelCallback)
 		self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
@@ -72,9 +107,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.hammer = new Hammer(self.topLayer, {});
 
 			self.hammer.get('press').set({ time: 500 });
-			self.hammer.on('press', function (evt) {
-				self.onContextMenu(evt);
-			});
+			self.hammer.on('press', self.onHammerPress);
 
 			self.hammer.on('touch', self.onTouchEvent);
 
@@ -84,7 +117,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.hammer.get('pinch').set({ enable: true });
 			self.hammer.on('pinch pinchstart pinchend', self.onPinch);
 
-			self.hammer.on('swipe', self.onSwipe);
+			self.hammer.on('swipe', self.onHammerSwipe);
 		}
 
 		if (!isTouchDevice()) {
@@ -95,21 +128,15 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.body.addEventListener('mouseout', self.onBodyMouseOut);
 			self.body.addEventListener('mousemove', self.onBodyMouseMove);
 
-			self.topLayer.addEventListener('contextmenu', function (evt) {evt.preventDefault(); return true;});
+			self.topLayer.addEventListener('contextmenu', self.preventContextMenu);
 
 			self.hammer = new Hammer(self.topLayer, {});
-			self.hammer.on('swipe', function (evt) {
-				self.onSwipe(evt);
-			});
+			self.hammer.on('swipe', self.onHammerSwipe);
 		}
 
-		self.body.addEventListener("keyup", (event) => {
-			self.onKeyUp(event);
-		});
+		self.body.addEventListener("keyup", self.onBodyKeyUp);
 
-		self.body.addEventListener("keydown", (event) => {
-			self.onKeyDown(event);
-		});
+		self.body.addEventListener("keydown", self.onBodyKeyDown);
 
 		// $(document).keydown(function(e){
 		// 	self.onKeyDown(e);
@@ -118,10 +145,14 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.offDOMEvents = function(){
 		self.topLayer.removeEventListener('wheel', self.triggerWheelCallback)
+		self.topLayer.classList.remove("context-menu-topLayer");
+		self.topLayer.removeEventListener('contextmenu', self.preventContextMenu);
+		self.body.removeEventListener("keyup", self.onBodyKeyUp);
+		self.body.removeEventListener("keydown", self.onBodyKeyDown);
 
 		if (!isTouchDevice()) {
-			self.topLayer.removeEventListener('mouseDown', self.onMouseDown);
-			self.topLayer.removeEventListener('mouseUp', self.onMouseLeftUp);
+			self.topLayer.removeEventListener('mousedown', self.onMouseDown);
+			self.topLayer.removeEventListener('mouseup', self.onMouseLeftUp);
 
 			self.body.removeEventListener('mouseup', self.onBodyMouseUp);
 			self.body.removeEventListener('mouseout', self.onBodyMouseOut);
@@ -133,11 +164,19 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			self.topLayer.removeEventListener('touchend', self.onTouchEvent);
 			self.topLayer.removeEventListener('touchcancel', self.onTouchEvent);
 
+			self.hammer.off('press', self.onHammerPress);
 			self.hammer.off('touch', self.onTouchEvent);
 			self.hammer.off('pan', self.onTouchEvent);
 			self.hammer.off('pinch pinchstart pinchend', self.onPinch);
-			self.hammer.off('swipe', self.onSwipe);
+			self.hammer.off('swipe', self.onHammerSwipe);
+		} else if (self.hammer) {
+			self.hammer.off('swipe', self.onHammerSwipe);
 		}
+
+		if (self.hammer?.destroy) {
+			self.hammer.destroy();
+		}
+		self.hammer = null;
 	};
 
 	this.onTouchEvent =	function (evt) {
@@ -183,16 +222,16 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.registerObjectAsIdicator = function(o){
 		var scriptKey = 'OBJECT';
-		var script = FUSION.getScript('OBJECT');
+		var script = (FUSION as any).getScript('OBJECT');
 		var os =this.chart. getObjectsForIndicator();
-		var panels = false
-		FUSION.dialogs.script.show({key: scriptKey, config: null}, onApply, onCancel, this.fusion, panels, os, WEBRCP.locale.fusion);
+		var panels = false;
+		(FUSION as any).dialogs.script.show({key: scriptKey, config: null}, onApply, onCancel, this.fusion, panels, os, WEBRCP.locale.fusion);
 		function onCancel(){
-			FUSION.dialogs.script.hide();
+			(FUSION as any).dialogs.script.hide();
 		}
-		function onApply(scriptConfig){
+		function onApply(scriptConfig: any){
 			chart.onScriptEditorApply(scriptConfig);
-			FUSION.dialogs.script.hide();
+			(FUSION as any).dialogs.script.hide();
 		}
 	};
 
@@ -202,11 +241,12 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		for(var i in this.model.scripts){
 			var script  =  this.model.scripts[i];
 			if(script['key'] == scriptKey){
-				if(o.id == script.inputs['OBJECT'].id){
+				const objectInput = (script.inputs?.['OBJECT'] ?? undefined) as { id?: string | number } | undefined;
+				if(o.id == objectInput?.id && script.id !== undefined){
 					var ps = LIB.getPlottersForScriptByScriptId(this.model, script.id);
 					this.chart.detachObject(ps[0].id);
-					var o = LIB.getObjectById(this.model, o.id);
-					o.isIndicator = false;
+					var objectRef = LIB.getObjectById(this.model, o.id);
+					if (objectRef) objectRef.isIndicator = false;
 				}
 			}
 		}
@@ -253,37 +293,36 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		}
 
 		if (event.type == 'pinch') {
-			self.controller.doFrame(function () {
-				// this refers to chart
-				const minPeriodWidth = this.getMinPeriodWidth();
-				const maxPeriodWidth = this.model._width / 2;
+			self.controller.doFrame(() => {
+				const minPeriodWidth = self.getMinPeriodWidth();
+				const maxPeriodWidth = self.model._width / 2;
 
 				const trackedPoint = event.center.offsetX;
 				if (self.pinch.trackedIndex == null)
-					self.pinch.trackedIndex = this.renderer.getPointIndex(trackedPoint, this.model);
+					self.pinch.trackedIndex = self.renderer.getPointIndex(trackedPoint, self.model);
 				if (self.pinch.leftGrabbedIndex == null)
-					self.pinch.leftGrabbedIndex = this.renderer.getPointIndex(leftGrabbed.offsetX, this.model);
+					self.pinch.leftGrabbedIndex = self.renderer.getPointIndex(leftGrabbed.offsetX, self.model);
 				if (self.pinch.rightGrabbedIndex == null)
-					self.pinch.rightGrabbedIndex = this.renderer.getPointIndex(rightGrabbed.offsetX, this.model);
+					self.pinch.rightGrabbedIndex = self.renderer.getPointIndex(rightGrabbed.offsetX, self.model);
 				const grabbedCandlesCount = self.pinch.rightGrabbedIndex - self.pinch.leftGrabbedIndex;
 
 				const grabbedWidth = rightGrabbed.pageX - leftGrabbed.pageX;
 				const newPeriodWidth = (grabbedWidth / grabbedCandlesCount);
 
 				if (newPeriodWidth >= minPeriodWidth && newPeriodWidth <= maxPeriodWidth)
-					this.model.periodWidth = newPeriodWidth;
+					self.model.periodWidth = newPeriodWidth;
 				if (newPeriodWidth < minPeriodWidth)
-					this.model.periodWidth = minPeriodWidth;
+					self.model.periodWidth = minPeriodWidth;
 				if (newPeriodWidth > maxPeriodWidth)
-					this.model.periodWidth = maxPeriodWidth;
+					self.model.periodWidth = maxPeriodWidth;
 
-				this.moveIndexToPoint(self.pinch.trackedIndex, trackedPoint);
+				self.moveIndexToPoint(self.pinch.trackedIndex, trackedPoint);
 
 				self.controller.rerender();
 				// this.fit();
 				// this.renderOverlay();
 				// this.render();
-			}.bind(self));
+			});
 		}
 
 		if (event.type == 'pinchstart') {
@@ -362,7 +401,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function calculateOffset(xPos, xVelocity) {
+		function calculateOffset(xPos: number, xVelocity: number) {
 			return xPos + self.swipe.configuration.velocity.multiplier * xVelocity;
 		}
 
@@ -657,17 +696,17 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		});
 		var actions = [
 			{
-				myClass: (isSmallScreen) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
+				myClass: (isSmallScreen()) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
 				title: '',
-				callback: function() {
+				callback: function(this: any) {
 					this.dismiss();
 				}
 			},
 			{
 				title: self.chart.options.locale.getMessage('OK'),
-				callback: function () {
+				callback: function (this: any) {
 					var props = content.simplePropertiesEditor('getValues');
-					var data = {model: chart.model};
+					var data: any = {model: chart.model};
 					data.thumbnail = chart.canvas.toDataURL();
 					if(props['Title']) data.title = props['Title'];
 					if(props['Description']) data.description = props['Description'];
@@ -699,17 +738,17 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 				});
 		var actions = 	[
 		              		{
-								myClass: (isSmallScreen) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
+								myClass: (isSmallScreen()) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
 								title: '',
-								callback: function() {
+								callback: function(this: any) {
 									this.dismiss();
 								}
 		              		},
 		              		{
 								title:self.chart.options.locale.getMessage('OK'),
-								callback: function() {
+								callback: function(this: any) {
 									var props = content.simplePropertiesEditor('getValues');
-									var data = {data: JSON.stringify(chart.model)};
+									var data: any = {data: JSON.stringify(chart.model)};
 									data.thumbnail = chart.canvas.toDataURL();
 									if(props['Title']) data.title = props['Title'];
 									if(props['Description']) data.description = props['Description'];
@@ -748,17 +787,17 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			});
 		var actions = [
 			{
-				myClass: (isSmallScreen) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
+				myClass: (isSmallScreen()) ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white" : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
 				title: '',
-				callback: function () {
+				callback: function (this: any) {
 					this.dismiss();
 				}
 			},
 			{
 				title: self.chart.options.locale.getMessage('OK'),
-				callback: function () {
+				callback: function (this: any) {
 					var props = content.simplePropertiesEditor('getValues');
-					var data = {};
+					var data: any = {};
 					if (props['Title']) data.title = props['Title'];
 					if (props['Description']) data.description = props['Description'];			
 					this.dismiss(quickHide);
@@ -780,7 +819,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	};
 
 	this.requestStrategyTitleAndExportStrategy = function (strategy) {
-		var sendStrategy = function (titleAndDescObject) {
+		var sendStrategy = function (titleAndDescObject: any) {
 			titleAndDescObject.data = JSON.stringify(strategy);
 			// SERVICES.strategies.sendStrategy(SERVICES.token, titleAndDescObject,
 			// 	function (data) {
@@ -998,7 +1037,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	this.onRightMouseDrag	=	function (e) {
 		this.isRightButtonDrag = true;
 
-		if (checkDragTolerance(this.initialMouseEvent, e, 3)) {
+		if (this.initialMouseEvent && checkDragTolerance(this.initialMouseEvent, e, 3)) {
 			this.allowContextMenu = false;
 		}
 
@@ -1006,12 +1045,13 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		this.controller.renderOverlay()
 	};
 
-	function checkDragTolerance(e1, e2, tolerance){
-		return	Math.abs(e1.clientX - e2.clientX) >= tolerance || Math.abs(e1.clientY - e2.clientY) >= tolerance;
+	function checkDragTolerance(e1: PointerEventLike, e2: PointerEventLike, tolerance: number){
+		return	Math.abs((e1.clientX ?? 0) - (e2.clientX ?? 0)) >= tolerance || Math.abs((e1.clientY ?? 0) - (e2.clientY ?? 0)) >= tolerance;
 	}
 
 	this.onDragObject		=	function(e) {
 		const object = this.currentHitObject;
+		if (!object) return;
 		object.isBeingDragged = true;
 
 		this.renderer.objects[object.type].mouseDrag(
@@ -1128,7 +1168,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		return true;
 
-		function getIndexOfNextVisiblePanel(index){
+		function getIndexOfNextVisiblePanel(index: number){
 			var i = index+1;
 			while(i <= self.model.panels.length - 1){
 				if(self.model.panels[i]._visible == true)
@@ -1183,22 +1223,22 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		const wheelUpDelta = {v:0};
 		const wheelDownDelta = {v:0};
 
-		return function(event) {
+		return function(event: WheelEvent | PointerEventLike) {
 			self.currentViewportLeft = self.model.viewportLeft;
 
 			if (self.config.mouseWheelZoomEnabled === false) return;
 			if (self.controller.isChartEmpty(self.chart)) return;
 
-			event.preventDefault();
+			event.preventDefault?.();
 			clearInterval(self.swipe.hook);
 
-			const deltaY = event.deltaY;
-			const deltaX = event.deltaX;
+			const deltaY = event.deltaY ?? 0;
+			const deltaX = event.deltaX ?? 0;
 
 			if (Math.abs(deltaX) >= Math.abs(deltaY)) {
 				triggerPan.call(self, event);
 			} else {
-				if (event.deltaY < 0) { // scrolling up
+				if (deltaY < 0) { // scrolling up
 					wheelDownDelta.v = 0;
 					accumulateAndTriggerScroll.call(self, wheelUpDelta, event, onMouseWheelUp);
 				} else { // scrolling down
@@ -1208,22 +1248,29 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function triggerPan(event) {
-			if (Math.abs(event.deltaX) > 0) {
-				let delta;
+		function triggerPan(this: CoreInteractor, event: WheelEvent | PointerEventLike) {
+			const deltaX = event.deltaX ?? 0;
+			if (Math.abs(deltaX) > 0) {
+				let delta = 0;
 
-				if (event.deltaX < 0) { delta = 15; }
+				if (deltaX < 0) { delta = 15; }
 				else { delta = -15; }
 
 				this.doFrame(() => {
-					event._offset = this.getEventOffset(event);
-					this.onPan.call(this, event, event, 0, delta);
+					const eventLike = event as PointerEventLike;
+					eventLike._offset = this.getEventOffset(eventLike);
+					this.onPan.call(this, eventLike, eventLike, 0, delta);
 				})
 			}
 		}
 
-		function accumulateAndTriggerScroll(currentDelta, event, callback) {
-			currentDelta.v += event.deltaY;
+		function accumulateAndTriggerScroll(
+			this: CoreInteractor,
+			currentDelta: { v: number },
+			event: WheelEvent | PointerEventLike,
+			callback: (...args: any[]) => void,
+		) {
+			currentDelta.v += event.deltaY ?? 0;
 
 			if (Math.abs(currentDelta.v) >= 5) {
 				this.doFrame(() => {
@@ -1243,7 +1290,15 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function onMouseWheelDown(index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset) {
+		function onMouseWheelDown(
+			this: CoreInteractor,
+			index: number,
+			dataLength: number,
+			xPosition: number,
+			canvasWidth: number,
+			visibleIndexes: number,
+			eventOffset: { offsetX: number; offsetY: number },
+		) {
 			let periodWidth;
 
 			const minPeriodWidth = this.getMinPeriodWidth();
@@ -1280,7 +1335,15 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function onMouseWheelUp(index, dataLength, xPosition, canvasWidth, visibleIndexes, eventOffset) {
+		function onMouseWheelUp(
+			this: CoreInteractor,
+			index: number,
+			dataLength: number,
+			xPosition: number,
+			canvasWidth: number,
+			visibleIndexes: number,
+			eventOffset: { offsetX: number; offsetY: number },
+		) {
 			var _d = Math.round(visibleIndexes * 0.95); // new amount of candles
 			if (_d < 6) return; // if less than 6 candles, abort
 
@@ -1345,7 +1408,8 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 		if(this.controller.isChartEmpty(this.chart)) return;
 
 		if(WEBRCP.newChartLastFocus === this.chart) {
-			if(!document.activeElement.className.startsWith("webrcp-new-chart-top-layer"))
+				const activeElement = document.activeElement;
+				if(!(activeElement instanceof HTMLElement) || !activeElement.className.startsWith("webrcp-new-chart-top-layer"))
 				return;
 
 			switch (e.key)
@@ -1440,7 +1504,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			
 			if (areOrdersVisible ) {
 				for (var i = 0; i < orders.length; i++) {
-					if (orders[i].object.price && orders[i].object.stopPrice){
+					if (orders[i].object?.price && orders[i].object?.stopPrice){
 						if (this.renderer.objects['StopLimitObject'].hit(x, y, orders[i], this.renderer, this, this.model, this.currentPanel, this.fusion.getSeriesManager()))
 							return orders[i];
 					} else {
@@ -1560,7 +1624,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function selectRelatedPosition(id){
+		function selectRelatedPosition(id: string | number){
 			for(var i in self.model.positions.list){
 				if(self.model.positions.list[i].id == id){
 					self.model.positions.list[i].selected = true;
@@ -1568,7 +1632,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function selectRelatedOrders(id){
+		function selectRelatedOrders(id: string | number){
 			for(var i in self.model.orders.list){
 				if(self.model.orders.list[i].parentId == id){
 					self.model.orders.list[i].selected = true;
@@ -1576,7 +1640,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			}
 		}
 
-		function isInstrumentPlotter(o, chart){
+		function isInstrumentPlotter(o: ChartRuntimeObject, chart: { model: CoreChartModel }){
 			var series = chart.model.instrumentsSeries;
 			for(var i in series){
 				if(series[i].seriesId == o.dataLink){
@@ -1634,7 +1698,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 			// self.octx.translate (0.5, 0.5);
 			r.render(o, self.octx, self.renderer, self.model, panel, self.fusion.getSeriesManager());
 			r.postRender(o, self.octx, self.renderer, self.model, panel, self.fusion.getSeriesManager());
-		}catch(e){
+		}catch(e: any){
 			console.error(e,e.stack)
 		}finally{
 			// self.octx.translate (-0.5, -0.5);
@@ -1713,7 +1777,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 	this.doAddTradeObject = function(o){
 		var mode = 'silent'; //ask, dialog
-		var orderRequest = {price: o.related.price, parent: o.object}
+		var orderRequest: any = {price: o.related.price, parent: o.object}
 		if(o.operation == 'SELL' && o.related.price > o.price) orderRequest.type = 'SL';
 		if(o.operation == 'SELL' && o.related.price < o.price) orderRequest.type = 'TP';
 		if(o.operation == 'BUY' && o.related.price > o.price) orderRequest.type = 'TP';
@@ -1737,19 +1801,19 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 
 		switch(symbol) {
 			case 'CROSSHAIR':
-				this.currentMode = new CrosshairTool(this);
+				this.currentMode = new (CrosshairTool as any)(this);
 				break;
 			case 'ZOOMBOX':
-				this.currentMode = new ZoomBoxTool(this);
+				this.currentMode = new (ZoomBoxTool as any)(this);
 				break;
 			case 'STAGE':
-				this.currentMode = new StageTool(this, o, onFinished);
+				this.currentMode = new (StageTool as any)(this, o, onFinished);
 				break;
 			case 'ERASER':
-				this.currentMode = new EraserTool(this);
+				this.currentMode = new (EraserTool as any)(this);
 				break;
 			default:
-				this.currentMode = new DefaultTool(this);
+				this.currentMode = new (DefaultTool as any)(this);
 		}
 
 		this.controller.emitEvent({
@@ -1800,7 +1864,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 	}
 
 	bindDomEvents();
-};
+} as unknown as CoreInteractorConstructor;
 
 
 // **************************************************** //
@@ -1808,7 +1872,7 @@ var InteractionsController	=	function (chart, canvas, overlay, model, renderer, 
 // **************************************************** //
 
 
-function DefaultTool(interactor){
+function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor){
 	this.symbol = 'DEFAULT';
 	this.interactor = interactor;
 	this.color = WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -1949,7 +2013,7 @@ function DefaultTool(interactor){
 				var o = this.interactor.currentHitObject;
 				var r = this.interactor.controller.renderer.objects[o.type];
 				r.render(o, octx, this.interactor.controller.renderer, this.interactor.model, panel, this.interactor.fusion.getSeriesManager());
-			}catch(e){
+			}catch(e: any){
 				console.error(e,e.stack)
 			}finally{
 				// octx.translate (-0.5, -0.5);
@@ -1966,7 +2030,7 @@ function DefaultTool(interactor){
 				var o = this.interactor.currentHitObject;
 				var r = this.interactor.controller.renderer.objects[o.type];
 				r.postRender(o, octx, this.interactor.controller.renderer, this.interactor.model, panel, this.interactor.fusion.getSeriesManager());
-			}catch(e){
+			}catch(e: any){
 				console.error(e,e.stack)
 			}finally{
 				// octx.translate (-0.5, -0.5);
@@ -2001,7 +2065,7 @@ function DefaultTool(interactor){
 						self.currentTip = tip;
 						drawTip(tip, hitObject._hit.x, hitObject._hit.y, octx, self.interactor.model, self.interactor.controller);
 
-					} catch(e) {
+					} catch(e: any) {
 						console.error(e,e.stack)
 					} finally {
 						// octx.translate (-0.5, -0.5);
@@ -2016,8 +2080,8 @@ function DefaultTool(interactor){
 		}
 	}
 
-	function drawTip(tip, x, y, ctx, model, controller) {
-		const getValue = (value, precision) => {
+	function drawTip(tip: any, x: number, y: number, ctx: CanvasRenderingContext2D, model: CoreChartModel, controller: CoreChartController) {
+		const getValue = (value: any, precision?: number) => {
 			if (value !== undefined && value !== null) {
 				let newValue = value;
 				if (value.toFixed) {
@@ -2048,8 +2112,8 @@ function DefaultTool(interactor){
 			valueOffset: 50
 		}
 		ctx.font = WEBRCP.utils.colorManager.getFont("title");
-		var fontSize = /(\d*)px/.exec(ctx.font) ? /(\d*)px/.exec(ctx.font)[1]:14;
-		cfg.lineHeight = parseInt(fontSize);
+		var fontSize = /(\d*)px/.exec(ctx.font)?.[1] ?? '14';
+		cfg.lineHeight = parseInt(String(fontSize), 10);
 		var lc = tip.values.length;
 		cfg.height = 2*cfg.margin + lc*(cfg.lineHeight+cfg.lineSpacing) + 3*cfg.lineHeight+ 3*cfg.lineSpacing;
 
@@ -2127,7 +2191,7 @@ function DefaultTool(interactor){
 
 		ctx.closePath();
 
-		function calculateOffset(x,y,cfg, model){
+		function calculateOffset(x: number, y: number, cfg: any, model: CoreChartModel){
 			var dY = (model._height-cfg.offsetBottomMargin) - (y+cfg.offsetY+cfg.height);
 			if(dY < 0)
 				cfg.offsetY += dY;
@@ -2138,22 +2202,22 @@ function DefaultTool(interactor){
 
 		}
 
-		function newSize(w, min, max){
+		function newSize(w: number, min: number, max: number){
 			if(w < min) return min;
 			if(w < max) return w;
 			return max;
 		}
 
-		function formatNumber(n, precision){
+		function formatNumber(n: number, precision?: number){
 			if (precision == null || precision === undefined) {
 				precision = tip.precision;
 			}
 			if(n==0) return "0";
 
 			if(n > 999999)
-				return LIB.nFormatter(tip.values[i].value, precision);
+				return LIB.nFormatter(tip.values[i].value, precision ?? tip.precision ?? 0);
 			else
-				return n.toFixed(precision);
+				return n.toFixed(precision ?? tip.precision ?? 0);
 		}
 	}
 }
@@ -2164,7 +2228,7 @@ function DefaultTool(interactor){
 // ****************************************************** //
 
 
-function CrosshairTool(interactor){
+function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor){
 	this.symbol = 'CROSSHAIR';
 	this.interactor = interactor;
 	this.color = WEBRCP.utils.colorManager.getColor("crosshairColor");
@@ -2346,7 +2410,7 @@ function CrosshairTool(interactor){
 // **************************************************** //
 
 
-function ZoomBoxTool(interactor){
+function ZoomBoxTool(this: CoreInteractionMode, interactor: CoreInteractor){
 	this.symbol = 'ZOOMBOX';
 	this.interactor = interactor;
 	this.color = WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -2380,7 +2444,7 @@ function ZoomBoxTool(interactor){
 
 		this.interactor.setMode('DEFAULT');
 
-		function zoomIn(interactor, p1, p2){
+		function zoomIn(interactor: CoreInteractor, p1: { x: number; y: number }, p2: { x: number; y: number }){
 			var index1 = interactor.controller.renderer.getPointIndex(p1.x, interactor.chart.model);
 			var index2 = interactor.controller.renderer.getPointIndex(p2.x, interactor.chart.model);
 			if(index1 < index2)
@@ -2444,7 +2508,7 @@ function ZoomBoxTool(interactor){
 // ************************************************** //
 
 
-function StageTool (interactor, tool, onFinished) {
+function StageTool (this: CoreInteractionMode, interactor: CoreInteractor, tool: ChartRuntimeObject, onFinished?: () => void) {
 	this.symbol = 'STAGING';
 	this.cursor = 'pointer';
 	this.cursorOverObject = 'crosshair';
@@ -2460,7 +2524,7 @@ function StageTool (interactor, tool, onFinished) {
 	this.currentStep = 0
 
 	this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
-	this.interactor.currentStagingObject.id = FUSION.uniqueId();
+	this.interactor.currentStagingObject.id = (FUSION as any).uniqueId();
 	this.interactor.currentAnchor = null;
 	this.interactor.select(this.interactor.currentStagingObject);
 
@@ -2599,7 +2663,7 @@ function StageTool (interactor, tool, onFinished) {
 // ****************************************************** //
 
 
-function EraserTool(interactor){
+function EraserTool(this: CoreInteractionMode, interactor: CoreInteractor){
 	this.symbol = 'ERASER';
 	this.interactor = interactor;
 	this.allowSwipe = true;

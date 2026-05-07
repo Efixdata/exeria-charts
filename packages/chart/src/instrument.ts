@@ -1,4 +1,22 @@
-const instrument = {
+import type { Instrument, Interval } from "./types";
+
+interface BrokerInstrument {
+  market: string;
+  name: string;
+  symbolId: string;
+  symbolName: string;
+  tradable: boolean;
+}
+
+interface DemoInstrument extends Instrument {
+  defaultInterval: Interval;
+  tradable: boolean;
+  keyWords: string[];
+  brokers: BrokerInstrument[];
+  related: unknown[];
+}
+
+const instrument: DemoInstrument = {
   id: "QS05:EUR%2FCAD",
   symbol: "EUR/CAD",
   name: "EUR/CAD,EURCAD",

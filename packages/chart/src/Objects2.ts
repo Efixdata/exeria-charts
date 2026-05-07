@@ -1,473 +1,65 @@
 import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { between, calcLine, isPointInCircle, pointsDistance, findMidPoint, getLinePointNearestMouse, calcPointOnPerpendicularLine, movePointByDistance, findAnchorPointForXY, findAnchorPointArrowForXY, drawAnchor, drawAnchors, drawAnchorArrow, drawAnchorsArrow, drawIndicatorMarker } from './utils/objects-lib';
-import { isTouchDevice } from "./utils/environment";
 import { renderPriceText, measurePriceTextWidth } from "./utils/objects-lib";
+import { Shape } from "./objectRuntimeBases";
+import type { LegacyShapeObject } from "./objectRuntimeBases";
 
-//obiekt bazowy
-function Shape(){
-	this.anchorPointSize = 3;
-	this.anchorPointDistanceToArrow = 10;
-	this.anchorPointArrowSize = 6;
-	this.anchorColor = WEBRCP.utils.colorManager.getColor('accent');
-	this.anchorColorHover = WEBRCP.utils.colorManager.getColor('chartZeroColor');
-	this.defaultFont = WEBRCP.utils.colorManager.getFont("text");
-	this.allowedStickyKeys = {'o': true, 'h': true, 'l': true, 'c': true};
-	this.hitTolerance = 5;
+type BaseShapeRuntime = Omit<
+	InstanceType<typeof Shape>,
+	| "getPoints"
+	| "push"
+	| "pop"
+	| "render"
+	| "renderOverlay"
+	| "hit"
+	| "mouseDown"
+	| "mouseUp"
+	| "mouseOut"
+	| "mouseDrag"
+	| "stageDown"
+	| "stageMove"
+	| "stageUp"
+	| "stageOut"
+	| "stageDrag"
+	| "postRender"
+	| "postRenderOverlay"
+> & Record<string, any>;
+type LegacyAnyMethod = (...args: any[]) => any;
+type ShapeRuntime = BaseShapeRuntime & {
+	getPoints: LegacyAnyMethod;
+	push: LegacyAnyMethod;
+	pop: LegacyAnyMethod;
+	postRender: LegacyAnyMethod;
+	postRenderOverlay: LegacyAnyMethod;
+	getColors: LegacyAnyMethod;
+	isWinning: LegacyAnyMethod;
+	render: LegacyAnyMethod;
+	renderOverlay: LegacyAnyMethod;
+	hit: LegacyAnyMethod;
+	mouseDown: LegacyAnyMethod;
+	mouseUp: LegacyAnyMethod;
+	mouseOut: LegacyAnyMethod;
+	mouseDrag: LegacyAnyMethod;
+	stageUp: LegacyAnyMethod;
+	stageOut: LegacyAnyMethod;
+	stageDrag: LegacyAnyMethod;
+	stageDown: LegacyAnyMethod;
+	stageMove: LegacyAnyMethod;
+	drawPoint: LegacyAnyMethod;
+	getIndexName: LegacyAnyMethod;
+	drawLevels: LegacyAnyMethod;
+	isHighestDifference: LegacyAnyMethod;
+	drawLevelPoints: LegacyAnyMethod;
+	getPrecision: LegacyAnyMethod;
+	getValueColor: LegacyAnyMethod;
+	getValueName: LegacyAnyMethod;
+	wrap?: LegacyAnyMethod;
+	newSize?: LegacyAnyMethod;
+};
+type ShapeTagRuntime = ShapeRuntime & { defaultTagLen: number; defaultLineLen: number };
 
-	if (isTouchDevice()) {
-		this.anchorPointSize = 15;
-		this.hitTolerance = 15;
-	}
-
-	this.getPoints = function (o, renderer, panel, model, seriesManager) {
-		if (!panel) return;
-		
-		const anchors = o.anchors;
-		const pts = [];
-		const fV = LIB.getReferenceValue(o, model, seriesManager);
-		let expandableCnt = 0;
-		
-		for (var i = 0; i < anchors.length; i++) {
-			const index = renderer.getStampIndex(anchors[i].prawilnyStamp, model, seriesManager);
-			const value = anchors[i].value;
-			const x = renderer.getIndexPoint(index, model) + model._midOffset;
-			const y = renderer.getYCoordinateForPrice(anchors[i].value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV}) + panel._offset;
-
-			const point = {
-				x: x,
-				y: y,
-				index: index,
-				value: value
-			};
-
-			if (anchors[i].expandable === true) {
-				point.expandable = true;
-				expandableCnt++;
-
-				if (expandableCnt == 2) {
-					if (point.x < pts[0].x) { //check direction and flip if needed
-						point['dir'] = (anchors[i]['defaultDirection']=='right')? 'left' : 'right';
-						pts[0]['dir'] = (point['dir']=='right')? 'left' : 'right';
-					}
-				} else {
-					point['dir'] = anchors[i]['defaultDirection'];
-				}
-
-				if (anchors[i].expanded === true)
-					point['expanded'] = true;
-				else
-					point['expanded'] = false;
-			}
-
-			pts.push(point);
-		}
-
-		return pts;
-	};
-
-	this.push			=	function (o, renderer, model, seriesManager, interactor){
-		var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
-		var lastIndex = seriesManager[model.mainSeries].data.length-1;
-		o.anchors.forEach(function(a){
-			//console.log("ANCHOR BEFORE PUSH:", a);
-			var stamp = null;
-			a.stamp = lastStamp
-
-			if(a._index > lastIndex){
-				stamp = lastStamp + (a._index-lastIndex)*seriesManager[model.mainSeries].interval.milis;
-			}else if(a._index < 0){
-				stamp = -1;
-			}else{
-				stamp = seriesManager[model.mainSeries].data[Math.floor(a._index)].stamp;
-			}
-
-			a.offset = lastStamp - stamp;
-			//console.log("ANCHOR AFTER PUSH:", a, " offset "+ (a.offset/60000)+ "min from date:" + (new Date(a.stamp)));
-		});
-	};
-
-	this.pop	=	function (o, renderer, model, seriesManager, interactor){
-		var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
-		var lastIndex = seriesManager[model.mainSeries].data.length-1;
-		o.anchors.forEach(function(a){
-			//console.log("ANCHOR BEFORE POP:", a);
-			var stamp = a.stamp - a.offset;
-
-			if(stamp > lastStamp){
-				var offsetIndex = (a.offset/seriesManager[model.mainSeries].interval.milis);
-				a._index = Math.round(lastIndex-offsetIndex);
-			}else if(stamp < 0){
-				a._index = -1;
-			}else{
-				a._index = interactor.getStampIndex(stamp);
-			}
-
-			//console.log("ANCHOR AFTER POP:", a);
-		});
-	};
-
-	this.render		=	function (o, ctx, renderer, model, panel, seriesManager) {
-		//override this method in child object!!!!
-	};
-	this.postRender		=	function (o, ctx, renderer, model, panel, seriesManager) {
-		ctx.font = this.defaultFont;
-	};
-
-	this.updateExtremes	=	function (o, extremes, model, seriesManager) {
-
-	};
-
-	this.getMenuItems	=	function (o, chart) {
-		var object = o;
-
-		var menuItems	=	{};
-
-		if(o.userName){
-			menuItems.showName = {
-					name: o.userName,
-					icon: false,
-					callback: function(){return true;},
-					disabled: true
-			}
-			menuItems['sep'+'-1'] = "---------";
-		}
-
-		menuItems.setName = {
-				name: chart.options.locale.getMessage('set_name', "Set name"),
-				icon: false,
-				callback: function(key, options){
-					if(!o.userName) o.userName = null;
-					chart.requestObjectText(o, 'userName', o.userName, chart.options.locale.getMessage('set_name', "Set name"));
-					if(!o.userName || o.userName.trim().length == 0) o.userName = null;
-					return true;
-				}
-		}
-
-		if(o.text !=undefined){
-			menuItems.text = {
-					name: chart.options.locale.getMessage('set_text', "Set text"),
-					icon: false,
-					callback: function(key, options){
-						if(o.text || o.text==""){
-							chart.requestObjectText(o, 'text', o.text);
-						}
-						return true;
-					}
-			}
-		}
-
-		if(o.setAnchorValue){
-			menuItems.setValue = {
-				name: chart.options.locale.getMessage('set_value', "Set value"),
-				icon: false,
-				callback: function(key, options){
-					if(o.setAnchorValue){
-						chart.requestObjectAnchorValue(o);
-					}
-					return true;
-				}
-			}
-		}
-
-		if(o.values !=undefined && o.valuesState != undefined){
-			menuItems.setValues = {
-					name: chart.options.locale.getMessage('set_values', "Set values"),
-					icon: false,
-					callback: function(key, options){
-						if(o.values){
-							chart.requestObjectValues(o, 'values', o.values);
-						}
-						return true;
-					}
-			}
-		}
-
-		if(o.flipped !== undefined){
-			menuItems.flip = {
-					name: chart.options.locale.getMessage('flip', "Flip"),
-					icon: false,
-					callback: function(key, options){
-						if(o.flipped !== undefined){
-							o.flipped = !o.flipped;
-						}
-						return true;
-					}
-			}
-		}
-
-		if(o.fillBg !== undefined){
-			menuItems.fill = {
-					name: chart.options.locale.getMessage('fill', "Fill"),
-					icon: function($element, key, item){
-						if(o['fillBg'] == true){
-							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
-						}
-						return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
-					},
-					callback: function(key, options){
-						if(o.fillBg !== undefined){
-							o.fillBg = !o.fillBg;
-						}
-						return true;
-					}
-			}
-			menuItems.fill.disabled = o.isIndicator;
-		}
-
-		if (o.priceMarker) {
-			menuItems.priceMarker = {
-				name: chart.options.locale.getMessage('show_price_marker', "Show price marker"),
-				icon: function($element, key, item){
-					if(o['priceTag'] == true){
-						return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
-					}
-					return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
-				},
-				callback: function(key, options){
-					o['priceTag'] = !o['priceTag'];
-					return true;
-				}
-			};
-		}
-
-		if(o.canBeIndicator == true){
-			menuItems.registerAsSeries = {
-					name: chart.options.locale.getMessage('register_as_indicator', "Register as indicator"),
-					icon: function($element, key, item){
-						if(o['isIndicator'] == true){
-							return 'context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white';
-						}
-						return 'context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white';
-					},
-					callback: function(key, options){
-						if(o['isIndicator']==true)
-							chart.interactor.unregisterObjectAsIdicator(o);
-						else
-							chart.interactor.registerObjectAsIdicator(o);
-						return true;
-					}
-			}
-		}
-
-		return menuItems;
-	};
-
-	this.expandAnchor = function(anchor){
-		if(anchor.expandable)
-			anchor.expanded = !anchor.expanded;
-	};
-
-	this.isValid = function(o){
-		for(var k in o.anchors){
-			if(o.anchors[k]._index < 0) return false;
-			if(o.anchors[k].stamp - o.anchors[k].offset <= 0) return false;
-		}
-	};
-
-	this.clearHits = function(o){
-		o._hit=false;
-		o._hitAnchor=null;
-		o._hitArrow=null;
-	};
-
-	this.getCurrentCandles = function(index, model, seriesManager){
-		var candles = [];
-		for(var i in model.instrumentsSeries){
-			var seriesId = model.instrumentsSeries[i].seriesId;
-			var series = seriesManager[seriesId];
-			if(index < series.data.length)
-				candles.push(series.data[index]);
-		}
-		return candles;
-	};
-
-	this.getLastCandlePoint = function (renderer, model, seriesManager) {
-		const seriesId = model.instrumentsSeries[0].seriesId;
-		const series = seriesManager[seriesId];
-
-		return renderer.getIndexPoint(series.data.length, model) + 10;
-	};
-
-	this.stickToCandlePoint = function(e, panel, renderer, fV, candles, point){
-		//renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, panel._height, panel.vMin, panel.vMax);
-		var offset = 20, minDifference = 999999, closestPoint = 0, candle = null, difference = 99999;
-		var allowedKeys = this.allowedStickyKeys;
-		var candlePoint = point;
-		for(var i in candles){
-			candle = candles[i];
-			for(var j in candle){ // j is every key of every candle
-				if(!(allowedKeys[j])) continue;
-
-				candlePoint = renderer.getYCoordinateForPrice(candle[j], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
-				difference = Math.abs(candlePoint - point);
-				if(difference < minDifference){
-					minDifference = difference;
-					closestPoint = candlePoint;
-				}
-			}			
-		}
-		if(minDifference < offset)
-			return closestPoint;
-		else
-			return point;
-	};
-
-	this.stickToCandleValue = function(point, candles, panel, renderer, fV){
-		var offset = 20, minDifference = 999999, closestPoint = 0, closestValue =0, candle = null, difference = 99999;
-		var allowedKeys = this.allowedStickyKeys;
-		var pointValue = renderer.getPriceForYCoordinate(point, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
-		for(var i in candles){
-			candle = candles[i];
-			for(var j in candle){ // j is every key of every candle
-				if(!(allowedKeys[j])) continue;
-				var candlePoint = renderer.getYCoordinateForPrice(candle[j], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
-				difference = Math.abs(candlePoint - point);
-				if(difference < minDifference){
-					minDifference = difference;
-					closestPoint = candlePoint;
-					closestValue = candle[j];
-				}
-			}			
-		}
-		if(minDifference < offset)
-			return closestValue;
-		else
-			return pointValue;
-	};
-
-
-	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-	};
-
-	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-	};
-
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		
-		var idx = interactor.currentAnchor.selected;	
-		var yValue = e._offset.offsetY-panel._offset;
-		var baseAnchors = interactor.currentAnchor.anchors;
-		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-		var fV = LIB.getReferenceValue(o, model, seriesManager);
-		var yOffset = parseFloat((renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
-		
-
-		if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
-
-		if(idx!=null){
-			let index = renderer.getStampIndex(baseAnchors[idx].prawilnyStamp, model, seriesManager) + xOffset;
-			if(o.sticky){		
-				var candles = this.getCurrentCandles(index, model, seriesManager);
-				var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
-			}
-			else{
-				var v = baseAnchors[idx].value+yOffset;
-			}		
-			o.anchors[idx]._index = index;
-			o.anchors[idx].value = LIB.round(v,renderer.getPrecision(model,panel));
-			o.anchors[idx].prawilnyStamp = renderer.getIndexStamp(o.anchors[idx]._index, model, seriesManager);
-		}else{
-			for(var i=0; i< o.anchors.length ;i++){
-
-				let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
-				
-				o.anchors[i]._index = index+xOffset;
-				o.anchors[i].value = baseAnchors[i].value+yOffset;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-			}
-		}
-	};
-
-	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		const fV = LIB.getReferenceValue(o, model, seriesManager);
-		const idx = renderer.getPointIndex (e._offset.offsetX, model);
-		const yValue = e._offset.offsetY-panel._offset;
-		const currentAnchor = interactor.currentAnchor ? interactor.currentAnchor.selected : 0;
-		let v;
-
-		if (o.sticky) {
-			const candles = this.getCurrentCandles(idx, model, seriesManager);
-			v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
-		}
-		else
-			v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});		
-			
-		if (!interactor.currentAnchor) {
-			for (var i in o.anchors) {
-				o.anchors[i]._index = idx;
-				o.anchors[i].value = LIB.round(v,renderer.getPrecision(model, panel));
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-			}
-		}
-		else {
-			interactor.pushPanel(this, o, panel);
-
-			o.anchors[currentAnchor]._index = idx;
-			o.anchors[currentAnchor].value = LIB.round(v,renderer.getPrecision(model, panel));
-			o.anchors[currentAnchor].prawilnyStamp = renderer.getIndexStamp(o.anchors[currentAnchor]._index, model, seriesManager);
-		}
-
-		return {
-			selected: currentAnchor + 1, 
-			anchors: JSON.parse(JSON.stringify(o.anchors))
-		};
-	};
-
-	this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		if (interactor.currentAnchor) {
-			var i = interactor.currentAnchor.selected;
-			var fV = LIB.getReferenceValue(o, model, seriesManager);
-			var idx = renderer.getPointIndex (e._offset.offsetX, model);
-			var yValue = e._offset.offsetY-panel._offset;
-
-			if (o.sticky) {
-				var candles = this.getCurrentCandles(idx, model, seriesManager);
-				var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
-			}
-			else
-				var v = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
-			
-			if(i!=null && i < o.anchors.length){
-				o.anchors[i]._index = idx;
-				o.anchors[i].value = LIB.round(v,renderer.getPrecision(model,panel));
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
-			}
-		}
-	};
-
-	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		const xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
-		const yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
-
-		if (Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance) {
-			interactor.currentAnchor.drag = true;
-		}
-
-		this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
-	};
-
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
-	};
-
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
-	};
-
-}
-
-Shape.prototype = new Shape();//{	constructor: Shape }
-
-function TrendLineObject(){
+function TrendLineObject(this: ShapeRuntime){
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
@@ -535,31 +127,7 @@ function TrendLineObject(){
 	}
 
 	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hitArrow){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitArrow.x && p.y == o._hitArrow.y)
-					drawAnchorArrow(octx, panel, p, this.anchorPointArrowSize+2, this.anchorPointDistanceToArrow, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-		}
-
-		if (o.selected) {
-			drawAnchorsArrow(octx, panel, pts, this.anchorPointArrowSize, this.anchorPointDistanceToArrow, this.anchorColor, 1);
-		}
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager);
 	}
 
 	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
@@ -645,18 +213,7 @@ function TrendLineObject(){
 
 
 	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		this.wasDrag = false;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-
-		for(var i =0; i<pts.length;i++){
-			//is on anchor?
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+		return Shape.prototype.mouseDown.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
 	// this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -688,30 +245,11 @@ function TrendLineObject(){
 	// };
 
 	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-
-		if(!this.wasDrag && o._hitArrow){
-			for(var i =0; i<pts.length;i++){
-				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					this.expandAnchor(o.anchors[i]);
-				}
-			}
-		}
-
-		interactor.popPanel(this, o, panel);
-
-
+		Shape.prototype.mouseUpWithExpandableAnchors.call(this, e, o, renderer, interactor, model, panel, seriesManager, { requireHitArrow: true });
 	};
 
 	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		o._hit = false;
-		o._hitAnchor=null;
-		o._hitArrow=null;
-
-		this.wasDrag = false;
-		interactor.popPanel(this, o, panel);
-
+		Shape.prototype.mouseOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 
@@ -760,20 +298,11 @@ function TrendLineObject(){
 	// };
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
-
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -793,7 +322,7 @@ function TrendLineObject(){
 
 }
 
-var FibonLinesObject	=	function () {
+var FibonLinesObject	=	function (this: ShapeRuntime) {
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 
@@ -884,31 +413,7 @@ var FibonLinesObject	=	function () {
 	}
 
 	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hitArrow){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitArrow.x && p.y == o._hitArrow.y)
-					drawAnchorArrow(octx, panel, p, this.anchorPointArrowSize+2, this.anchorPointDistanceToArrow, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-		}
-
-		if (o.selected) {
-			drawAnchorsArrow(octx, panel, pts, this.anchorPointArrowSize, this.anchorPointDistanceToArrow, this.anchorColor, 1);
-		}
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager);
 	}
 
 	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
@@ -977,18 +482,7 @@ var FibonLinesObject	=	function () {
 
 
 	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		this.wasDrag = false;
-
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
 	// this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1018,23 +512,11 @@ var FibonLinesObject	=	function () {
 	// };
 
 	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		if(!this.wasDrag){
-			var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-			for(var i =0; i<pts.length;i++){
-				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					this.expandAnchor(o.anchors[i]);
-				}
-			}
-		}
-
-		interactor.popPanel(this, o, panel);
-
+		Shape.prototype.mouseUpWithExpandableAnchors.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
+		Shape.prototype.mouseOutKeepHits.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 
@@ -1075,16 +557,7 @@ var FibonLinesObject	=	function () {
 	// };
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
-
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1108,11 +581,12 @@ var FibonLinesObject	=	function () {
 }
 
 
-var ParallelChannelObject	=	function () {
+var ParallelChannelObject	=	function (this: ShapeRuntime) {
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		if(!pts || pts.length < 3) return;
 		var mid = findMidPoint(pts[0], pts[1]);
 		var hh = pointsDistance(mid,pts[2]);
 		var h = pts[2].y-mid.y;
@@ -1130,14 +604,14 @@ var ParallelChannelObject	=	function () {
 
 		if(p1.expanded == true){
 			var d = (p2.x > p1.x) ?  - panel._width : panel._width;
-			var p1 = movePointByDistance(p1,d, line1);
-			var p3 = movePointByDistance(p3,d, line1);
+			p1 = movePointByDistance(p1,d, line1);
+			p3 = { ...movePointByDistance(p3,d, line1), expanded: p3.expanded };
 		}
 
 		if(p2.expanded == true){
 			var d = (p2.x > p1.x) ?  panel._width : - panel._width;
-			var p2 = movePointByDistance(p2,d, line1);
-			var p4 = movePointByDistance(p4,d, line1);
+			p2 = movePointByDistance(p2,d, line1);
+			p4 = { ...movePointByDistance(p4,d, line1), expanded: p4.expanded };
 		}
 
 		o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
@@ -1164,39 +638,15 @@ var ParallelChannelObject	=	function () {
 	}
 
 	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hitArrow){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitArrow.x && p.y == o._hitArrow.y)
-					drawAnchorArrow(octx, panel, p, this.anchorPointArrowSize+2, this.anchorPointDistanceToArrow, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-		}
-
-		if (o.selected) {
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-			drawAnchorsArrow(octx, panel, pts, this.anchorPointArrowSize, this.anchorPointDistanceToArrow, this.anchorColor, 1);
-		}
-
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { redrawAnchorsWhenSelected: true });
 	}
 
 	this.getPoints		=	function (o, renderer, panel, model, seriesManager) {
 		var pts = ParallelChannelObject.prototype.getPoints.call(this , o, renderer, panel, model, seriesManager);
-		var idx = Math.round((o.anchors[0]._index+o.anchors[1]._index)/2);
+		if(!pts || pts.length < 3) return pts;
+		var idx = Math.round((pts[0].index+pts[1].index)/2);
 		var x = renderer.getIndexPoint(idx, model)+model._midOffset;
+		pts[2].index = idx;
 		pts[2].x = x;
 		return pts;
 	}
@@ -1204,6 +654,7 @@ var ParallelChannelObject	=	function () {
 	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
 		var self = this;
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		if(!pts || pts.length < 3) return false;
 		var mid = findMidPoint(pts[0], pts[1]);
 		var h =pts[2].y-mid.y;
 		var hitResult = false;
@@ -1258,17 +709,7 @@ var ParallelChannelObject	=	function () {
 
 
 	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		this.wasDrag = false;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
 	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1313,23 +754,11 @@ var ParallelChannelObject	=	function () {
 	};
 
 	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		if(!this.wasDrag){
-			for(var i =0; i<pts.length;i++){
-				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					this.expandAnchor(o.anchors[i]);
-				}
-			}
-		}
-		interactor.popPanel(this, o, panel);
-
+		Shape.prototype.mouseUpWithExpandableAnchors.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.wasDrag = false;
-		interactor.popPanel(this, o, panel);
-
+		Shape.prototype.mouseOutKeepHits.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	/*
@@ -1368,16 +797,7 @@ var ParallelChannelObject	=	function () {
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
-
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -1427,7 +847,7 @@ var ParallelChannelObject	=	function () {
 	};
 }
 
-var ArrowObject	=	function () {
+var ArrowObject	=	function (this: ShapeRuntime) {
 
 	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
 
@@ -1592,7 +1012,7 @@ var ArrowObject	=	function () {
 
 }
 
-function HorizontalLineObject(){
+function HorizontalLineObject(this: ShapeRuntime){
 	//override pop
 	this.pop	=	function (o, renderer, model, seriesManager, interactor){
 		var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
@@ -1706,7 +1126,7 @@ function HorizontalLineObject(){
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var yValue = e._offset.offsetY-panel._offset;
-		var yOffset = parseFloat((renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})));
+		var yOffset = renderer.getPriceForYCoordinate(yValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
 		for(var i=0; i< o.anchors.length ;i++){
 			var index = renderer.getPointIndex(e.offsetX, model);
@@ -1752,7 +1172,7 @@ function HorizontalLineObject(){
 }
 
 
-function VerticalLineObject(){
+function VerticalLineObject(this: ShapeRuntime){
 	this.getPoints = function(o, renderer, panel, model, seriesManager){
 		if (!panel) return;
 		var index = renderer.getStampIndex(o.anchors[0].prawilnyStamp, model, seriesManager);
@@ -1907,7 +1327,7 @@ function VerticalLineObject(){
 	};
 }
 
-function DiNapoliLevels(){
+function DiNapoliLevels(this: ShapeRuntime){
 	this.subscriptionPack = 'diNapoliTools';
 
 	this.lineWidth = 100;
@@ -1976,14 +1396,16 @@ function DiNapoliLevels(){
 		var lastIndex = valuesPoints.length-1;
 		const lastCandlePoint = this.getLastCandlePoint(renderer, model, seriesManager);
 		for(var i = 0; i<=lastIndex;i++){
+			var lineFrom;
+			var lineTo;
 			
 			if(i == lastIndex){
-				var lineTo = lastCandlePoint + index*this.lineWidth + this.lineWidth - this.margin;//pts[0].x;
-				var lineFrom = pts[1].x;			
+				lineTo = lastCandlePoint + index*this.lineWidth + this.lineWidth - this.margin;//pts[0].x;
+				lineFrom = pts[1].x;			
 			}
 			else{
-				var lineFrom = lastCandlePoint + index*this.lineWidth;
-				var lineTo = lineFrom + this.lineWidth - this.margin;
+				lineFrom = lastCandlePoint + index*this.lineWidth;
+				lineTo = lineFrom + this.lineWidth - this.margin;
 			}
 			if(i==0){
 				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("fibonacciRetracement1");
@@ -1996,8 +1418,8 @@ function DiNapoliLevels(){
 			else{
 				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("primaryTextColor");
 				ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("primaryTextColor");
-				var lineFrom = pts[1].x + 6;
-				var lineTo = lastCandlePoint + index*this.lineWidth + this.lineWidth - this.margin;
+				lineFrom = pts[1].x + 6;
+				lineTo = lastCandlePoint + index*this.lineWidth + this.lineWidth - this.margin;
 			}
 
 			ctx.beginPath();
@@ -2183,7 +1605,7 @@ function DiNapoliLevels(){
 	};
 }
 
-function MultiLineObject(){
+function MultiLineObject(this: ShapeRuntime){
 	this.render = function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
@@ -2381,7 +1803,7 @@ function MultiLineObject(){
 
 }
 
-function AbcdObject(){
+function AbcdObject(this: ShapeRuntime){
 	this.getPoints = function(o, renderer, panel, model, seriesManager){
 		var pts = AbcdObject.prototype.getPoints.call(this,o, renderer, panel, model,seriesManager);
 		
@@ -2624,7 +2046,7 @@ function AbcdObject(){
 	// };
 }
 
-function DiNapoliAbcObject(){
+function DiNapoliAbcObject(this: ShapeRuntime){
 	this.subscriptionPack = 'diNapoliTools';
 	
 	this.getPoints = function(o, renderer, panel, model, seriesManager){
@@ -2922,7 +2344,7 @@ function DiNapoliAbcObject(){
 	// };
 }
 
-function EllipseObject(){
+function EllipseObject(this: ShapeRuntime){
 
 	this.render = function (o, ctx, renderer, model, panel, seriesManager) {
 		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
@@ -2969,7 +2391,7 @@ function EllipseObject(){
 		}
 
 
-		function drawDiagonal(o, ctx, pts){
+		function drawDiagonal(o: any, ctx: any, pts: any){
 			ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.beginPath();
 			ctx.moveTo(pts[0].x, pts[0].y);
@@ -3124,11 +2546,11 @@ function EllipseObject(){
 	// };
 }
 
-function HorizontalRangeObject(){
+function HorizontalRangeObject(this: ShapeRuntime){
 
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
+	this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 
 		var x1 = pts[0].x;
 		var x2 = pts[1].x
@@ -3171,24 +2593,15 @@ function HorizontalRangeObject(){
 		}
 	}
 
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var x1 = pts[0].x;
 		var x2 = pts[1].x;
 		var y = pts[0].y;
 		var off = -6;
 		var off2 = 0;
 
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
 		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 			octx.setLineDash([2,5]);
 			octx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			if(!o.flipped){
@@ -3210,12 +2623,14 @@ function HorizontalRangeObject(){
 			}
 			octx.setLineDash([1]);
 		}
+
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 	}
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var self = this;
 
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var hitResult = false;
 		this.clearHits(o);
 
@@ -3234,19 +2649,10 @@ function HorizontalRangeObject(){
 	}
 
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var idx = interactor.currentAnchor.selected;
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
@@ -3267,7 +2673,7 @@ function HorizontalRangeObject(){
 		}
 	};
 
-	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageDrag		=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
@@ -3285,19 +2691,12 @@ function HorizontalRangeObject(){
 		}
 	};
 
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
+	this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -3315,10 +2714,11 @@ function HorizontalRangeObject(){
 	// };
 }
 
-function TimeRangeObject() {
+function TimeRangeObject(this: ShapeRuntime) {
 
-	this.render	= function (o, ctx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.render	= function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+		const text = o.text ?? "";
 
 		ctx.save();
 		ctx.lineWidth = o.width;
@@ -3337,11 +2737,11 @@ function TimeRangeObject() {
 		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.fillRect(pts[0].x, panel._offset+panel._height - 22, pts[1].x-pts[0].x, 22);
 
-		const measuredText = ctx.measureText(o.text);
+		const measuredText = ctx.measureText(text);
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = o.textColor ? o.textColor : WEBRCP.utils.colorManager.getColor('defaultToolTextColor');
 		ctx.fillText(
-			o.text,
+			text,
 			(pts[0].x + pts[1].x)/2 - measuredText.width/2,
 			panel._offset + panel._height - 22/2
 		);
@@ -3349,20 +2749,11 @@ function TimeRangeObject() {
 		ctx.restore();
 	}
 
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) return;
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if (o._hitAnchor) {
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 
 		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 			octx.save();
 			octx.setLineDash([2,5]);
 			octx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
@@ -3376,13 +2767,15 @@ function TimeRangeObject() {
 
 			octx.restore();
 		}
+
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 	}
 
-	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit = function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) return false;
 		var self = this;
 
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var hitResult = false;
 		this.clearHits(o);
 
@@ -3397,24 +2790,13 @@ function TimeRangeObject() {
 		return hitResult;
 	}
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) {
-			return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
+			return Shape.prototype.createAnchorSelection.call(this, o, null);
 		}
-		
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-
-		for (var i =0; i<pts.length;i++) {
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
-	this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) return;
 
 		var idx = interactor.currentAnchor.selected;
@@ -3437,7 +2819,7 @@ function TimeRangeObject() {
 		}
 	};
 
-	this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageDrag = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) return;
 		
 		var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
@@ -3455,23 +2837,17 @@ function TimeRangeObject() {
 		}
 	};
 
-	this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageUp = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		if (o.editable === false) return;
-		interactor.popPanel(this, o, panel);
-
-		if (interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if (interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length) {
-			interactor.currentAnchor = null;
-			return true;
-		}
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.stageOut =	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut =	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		if (o.editable === false) return;
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.getPoints	= function (o, renderer, panel, model, seriesManager) {
+	this.getPoints	= function (o: LegacyShapeObject, renderer: any, panel: any, model: any, seriesManager: any) {
 		const y = panel._offset + panel._height / 2 - this.anchorPointSize / 2;
 		let startStamp;
 		let endStamp;
@@ -3519,11 +2895,11 @@ function TimeRangeObject() {
 	}
 }
 
-function TimeBetObject() {
+function TimeBetObject(this: ShapeRuntime) {
 
 	this.boxBeginningX = 0;
 
-	this.getColors = function(o, isWinning) {
+	this.getColors = function(o: LegacyShapeObject, isWinning: boolean) {
 		const defaultColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 
 		const colors = {
@@ -3549,7 +2925,7 @@ function TimeBetObject() {
 		return colors;
 	}
 
-	this.isWinning = function(o, model, seriesManager) {
+	this.isWinning = function(o: LegacyShapeObject, model: any, seriesManager: any) {
 		let isWinning = o.isWinning;
 
 		if (o.status === "ACTIVE") {
@@ -3566,7 +2942,7 @@ function TimeBetObject() {
 		return isWinning;
 	}
 
-	this.render	= function(o, ctx, renderer, model, panel, seriesManager) {
+	this.render	= function(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		if (!pts) return;
 		const status = o.status;
@@ -3592,6 +2968,7 @@ function TimeBetObject() {
 			ctx.shadowOffsetX = 0;
 			ctx.shadowOffsetY = 0;
 		}
+		const roundedContext = ctx as any;
 
 		ctx.save();
 		ctx.lineWidth = o.width;
@@ -3659,7 +3036,7 @@ function TimeBetObject() {
 
 		// Rounded box
 		ctx.beginPath();
-		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
+		roundedContext.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight, [6, 0, 0, 6]);
 		// ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, boxWidth, leftArrowHeight);
 		ctx.fill();
 
@@ -3668,7 +3045,7 @@ function TimeBetObject() {
 		// Arrow box
 		ctx.fillStyle = arrowColor;
 		ctx.beginPath();
-		ctx.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
+		roundedContext.roundRect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight, [6, 0, 0, 6]);
 		// ctx.rect(boxBeginningX, y0 - halfLeftArrowHeight, leftArrowWidth, leftArrowHeight);
 		ctx.fill();
 
@@ -3770,11 +3147,11 @@ function TimeBetObject() {
 		ctx.restore();
 	}
 
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		return;
 	}
 
-	this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit = function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		const pts = this.getPoints(o, renderer, panel, model, seriesManager);
 		if (!pts) return;
 		const fromY = pts[0].y - 10;
@@ -3788,26 +3165,26 @@ function TimeBetObject() {
 		return false;
 	}
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		return;
 	}
-	this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		return;
 	};
 
-	this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageDrag = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		return;
 	};
 
-	this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageUp = function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		return;
 	};
 
-	this.stageOut =	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageOut =	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.getPoints	= function (o, renderer, panel, model, seriesManager) {
+	this.getPoints	= function (o: LegacyShapeObject, renderer: any, panel: any, model: any, seriesManager: any) {
 		var s0 = seriesManager[model.mainSeries].data[0]['stamp'];
 		if (typeof o.startTime === "number" && o.startTime < s0) return undefined;
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -3856,7 +3233,7 @@ function TimeBetObject() {
 		return pts;
 	}
 
-	this.postRenderOverlay = function(o, ctx, renderer, model, panel, seriesManager) {
+	this.postRenderOverlay = function(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		if (o.priceTag) {
 			const pts = this.getPoints(o, renderer, panel, model, seriesManager);
 			if (!pts) return;
@@ -3867,10 +3244,10 @@ function TimeBetObject() {
 	}
 }
 
-function VerticalRangeObject(){
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
+function VerticalRangeObject(this: ShapeRuntime){
+	this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 
 		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
@@ -3916,19 +3293,11 @@ function VerticalRangeObject(){
 		}
 	}
 
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var x = pts[0].x;
 		var y1 = pts[0].y;
 		var y2 = pts[1].y;
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
 
 		if(o._hit || o.selected){
 			octx.setLineDash([2,5]);
@@ -3952,14 +3321,15 @@ function VerticalRangeObject(){
 				octx.setLineDash([1,1]);
 				octx.closePath();
 			}
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 		}
+
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 
 	}
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var self = this;
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var hitResult = false;
 
 		this.clearHits(o);
@@ -3977,20 +3347,11 @@ function VerticalRangeObject(){
 		return hitResult;
 	}
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var idx = interactor.currentAnchor.selected;
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
@@ -4015,7 +3376,7 @@ function VerticalRangeObject(){
 		}
 	};
 
-	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageDrag		=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
@@ -4033,19 +3394,12 @@ function VerticalRangeObject(){
 		}
 	};
 
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
+	this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 	
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -4064,9 +3418,9 @@ function VerticalRangeObject(){
 	// };
 }
 
-function CycleObject(){
+function CycleObject(this: ShapeRuntime){
 
-	function getCycleValues(x1, x2, panel){
+	function getCycleValues(x1: number, x2: number, panel: any){
 		var values = [];
 		var delta = Math.abs(x1-x2);
 		if(delta < 1){
@@ -4083,8 +3437,8 @@ function CycleObject(){
 		return values;
 	}
 
-	this.getPoints		=	function (o, renderer, panel, model, seriesManager) {
-		var pts = CycleObject.prototype.getPoints.call(this , o, renderer, panel, model, seriesManager);
+	this.getPoints		=	function (o: LegacyShapeObject, renderer: any, panel: any, model: any, seriesManager: any) {
+		var pts = CycleObject.prototype.getPoints.call(this , o, renderer, panel, model, seriesManager) as any[];
 		var x1 = pts[0].x;
 		var x2 = pts[1].x
 		var vals = getCycleValues(x1,x2,panel);
@@ -4096,8 +3450,8 @@ function CycleObject(){
 		return pts2;
 	}
 
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		if (!pts || !pts[0] || !pts[1]) return;
 
 		var x1 = pts[0].x;
@@ -4123,24 +3477,12 @@ function CycleObject(){
 			ctx.stroke();
 		}
 	}
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-		}
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 	}
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var self = this;
 		var hitResult = false;
 		this.clearHits(o);
@@ -4160,20 +3502,11 @@ function CycleObject(){
 	}
 
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var idx = interactor.currentAnchor.selected;
 		var baseAnchors = interactor.currentAnchor.anchors;
 
@@ -4207,30 +3540,17 @@ function CycleObject(){
 	};
 
 
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		//console.log(" HRANGE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
-		interactor.popPanel(this, o, panel);
-
-		if (interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		const isDrawingDone = (
-			interactor.currentAnchor !== null && 
-			interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
-		);
-
-		if (isDrawingDone) {
-			interactor.currentAnchor = null;
-			return true;
-		}
+	this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 }
 
-function TextObject(){
+function TextObject(this: ShapeRuntime){
 	this.cfg = {
 
 		offsetX: 0,
@@ -4249,7 +3569,7 @@ function TextObject(){
 		fontSize: 12
 	}
 
-	this.getPoints =	function (o, renderer, panel, model, seriesManager) {
+	this.getPoints =	function (o: LegacyShapeObject, renderer: any, panel: any, model: any, seriesManager: any) {
 		if (!o.anchors[1].dragged) {
 			var fV = LIB.getReferenceValue(o, model, seriesManager);		
 			var p0 = renderer.getYCoordinateForPrice(o.anchors[0].value, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV});
@@ -4261,10 +3581,11 @@ function TextObject(){
 		return pts;
 	}
 
-	this.render	=	function(o, ctx, renderer, model, panel, seriesManager) {
+	this.render	=	function(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		o._width = this.cfg.widthMin;
 		o._height = this.cfg.heightMin;
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+		const text = o.text ?? "";
 		
 		var x = pts[0].x;
 		var y = pts[0].y;
@@ -4275,8 +3596,7 @@ function TextObject(){
 		ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.font = this.font;
 
-		var w = ctx.measureText(o.text).width;
-		var wrapped = wrap(o.text, this.cfg.widthMax-2*this.cfg.margin, ctx);
+		var wrapped = wrap(text, this.cfg.widthMax-2*this.cfg.margin, ctx);
 		o._width = wrapped.width + 2 * this.cfg.margin;
 		o._height = wrapped.text.length * this.lineHeight + this.cfg.margin * 1.5;
 
@@ -4333,16 +3653,16 @@ function TextObject(){
 		const color = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.fillStyle = o.fillBg ? WEBRCP.utils.getContrastColor(color, WEBRCP.utils.colorManager.getColor("darkTextColor"), '#ffffff') : color;
 
-		for (var i in wrapped.text) {
+		for (let index = 0; index < wrapped.text.length; index += 1) {
 			ctx.fillText(
-				wrapped.text[i], 
+				wrapped.text[index], 
 				x + this.cfg.offsetX + this.cfg.margin, 
-				y + this.cfg.offsetY + this.cfg.margin + ((i * 1 + 1) * (this.lineHeight) - (o.fontSize || this.cfg.fontSize) / 2)
+				y + this.cfg.offsetY + this.cfg.margin + ((index + 1) * this.lineHeight - (o.fontSize || this.cfg.fontSize) / 2)
 			);
 		}
 		ctx.closePath();
 
-		function wrap(text, maxWidth, ctx) {
+		function wrap(text: string, maxWidth: number, ctx: CanvasRenderingContext2D) {
 			var wrapped = [];
 			var width = 0;
 
@@ -4377,17 +3697,17 @@ function TextObject(){
 	        return {text: wrapped, width: width};
 		}
 
-		function newSize(w, min, max){
+		function newSize(w: number, min: number, max: number){
 			if(w < min) return min;
 			if(w < max) return w;
 			return max;
 		}
 
-		this.postRender(o, ctx, renderer, model, panel, seriesManager);
+		this.postRender(o, ctx);
 	}
 
-	this.renderOverlay = function (o, ctx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+	this.renderOverlay = function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 
 		if(o._hitAnchor){
 			for(var i =0; i< pts.length; i++){
@@ -4411,11 +3731,10 @@ function TextObject(){
 		}
 	}
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var self = this;
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var hitResult = false;
-		var w = interactor.ctx.measureText(o.text).width;
 
 		if(between(pts[0].x, x, pts[0].x+o._width, self.hitTolerance) && between(pts[0].y, y, pts[0].y+o._height, self.hitTolerance)){
 			hitResult = true;
@@ -4435,8 +3754,8 @@ function TextObject(){
 	}
 
 	this.lastClickStamp = 0;
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		const now = new Date().milis;
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		const now = Date.now();
 		if(now < this.lastClickStamp + 600){
 			this.lastClickStamp = 0;
 			interactor.chart.requestObjectText(o, 'text', o.text);
@@ -4444,19 +3763,10 @@ function TextObject(){
 		else
 			this.lastClickStamp = now;
 
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		interactor.pushPanel(this, o, panel);
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+		return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
-	this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.mouseDrag	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var idx = interactor.currentAnchor.selected;
 		var baseAnchors = interactor.currentAnchor.anchors;
 		var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
@@ -4496,7 +3806,7 @@ function TextObject(){
 	 * STAGE
 	 */
 
-	this.stageDown		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+	this.stageDown		=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var fV = LIB.getReferenceValue(o, model, seriesManager);
 		var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 
@@ -4516,21 +3826,14 @@ function TextObject(){
 		return {selected: interactor.currentAnchor.selected+1, anchors: JSON.parse(JSON.stringify(o.anchors))};
 	};
 
-	this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {};
+	this.stageDrag		=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {};
 
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= 1){
-			interactor.currentAnchor = null;
-			return true;
-		}
+	this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUpWithSelectionLimit.call(this, e, o, renderer, interactor, model, panel, 1);
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUpWithSelectionLimit.call(this, e, o, renderer, interactor, model, panel, 1);
 	};
 
 	// this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -4548,11 +3851,11 @@ function TextObject(){
 	// };
 }
 
-function BoxObject(){
+function BoxObject(this: ShapeRuntime){
 
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
+	this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		ctx.beginPath();
 		ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 		ctx.lineWidth = o.width;
@@ -4570,31 +3873,15 @@ function BoxObject(){
 
 	}
 
-	this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-		if(o._hitAnchor){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-					drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-			}
-		}
-
-		if(o._hitArrow){
-			for(var i =0; i< pts.length; i++){
-				var p = pts[i];
-				if(p.x == o._hitArrow.x && p.y == o._hitArrow.y)
-					drawAnchorArrow(octx, panel, p, this.anchorPointArrowSize+2, this.anchorPointDistanceToArrow, this.anchorColorHover, 0.5 );
-			}
-		}
+	this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+		Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 
 		if(o._hit || o.selected){
-			drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 			drawDiagonal(o, octx, pts);
 		}
 
-		function drawDiagonal(o, ctx, pts){
+		function drawDiagonal(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, pts: any[]){
 			ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 			ctx.beginPath();
 			ctx.moveTo(pts[0].x, pts[0].y);
@@ -4606,9 +3893,9 @@ function BoxObject(){
 		}
 	}
 
-	this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+	this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 		var self = this;
-		var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+		var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		var hitResult = false;
 
 		this.clearHits(o);
@@ -4642,25 +3929,8 @@ function BoxObject(){
 	}
 
 
-	this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-
-		if(o._hitArrow)
-		for(var i =0; i<pts.length;i++){
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-				this.expandAnchor(o.anchors[i]);
-			}
-		}
-
-		for(var i =0; i<pts.length;i++){
-			//is on anchor?
-			if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-				return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-			}
-		}
-		return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-
+	this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.mouseDownWithExpandableArrowSelection.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	}
 
 	// this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -4691,56 +3961,31 @@ function BoxObject(){
 	// 	}
 	// };
 
-	this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		var self = this;
-		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		if(!this.wasDrag){
-			for(var i =0; i<pts.length;i++){
-				if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-					this.expandAnchor(o.anchors[i]);
-				}
-			}
-		}
-
-
+	this.mouseUp	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		Shape.prototype.mouseUpWithExpandableAnchors.call(this, e, o, renderer, interactor, model, panel, seriesManager, { popPanel: false });
 	};
 
-	this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-		o._hit = false;
-		o._hitAnchor=null;
-		o._hitArrow=null;
-
-		this.wasDrag = false;
-		interactor.popPanel(this, o, panel);
-
+	this.mouseOut	=		function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		Shape.prototype.mouseOut.call(this, e, o, renderer, interactor, model, panel);
 	};
 
 
 	
 
-	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		interactor.popPanel(this, o, panel);
-
-
-		if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-
-		if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-			interactor.currentAnchor = null;
-			return true;
-		}
-
+	this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
-	this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-		this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+	this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+		return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 	};
 
 }
 
-var TriangleObject	=	function () {
-	this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
+var TriangleObject	=	function (this: ShapeRuntime) {
+	this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+				var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 				ctx.beginPath();
 				ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 				ctx.lineWidth = o.width;
@@ -4761,31 +4006,14 @@ var TriangleObject	=	function () {
 				ctx.closePath();
 			}
 		
-			this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-		
-				if(o._hitAnchor){
-					for(var i =0; i< pts.length; i++){
-						var p = pts[i];
-						if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-							drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-					}
-				}
-		
-				if(o._hitArrow){
-					for(var i =0; i< pts.length; i++){
-						var p = pts[i];
-						if(p.x == o._hitArrow.x && p.y == o._hitArrow.y)
-							drawAnchorArrow(octx, panel, p, this.anchorPointArrowSize+2, this.anchorPointDistanceToArrow, this.anchorColorHover, 0.5 );
-					}
-				}
-		
+			this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+				var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+				Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 				if(o._hit || o.selected){
-					drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
 					drawDiagonal(o, octx, pts);
 				}
 		
-				function drawDiagonal(o, ctx, pts){
+				function drawDiagonal(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, pts: any[]){
 					ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor('defaultToolColor');
 					ctx.beginPath();
 					ctx.moveTo(pts[0].x, pts[0].y);
@@ -4797,9 +4025,9 @@ var TriangleObject	=	function () {
 				}
 			}
 		
-			this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+			this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 				var self = this;
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+				var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 				var hitResult = false;
 
 						
@@ -4832,25 +4060,8 @@ var TriangleObject	=	function () {
 			}
 		
 		
-			this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				var self = this;
-				var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-		
-				if(o._hitArrow)
-				for(var i =0; i<pts.length;i++){
-					if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-						this.expandAnchor(o.anchors[i]);
-					}
-				}
-		
-				for(var i =0; i<pts.length;i++){
-					//is on anchor?
-					if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-						return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-					}
-				}
-				return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-		
+			this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				return Shape.prototype.mouseDownWithExpandableArrowSelection.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 			}
 		
 			// this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -4881,28 +4092,12 @@ var TriangleObject	=	function () {
 			// 	}
 			// };
 		
-			this.mouseUp	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				var self = this;
-				var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-				if(!this.wasDrag){
-					for(var i =0; i<pts.length;i++){
-						if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y+this.anchorPointDistanceToArrow, self.hitTolerance)) {
-							this.expandAnchor(o.anchors[i]);
-						}
-					}
-				}
-		
-		
+			this.mouseUp	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				Shape.prototype.mouseUpWithExpandableAnchors.call(this, e, o, renderer, interactor, model, panel, seriesManager, { popPanel: false });
 			};
 		
-			this.mouseOut	=		function (e, o, renderer, interactor, model, panel, seriesManager) {
-				o._hit = false;
-				o._hitAnchor=null;
-				o._hitArrow=null;
-		
-				this.wasDrag = false;
-				interactor.popPanel(this, o, panel);
-		
+			this.mouseOut	=		function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				Shape.prototype.mouseOut.call(this, e, o, renderer, interactor, model, panel);
 			};
 		
 		
@@ -4950,31 +4145,22 @@ var TriangleObject	=	function () {
 			// 	interactor.renderOverlayedObject (this, o, panel);
 			// };
 		
-			this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				interactor.popPanel(this, o, panel);
-		
-		
-				if(interactor.currentAnchor && interactor.currentAnchor.drag) interactor.currentAnchor.selected++;
-		
-				if(interactor.currentAnchor!==null && interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length){
-					interactor.currentAnchor = null;
-					return true;
-				}
-		
+			this.stageUp			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				return Shape.prototype.stageUp.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 			};
 		
-			this.stageOut			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+			this.stageOut			=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				return Shape.prototype.stageOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 			};
 	}
 
-	function PriceTagObject(){
+	function PriceTagObject(this: ShapeTagRuntime){
 			this.defaultTagLen = 100;
 			this.defaultLineLen = 50;
 		
-			this.render			=	function (o, ctx, renderer, model, panel, seriesManager) {
+			this.render			=	function (o: LegacyShapeObject, ctx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
 		
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+				var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 		
 				var x = pts[0].x;
 				var y = pts[0].y;
@@ -5032,25 +4218,14 @@ var TriangleObject	=	function () {
 				}
 			}
 		
-			this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
-				if(o._hitAnchor){
-					for(var i =0; i< pts.length; i++){
-						var p = pts[i];
-						if(p.x == o._hitAnchor.x && p.y == o._hitAnchor.y)
-							drawAnchor(octx, panel, p, this.hitTolerance, this.anchorColorHover, 0.5 );
-					}
-				}
-
-				if(o._hit || o.selected){
-					drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1 );
-				}
+			this.renderOverlay = function (o: LegacyShapeObject, octx: CanvasRenderingContext2D, renderer: any, model: any, panel: any, seriesManager: any) {
+				Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager, { drawArrowHandles: false });
 			}
 		
-			this.hit	=	function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+			this.hit	=	function (x: number, y: number, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 				var self = this;
 		
-				var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+				var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
 				var hitResult = false;
 				this.clearHits(o);
 		
@@ -5067,19 +4242,10 @@ var TriangleObject	=	function () {
 			}
 		
 		
-			this.mouseDown	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
-				var self = this;
-				var pts = self.getPoints(o, renderer, panel, model,seriesManager);
-				interactor.pushPanel(this, o, panel);
-				for(var i =0; i<pts.length;i++){
-					if (interactor.isOver(e._offset.offsetX, e._offset.offsetY, pts[i].x, pts[i].y, self.hitTolerance)) {
-						return {selected: i, anchors: JSON.parse(JSON.stringify(o.anchors))};
-					}
-				}
-				return {selected: null, anchors: JSON.parse(JSON.stringify(o.anchors))};
-		
+			this.mouseDown	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
+				return Shape.prototype.mouseDownWithPanelPush.call(this, e, o, renderer, interactor, model, panel, seriesManager);
 			}
-			this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+			this.mouseDrag	=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 				var idx = interactor.currentAnchor.selected;	
 				var yValue = e._offset.offsetY-panel._offset;
 				var baseAnchors = interactor.currentAnchor.anchors;
@@ -5102,7 +4268,7 @@ var TriangleObject	=	function () {
 			};
 
 		
-			this.stageDrag		=	function (e, o, renderer, interactor, model, panel, seriesManager) {
+			this.stageDrag		=	function (e: any, o: LegacyShapeObject, renderer: any, interactor: any, model: any, panel: any, seriesManager: any) {
 				var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
 				var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
@@ -5120,8 +4286,50 @@ var TriangleObject	=	function () {
 				}
 			};
 		}
+const ShapeCtor: new (...args: any[]) => any = Shape as any;
+const TrendLineObjectCtor: new (...args: any[]) => any = TrendLineObject as any;
+const FibonLinesObjectCtor: new (...args: any[]) => any = FibonLinesObject as any;
+const ParallelChannelObjectCtor: new (...args: any[]) => any = ParallelChannelObject as any;
+const ArrowObjectCtor: new (...args: any[]) => any = ArrowObject as any;
+const HorizontalLineObjectCtor: new (...args: any[]) => any = HorizontalLineObject as any;
+const VerticalLineObjectCtor: new (...args: any[]) => any = VerticalLineObject as any;
+const DiNapoliLevelsCtor: new (...args: any[]) => any = DiNapoliLevels as any;
+const DiNapoliAbcObjectCtor: new (...args: any[]) => any = DiNapoliAbcObject as any;
+const MultiLineObjectCtor: new (...args: any[]) => any = MultiLineObject as any;
+const AbcdObjectCtor: new (...args: any[]) => any = AbcdObject as any;
+const EllipseObjectCtor: new (...args: any[]) => any = EllipseObject as any;
+const HorizontalRangeObjectCtor: new (...args: any[]) => any = HorizontalRangeObject as any;
+const VerticalRangeObjectCtor: new (...args: any[]) => any = VerticalRangeObject as any;
+const TimeRangeObjectCtor: new (...args: any[]) => any = TimeRangeObject as any;
+const TimeBetObjectCtor: new (...args: any[]) => any = TimeBetObject as any;
+const CycleObjectCtor: new (...args: any[]) => any = CycleObject as any;
+const TextObjectCtor: new (...args: any[]) => any = TextObject as any;
+const BoxObjectCtor: new (...args: any[]) => any = BoxObject as any;
+const TriangleObjectCtor: new (...args: any[]) => any = TriangleObject as any;
+const PriceTagObjectCtor: new (...args: any[]) => any = PriceTagObject as any;
 
-
-export { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject }
+export {
+	ShapeCtor as Shape,
+	TrendLineObjectCtor as TrendLineObject,
+	FibonLinesObjectCtor as FibonLinesObject,
+	ParallelChannelObjectCtor as ParallelChannelObject,
+	ArrowObjectCtor as ArrowObject,
+	HorizontalLineObjectCtor as HorizontalLineObject,
+	VerticalLineObjectCtor as VerticalLineObject,
+	DiNapoliLevelsCtor as DiNapoliLevels,
+	DiNapoliAbcObjectCtor as DiNapoliAbcObject,
+	MultiLineObjectCtor as MultiLineObject,
+	AbcdObjectCtor as AbcdObject,
+	EllipseObjectCtor as EllipseObject,
+	HorizontalRangeObjectCtor as HorizontalRangeObject,
+	VerticalRangeObjectCtor as VerticalRangeObject,
+	TimeRangeObjectCtor as TimeRangeObject,
+	TimeBetObjectCtor as TimeBetObject,
+	CycleObjectCtor as CycleObject,
+	TextObjectCtor as TextObject,
+	BoxObjectCtor as BoxObject,
+	TriangleObjectCtor as TriangleObject,
+	PriceTagObjectCtor as PriceTagObject,
+}
 
 //# sourceURL=./platform/components/newchart/js/objects2.js

@@ -10,9 +10,10 @@ import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./Indicators/IndicatorsButton";
+import type { NullableChartInstance } from "../../chartTypes";
 
 interface TopMenuProps {
-  chart: any;
+  chart: NullableChartInstance;
   style?: React.CSSProperties;
   mainContainer: React.RefObject<unknown>;
   onIntervalChange?: (symbol: string) => void;
@@ -70,7 +71,7 @@ export const TopMenu = (props: TopMenuProps) => {
 
   const getAvailableIntervalsSymbols = () => {
     if (!instrument) return [];
-    return instrument.availableIntervals.map((interval: any) => {
+    return (instrument.availableIntervals || []).map((interval) => {
       return interval.symbol;
     });
   };

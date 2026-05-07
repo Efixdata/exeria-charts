@@ -50,7 +50,7 @@ const OptionValue = styled.span`
 export const SaveChartImageButton = (props) => {
   const { waterMark64 } = useGenerateWatermark()
   const { shareImage, actionLoading} =
-    useShareChartImage(props);
+    useShareChartImage(props.chart);
    
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -79,7 +79,7 @@ export const SaveChartImageButton = (props) => {
       </IconButton>
       {isOpen && (
         <OptionsContainer>
-          <OptionValue onClick={()=> shareImage('copyImage', '', ActionEnum.copy)}>
+          <OptionValue onClick={()=> shareImage('copyImage', ActionEnum.copy)}>
             {actionLoading.copyImage ? <Loading /> : <Copy />}
             Copy chart image
           </OptionValue>

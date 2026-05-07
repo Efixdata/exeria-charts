@@ -1,24 +1,62 @@
 const path = require("path");
 
-module.exports = {
-  entry: "./src/Chart.js",
+const distPath = path.resolve(__dirname, "dist");
+const tsConfigPath = path.resolve(__dirname, "tsconfig.json");
+
+const baseConfig = {
   module: {
     rules: [
       {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "ts-loader",
+          options: {
+            configFile: tsConfigPath,
+            transpileOnly: true,
+          },
+        },
+      },
+      {
         test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      }
+        loader: "svg-inline-loader",
+      },
     ],
   },
-  output: {
-    filename: "index.js",
-    path: path.resolve(__dirname, "dist"),
-    library: {
-      type: 'umd'
-    },
-    // globalObject: 'this'
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"],
   },
   optimization: {
-    minimize: false
-},
+    minimize: false,
+  },
 };
+
+module.exports = [
+  {
+    ...baseConfig,
+    entry: "./src/Chart.ts",
+    output: {
+      filename: "index.js",
+      path: distPath,
+      library: {
+        type: "umd",
+      },
+      globalObject: "this",
+    },
+  },
+  {
+    ...baseConfig,
+    entry: "./src/index.ts",
+    experiments: {
+      outputModule: true,
+    },
+    output: {
+      filename: "index.mjs",
+      path: distPath,
+      module: true,
+      library: {
+        type: "module",
+      },
+    },
+  },
+];

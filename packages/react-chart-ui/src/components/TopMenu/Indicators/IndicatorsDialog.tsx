@@ -5,11 +5,12 @@ import { MagnifyingGlass, X } from "phosphor-react";
 import Fuse from 'fuse.js';
 import { IndicatorSettingsDialog } from "./IndicatorSettingsDialog";
 import { ThemeContext } from 'styled-components';
+import type { NullableChartInstance } from "../../../chartTypes";
 
 interface IndicatorsDialogProps {
   onClick: any;
   indicators: any;
-  chart: any;
+  chart: NullableChartInstance;
 }
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {

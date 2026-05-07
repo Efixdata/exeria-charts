@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import WaterMark from "../img/icons/WaterMark.svg"
 import useGenerateWatermark from "./useGenerateWatermark";
+import type { NullableChartInstance } from "../chartTypes";
 
 export enum ActionEnum {
   copy,
   share,
 }
 
-export default function useShareChartImage(chart: any) {
+export default function useShareChartImage(chart: NullableChartInstance) {
   const { waterMark64 } = useGenerateWatermark()
   const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
   const TEMPLATE_TEXT = `Chart by Dexer.io`;
@@ -20,12 +21,17 @@ export default function useShareChartImage(chart: any) {
 
   const createWaterMark = async () => {
     return new Promise((resolve, reject) => {
+      if (!chart?.canvas || !chart.ctx) {
+        reject(new Error("Chart is not ready"));
+        return;
+      }
+
       const watermarkWidth = 240;
       const watermarkHeight = 66;
 
-      const ctx = chart.chart.ctx;
-      const positionY = chart.chart?.canvasHeight / 2 - watermarkHeight / 2;
-      const positionX = chart.chart?.canvasWidth / 2 - watermarkWidth / 2;
+      const ctx = chart.ctx;
+      const positionY = (chart.canvasHeight || 0) / 2 - watermarkHeight / 2;
+      const positionX = (chart.canvasWidth || 0) / 2 - watermarkWidth / 2;
 
       const image = new Image();
       image.onload = setUpWaterMark; 
@@ -33,9 +39,7 @@ export default function useShareChartImage(chart: any) {
 
       function setUpWaterMark() {
         ctx?.drawImage(image, positionX, positionY, watermarkWidth, watermarkHeight);
-        return resolve(
-          chart?.chart?.canvas?.toDataURL("image/png", 1.0) as string
-        );
+        return resolve(chart?.canvas?.toDataURL("image/png", 1.0) as string);
       }
     });
   };

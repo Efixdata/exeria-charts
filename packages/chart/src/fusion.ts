@@ -1,9 +1,26 @@
 import WEBRCP from "./WebRCP";
 import { calcLine } from "./utils/objects-lib";
+import type {
+    CoreFusionBuilder,
+    CoreFusionLoader,
+    FusionModelRuntime,
+    CoreFusionRuntime,
+    CoreFusionStatic,
+    FusionScriptControllerConstructor,
+    FusionScriptControllerRuntime,
+    FusionSeriesRuntime,
+    FusionSignalMatrix,
+    RuntimeScriptConfig,
+    RuntimeScriptDefinition,
+} from "./internalTypes";
 
-const FUSION = {};
+declare const SERVICES: any;
 
-FUSION.engine = {};
+type FusionRecord = Record<string, any>;
+type FusionSeriesData = FusionRecord[];
+
+const FUSION: CoreFusionStatic = {} as CoreFusionStatic;
+
 FUSION.scripts = {};
 
 FUSION.DEBUG=false;
@@ -32,7 +49,7 @@ FUSION.signals = {
 /**
  * @memberOf FUSION
  */
-FUSION.Matrix = function () {
+FUSION.Matrix = function (this: FusionSignalMatrix) {
     this['Buy'] = {
         'Buy': 'Buy',
         'Sell': 'Do nothing',
@@ -86,7 +103,7 @@ FUSION.Matrix = function () {
         'Exit all': 'Exit all',
         'Do nothing': 'Do nothing'
     };
-};
+} as unknown as CoreFusionStatic["Matrix"];
 
 
 FUSION.signalValueToName = function(value){
@@ -161,20 +178,19 @@ FUSION.getScript = function(key) {
 };
 
 FUSION.getAvailableScripts = function() {
-    if (FUSION.availableScripts) return FUSION.availableScripts;
-    FUSION.availableScripts = JSON.parse(JSON.stringify(FUSION.scripts));
+    const availableScripts = FUSION.availableScripts ?? (FUSION.availableScripts = JSON.parse(JSON.stringify(FUSION.scripts)));
 
-    const keys = Object.keys(FUSION.availableScripts);
+    const keys = Object.keys(availableScripts);
 
     for (let key of keys) {
-        const script = FUSION.availableScripts[key];
+        const script = availableScripts[key];
 
         if (typeof SERVICES === 'undefined' || (script.subscriptionPack && !SERVICES.payments.isSubscriptionPackEnabled(script.subscriptionPack))) {
-            delete FUSION.availableScripts[key];
+            delete availableScripts[key];
         }
     }
 
-    return FUSION.availableScripts;
+    return availableScripts;
 }
 
 FUSION.getAllScripts = function() {
@@ -184,20 +200,19 @@ FUSION.getAllScripts = function() {
 }
 
 FUSION.getFreeScripts = function () {
-    if (FUSION.freeScripts) return FUSION.freeScripts;
-    FUSION.freeScripts = JSON.parse(JSON.stringify(FUSION.scripts));
+    const freeScripts = FUSION.freeScripts ?? (FUSION.freeScripts = JSON.parse(JSON.stringify(FUSION.scripts)));
 
-    const keys = Object.keys(FUSION.freeScripts);
+    const keys = Object.keys(freeScripts);
 
     for (let key of keys) {
-        const script = FUSION.freeScripts[key];
+        const script = freeScripts[key];
 
         if (script.subscriptionPack) {
-            delete FUSION.freeScripts[key];
+            delete freeScripts[key];
         }
     }
 
-    return FUSION.freeScripts;
+    return freeScripts;
 }
 
 
@@ -240,9 +255,9 @@ FUSION.scripts['MACD']= {
 
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MACDController = function (context, inputs, outputs) {
+        var MACDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
 
             this.id			= '';
@@ -250,7 +265,7 @@ FUSION.scripts['MACD']= {
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
 
                 this.helper = this.context.createSeries(['EMAF', 'EMAS', 'EMAG']);
                 this.EMAF = this.context.getRawSeriesWrapper(this.helper, 'EMAF');
@@ -259,7 +274,7 @@ FUSION.scripts['MACD']= {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
 
                 this.EMAF.setValue(index, FUSION.lib.getEMA(this.CLOSE, index, this.FPERIOD, this.EMAF));
@@ -313,17 +328,17 @@ FUSION.scripts['WMA'] = {
         {type: 'SeriesObject', dataLink: 'WMA', renderAs: 'Line', dataField: 'WMAValue', color: '#ff9800', width: 1.5, dash: []}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var WMAController  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var WMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
             };
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.WMAValue.setValue(index, FUSION.lib.getWMA(this.CLOSE, index, this.PERIODS));
             };
         };
@@ -360,14 +375,14 @@ FUSION.scripts['HMA'] = {
         {type: 'SeriesObject', dataLink: 'HMA', renderAs: 'Line', dataField: 'HMAValue', color: '#3f51b5', width: 1.5, dash: []}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var HMAController  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var HMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['DIFFWMA']);
                 this.DIFFWMA = this.context.getRawSeriesWrapper(this.helper, 'DIFFWMA');
 
@@ -375,7 +390,7 @@ FUSION.scripts['HMA'] = {
                 this.halfPeriod = Math.floor(this.PERIODS / 2);
             };
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var wman2 = 2 * FUSION.lib.getWMA(this.CLOSE, index, this.halfPeriod);
                 var wman  = FUSION.lib.getWMA(this.CLOSE, index, this.PERIODS);
                 if (wman === null || wman2 === null) return;
@@ -420,16 +435,16 @@ FUSION.scripts['HeikinAshi'] = {
         {type: 'SeriesObject', dataLink: 'HeikinAshi', renderAs: 'OHLC', openDataField: 'o', highDataField: 'h', lowDataField: 'l', closeDataField: 'c', dataField: 'o', color: '#f44336', width: 1.5, dash: [], priceTag: true, priceLine: true}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var HaController = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var HaController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init = function() {};
+            this.init = function (this: any) {};
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 var open = this.OPEN.getValue(INDEX);
                 var high = this.HIGH.getValue(INDEX);
                 var low = this.LOW.getValue(INDEX);
@@ -495,20 +510,20 @@ FUSION.scripts['BBAND'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var BBANDController  = function (context, inputs, outputs) {
+        var BBANDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
 
                 var sma = FUSION.lib.getMA (this.CLOSE, index, this.PERIODS);
@@ -562,9 +577,9 @@ FUSION.scripts['ATR'] = {
         {type:'SeriesObject', dataLink: 'ATR', renderAs: 'Line', dataField: 'ATR', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var ATRController  = function (context, inputs, outputs) {
+        var ATRController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
@@ -572,12 +587,12 @@ FUSION.scripts['ATR'] = {
             this.outputs	= outputs;
 
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['TRUERANGE']);
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.TRUERANGE.setValue(index, FUSION.lib.getTrueRange(this.HIGH,this.LOW,this.CLOSE,index));
                 this.ATR.setValue(index, FUSION.lib.getMMA(this.TRUERANGE, index, this.PERIODS, this.ATR));
             }
@@ -624,11 +639,11 @@ FUSION.scripts['ADX'] = {
         {type:'SeriesObject', dataLink: 'ADX', renderAs: 'Line', dataField: 'ADX', color: '#FFEB3B', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var ADXController  = function (context, inputs, outputs) {
+        var ADXController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
-            this.getWilders = function(series, idx, prd, prev){
+            this.getWilders = function (this: any, series: any, idx: any, prd: any, prev: any){
                 if (idx < prd) {
                     return null;
                 }
@@ -660,7 +675,7 @@ FUSION.scripts['ADX'] = {
             this.outputs	= outputs;
 
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['MDM', 'PDM', 'MMAUM', 'MMADM', 'MMAUP', 'MMADP', 'TRUERANGE', 'MINUSDI', 'PLUSDI', 'DS', 'aadx']);
                 this.MDM = this.context.getRawSeriesWrapper(this.helper, 'MDM');
                 this.PDM = this.context.getRawSeriesWrapper(this.helper, 'PDM');
@@ -675,7 +690,7 @@ FUSION.scripts['ADX'] = {
                 this.aadx = this.context.getRawSeriesWrapper(this.helper, 'aadx');
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 var low = this.LOW.getValue(INDEX);
                 var low1 = this.LOW.getValue(INDEX - 1);
                 var high = this.HIGH.getValue(INDEX);
@@ -770,27 +785,27 @@ FUSION.scripts['IF'] = {
 
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var IFController  = function (context, inputs, outputs) {
+        var IFController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var CURR_A = getConditionalInputValue(this.VAL_A, index);
                 var CURR_B = getConditionalInputValue(this.VAL_B, index);
                 var CURR_X = getConditionalInputValue(this.VAL_X, index);
                 var CURR_Y = getConditionalInputValue(this.VAL_Y, index);
                 var CURR_Z = getConditionalInputValue(this.VAL_Z, index);
 
-                var OUT_RESULT = 0;
+                var OUT_RESULT: any = 0;
 
                 if (CURR_A === null || CURR_B === null)
                     OUT_RESULT = null;
@@ -805,7 +820,7 @@ FUSION.scripts['IF'] = {
 
             }
 
-            function getConditionalInputValue(input, index){
+            function getConditionalInputValue(input: any, index: any){
                 if(input['type'] && input['type']=='double'){
                     //double
                     return parseFloat(input['value']);
@@ -852,20 +867,20 @@ FUSION.scripts['HLINE'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var HLINEController  = function (context, inputs, outputs) {
+        var HLINEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.HLINEValue.setValue(index, this.VALUE);
             }
 
@@ -907,23 +922,23 @@ FUSION.scripts['OBJECT'] = {
     plotters: [
         {type: 'SeriesObject', dataLink: 'LINE_SERIES', renderAs: 'Line', dataField: 'Value', color: '#ffc107', width: 1, dash: []}
     ],
-    controller: function (context, inputs, outputs) {
-        var ObjectIndicatorController  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var ObjectIndicatorController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.updateAnchors();
             };
 
-            this.updateAnchors = function () {
+            this.updateAnchors = function (this: any) {
                 var self = this;
                 var len = this.Value.getSeriesLength();
                 var lastIndex = len - 1;
                 var lastStamp = this.Value.getStamp(lastIndex);
-                this.OBJECT.anchors.forEach(function(a){
+                this.OBJECT.anchors.forEach(function(a: FusionRecord){
                     //var stamp = a.stamp - a.offset;
                     var stamp = a.prawilnyStamp;
                     if(stamp > lastStamp){
@@ -938,7 +953,7 @@ FUSION.scripts['OBJECT'] = {
                 });
             };
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if(!this.OBJECT.type){
                     this.Value.setValue(index, 1);
                     return;
@@ -961,7 +976,7 @@ FUSION.scripts['OBJECT'] = {
                 }
             };
 
-            this.getStampIndex	=	function (s) {
+            this.getStampIndex = function (this: any, s: any) {
                 var len = this.Value.getSeriesLength();
                 var lastIndex = len - 1;
 
@@ -1023,20 +1038,20 @@ FUSION.scripts['SMA'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var SMAController  = function (context, inputs, outputs) {
+        var SMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
 
                 this.SMAValue.setValue(index, FUSION.lib.getMA(this.CLOSE, index, this.PERIODS));
@@ -1083,17 +1098,17 @@ FUSION.scripts['EMA'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var EMAController  = function (context, inputs, outputs) {
+        var EMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.EMA.setValue(index, FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA));
             }
         };
@@ -1135,9 +1150,9 @@ FUSION.scripts['CCI'] = {
         {type:'SeriesObject', dataLink: 'CCI', renderAs: 'Line', dataField: 'CCI', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var CCIController  = function (context, inputs, outputs) {
+        var CCIController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
@@ -1145,13 +1160,13 @@ FUSION.scripts['CCI'] = {
             this.outputs	= outputs;
 
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['MEAN', 'AVG']);
                 this.MEAN = this.context.getRawSeriesWrapper(this.helper, 'MEAN');
                 this.AVG = this.context.getRawSeriesWrapper(this.helper, 'AVG');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.HIGH.getValue(index) === null || this.LOW.getValue(index) === null || this.CLOSE.getValue(index) === null) return;
 
                 this.MEAN.setValue(index, (this.HIGH.getValue(index) + this.LOW.getValue(index) + this.CLOSE.getValue(index)) / 3);
@@ -1209,16 +1224,16 @@ FUSION.scripts['CEX'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'CEX', renderAs: 'Line', dataField: 'CEX', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var CEXController  = function (context, inputs, outputs) {
+        var CEXController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.isInRange = function(rangeStart, rangeEnd, value) {
+            this.isInRange = function (this: any, rangeStart: any, rangeEnd: any, value: any) {
               if (rangeStart > rangeEnd) {
                 var tmp = rangeStart;
                 rangeStart = rangeEnd;
@@ -1229,7 +1244,7 @@ FUSION.scripts['CEX'] = {
               else return false;
             };
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['tempLongs', 'tempShorts','stopLong', 'stopShort','isLong','ATR','TRUERANGE']);
                 this.tempLongs = this.context.getRawSeriesWrapper(this.helper, 'tempLongs');
                 this.tempShorts = this.context.getRawSeriesWrapper(this.helper, 'tempShorts');
@@ -1240,11 +1255,11 @@ FUSION.scripts['CEX'] = {
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
             };
 
-            this.onModify = function () {
+            this.onModify = function (this: any) {
                 this.init();
             };
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.TRUERANGE.setValue(index, FUSION.lib.getTrueRange(this.HIGH,this.LOW,this.CLOSE,index));
                 this.ATR.setValue(index, FUSION.lib.getMMA(this.TRUERANGE, index, this.PERIODS, this.ATR));
 
@@ -1331,16 +1346,16 @@ FUSION.scripts['CHAIKIN'] = {
         {type:'SeriesObject', dataLink: 'CHAIKIN', renderAs: 'Line', dataField: 'CHAIKIN', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var CHAIKINController  = function (context, inputs, outputs) {
+        var CHAIKINController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.emaf = function (series1,series2, idx, pds, prev) {
+            this.emaf = function (this: any, series1: any, series2: any, idx: any, pds: any, prev: any) {
                 if (series1.getValue(idx) === null || series2.getValue(idx) === null) {
                     return null;
                 }
@@ -1364,12 +1379,12 @@ FUSION.scripts['CHAIKIN'] = {
                     return a;
                 }
             }            
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['EMA']);
                 this.EMA = this.context.getRawSeriesWrapper(this.helper, 'EMA');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var ema = this.emaf(this.HIGH, this.LOW, index, this.MPERIOD, this.EMA);
                 this.EMA.setValue(index, ema);
                 if (ema === null || this.EMA.getValue(index - this.RPERIOD) === null || this.EMA.getValue(index - this.RPERIOD) === null) return;
@@ -1419,16 +1434,16 @@ FUSION.scripts['DIRMOV'] = {
         {type:'SeriesObject', dataLink: 'DIRMOV', renderAs: 'Line', dataField: 'DIRMOV_MDI', color: '#f44336', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var DIRMOVController  = function (context, inputs, outputs) {
+        var DIRMOVController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['MDM', 'MMAU','MMAD', 'PDM','PMAU','PMAD','TRUERANGE']);
                 this.MDM = this.context.getRawSeriesWrapper(this.helper, 'MDM');
                 this.MMAU = this.context.getRawSeriesWrapper(this.helper, 'MMAU');
@@ -1438,7 +1453,7 @@ FUSION.scripts['DIRMOV'] = {
                 this.PMAD = this.context.getRawSeriesWrapper(this.helper, 'PMAD');
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');				}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
 
                 if (
@@ -1514,18 +1529,18 @@ FUSION.scripts['ENVELOPE'] = {
         {type:'SeriesObject', dataLink: 'ENVELOPE', renderAs: 'Line', dataField: 'ENVELOPE_DN', color: '#e91e63', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var ENVELOPEController  = function (context, inputs, outputs) {
+        var ENVELOPEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
                 var avg = FUSION.lib.getMA(this.CLOSE,index,this.PERIODS);
                 if (avg === null) return;
@@ -1579,23 +1594,23 @@ FUSION.scripts['MINUSDI'] = {
         {type:'SeriesObject', dataLink: 'MINUSDI', renderAs: 'Line', dataField: 'MINUSDI', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MINUSDIController  = function (context, inputs, outputs) {
+        var MINUSDIController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['MDM', 'MMAU','MMAD','TRUERANGE']);
                 this.MDM = this.context.getRawSeriesWrapper(this.helper, 'MDM');
                 this.MMAU = this.context.getRawSeriesWrapper(this.helper, 'MMAU');
                 this.MMAD = this.context.getRawSeriesWrapper(this.helper, 'MMAD');
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');				}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var tmp = 0;
                 if(index>0){
                     tmp = this.LOW.getValue(index-1) - this.LOW.getValue(index);
@@ -1648,18 +1663,18 @@ FUSION.scripts['MOMENTUM'] = {
         {type:'SeriesObject', dataLink: 'MOMENTUM', renderAs: 'Line', dataField: 'MOMENTUM', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ]
     ,
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MOMENTUMController  = function (context, inputs, outputs) {
+        var MOMENTUMController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null) return;
                 var displace = FUSION.lib.displace(this.CLOSE, index, this.PERIODS);
                 if (displace === null) return;
@@ -1711,18 +1726,18 @@ FUSION.scripts['OPENINT'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var OPENINTController  = function (context, inputs, outputs) {
+        var OPENINTController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.OPENINT.setValue(index, this.CLOSE.getValue(index));
             }
         };
@@ -1763,18 +1778,18 @@ FUSION.scripts['VOLUME'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var VOLUMEController  = function (context, inputs, outputs) {
+        var VOLUMEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.VOLUME.setValue(index, this.CLOSE.getValue(index));
             }
         };
@@ -1815,16 +1830,16 @@ FUSION.scripts['PARSAR'] = {
         {type:'SeriesObject', dataLink: 'PARSAR', renderAs: 'Line', dataField: 'PARSAR', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var PARSARController  = function (context, inputs, outputs) {
+        var PARSARController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.sar	=null;
                 this.extreme=null;
                 this.af		=null;
@@ -1837,7 +1852,7 @@ FUSION.scripts['PARSAR'] = {
 
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.LOW.getValue(index) === null || this.HIGH.getValue(index) === null) return;
 
                 if(this.PARSAR.getValue(index - 1) === null || this.EXTREMESERIES.getValue(index - 1) === null || this.AFSERIES.getValue(index - 1) === null) {
@@ -1956,23 +1971,23 @@ FUSION.scripts['PLUSDI'] = {
         {type:'SeriesObject', dataLink: 'PLUSDI', renderAs: 'Line', dataField: 'PLUSDI', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var PLUSDIController  = function (context, inputs, outputs) {
+        var PLUSDIController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['PDM', 'MMAU','MMAD','TRUERANGE']);
                 this.PDM = this.context.getRawSeriesWrapper(this.helper, 'PDM');
                 this.MMAU = this.context.getRawSeriesWrapper(this.helper, 'MMAU');
                 this.MMAD = this.context.getRawSeriesWrapper(this.helper, 'MMAD');
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');				}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.HIGH.getValue(index) === null || this.HIGH.getValue(index - 1) === null) return;
                 var tmp = 0;
                 
@@ -2027,18 +2042,18 @@ FUSION.scripts['TREND'] = {
         {type:'SeriesObject', dataLink: 'TREND', renderAs: 'Line', dataField: 'TREND', color: '#ff9800', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var TRENDController  = function (context, inputs, outputs) {
+        var TRENDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {	}
+            this.init = function (this: any) {	}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
                 if (this.INDICATOR.getValue(index) === null || this.HIGH.getValue(index) === null || this.LOW.getValue(index) === null) return;
                 this.TREND.setValue(index,0);
@@ -2087,18 +2102,18 @@ FUSION.scripts['ROC'] = {
         {type:'SeriesObject', dataLink: 'ROC', renderAs: 'Line', dataField: 'ROC', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var ROCController  = function (context, inputs, outputs) {
+        var ROCController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {	}
+            this.init = function (this: any) {	}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null) return;
 
                 var dis=FUSION.lib.displace(
@@ -2154,16 +2169,16 @@ FUSION.scripts['RSI'] = {
         {type:'SeriesObject', dataLink: 'RSI', renderAs: 'Line', dataField: 'RSIBaseLO', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var RSIController  = function (context, inputs, outputs) {
+        var RSIController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['AU', 'AD','MAU','TRUERANGE']);
                 this.AU = this.context.getRawSeriesWrapper(this.helper, 'AU');
                 this.AD = this.context.getRawSeriesWrapper(this.helper, 'AD');
@@ -2171,7 +2186,7 @@ FUSION.scripts['RSI'] = {
                 this.MAD = this.context.getRawSeriesWrapper(this.helper, 'MAD');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.AU.setValue(index, 0);
                 this.AD.setValue(index, 0);
                 this.MAU.setValue(index, 0);
@@ -2255,16 +2270,16 @@ FUSION.scripts['SMI'] = {
         {type:'SeriesObject', dataLink: 'SMI', renderAs: 'Line', dataField: 'SMIBaseLO', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var SMIController  = function (context, inputs, outputs) {
+        var SMIController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['CMSERIES', 'HLSERIES','CMEMA','CMEMA2','HLEMA','HLEMA2']);
                 this.CMSERIES = this.context.getRawSeriesWrapper(this.helper, 'CMSERIES');
                 this.HLSERIES = this.context.getRawSeriesWrapper(this.helper, 'HLSERIES');
@@ -2274,7 +2289,7 @@ FUSION.scripts['SMI'] = {
                 this.HLEMA2 = this.context.getRawSeriesWrapper(this.helper, 'HLEMA2');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.CMSERIES.setValue(index,0);
                 this.HLSERIES.setValue(index,0);
 
@@ -2349,21 +2364,21 @@ FUSION.scripts['STOCHASTICOSCILLATOR'] = {
         {type:'SeriesObject', dataLink: 'SO', renderAs: 'Line', dataField: 'SOBaseLO', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var SOController  = function (context, inputs, outputs) {
+        var SOController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['KSERIES']);
                 this.KSERIES = this.context.getRawSeriesWrapper(this.helper, 'KSERIES');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null || this.HIGH.getValue(index) === null || this.LOW.getValue(index) === null) return;
 
                 this.SOBaseHI.setValue(index, this.HI_BASELINE);
@@ -2422,22 +2437,22 @@ FUSION.scripts['Ultimate_OSC'] = {
         {type:'SeriesObject', dataLink: 'UO', renderAs: 'Line', dataField: 'UltimateOsc', color: '#00bcd4', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var UOController  = function (context, inputs, outputs) {
+        var UOController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['TRUERANGE','BPSERIES']);
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
                 this.BPSERIES = this.context.getRawSeriesWrapper(this.helper, 'BPSERIES');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
 
                 var tr = FUSION.lib.getTrueRange(this.HIGH,this.LOW,this.CLOSE,index);
                 var tl = FUSION.lib.getTrueLow(this.CLOSE,this.LOW,index);
@@ -2497,18 +2512,18 @@ FUSION.scripts['HIGHEST'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var HIGHESTController  = function (context, inputs, outputs) {
+        var HIGHESTController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.HIGHEST.setValue(index, FUSION.lib.getMax(this.HIGH, index, this.PERIODS));
             }
         };
@@ -2549,18 +2564,18 @@ FUSION.scripts['LOWEST'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var LOWESTController  = function (context, inputs, outputs) {
+        var LOWESTController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.LOWEST.setValue(index, FUSION.lib.getMin(this.LOW, index, this.PERIODS));
             }
         };
@@ -2601,18 +2616,18 @@ FUSION.scripts['IGLUE'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var IGLUEController  = function (context, inputs, outputs) {
+        var IGLUEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var value = this.IN1.getValue(index);
                 if (this.IN1.getValue(index) === null || this.IN2.getValue(index) === null) {
                     return;
@@ -2678,18 +2693,18 @@ FUSION.scripts['IMOD'] = {
 
 
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var IMODController  = function (context, inputs, outputs) {
+        var IMODController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var value = this.IN1.getValue(index);
 
                 if (value === null) {
@@ -2753,15 +2768,15 @@ FUSION.scripts['DISPLACE'] = {
         {type:'SeriesObject', dataLink: 'DISPLACE', renderAs: 'Line', dataField: 'DISPLACE', color: '#e91e63', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var DISPLACEController  = function (context, inputs, outputs) {
+        var DISPLACEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
-            this.init		= function () {}
-            this.calculate	= function (index) {
+            this.init = function (this: any) {}
+            this.calculate = function (this: any, index: any) {
                 var displace = FUSION.lib.displace(this.DSERIES, index, this.PERIODS);
                 if (displace !== null) {
                     this.DISPLACE.setValue(index, displace + this.VALUE);
@@ -2769,7 +2784,7 @@ FUSION.scripts['DISPLACE'] = {
 
                 if (index === this.DSERIES.getSeriesLength() - 1) this.addFutureValues(index + 1);
             }
-            this.addFutureValues = function (index) {
+            this.addFutureValues = function (this: any, index: any) {
                 for (var i = 0; i < this.PERIODS; ++i) {
                     if (FUSION.lib.displace(this.DSERIES, index, this.PERIODS) !== null) {
                         this.DISPLACE.setValue(index + i, FUSION.lib.displace(this.DSERIES, index + i, this.PERIODS) + this.VALUE);
@@ -2818,19 +2833,19 @@ FUSION.scripts['EXCEED'] = {
         {type:'StrategyObject', dataLink: 'EXCEED', renderAs: '', dataField: 'ExceedValue', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var EXCEEDController  = function (context, inputs, outputs) {
+        var EXCEEDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['SIGNALSERIES']);
                 this.SIGNALSERIES = this.context.getRawSeriesWrapper(this.helper, 'SIGNALSERIES');
             }
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.ExceedValue.setValue(INDEX, 0);
                 this.ExceedValue.setStrength(INDEX, 1);
                 this.SIGNALSERIES.setValue(INDEX,0);
@@ -2928,17 +2943,17 @@ FUSION.scripts['CROSS'] = {
         {type:'StrategyObject', dataLink: 'CROSS', renderAs: '', dataField: 'CrossValue', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var CROSSController  = function (context, inputs, outputs) {
+        var CROSSController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 if (INDEX < 2) {
                     this.CrossValue.setValue(INDEX, 0);
                     this.CrossValue.setStrength(INDEX, 0)
@@ -2980,7 +2995,7 @@ FUSION.scripts['CROSS'] = {
                 }
 
 
-                function isCross(u, l, i){
+                function isCross(u: any, l: any, i: any){
                     var x = i-1;
                     if(x>2){
                         while(x > 2 && u.getValue(x) == l.getValue(x) ) {
@@ -3038,17 +3053,17 @@ FUSION.scripts['REBOUND'] = {
         {type:'StrategyObject', dataLink: 'REBOUND', renderAs: '', dataField: 'Rebound', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var REBOUNDController  = function (context, inputs, outputs) {
+        var REBOUNDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.Rebound.setValue(INDEX, 0);
 
                 if (INDEX > 2) {
@@ -3142,20 +3157,20 @@ FUSION.scripts['GREATERLESS'] = {
         {type:'StrategyObject', dataLink: 'GREATERLESS', renderAs: '', dataField: 'GreaterLess', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var GREATERLESSController  = function (context, inputs, outputs) {
+        var GREATERLESSController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['SIGNALSERIES']);
                 this.SIGNALSERIES = this.context.getRawSeriesWrapper(this.helper, 'SIGNALSERIES');
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 if (INDEX < 2) {
                     this.SIGNALSERIES.setValue(INDEX, FUSION.DO_NOTHING);
                     this.GreaterLess.setValue(INDEX, FUSION.DO_NOTHING);
@@ -3266,23 +3281,23 @@ FUSION.scripts['SINGLE'] = {
         {type:'StrategyObject', dataLink: 'SINGLE', renderAs: '', dataField: 'Single', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var SINGLEcontroller  = function (context, inputs, outputs) {
+        var SINGLEcontroller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
             this.positions = null;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.lastSignal = FUSION.DO_NOTHING;
                 this.lastSignalStr = 1;
                 this.count =0;
                 this.CORRECTION=0;
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
             	if(this.context.isPositionsSeries()){
                 	this.positions = this.context.getPositions();
             		this.calculateUsingRealMarketPositions(INDEX);
@@ -3291,7 +3306,7 @@ FUSION.scripts['SINGLE'] = {
             }
 
             
-            this.calculateUsingRealMarketPositions	= function (INDEX) {
+            this.calculateUsingRealMarketPositions = function (this: any, INDEX: any) {
                 if(INDEX==0){
                     this.lastSignal = FUSION.DO_NOTHING;
                     this.lastSignalStr = 1;
@@ -3329,7 +3344,7 @@ FUSION.scripts['SINGLE'] = {
                 }
             }
             
-            this.calculateWithoutRealMarketPositions	= function (INDEX) {
+            this.calculateWithoutRealMarketPositions = function (this: any, INDEX: any) {
                 if(INDEX==0){
                     this.lastSignal = FUSION.DO_NOTHING;
                     this.CORRECTION = 0;
@@ -3416,20 +3431,20 @@ FUSION.scripts['JOIN'] = {
         {type:'StrategyObject', dataLink: 'JOIN', renderAs: '', dataField: 'Join', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var JOINController  = function (context, inputs, outputs) {
+        var JOINController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['SIGNALSERIES']);
                 this.SIGNALSERIES = this.context.getRawSeriesWrapper(this.helper, 'SIGNALSERIES');
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.Join.setValue(INDEX, 0);
                 this.Join.setStrength(INDEX, 1);
 
@@ -3481,20 +3496,20 @@ FUSION.scripts['DOUBLECHECK'] = {
         {type:'StrategyObject', dataLink: 'DOUBLE', renderAs: '', dataField: 'Double', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var DOUBLEController  = function (context, inputs, outputs) {
+        var DOUBLEController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['SIGNALSERIES']);
                 this.SIGNALSERIES = this.context.getRawSeriesWrapper(this.helper, 'SIGNALSERIES');
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.Double.setValue(INDEX, 0);
                 this.Double.setStrength(INDEX, 1);
 
@@ -3546,20 +3561,20 @@ FUSION.scripts['MIX'] = {
         {type:'StrategyObject', dataLink: 'MIX', renderAs: '', dataField: 'Mix', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MIXcontroller  = function (context, inputs, outputs) {
+        var MIXcontroller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['SIGNALSERIES']);
                 this.SIGNALSERIES = this.context.getRawSeriesWrapper(this.helper, 'SIGNALSERIES');
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.Mix.setValue(INDEX, 0);
                 this.Mix.setStrength(INDEX, 1);
 
@@ -3612,17 +3627,17 @@ FUSION.scripts['POSITION'] = {
         {type:'SeriesObject', dataLink: 'POSITION', renderAs: 'Line', dataField: 'Position', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var POSITIONController  = function (context, inputs, outputs) {
+        var POSITIONController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.valuePrev = 0;
                 this.strengthPrev = 0;
                 this.signal=0;
@@ -3717,17 +3732,17 @@ FUSION.scripts['DIFFER'] = {
         {type:'StrategyObject', dataLink: 'DIFFER', renderAs: '', dataField: 'Differ', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var DIFFERController  = function (context, inputs, outputs) {
+        var DIFFERController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 this.Differ.setValue(INDEX, 0);
                 this.Differ.setStrength(INDEX,0);
 
@@ -3794,20 +3809,20 @@ FUSION.scripts['EQUITY'] = {
         {type:'SeriesObject', dataLink: 'EQUITY', renderAs: 'Line', dataField: 'EQUITY', color: '#2d566d', width: 2, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var EQUITYController  = function (context, inputs, outputs) {
+        var EQUITYController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.PSMax = 0.0;
                 this.PSMaxPrice = 0.0;
             }
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 if (!this.PRICE.getValue(INDEX)) return;
                 
                 this.EQUITY.setValue(INDEX, 0);
@@ -3981,17 +3996,17 @@ FUSION.scripts['EQUITYSUM'] = {
         {type:'SeriesObject', dataLink: 'EQUITYSUM', renderAs: 'Line', dataField: 'EQUITYSUM', color: '#2d566d', width: 2, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var EQUITYSUMController  = function (context, inputs, outputs) {
+        var EQUITYSUMController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 var sum = 0;
                 for(var k in this.inputs){
                     var v = this[k].getValue(INDEX);
@@ -4052,9 +4067,9 @@ FUSION.scripts['ICHIMOKU']= {
 
 	    ],
 
-	    controller: function (context, inputs, outputs) {
+	    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-	        var ICHIMOKUController = function (context, inputs, outputs) {
+	        var ICHIMOKUController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
 
 	            this.id			= '';
@@ -4062,7 +4077,7 @@ FUSION.scripts['ICHIMOKU']= {
 	            this.inputs 	= inputs;
 	            this.outputs	= outputs;
 
-	            this.init		= function () {
+	            this.init = function (this: any) {
 
 	                this.helper = this.context.createSeries(['S1', 'S2']);
 	                this.S1 = this.context.getRawSeriesWrapper(this.helper, 'S1');
@@ -4070,7 +4085,7 @@ FUSION.scripts['ICHIMOKU']= {
 
 	            }
 	            
-	    		this.ichimokuFunc = function(serH,serL,idx,period) {
+	    		this.ichimokuFunc = function (this: any, serH: any, serL: any, idx: any, period: any) {
                     var max = FUSION.lib.getMax(serH, idx, period);
                     var min  = FUSION.lib.getMin(serL, idx, period)
                     if (max === null || min === null) return null;
@@ -4079,7 +4094,7 @@ FUSION.scripts['ICHIMOKU']= {
 	    			return result;
 	    		}
 
-	            this.calculate	= function (index) {
+	            this.calculate = function (this: any, index: any) {
                     var ts = this.ichimokuFunc(this.HIGH,this.LOW,index,this.TSPERIOD);
                     var ks = this.ichimokuFunc(this.HIGH,this.LOW,index,this.KSPERIOD);
                     
@@ -4181,25 +4196,25 @@ FUSION.scripts['TRADINGTIMEFRAME'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'TRADINGTIMEFRAME', renderAs: 'Line', dataField: 'TTFValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function(context, inputs, outputs) {
-        var TradingTimeFrameController  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var TradingTimeFrameController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
             
-            this.hourToMinutes = function(h) {
+            this.hourToMinutes = function (this: any, h: any) {
                 var hour = h.split(':');
                 var minutes = parseInt(hour[0])*60 + parseInt(hour[1]);
                 return minutes;
             }
 
-            this.timeToMinutes = function(date) {
+            this.timeToMinutes = function (this: any, date: any) {
                 return date.getUTCMinutes() + 60 * date.getUTCHours();
             }
             
-            this.init = function() {
+            this.init = function (this: any) {
                 this.timeFrame = []
                 var start = this.hourToMinutes(this.inputs.START_TIME);
                 var stop = this.hourToMinutes(this.inputs.STOP_TIME);
@@ -4217,11 +4232,11 @@ FUSION.scripts['TRADINGTIMEFRAME'] = {
                 }
             }
 
-            this.onModify = function() {
+            this.onModify = function (this: any) {
                 this.init();
             }
 
-            this.calculate = function(index) {
+            this.calculate = function (this: any, index: any) {
                 this.TTFValue.setValue(index, 0);
                 
                 var timeLong = this.TTFValue.getStamp(index) - 60000*this.inputs.TIMEZONE_OFFSET;
@@ -4290,15 +4305,15 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
             {type:'CandlestickPatternStrategyObject', dataLink: 'CANDLESTICKPATTERNS', renderAs: '', dataField: 'CANDLESTICKPATTERNS', color: '#ff0000', width: 1, dash:[]}
         ],
 
-    controller: function (context, inputs, outputs) {
-        var CandlestickPatternsController = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var CandlestickPatternsController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.LLV = function (data, periods, index) {
+            this.LLV = function (this: any, data: any, periods: any, index: any) {
                 if (index < periods - 1) {
                     return data.getValue(index);
                 }
@@ -4311,7 +4326,7 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
                 return min;
             }
 
-            this.HHV = function (data, periods, index) {
+            this.HHV = function (this: any, data: any, periods: any, index: any) {
                 if (index < periods - 1) {
                     return data.getValue(index);
                 }
@@ -4323,7 +4338,7 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
                 return max;
             }
 
-            this.absOC = function (OPEN, CLOSE) {
+            this.absOC = function (this: any, OPEN: any, CLOSE: any) {
                 var helper = this.context.createSeries(['ABSOC']);
                 var absOC = this.context.getRawSeriesWrapper(helper, 'ABSOC');
                 var BACK = this.CLOSE.length;
@@ -4336,7 +4351,7 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
             }
 
 
-            this.isInRange = function (rangeStart, rangeEnd, value) {
+            this.isInRange = function (this: any, rangeStart: any, rangeEnd: any, value: any) {
                 if (rangeStart > rangeEnd) {
                     var tmp = rangeStart;
                     rangeStart = rangeEnd;
@@ -4347,7 +4362,7 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
 
             }
 
-            this.init = function () {
+            this.init = function (this: any) {
                 var CONTEXT = this.context;
                 this.helper = this.context.createSeries(['SMA', 'SMAABSOC', 'ATR', 'TRUERANGE', 'AU', 'AD', 'MAU', 'MAD', 
                     'RSIBaseHI', 'RSIBaseLO', 'RSI', 'tempLongs', 'tempShorts', 'stopLong', 'stopShort', 'isLong', 'CEX'
@@ -4381,7 +4396,7 @@ FUSION.scripts['CANDLESTICKPATTERNS'] = {
                 this.RATE = 5;
             }
 
-            this.calculate = function (INDEX) {
+            this.calculate = function (this: any, INDEX: any) {
                 var CONTEXT = this.context;
                 var OPEN = this.OPEN;
                 var HIGH = this.HIGH;
@@ -4742,16 +4757,16 @@ FUSION.scripts['MMA'] = {
         { type: 'SeriesObject', dataLink: 'MMA', renderAs: 'Line', dataField: 'MMA', color: '#ff9800', width: 1.5, dash: [] }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var MMAController = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var MMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.MMA.setValue(index, FUSION.lib.getMMA(this.CLOSE, index, this.PERIODS, this.MMA));
             };
         };
@@ -4786,18 +4801,18 @@ FUSION.scripts['DPO'] = {
     plotters: [
         { type: 'SeriesObject', dataLink: 'DPO', renderAs: 'Line', dataField: 'DPOValue', color: '#03a9f4', width: 1.5, dash: [], priceTag: true }
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var DPOController = function (context, inputs, outputs) {
+        var DPOController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var ma = FUSION.lib.getMA(this.CLOSE, index, this.PERIODS);
                 if (close === null || ma === null) return;
@@ -4841,16 +4856,16 @@ FUSION.scripts['DMA'] = {
         dash: []
     }],
 
-    controller: function (context, inputs, outputs) {
-        var DMAController = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var DMAController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (index < this.PERIODS) {
                     return;
                 } else if (index < (this.DISPLACEMENT + this.PERIODS)) {
@@ -4894,17 +4909,17 @@ FUSION.scripts['DINAPOLIDETRENDOSCILLATOR'] = {
     plotters: [
         { type: 'SeriesObject', dataLink: 'DPO', renderAs: 'Line', dataField: 'DPOValue', color: '#03a9f4', width: 1.5, dash: [], priceTag: true }
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var Controller = function (context, inputs, outputs) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var ma = FUSION.lib.getMA(this.CLOSE, index, this.PERIODS);
                 if (close === null || ma === null) return;
@@ -4949,8 +4964,8 @@ FUSION.scripts['DINAPOLI3X3'] = {
         priceTag: true
     }],
 
-    controller: function (context, inputs, outputs) {
-        var DiNapoli3x3Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var DiNapoli3x3Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id = '';
             this.context = context;
@@ -4958,9 +4973,9 @@ FUSION.scripts['DINAPOLI3X3'] = {
             this.outputs = outputs;
             this.PERIODS = 3;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.DiNapoli3X3Value.setValue(index + this.PERIODS, FUSION.lib.getMA(this.CLOSE, index, this.PERIODS));
             }
         };
@@ -5008,21 +5023,21 @@ FUSION.scripts['DINAPOLIPREFERREDSTOCHASTIC'] = {
         { type: 'SeriesObject', dataLink: 'SO', renderAs: 'Line', dataField: 'SOBaseLO', color: '#607d8b', width: 1, dash: [], priceTag: false, priceLine: false },
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var SOController = function (context, inputs, outputs) {
+        var SOController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['KSERIES']);
                 this.KSERIES = this.context.getRawSeriesWrapper(this.helper, 'KSERIES');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null || this.HIGH.getValue(index) === null || this.LOW.getValue(index) === null) return;
                 this.SOBaseHI.setValue(index, this.HI_BASELINE);
                 this.SOBaseLO.setValue(index, this.LO_BASELINE);
@@ -5077,22 +5092,22 @@ FUSION.scripts['DINAPOLIMACD'] = {
         { type: 'SeriesObject', dataLink: 'MACD', renderAs: 'Line', dataField: 'MACDLine', color: '#03a9f4', width: 1.5, dash: [], priceTag: true, priceLine: false }
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MACDController = function (context, inputs, outputs) {
+        var MACDController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['EMAF', 'EMAS', 'EMAG']);
                 this.EMAF = this.context.getRawSeriesWrapper(this.helper, 'EMAF');
                 this.EMAS = this.context.getRawSeriesWrapper(this.helper, 'EMAS');
                 this.EMAG = this.context.getRawSeriesWrapper(this.helper, 'EMAG');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.EMAF.setValue(index, FUSION.lib.getMMA(this.CLOSE, index, 1 / this.SMOOTHINGFACTOR1, this.EMAF));
                 this.EMAS.setValue(index, FUSION.lib.getMMA(this.CLOSE, index, 1 / this.SMOOTHINGFACTOR2, this.EMAS));
 
@@ -5141,15 +5156,15 @@ FUSION.scripts['DINAPOLIMACDPREDICTOR'] = {
         { type: 'SeriesObject', dataLink: 'MACDPredictor', renderAs: 'Line', dataField: 'MACDPredictorValue', color: '#f44336', width: 1.5, dash: [], priceTag: true, priceLine: false }
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var MACDPredictorController = function (context, inputs, outputs) {
+        var MACDPredictorController: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['EMA1', 'EMA2', 'MACD', 'SIGNAL']);
                 this.EMA1 = this.context.getRawSeriesWrapper(this.helper, 'EMA1');
                 this.EMA2 = this.context.getRawSeriesWrapper(this.helper, 'EMA2');
@@ -5161,7 +5176,7 @@ FUSION.scripts['DINAPOLIMACDPREDICTOR'] = {
                 this.SIGNALLINESMOOTHINGFACTOR = 0.199;
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var ema1Periods = 8;
                 var ema2Periods = 18;
                 var signalPeriods = 9;
@@ -5237,15 +5252,15 @@ FUSION.scripts['DOP'] = {
         { type: 'SeriesObject', dataLink: 'DOP', renderAs: 'Line', dataField: 'Low', color: '#03a9f4', width: 1.5, dash: [], priceTag: true, priceLine: false }
     ],
 
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var c = function (context, inputs, outputs) {
+        var c: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'peaks1',
                     'peaks2',
@@ -5263,7 +5278,7 @@ FUSION.scripts['DOP'] = {
                 this.PERIOD = 7;
             }
 
-            this.calculate = function (index) {               
+            this.calculate = function (this: any, index: any) {               
                 var ma7 = FUSION.lib.getMA(this.CLOSE, index, this.PERIOD);
                 if (ma7 === null) return; 
                 var detrendOscillatorValue = this.CLOSE.getValue(index) - ma7;
@@ -5375,16 +5390,16 @@ FUSION.scripts['FORWARD'] = {
         {type:'SeriesObject', dataLink: 'FORWARD', renderAs: 'Line', dataField: 'ForwardValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
     
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = "";
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function() {};
+            this.init = function (this: any) {};
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null) return;
                 var INTEREST1 = this.INTEREST1 / 100;
                 var INTEREST2 = this.INTEREST2 / 100;
@@ -5427,21 +5442,21 @@ FUSION.scripts['FORECAST'] = {
         {type:'SeriesObject', dataLink: 'FORECAST', renderAs: 'Band', upperField: 'ForecastUpper', lowerField: 'ForecastLower', color: '#5b6f8b', width: 1, dash: [0,0]},
     ],
     
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = "";
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
                 this.returnRate = this.context.getRawSeriesWrapper(this.helper, 'returnRate');
             }
 
-            this.calculate = function (index) {                
+            this.calculate = function (this: any, index: any) {                
                 var shiftedIndex = (this.CLOSE.getSeriesLength() - 1 - this.SHIFT);
 
                 if (index >= shiftedIndex - this.PERIODS) {
@@ -5502,14 +5517,14 @@ FUSION.scripts['VARBANDS'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'VARBANDS', renderAs: 'Band', upperField: 'VarbandsUpper', lowerField: 'VarbandsLower', color: '#5b6f8b', width: 1, dash: [0,0]},
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id = "";
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
@@ -5517,7 +5532,7 @@ FUSION.scripts['VARBANDS'] = {
                 this.PROBABILITY = (1 - this.PROBABILITY_PERCENT / 100) / 2;
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.returnRate.setValue(index, FUSION.lib.getReturnRate(this.CLOSE, index));
 
                 if (index === this.CLOSE.getSeriesLength() - 1) {
@@ -5575,14 +5590,14 @@ FUSION.scripts['DECISIONLONGBUY'] = {
         {type:'SeriesObject', dataLink: 'SMA', renderAs: 'Line', dataField: 'SMAValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
@@ -5592,7 +5607,7 @@ FUSION.scripts['DECISIONLONGBUY'] = {
                 this.PROGNOSIS_PERIODS = 480;
                 this.PROBABILITY = (1 - 50 / 100) / 2;;
             }
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var signal = FUSION.DO_NOTHING;
                 this.SMAValue.setValue(index, FUSION.lib.getMA(this.CLOSE, index, this.PROGNOSIS_PERIODS));
                 this.returnRate.setValue(index, FUSION.lib.getReturnRate(this.CLOSE, index));
@@ -5647,14 +5662,14 @@ FUSION.scripts['DECISIONLONGSELL'] = {
         {type:'SeriesObject', dataLink: 'SMA', renderAs: 'Line', dataField: 'SMAValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
@@ -5664,7 +5679,7 @@ FUSION.scripts['DECISIONLONGSELL'] = {
                 this.PROGNOSIS_PERIODS = 480;
                 this.PROBABILITY = (1 - 50 / 100) / 2;;
             }
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var signal = FUSION.DO_NOTHING;
                 this.SMAValue.setValue(index, FUSION.lib.getMA(this.CLOSE, index, this.PROGNOSIS_PERIODS));
                 this.returnRate.setValue(index, FUSION.lib.getReturnRate(this.CLOSE, index));
@@ -5721,14 +5736,14 @@ FUSION.scripts['DECISIONSHORTBUY'] = {
         {type:'SeriesObject', dataLink: 'SMA', renderAs: 'Line', dataField: 'SMAValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
@@ -5738,7 +5753,7 @@ FUSION.scripts['DECISIONSHORTBUY'] = {
                 this.PROGNOSIS_PERIODS = 120;
                 this.PROBABILITY = (1 - 50 / 100) / 2;;
             }
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var signal = FUSION.DO_NOTHING;
                 this.SMAValue.setValue(index, FUSION.lib.getMA(this.CLOSE, index, this.PROGNOSIS_PERIODS));
                 this.returnRate.setValue(index, FUSION.lib.getReturnRate(this.CLOSE, index));
@@ -5793,14 +5808,14 @@ FUSION.scripts['DECISIONSHORTSELL'] = {
         {type:'SeriesObject', dataLink: 'SMA', renderAs: 'Line', dataField: 'SMAValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'returnRate'
                 ]);
@@ -5810,7 +5825,7 @@ FUSION.scripts['DECISIONSHORTSELL'] = {
                 this.PROGNOSIS_PERIODS = 120;
                 this.PROBABILITY = (1 - 50 / 100) / 2;
             }
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var signal = FUSION.DO_NOTHING;
                 this.SMAValue.setValue(index, FUSION.lib.getMA(this.CLOSE, index, this.PROGNOSIS_PERIODS));
                 this.returnRate.setValue(index, FUSION.lib.getReturnRate(this.CLOSE, index));
@@ -5854,27 +5869,27 @@ FUSION.scripts['SIGNALDISTANCE'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'DISTANCE', renderAs: 'Line', dataField: 'SignalDistanceValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var Controller  = function (context, inputs, outputs) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'lastSignal'
                 ]);
                 this.lastSignal = this.context.getRawSeriesWrapper(this.helper, 'lastSignal');
             }
 
-            this.onModify = function () {
+            this.onModify = function (this: any) {
                 this.init();
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var lastSignal = this.lastSignal.getValue(index - 1); 
 
                 if (this.STRATEGY.getValue(index)) {
@@ -5918,27 +5933,27 @@ FUSION.scripts['ACCUMULATION'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'ACCUMULATION', renderAs: 'Line', dataField: 'AccumulationValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
 
-        var Controller  = function (context, inputs, outputs) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
 
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'lastSignal'
                 ]);
                 this.lastSignal = this.context.getRawSeriesWrapper(this.helper, 'lastSignal');
             }
 
-            this.onModify = function () {
+            this.onModify = function (this: any) {
                 this.init();
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.INDICATOR.getValue(index) === null) return;
                 this.AccumulationValue.setValue(index, this.AccumulationValue.getValue(index - 1) + this.INDICATOR.getValue(index));
             }
@@ -5976,22 +5991,22 @@ FUSION.scripts['PRICELEVELS'] = {
         {type:'SeriesObject', dataLink: 'PRICELEVELS', renderAs: 'Line', dataField: 'PriceLevels', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.percentDistance = this.DISTANCE * 0.01;
             }
 
-            this.onModify = function () {
+            this.onModify = function (this: any) {
                 this.init();
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var lastPriceLevels = this.PriceLevels.getValue(index - 1);
                 var close = this.CLOSE.getValue(index);
 
@@ -6040,16 +6055,16 @@ FUSION.scripts['OBV'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'OBV', renderAs: 'Line', dataField: 'OBVValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var volume = this.VOLUME.getValue(index);
@@ -6096,16 +6111,16 @@ FUSION.scripts['ADL'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'ADL', renderAs: 'Line', dataField: 'ADLValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
                 var close = this.CLOSE.getValue(index);
@@ -6152,14 +6167,14 @@ FUSION.scripts['CMF'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'CMF', renderAs: 'Line', dataField: 'CMFValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'ADL',
                     'ADLSum',
@@ -6170,7 +6185,7 @@ FUSION.scripts['CMF'] = {
                 this.VolumeSum = this.context.getRawSeriesWrapper(this.helper, 'VolumeSum');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
                 var close = this.CLOSE.getValue(index);
@@ -6226,16 +6241,16 @@ FUSION.scripts['NVI'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'NVI', renderAs: 'Line', dataField: 'NVIValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var volume = this.VOLUME.getValue(index);
@@ -6278,16 +6293,16 @@ FUSION.scripts['PVI'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'PVI', renderAs: 'Line', dataField: 'PVIValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var volume = this.VOLUME.getValue(index);
@@ -6333,18 +6348,18 @@ FUSION.scripts['ZIGZAG'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'ZIGZAG', renderAs: 'Line', dataField: 'ZIGZAGValue', color: '#ff9800', width: 1.5, dash:[]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.onModify = function () {
+            this.onModify = function (this: any) {
                 this.init();
             }
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'lastPeak',
                     'lastThrough',
@@ -6359,7 +6374,7 @@ FUSION.scripts['ZIGZAG'] = {
                 this.lastExtremeType = this.context.getRawSeriesWrapper(this.helper, 'lastExtremeType');
                 this.change = this.PERCENT / 100;
 
-                this.addValuesInBetween = function (startIndex, endIndex, startValue, endValue) {
+                this.addValuesInBetween = function (this: any, startIndex: any, endIndex: any, startValue: any, endValue: any) {
                     var a = (startValue - endValue) / (startIndex - endIndex);
                     var b = startValue - a * startIndex;
                     for (var i = startIndex + 1; i < endIndex; ++i) {
@@ -6367,7 +6382,7 @@ FUSION.scripts['ZIGZAG'] = {
                     }
                 }
 
-                this.calculateWhenLastWasPeak = function (index) {
+                this.calculateWhenLastWasPeak = function (this: any, index: any) {
                     var high = this.HIGH.getValue(index);
                     var low = this.LOW.getValue(index);
                     var lastPeak = this.lastPeak.getValue(index - 1) || high;
@@ -6402,7 +6417,7 @@ FUSION.scripts['ZIGZAG'] = {
                     }
                 }.bind(this);
 
-                this.calculateWhenLastWasThrough = function (index) {
+                this.calculateWhenLastWasThrough = function (this: any, index: any) {
                     var high = this.HIGH.getValue(index);
                     var low = this.LOW.getValue(index);
                     var lastPeak = this.lastPeak.getValue(index - 1) || high;
@@ -6438,7 +6453,7 @@ FUSION.scripts['ZIGZAG'] = {
                     }
                 }.bind(this);
 
-                this.calculateWhenLastWasUnknown = function (index, lastWasThrough) {
+                this.calculateWhenLastWasUnknown = function (this: any, index: any, lastWasThrough: any) {
                     var high = this.HIGH.getValue(index);
                     var low = this.LOW.getValue(index);
                     var lastPeak = this.lastPeak.getValue(index - 1) || high;
@@ -6484,7 +6499,7 @@ FUSION.scripts['ZIGZAG'] = {
                 }.bind(this);
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var lastExtremeType = this.lastExtremeType.getValue(index - 1);
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
@@ -6551,15 +6566,15 @@ FUSION.scripts['PIVOTPOINTS'] = {
         {type:'SeriesObject', dataLink: 'PIVOTPOINTS', renderAs: 'Line', dataField: 'Resistance2', color: '#f44336', width: 1.5, dash:[1, 4]},
         {type:'SeriesObject', dataLink: 'PIVOTPOINTS', renderAs: 'Line', dataField: 'Resistance3', color: '#f44336', width: 1.5, dash:[1, 8]}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
-                var getInterval = function (interval, availableIntervals) {
+            this.init = function (this: any) {
+                var getInterval = function (interval: FusionRecord, availableIntervals: FusionRecord[]) {
                     var pivotInterval = {};
                     if (interval.symbol === "1m" || interval.symbol === "5m" || interval.symbol === "15m") {
                         pivotInterval = {
@@ -6586,7 +6601,7 @@ FUSION.scripts['PIVOTPOINTS'] = {
                     return FUSION.lib.getBestMatchingInterval(pivotInterval, availableIntervals);
                 };
 
-                return new Promise(function (resolve, reject) {
+                return new Promise(function (this: any, resolve: any, reject: any) {
                     var instrument = this.CLOSE.getInstrument();
                     var interval = this.CLOSE.getInterval();
 
@@ -6601,7 +6616,7 @@ FUSION.scripts['PIVOTPOINTS'] = {
                     FUSION.lib.loadInstrumentCandles(
                         instrument,
                         getInterval(interval, instrument.availableIntervals), 
-                        function(data) {
+                        function(this: any, data: FusionRecord) {
                             this.data = data.candles;
                             resolve();
                         }.bind(this),
@@ -6614,7 +6629,7 @@ FUSION.scripts['PIVOTPOINTS'] = {
                 await this.init();
             }
 
-            this.getCandle = function (index) {
+            this.getCandle = function (this: any, index: any) {
                 var stamp = this.CLOSE.getStamp(index);
 
                 for (var i = this.data.length - 1; i > 0; --i) {
@@ -6626,7 +6641,7 @@ FUSION.scripts['PIVOTPOINTS'] = {
                 return {};
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (!this.data || this.data.length === 0) return;
 
                 var candle = this.getCandle(index);
@@ -6682,15 +6697,15 @@ FUSION.scripts['PIVOTPOINTSHL'] = {
         {type:'StrategyObject', dataLink: 'PIVOTPOINTSHL', renderAs: '', dataField: 'PivotPointsHL', color: '#ff0000', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init = function () {}
-            this.calculate = function (index) {
+            this.init = function (this: any) {}
+            this.calculate = function (this: any, index: any) {
                 this.PivotPointsHL.setValue(index, FUSION.DO_NOTHING);
 
                 if (FUSION.lib.isHighBar(this.HIGH, index, this.PERIODS)) {
@@ -6740,16 +6755,16 @@ FUSION.scripts['WILLIAMSPERCENTRANGE'] = {
         {type:'SeriesObject', dataLink: 'WILLIAMSPERCENTRANGE', renderAs: 'Line', dataField: 'BaseLO', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs= outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.BaseHI.setValue(index, this.HI_BASELINE);
                 this.BaseLO.setValue(index, this.LO_BASELINE);
 
@@ -6789,16 +6804,16 @@ FUSION.scripts['FORCEINDEX'] = {
     plotters: [
         {type:'SeriesObject', dataLink: 'FI', renderAs: 'Line', dataField: 'ForceIndex', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var volume = this.VOLUME.getValue(index);
@@ -6843,21 +6858,21 @@ FUSION.scripts['KELTNERCHANNEL'] = {
         {type:'SeriesObject', dataLink: 'KELTNERCHANNEL', renderAs: 'Band', upperField: 'Upper', lowerField: 'Lower', color: '#5b6f8b', width: 1, dash: [0,0]},
         {type:'SeriesObject', dataLink: 'KELTNERCHANNEL', renderAs: 'Line', dataField: 'Middle', color: '#425166', width: 1, dash: [0,0], priceTag: false, priceLine: false}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['TRUERANGE', 'ATR', 'EMA']);
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
                 this.ATR = this.context.getRawSeriesWrapper(this.helper, 'ATR');
                 this.EMA = this.context.getRawSeriesWrapper(this.helper, 'EMA');
             }            
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.TRUERANGE.setValue(index, FUSION.lib.getTrueRange(this.HIGH, this.LOW, this.CLOSE, index));
 
                 var ema = FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA);
@@ -6905,16 +6920,16 @@ FUSION.scripts['DONCHIANCHANNEL'] = {
         {type:'SeriesObject', dataLink: 'DONCHIANCHANNEL', renderAs: 'Band', upperField: 'Upper', lowerField: 'Lower', color: '#3f51b5', width: 1, dash: [0,0]},
         {type:'SeriesObject', dataLink: 'DONCHIANCHANNEL', renderAs: 'Line', dataField: 'Middle', color: '#e91e63', width: 1.5, dash: [0,0], priceTag: false, priceLine: false}
     ],
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = FUSION.lib.getMax(this.HIGH, index, this.PERIODS);
                 var low = FUSION.lib.getMin(this.LOW, index, this.PERIODS);
                 if (high === null || low === null || index < this.PERIODS) return;
@@ -6957,14 +6972,14 @@ FUSION.scripts['MASSINDEX'] = {
         {type:'SeriesObject', dataLink: 'MASSINDEX', renderAs: 'Line', dataField: 'MassIndex', color: '#f44336', width: 1, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['HL', 'EMAHL', 'EMAEMAHL', 'MISUMMANDS', 'MI']);
                 this.HL = this.context.getRawSeriesWrapper(this.helper, 'HL');
                 this.EMAHL = this.context.getRawSeriesWrapper(this.helper, 'EMAHL');
@@ -6973,7 +6988,7 @@ FUSION.scripts['MASSINDEX'] = {
                 this.MI = this.context.getRawSeriesWrapper(this.helper, 'MI');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
                 if (high === null || low === null) return;
@@ -7030,21 +7045,21 @@ FUSION.scripts['TRIPLEEMA'] = {
         {type:'SeriesObject', dataLink: 'TRIPLEEMA', renderAs: 'Line', dataField: 'TripleEma', color: '#f44336', width: 1, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['EMAC', 'EMAEMAC', 'EMAEMAEMAC']);
                 this.EMAC = this.context.getRawSeriesWrapper(this.helper, 'EMAC');
                 this.EMAEMAC = this.context.getRawSeriesWrapper(this.helper, 'EMAEMAC');
                 this.EMAEMAEMAC = this.context.getRawSeriesWrapper(this.helper, 'EMAEMAEMAC');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 if (close === null) return
 
@@ -7098,16 +7113,16 @@ FUSION.scripts['VOLUMEOSCILLATOR'] = {
         {type:'SeriesObject', dataLink: 'VOLUMEOSCILLATOR', renderAs: 'Line', dataField: 'VolumeOscillator', color: '#00bcd4', width: 1.5, dash:[], priceTag: true, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var shortMA = FUSION.lib.getMA(this.VOLUME, index, this.SHORTPERIOD);
                 var longMA = FUSION.lib.getMA(this.VOLUME, index, this.LONGPERIOD);
 
@@ -7148,16 +7163,16 @@ FUSION.scripts['VOLUMEROC'] = {
         {type:'SeriesObject', dataLink: 'VOLUMEROC', renderAs: 'Line', dataField: 'ROC', color: '#00bcd4', width: 1.5, dash:[], priceTag: true, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id			= '';
             this.context	= context;
             this.inputs 	= inputs;
             this.outputs	= outputs;
 
-            this.init		= function () {	}
+            this.init = function (this: any) {	}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.VOLUME.getValue(index) === null) return;
 
                 var dis = FUSION.lib.displace(this.VOLUME, index, this.PERIODS);
@@ -7215,16 +7230,16 @@ FUSION.scripts['ALMA'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null || index < this.PERIODS - 1) return;
 
                 let eq = 0;
@@ -7308,16 +7323,16 @@ FUSION.scripts['AROON'] = {
         },
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.HIGH.getValue(index) === null || index < this.PERIODS - 1) return;
 
                 let aroonUp = 100 * ((this.PERIODS - index + FUSION.lib.getMaxIndex(this.HIGH, index, this.PERIODS)) / this.PERIODS);
@@ -7371,21 +7386,21 @@ FUSION.scripts['AWESOMEOSCILLATOR'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.minPeriod = 5;
                 this.maxPeriod = 34;
                 this.helper = this.context.createSeries(['MEDIAN']);
                 this.MEDIAN = this.context.getRawSeriesWrapper(this.helper, 'MEDIAN');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.HIGH.getValue(index) === null || this.LOW.getValue(index) == null) return;
 
                 this.MEDIAN.setValue(index, (this.HIGH.getValue(index) + this.LOW.getValue(index)) / 2);
@@ -7445,16 +7460,16 @@ FUSION.scripts['BALANCEOFPOWER'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.OPEN.getValue(index) === null || this.HIGH.getValue(index) === null || this.LOW.getValue(index) == null || this.CLOSE.getValue(index) === null) return;
 
                 this.BALANCEOFPOWER.setValue(index, (this.CLOSE.getValue(index) - this.OPEN.getValue(index)) / (this.HIGH.getValue(index) - this.LOW.getValue(index)));
@@ -7498,16 +7513,16 @@ FUSION.scripts['BBANDSPERCENT'] = {
         {type:'SeriesObject', dataLink: 'BBANDSPERCENT', renderAs: 'Line', dataField: 'BBMiddle', color: '#03a9f4', width: 1, dash: [0,0], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null) return;
 
                 var sma = FUSION.lib.getMA (this.CLOSE, index, this.PERIODS);
@@ -7569,16 +7584,16 @@ FUSION.scripts['BBANDSWIDTH'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 if (this.CLOSE.getValue(index) === null) return;
 
                 var sma = FUSION.lib.getMA (this.CLOSE, index, this.PERIODS);
@@ -7638,14 +7653,14 @@ FUSION.scripts['CHAIKINOSCILLATOR'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'ADL',
                     'EMA1',
@@ -7656,7 +7671,7 @@ FUSION.scripts['CHAIKINOSCILLATOR'] = {
                 this.EMA2 = this.context.getRawSeriesWrapper(this.helper, 'EMA2');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
                 var close = this.CLOSE.getValue(index);
@@ -7716,14 +7731,14 @@ FUSION.scripts['CHANDEKROLLSTOP'] = {
         {type:'SeriesObject', dataLink: 'CHANDEKROLLSTOP', renderAs: 'Line', dataField: 'CHANDEKROLLSTOP_DOWN', color: '#4caf50', width: 1.5, dash:[], priceTag: false, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['TRUERANGE, ATR, FIRSTHIGHSTOP, FIRSTLOWSTOP']);
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
                 this.ATR = this.context.getRawSeriesWrapper(this.helper, 'ATR');
@@ -7731,7 +7746,7 @@ FUSION.scripts['CHANDEKROLLSTOP'] = {
                 this.FIRSTLOWSTOP = this.context.getRawSeriesWrapper(this.helper, 'FIRSTLOWSTOP');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.TRUERANGE.setValue(index, FUSION.lib.getTrueRange(this.HIGH, this.LOW, this.CLOSE, index));
 
                 var atr = FUSION.lib.getMMA(this.TRUERANGE, index, this.P, this.ATR);
@@ -7800,14 +7815,14 @@ FUSION.scripts['CHANDEMOMENTUMOSCILLATOR'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'SUMUP',
                     'UPVALUE',
@@ -7820,7 +7835,7 @@ FUSION.scripts['CHANDEMOMENTUMOSCILLATOR'] = {
                 this.DOWNVALUE = this.context.getRawSeriesWrapper(this.helper, 'DOWNVALUE');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var close = this.CLOSE.getValue(index);
                 var upValue = 0;
@@ -7891,21 +7906,21 @@ FUSION.scripts['CHOPPINESSINDEX'] = {
         {type:'SeriesObject', dataLink: 'CHOPPINESSINDEX', renderAs: 'Line', dataField: 'LOWERBAND', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs= outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['TRUERANGE, ATR', 'ATRSUM']);
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
                 this.ATR = this.context.getRawSeriesWrapper(this.helper, 'ATR');
                 this.ATRSUM = this.context.getRawSeriesWrapper(this.helper, 'ATRSUM');
             }
 
-            this.calculate= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.TRUERANGE.setValue(index, FUSION.lib.getTrueRange(this.HIGH, this.LOW, this.CLOSE, index));
                 this.ATR.setValue(index, FUSION.lib.getMMA(this.TRUERANGE, index, 1, this.ATR));
                 this.UPPERBAND.setValue(index, this.UPPERBANDVALUE);
@@ -7961,14 +7976,14 @@ FUSION.scripts['CONNORSRSI'] = {
         {type:'SeriesObject', dataLink: 'CONNORSRSI', renderAs: 'Line', dataField: 'LOWERBAND', color: '#607d8b', width: 1, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs= outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['AU', 'AD', 'MAU', 'MAD', 'RSI, UPDOWNLENGTH', 'UPDOWNLENGTHAU', 'UPDOWNLENGTHAD', 'UPDOWNLENGTHMAU', 'UPDOWNLENGTHMAD', 'UPDOWNLENGTHRSI', 'ROC']);
 
                 // RSI
@@ -7988,7 +8003,7 @@ FUSION.scripts['CONNORSRSI'] = {
                 this.ROC = this.context.getRawSeriesWrapper(this.helper, 'ROC');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.UPPERBAND.setValue(index, this.UPPERBANDVALUE);
                 this.LOWERBAND.setValue(index, this.LOWERBANDVALUE);
 
@@ -8078,21 +8093,21 @@ FUSION.scripts['COPPOCKCURVE'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'ROCSUM',
                 ]);
                 this.ROCSUM = this.context.getRawSeriesWrapper(this.helper, 'ROCSUM');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var shortROC = FUSION.lib.getPercentageROC(index, this.CLOSE, this.SHORTROCPERIOD);
                 var longROC = FUSION.lib.getPercentageROC(index, this.CLOSE, this.LONGROCPERIOD);
 
@@ -8145,14 +8160,14 @@ FUSION.scripts['CORRELATIONCOEFFICIENT'] = {
         }
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'SQUAREDCLOSE',
                     'SQUAREDCLOSE2',
@@ -8174,7 +8189,7 @@ FUSION.scripts['CORRELATIONCOEFFICIENT'] = {
                 this.MULTIPLIEDCLOSESSUM = this.context.getRawSeriesWrapper(this.helper, 'MULTIPLIEDCLOSESSUM');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var close2 = this.CLOSE2.getValue(index);
 
@@ -8235,14 +8250,14 @@ FUSION.scripts['DOUBLEEMA'] = {
         {type:'SeriesObject', dataLink: 'DOUBLEEMA', renderAs: 'Line', dataField: 'DOUBLEEMA', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'EMA',
                     'EMAEMA'
@@ -8252,7 +8267,7 @@ FUSION.scripts['DOUBLEEMA'] = {
                 this.EMAEMA = this.context.getRawSeriesWrapper(this.helper, 'EMAEMA');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var ema = FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA);
                 this.EMA.setValue(index, ema);
 
@@ -8300,14 +8315,14 @@ FUSION.scripts['EASEOFMOVEMENT'] = {
         {type:'SeriesObject', dataLink: 'EASEOFMOVEMENT', renderAs: 'Line', dataField: 'EASEOFMOVEMENT', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'EOM',
                 ]);
@@ -8315,7 +8330,7 @@ FUSION.scripts['EASEOFMOVEMENT'] = {
                 this.EOM = this.context.getRawSeriesWrapper(this.helper, 'EOM');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var low = this.LOW.getValue(index);
                 var volume = this.VOLUME.getValue(index);
@@ -8370,14 +8385,14 @@ FUSION.scripts['ELDERSFORCEINDEX'] = {
         {type:'SeriesObject', dataLink: 'ELDERSFORCEINDEX', renderAs: 'Line', dataField: 'ELDERSFORCEINDEX', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'EFI',
                 ]);
@@ -8385,7 +8400,7 @@ FUSION.scripts['ELDERSFORCEINDEX'] = {
                 this.EFI = this.context.getRawSeriesWrapper(this.helper, 'EFI');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 var volume = this.VOLUME.getValue(index);
@@ -8431,14 +8446,14 @@ FUSION.scripts['FISHERTRANSFORM'] = {
         {type:'SeriesObject', dataLink: 'FISHERTRANSFORM', renderAs: 'Line', dataField: 'FISHERTRANSFORMTRIGGER', color: '#ff9800', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'X',
                     'PRICE'
@@ -8448,13 +8463,13 @@ FUSION.scripts['FISHERTRANSFORM'] = {
                 this.PRICE = this.context.getRawSeriesWrapper(this.helper, 'PRICE');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var price = (this.HIGH.getValue(index) + this.LOW.getValue(index)) / 2;
                 this.PRICE.setValue(index, price);
                 
                 if (index < this.PERIODS) return;
 
-                var round = (val) => val > .99 ? .999 : val < -.99 ? -.999 : val;
+                var round = (val: any) => val > .99 ? .999 : val < -.99 ? -.999 : val;
                 
                 var max = FUSION.lib.getMax(this.PRICE, index, this.PERIODS);
                 var min = FUSION.lib.getMin(this.PRICE, index, this.PERIODS);
@@ -8500,21 +8515,21 @@ FUSION.scripts['HISTORICALVOLATILITY'] = {
         {type:'SeriesObject', dataLink: 'HISTORICALVOLATILITY', renderAs: 'Line', dataField: 'HISTORICALVOLATILITY', color: '#03a9f4', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'X',
                 ]);
                 this.X = this.context.getRawSeriesWrapper(this.helper, 'X');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var x = this.CLOSE.getValue(index) / this.CLOSE.getValue(index - 1) - 1;
                 this.X.setValue(index, x);
                 
@@ -8556,21 +8571,21 @@ FUSION.scripts['NETVOLUME'] = {
         {type:'SeriesObject', dataLink: 'NETVOLUME', renderAs: 'Line', dataField: 'NETVOLUME', color: '#03a9f4', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function(context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs	= inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries([
                     'X',
                 ]);
                 this.X = this.context.getRawSeriesWrapper(this.helper, 'X');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
                 
@@ -8619,14 +8634,14 @@ FUSION.scripts['TSI'] = {
         {type:'SeriesObject', dataLink: 'TSI', renderAs: 'Line', dataField: 'TSISIGNAL', color: '#e91e63', width: 1, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['PC', 'APC', 'PCS', 'PCDS', 'APCS', 'APCDS']);
                 this.PC = this.context.getRawSeriesWrapper(this.helper, 'PC');
                 this.PCS = this.context.getRawSeriesWrapper(this.helper, 'PCS');
@@ -8636,7 +8651,7 @@ FUSION.scripts['TSI'] = {
                 this.APCDS = this.context.getRawSeriesWrapper(this.helper, 'APCDS');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
                 var lastClose = this.CLOSE.getValue(index - 1);
 
@@ -8703,14 +8718,14 @@ FUSION.scripts['VORTEXINDICATOR'] = {
         {type:'SeriesObject', dataLink: 'VORETEXINDICATOR', renderAs: 'Line', dataField: 'VIM', color: '#e91e63', width: 1, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['HL1', 'LH1', 'HL1SUM', 'LH1SUM', 'ATR', 'ATRSUM', 'TRUERANGE']);
                 this.HL1 = this.context.getRawSeriesWrapper(this.helper, 'HL1');
                 this.LH1 = this.context.getRawSeriesWrapper(this.helper, 'LH1');
@@ -8721,7 +8736,7 @@ FUSION.scripts['VORTEXINDICATOR'] = {
                 this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, 'TRUERANGE');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var high = this.HIGH.getValue(index);
                 var lastLow = this.LOW.getValue(index - 1);
                 var low = this.LOW.getValue(index);
@@ -8786,19 +8801,19 @@ FUSION.scripts['VWMA'] = {
         {type:'SeriesObject', dataLink: 'VWMA', renderAs: 'Line', dataField: 'VWMA', color: '#3f51b5', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['CV']);
                 this.CV = this.context.getRawSeriesWrapper(this.helper, 'CV');
             }
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.CV.setValue(index, this.CLOSE.getValue(index) * this.VOLUME.getValue(index));
                 var cvma = FUSION.lib.getMA(this.CV, index, this.PERIODS);
                 var vma = FUSION.lib.getMA(this.VOLUME, index, this.PERIODS);
@@ -8844,16 +8859,16 @@ FUSION.scripts['WILLIAMSALLIGATOR'] = {
         {type:'SeriesObject', dataLink: 'WILLIAMSALLIGATOR', renderAs: 'Line', dataField: 'LIPS', color: '#8bc349', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 var close = this.CLOSE.getValue(index);
 
                 var lastJaw = this.JAW.getValue(index + this.JAWOFFSET - 1);
@@ -8911,16 +8926,16 @@ FUSION.scripts['WILLIAMSFRACTALS'] = {
         {type:'FractalsObject', dataLink: 'WILLIAMSFRACTALS', renderAs: 'Line', dataField: 'WILLIAMSFRACTALS', color: '#03a9f4', width: 1.5, dash:[]},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate = function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.WILLIAMSFRACTALS.setValue(index, 0);
 
                 var high = this.HIGH.getValue(index - this.PERIODS);
@@ -9002,16 +9017,16 @@ FUSION.scripts['OC2'] = {
         {type:'SeriesObject', dataLink: 'OC2', renderAs: 'Line', dataField: 'OC2', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.OC2.setValue(index, (this.OPEN.getValue(index) + this.CLOSE.getValue(index)) / 2);
             }
         };
@@ -9046,16 +9061,16 @@ FUSION.scripts['HL2'] = {
         {type:'SeriesObject', dataLink: 'HL2', renderAs: 'Line', dataField: 'HL2', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.HL2.setValue(index, (this.HIGH.getValue(index) + this.LOW.getValue(index)) / 2);
             }
         };
@@ -9091,16 +9106,16 @@ FUSION.scripts['HLC3'] = {
         {type:'SeriesObject', dataLink: 'HLC3', renderAs: 'Line', dataField: 'HLC3', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.HLC3.setValue(index, (this.HIGH.getValue(index) + this.LOW.getValue(index) + this.CLOSE.getValue(index)) / 3);
             }
         };
@@ -9137,16 +9152,16 @@ FUSION.scripts['OHLC4'] = {
         {type:'SeriesObject', dataLink: 'OHLC4', renderAs: 'Line', dataField: 'OHLC4', color: '#ff9800', width: 1.5, dash:[]}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.OHLC4.setValue(index, (this.OPEN.getValue(index) + this.HIGH.getValue(index) + this.LOW.getValue(index) + this.CLOSE.getValue(index)) / 4);
             }
         };
@@ -9180,16 +9195,16 @@ FUSION.scripts['1x'] = {
         {type:'SeriesObject', dataLink: 'X', renderAs: 'Line', dataField: 'X', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.X.setValue(index, 1 / this.INDICATOR.getValue(index));
             }
         };
@@ -9232,16 +9247,16 @@ FUSION.scripts['SUM'] = {
         {type:'SeriesObject', dataLink: 'SUM', renderAs: 'Line', dataField: 'SUM', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var i1 = FUSION.lib.getConditionalInputValue(this.INDICATOR1, index);
                 var i2 = FUSION.lib.getConditionalInputValue(this.INDICATOR2, index);
                 var i3 = FUSION.lib.getConditionalInputValue(this.INDICATOR3, index);
@@ -9295,16 +9310,16 @@ FUSION.scripts['AVERAGE'] = {
         {type:'SeriesObject', dataLink: 'AVERAGE', renderAs: 'Line', dataField: 'AVERAGE', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var values = [];
 
                 values.push(FUSION.lib.getConditionalInputValue(this.INDICATOR1, index));
@@ -9363,16 +9378,16 @@ FUSION.scripts['STANDARDDEVIATION'] = {
         {type:'SeriesObject', dataLink: 'STANDARDDEVIATION', renderAs: 'Line', dataField: 'STANDARDDEVIATION', color: '#ff9800', width: 1.5, dash:[], priceTag: true, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () { }
+            this.init = function (this: any) { }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 this.STANDARDDEVIATION.setValue(index, FUSION.lib.getStdDev(this.PRICE, index, this.PERIODS));
             }
         };
@@ -9413,16 +9428,16 @@ FUSION.scripts['FIBONACCI'] = {
         {type:'SeriesObject', dataLink: 'FIBONACCI', renderAs: 'Line', dataField: 'FIBONACCI7', color: '#ff9800', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {}
+            this.init = function (this: any) {}
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 var highest = FUSION.lib.getMax(this.HIGH, index, this.PERIODS);
                 var lowest = FUSION.lib.getMin(this.LOW, index, this.PERIODS);
 
@@ -9472,20 +9487,20 @@ FUSION.scripts['SHARPERATIO'] = {
         {type:'SeriesObject', dataLink: 'SHARPERATIO', renderAs: 'Line', dataField: 'ROR', color: '#ee4336', width: 1.5, dash:[], priceTag: false, priceLine: false},
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['RATEOFRETURN', 'RATEOFRETURNSUM', 'STD']);
                 this.RATEOFRETURN = this.context.getRawSeriesWrapper(this.helper, 'RATEOFRETURN');
                 this.RATEOFRETURNSUM = this.context.getRawSeriesWrapper(this.helper, 'RATEOFRETURNSUM');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 const el = this.EL.getValue(index);
                 const prevEl = this.EL.getValue(index - this.RORPERIODS);
 
@@ -9541,20 +9556,20 @@ FUSION.scripts['ROR'] = {
         {type:'SeriesObject', dataLink: 'ROR', renderAs: 'Line', dataField: 'STD', color: '#03a9f4', width: 1.5, dash:[2, 2], priceTag: false, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['RATEOFRETURN', 'RATEOFRETURNSUM']);
                 this.RATEOFRETURN = this.context.getRawSeriesWrapper(this.helper, 'RATEOFRETURN');
                 this.RATEOFRETURNSUM = this.context.getRawSeriesWrapper(this.helper, 'RATEOFRETURNSUM');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 const el = this.PRICE.getValue(index);
                 const prevEl = this.PRICE.getValue(index - this.RORPERIODS);
 
@@ -9612,14 +9627,14 @@ FUSION.scripts['INFORMATIONRATIO'] = {
         {type:'SeriesObject', dataLink: 'INFORMATIONRATIO', renderAs: 'Line', dataField: 'TRACKINGERROR', color: '#03a9f4', width: 1.5, dash:[2, 2], priceTag: false, priceLine: false}
     ],
 
-    controller: function (context, inputs, outputs) {
-        var Controller  = function (context, inputs, outputs) {
+    controller: function (context: CoreFusionRuntime, inputs: Record<string, unknown>, outputs: Record<string, string>) {
+        var Controller: FusionScriptControllerConstructor = function (this: FusionScriptControllerRuntime, context: CoreFusionRuntime, inputs: Record<string, any>, outputs: Record<string, any>) {
             this.id	= '';
             this.context = context;
             this.inputs = inputs;
             this.outputs = outputs;
 
-            this.init = function () {
+            this.init = function (this: any) {
                 this.helper = this.context.createSeries(['RATEOFRETURN', 'RATEOFRETURNSUM', 'BENCHMARKRATEOFRETURN', 'BENCHMARKRATEOFRETURNSUM', 'DIFFERENCE']);
 
                 this.RATEOFRETURN = this.context.getRawSeriesWrapper(this.helper, 'RATEOFRETURN');
@@ -9629,7 +9644,7 @@ FUSION.scripts['INFORMATIONRATIO'] = {
                 this.DIFFERENCE = this.context.getRawSeriesWrapper(this.helper, 'DIFFERENCE');
             }
 
-            this.calculate	= function (index) {
+            this.calculate = function (this: any, index: any) {
                 // PORTFOLIO RETURN
                 const el = this.EL.getValue(index);
                 const prevEl = this.EL.getValue(index - this.RORPERIODS);
@@ -9754,14 +9769,14 @@ FUSION.lib.getBestMatchingInterval = function(originalInterval, availableInterva
   if (!originalInterval) return availableIntervals[0];
 
   const bestDelta = availableIntervals
-      .filter(interval => interval.milis > 0)
-      .map((interval, index) => {
+      .filter((interval: FusionRecord) => interval.milis > 0)
+      .map((interval: FusionRecord, index: number) => {
           return {
               index: index,
               value: Math.abs(originalInterval.milis - interval.milis)
           };
       })
-      .sort((deltaA, deltaB) => deltaA.value - deltaB.value)
+      .sort((deltaA: FusionRecord, deltaB: FusionRecord) => deltaA.value - deltaB.value)
       .slice(0, 1);
   return availableIntervals[bestDelta[0].index];
 };
@@ -9809,7 +9824,7 @@ FUSION.lib.getReturnRate = function (series, index) {
 }
 
 FUSION.lib.inverseNormalDistribution = function(p, mean, std) {
-    function erfcinv(p) {
+    function erfcinv(p: number) {
         var j = 0;
         var x, err, t, pp;
         if (p >= 2) return -100;
@@ -9826,11 +9841,11 @@ FUSION.lib.inverseNormalDistribution = function(p, mean, std) {
         return p < 1 ? x : -x;
     }
   
-    function erfc(x) {
+    function erfc(x: number) {
         return 1 - erf(x);
     }
   
-    function erf(x) {
+    function erf(x: number) {
         var cof = [
             -1.3026537197817094, 6.4196979235649026e-1, 1.9476473204185836e-2,
             -9.561514786808631e-3, -9.46595344482036e-4, 3.66839497852761e-4,
@@ -10146,23 +10161,25 @@ FUSION.lib.getSmall = function(series, index, period, n) {
  * ENGINE
  */
 
-FUSION.engine = function () {
+FUSION.engine = function (this: CoreFusionRuntime) {
     this.model = {
         id: FUSION.uniqueId(),
         instrumentsSeries: [],
         scripts: [],
-    };
+    } as FusionModelRuntime;
     var positionsSeriesId = "POSITIONS";
 
-    this.seriesManager = {};
-    this.scriptsManager = {};
+    this.seriesManager = {} as Record<string, FusionSeriesRuntime>;
+    this.scriptsManager = {} as Record<string, FusionScriptControllerRuntime>;
 
-    this.createSeries	=	function (fields) {
-        var series = [];
-        if(this.getMainSeries().data){
-            for (var i=0; i<this.getMainSeries().data.length; i++) {
+    this.createSeries = function (this: any, fields: string[]) {
+        var series: FusionSeriesData = [];
+        const mainSeries = this.getMainSeries();
+        const mainSeriesData = (mainSeries && mainSeries.data ? mainSeries.data : []) as FusionSeriesData;
+        if(mainSeriesData){
+            for (var i=0; i<mainSeriesData.length; i++) {
                 series[i] = {};
-                series[i]['stamp'] = this.getMainSeries().data[i].stamp;
+                series[i]['stamp'] = mainSeriesData[i].stamp;
                 series[i]['strength'] = 1.0;
                 for (var j=0; j<fields.length; j++) {
                     series[i][fields[j]] = null;
@@ -10171,7 +10188,7 @@ FUSION.engine = function () {
         }
         return series;
     };
-    this.createTooltipSeries = function(fields) {
+    this.createTooltipSeries = function (this: any, fields: string[]) {
         var series = this.createSeries(fields);
         for (var i=0; i<series.length; i++) {
             series[i].tooltips = {};
@@ -10179,16 +10196,16 @@ FUSION.engine = function () {
         return series;
     }
 
-    this.configureScripts = function(){
+    this.configureScripts = function (this: any){
         for (var i=0; i<this.model.scripts.length; i++) {
-            this.configureScript(this.model.scripts[i]);
+            this.configureScript(this.model.scripts[i] as RuntimeScriptConfig);
         }
     }
 
-    this.configureScript	=	function (scriptModel) {
+	this.configureScript = function (this: any, scriptModel: RuntimeScriptConfig) {
         var self = this;
-        var scriptProto = FUSION.scripts[scriptModel.key];
-        if (scriptProto == null) return;
+        var scriptProto = FUSION.scripts[scriptModel.key] as RuntimeScriptDefinition | undefined;
+        if (scriptProto == null || !scriptProto.controller) return;
 
         scriptModel.scriptType = scriptProto.type;
         //Get Script ID
@@ -10196,7 +10213,7 @@ FUSION.engine = function () {
         var id = scriptModel.id;
 
         //create input wrappers
-        var wrappers = {};
+        var wrappers: Record<string, any> = {};
 
         for (var key in scriptModel.inputs) {
             if(scriptProto.inputs[key]){
@@ -10213,20 +10230,20 @@ FUSION.engine = function () {
                 }
             }
         }
-        function initializeSeries(series) {
+        function initializeSeries(series: FusionRecord) {
             series.userName = scriptModel.userName;
             if(scriptModel.inputs['OBJECT'] && scriptModel.inputs['OBJECT'].userName){
                 series.userName = scriptModel.inputs['OBJECT'].userName;
             }
             series.seriesId = scriptModel.outputs[key];
-            self.seriesManager[series.seriesId] = series;
+            self.seriesManager[series.seriesId] = series as FusionSeriesRuntime;
         }
         //create outputs
         for (var key in scriptModel.outputs) {
             var type = scriptProto.outputs[key].type;
             if (type === 'series') {
 
-                var series = JSON.parse(JSON.stringify(scriptProto.outputs[key].series));
+                var series: FusionRecord = JSON.parse(JSON.stringify(scriptProto.outputs[key].series));
                 series.data = this.createSeries(series.fields);
                 initializeSeries(series);           
 
@@ -10235,7 +10252,7 @@ FUSION.engine = function () {
                 }
             }
             else if(type === 'tooltipSeries'){
-                var series = JSON.parse(JSON.stringify(scriptProto.outputs[key].series));              
+                var series: FusionRecord = JSON.parse(JSON.stringify(scriptProto.outputs[key].series));              
                 series.data = this.createTooltipSeries(series.fields);
                 initializeSeries(series);
                 for (var i=0; i<series.fields.length; i++) {
@@ -10245,29 +10262,31 @@ FUSION.engine = function () {
         }
 
         //Create Script Instance
-        var scriptController = scriptProto.controller (this, scriptModel.inputs, scriptModel.outputs);
+        var scriptController = scriptProto.controller(this, scriptModel.inputs, scriptModel.outputs);
         scriptController.id = scriptModel.id;
         for (var key in wrappers) {
             scriptController[key] = wrappers[key];
         }
-        this.scriptsManager[scriptModel.id] = scriptController;
+        this.scriptsManager[String(scriptModel.id)] = scriptController;
     }
 
 
-    this.getSeriesWrapper		=	function (seriesLink) {
+	this.getSeriesWrapper = function (this: any, seriesLink: string) {
         var spl = seriesLink.split(':');
 
         var self = this;
 
         var wrapper = {
-            getValue: function (index) {
+            getValue: function (index: number) {
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
                 if (index < 0) return null;
-                if (index >= self.seriesManager[spl[0]].data.length) return null;
-                return self.seriesManager[spl[0]].data[index][spl[1]];
+                if (index >= data.length) return null;
+                return data[index][spl[1]];
             },
-            setValue: function (index, value) {
-                function pushEmptyValues(number) {
-                    var lastValue = JSON.parse(JSON.stringify(self.seriesManager[spl[0]].data[self.seriesManager[spl[0]].data.length - 1]));
+            setValue: function (index: number, value: any) {
+                function pushEmptyValues(number: number) {
+                    const data = self.seriesManager[spl[0]].data as FusionSeriesData;
+                    var lastValue = JSON.parse(JSON.stringify(data[data.length - 1]));
                     const mainSeries = self.getMainSeries();
                     let milis = 1;
                     if (mainSeries && mainSeries.interval && mainSeries.interval.milis && mainSeries.interval.milis > 0)
@@ -10278,28 +10297,33 @@ FUSION.engine = function () {
                           stamp: lastValue.stamp + (i + 1) * milis
                         };
 
-                        self.seriesManager[spl[0]].data.push(value);
+                        data.push(value);
                     }
                 }
 
-                const lastIndex = self.seriesManager[spl[0]].data.length - 1;
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
+                const lastIndex = data.length - 1;
                 if (index > lastIndex) pushEmptyValues(index - lastIndex);
 
-                self.seriesManager[spl[0]].data[index][spl[1]] = value;
+                data[index][spl[1]] = value;
             },
-            getStrength: function (index) {
+            getStrength: function (index: number) {
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
                 if(index < 0) return undefined;
-                return self.seriesManager[spl[0]].data[index]['strength'];
+                return data[index]['strength'];
             },
-            setStrength: function (index, value) {
-                self.seriesManager[spl[0]].data[index]['strength'] = value;
+            setStrength: function (index: number, value: any) {
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
+                data[index]['strength'] = value;
             },
             getSeriesLength: function () {
-                return self.seriesManager[spl[0]].data.length;
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
+                return data.length;
             },
-            getStamp: function(index){
+            getStamp: function(index: number){
+                const data = self.seriesManager[spl[0]].data as FusionSeriesData;
                 if(index < 0) return undefined;
-                return self.seriesManager[spl[0]].data[index].stamp;
+                return data[index].stamp;
             },
             getSeriesId: function(){
                 return self.seriesManager[spl[0]].seriesId;
@@ -10310,13 +10334,13 @@ FUSION.engine = function () {
 
     }
 
-    this.getTooltipSeriesWrapper = function(seriesLink) {    
+    this.getTooltipSeriesWrapper = function (this: any, seriesLink: string) {    
         var self = this;
         var spl = seriesLink.split(':');
         var wrapper = this.getSeriesWrapper(seriesLink);
-        var series = self.seriesManager[spl[0]].data;
+        var series = self.seriesManager[spl[0]].data as FusionSeriesData;
 
-        function pushEmptyValues(number) {
+        function pushEmptyValues(number: number) {
             var lastValue = JSON.parse(JSON.stringify(series[series.length - 1]));
             const mainSeries = self.getMainSeries();
             let milis = 1;
@@ -10333,18 +10357,18 @@ FUSION.engine = function () {
             }
         }
 
-        wrapper.clearTooltips = function(index) {
+        wrapper.clearTooltips = function(index: number) {
             const lastIndex = series.length - 1;
             if (index > lastIndex) pushEmptyValues(index - lastIndex);
             series[index].tooltips = [];
         }
 
-        wrapper.setTooltip = function(index, key, value){
+        wrapper.setTooltip = function(index: number, key: string, value: any){
             const lastIndex = series.length - 1;
             if (index > lastIndex) pushEmptyValues(index - lastIndex);
             series[index].tooltips[key] = value;
         }
-        wrapper.getTooltip = function(index, key) {
+        wrapper.getTooltip = function(index: number, key: string) {
             if (index < 0) return null;
             if (index > series.length - 1) return null;
             return series[index].tooltips[key];
@@ -10352,18 +10376,18 @@ FUSION.engine = function () {
         return wrapper;
     }
 
-    this.getRawSeriesWrapper = function (series, field) {
+    this.getRawSeriesWrapper = function (this: any, series: FusionSeriesData, field: string) {
 
         var self = this;
 
         var wrapper = {
-            getValue: function (index) {
+            getValue: function (index: number) {
                 if (index<0) return null;
                 if (index>series.length-1) return null;
                 return series[index][field];
             },
-            setValue: function (index, value) {
-                function pushEmptyValues(number) {
+            setValue: function (index: number, value: any) {
+                function pushEmptyValues(number: number) {
                     var lastValue = JSON.parse(JSON.stringify(series[series.length - 1]));
                     const mainSeries = self.getMainSeries();
                     let milis = 1;
@@ -10385,7 +10409,7 @@ FUSION.engine = function () {
 
                 series[index][field] = value;
             },
-            getStamp: function(index){
+            getStamp: function(index: number){
                 return series[index].stamp;
             },
             
@@ -10393,7 +10417,7 @@ FUSION.engine = function () {
             	return series.length;
             },
             getSeriesId: function(){
-                return series.seriesId;
+                return (series as FusionRecord).seriesId;
             }
         }
 
@@ -10401,15 +10425,15 @@ FUSION.engine = function () {
 
     }
 
-    this.getId = function(){
+    this.getId = function (this: any){
         return this.model.id;
     }
 
-    this.getModel = function(){
+    this.getModel = function (this: any){
         return this.model;
     }
 
-    this.getValue			=	function (series, i, field) {
+    this.getValue = function (this: any, series: string, i: number, field?: string) {
 
         if (field) return this.seriesManager[series].data[i][field];
 
@@ -10418,7 +10442,7 @@ FUSION.engine = function () {
 
     }
 
-    this.setValue			=	function (series, i, value, field) {
+    this.setValue = function (this: any, series: string, i: number, value: any, field?: string) {
 
         if (field) this.seriesManager[series].data[i][field] = value;
 
@@ -10427,13 +10451,14 @@ FUSION.engine = function () {
 
     }
 
-    this.initAll			=	function () {
+    this.initAll = function (this: any) {
         for (var key in this.model.scripts) { //w modelu skrypty są w kolejności!!! wrappery już nie koniecznie
-            this.scriptsManager[this.model.scripts[key].id].init();
+            const scriptConfig = this.model.scripts[key] as RuntimeScriptConfig;
+            this.scriptsManager[String(scriptConfig.id)].init();
         }
     }
 
-    this.shortSynchronization = function(){
+    this.shortSynchronization = function (this: any){
         var seriesManager = this.getSeriesManager();
         var longest = null;
         for(var key in seriesManager){
@@ -10464,7 +10489,7 @@ FUSION.engine = function () {
 
     }
 
-    this.fullSynchronization = function(){
+    this.fullSynchronization = function (this: any){
         var model = this.model;
         var seriesManager = this.getSeriesManager();
 
@@ -10474,31 +10499,32 @@ FUSION.engine = function () {
         }
 
         var l = 1;
-        var wrappers = {};
-        var stampIndex = {};
-        var stamps = {};
+        var stampIndex: Record<string, FusionRecord> = {};
+        var stamps: Record<string, number> = {};
 
         for(var s in model.instrumentsSeries){
             var id = model.instrumentsSeries[s].seriesId;
             var series = seriesManager[id];
+            if (!series || !series.data) continue;
             model.instrumentsSeries[s].instrument = JSON.parse(JSON.stringify(series.instrument));
-            if(series.data.length > l) l = series.data.length;
+            const seriesData = series.data as FusionSeriesData;
+            if(seriesData.length > l) l = seriesData.length;
 
             stampIndex[id]={};
-            for(var idx in series.data){
-                stampIndex[id][series.data[idx].stamp] = idx;
-                stamps[series.data[idx].stamp] = series.data[idx].stamp;
+            for(var idx in seriesData){
+                stampIndex[id][seriesData[idx].stamp] = idx;
+                stamps[seriesData[idx].stamp] = seriesData[idx].stamp;
             }
         }
 
         var stampsArray = Object.keys(stamps).sort(
-            function(a,b){
+            function(a: string,b: string){
                 var n1  = parseInt(a);
                 var n2	= parseInt(b);
                 return n1 - n2;
             });
 
-        let lastValue = {};
+        let lastValue: Record<string, FusionRecord> = {};
 
         for (var index = 0 ; index < stampsArray.length; index++) {
             const stamp = stampsArray[index];
@@ -10506,16 +10532,22 @@ FUSION.engine = function () {
             for (var s in model.instrumentsSeries) {
                 const id = model.instrumentsSeries[s].seriesId;
                 const series = seriesManager[id];
+                if (!series || !series.data) continue;
+                const seriesData = series.data as FusionSeriesData;
 
-                if (series.data.length === 0) continue;
+                if (seriesData.length === 0) continue;
 
-                const value = series.data[index];
+                const value = seriesData[index];
                 const isValueMissing = !value || !value.stamp || value.stamp != stamp;
                 const isValueEmpty = value && !value.o;
-                let candle;
 
-                if ((isValueMissing || isValueEmpty) && lastValue[id]) {
-                    candle = {
+                if (!isValueMissing && !isValueEmpty) {
+                    lastValue[id] = seriesData[index];
+                    continue;
+                }
+
+                const candle: FusionRecord = lastValue[id]
+                    ? {
                         c: lastValue[id].c,
                         h: lastValue[id].c,
                         l: lastValue[id].c,
@@ -10524,8 +10556,7 @@ FUSION.engine = function () {
                         v: null,
                         i: null,
                     }
-                } else if ((isValueMissing || isValueEmpty) && !lastValue[id]) {
-                    candle = {
+                    : {
                         c: null,
                         h: null,
                         l: null,
@@ -10534,30 +10565,29 @@ FUSION.engine = function () {
                         v: null,
                         i: null,
                     };
-                }
 
-                if (isValueEmpty) series.data[index] = candle;
-                else if (isValueMissing) series.data.splice(index, 0, candle);
-                else lastValue[id] = series.data[index];
+                if (isValueEmpty) seriesData[index] = candle;
+                else seriesData.splice(index, 0, candle);
             }
         }
     }
     
-    this.setPositions = function(positionsSeries){
+    this.setPositions = function (this: any, positionsSeries: FusionSeriesData){
     	var self = this;
     	var mainSeriesId = this.getMainSeries().seriesId;
-    	var series = {
+        var series: FusionRecord = {
     			seriesId: positionsSeriesId,
     			data: [],
     			fields: ["position"],
+            interval: this.getMainSeries().interval,
     			title: "Market positions",
     			labels: ["Market position"]
     	}
-    	series.data = this.seriesManager[mainSeriesId].data.map(function(e, i){
+        series.data = (this.seriesManager[mainSeriesId].data as FusionSeriesData).map(function(e: FusionRecord){
     		return {"stamp": e.stamp, "position":null, "instrumentId": self.getMainSeries().instrument.id}
     	})
 
-    	positionsSeries.sort(function(a,b){
+        positionsSeries.sort(function(a: FusionRecord,b: FusionRecord){
     		if (a.stamp < b.stamp)
     		      return -1
     		   if (a.stamp > b.stamp)
@@ -10567,7 +10597,7 @@ FUSION.engine = function () {
     	
     	var lastDataIdx = 0;
     	//synch
-    	positionsSeries.forEach(function(p, _i){
+        positionsSeries.forEach(function(p: FusionRecord, _i: number){
     		for(var i =lastDataIdx;i<series.data.length;i++){
     			if(series.data[i].stamp <= p.stamp)
     				lastDataIdx = i;
@@ -10589,30 +10619,32 @@ FUSION.engine = function () {
     		}
     	}
     	
-    	this.seriesManager[series.seriesId] = series;
+        this.seriesManager[series.seriesId] = series as FusionSeriesRuntime;
     	
     }
     
-    this.isPositionsSeries = function(){
+    this.isPositionsSeries = function (this: any){
     	return this.seriesManager[positionsSeriesId]!=null && 
     		this.seriesManager[positionsSeriesId].data!=null && 
     		this.seriesManager[positionsSeriesId].data.length >0; 
     }
     
-    this.getPositions = function(){
+    this.getPositions = function (this: any){
     	return this.seriesManager[positionsSeriesId]; 
     }
 
-    this.calculateAll		=	function () {
+    this.calculateAll = function (this: any) {
         // console.log('##################################FUSION CALCULATE ALL#####################################');
         for (var key in this.model.scripts) { //w modelu skrypty są w kolejności!!! wrappery już nie koniecznie
-            var script = this.scriptsManager[this.model.scripts[key].id];
+            const scriptConfig = this.model.scripts[key] as RuntimeScriptConfig;
+            var script = this.scriptsManager[String(scriptConfig.id)];
             this.calculate(script, this.getMainSeries());
 
             for( var output in script.outputs){
                 var series = this.seriesManager[script.outputs[output]];
-                for(var f in series.fields){
-                    var outWrap = script[series.fields[f]];
+                const fields = (series.fields || []) as string[];
+                for(var f in fields){
+                    var outWrap = script[fields[f]];
                     var lastIdx = outWrap.getSeriesLength()-1;
                     var secondLastIdx = outWrap.getSeriesLength()-2;
                     // console.log("FUSION: " + this.getMainSeries().title + ":" + series.data[lastIdx].stamp + ":" +series.fields[f]+ " "
@@ -10622,15 +10654,17 @@ FUSION.engine = function () {
         }
     }
 
-    this.calculate = function(script, mainSeries) {
-        var maxLength = mainSeries.data.length;
+    this.calculate = function (this: any, script: FusionScriptControllerRuntime, mainSeries: FusionSeriesRuntime) {
+        const mainSeriesData = (mainSeries.data || []) as FusionSeriesData;
+        var maxLength = mainSeriesData.length;
         for (var key in script.inputs) {
             const inputName = script.inputs[key];
             const isSeries = typeof inputName === 'string' && this.seriesManager[inputName.split(':')[0]];
 
             if (isSeries) try {
                 const spl = inputName.split(':');
-                const seriesLength = this.seriesManager[spl[0]].data.length;
+                const inputSeries = this.seriesManager[spl[0]];
+                const seriesLength = inputSeries && inputSeries.data ? inputSeries.data.length : 0;
 
                 if (seriesLength > maxLength) {
                     maxLength = seriesLength;
@@ -10644,20 +10678,20 @@ FUSION.engine = function () {
         }
     }
 
-    this.modifyScript 	= 	function(s){
+    this.modifyScript = function (this: any, s: RuntimeScriptConfig){
 
-        var script = FUSION.scripts[s.key];
-        if (script==null) return;
+        var scriptProto = FUSION.scripts[s.key] as RuntimeScriptDefinition | undefined;
+        if (scriptProto==null) return;
 
         if(s.permHide) s.visible = false;
 
         //modify inputs values
-        var wrappers = {};
+        var wrappers: Record<string, any> = {};
         for (var key in s.inputs) {
 
-            if (script.inputs[key].type=='series') {
+            if (scriptProto.inputs[key].type=='series') {
                 wrappers[key] = this.getSeriesWrapper(s.inputs[key]);
-            } else if (script.inputs[key].type=='conditional' && s.inputs[key]['type']=='series') {
+            } else if (scriptProto.inputs[key].type=='conditional' && s.inputs[key]['type']=='series') {
                 wrappers[key] = this.getSeriesWrapper(s.inputs[key]['value']);
             }
             else {
@@ -10666,16 +10700,17 @@ FUSION.engine = function () {
 
             for(var i in this.model.scripts){
                 if(this.model.scripts[i].id == s.id){
-                    this.model.scripts[i].inputs[key] = s.inputs[key];
+                    const modelScript = this.model.scripts[i] as RuntimeScriptConfig;
+                    modelScript.inputs[key] = s.inputs[key];
                     break;
                 }
             }
         }
-        var scriptInstance = this.scriptsManager[s.id];
+        var scriptInstance = this.scriptsManager[String(s.id)];
         for(var id in scriptInstance.outputs){
-            var script = this.seriesManager[scriptInstance.outputs[id]];
-            script.userName = s.userName;
-            script.data = this.createSeries(script.fields);
+            var scriptSeries = this.seriesManager[scriptInstance.outputs[id]];
+            scriptSeries.userName = s.userName;
+            scriptSeries.data = this.createSeries((scriptSeries.fields || []) as string[]);
         }
         if(scriptInstance.onModify) scriptInstance.onModify();
         for (var key in wrappers) {
@@ -10683,7 +10718,7 @@ FUSION.engine = function () {
         }
     }
 
-    this.addScript		=	function (config) {
+    this.addScript = function (this: any, config: any) {
 
         //Create script id
         config.id = FUSION.uniqueId();
@@ -10699,10 +10734,10 @@ FUSION.engine = function () {
         this.configureScript(config);
 
         this.model.scripts.push(config);
-        this.scriptsManager[config.id].init();
+        this.scriptsManager[String(config.id)].init();
     }
     
-    this.clearSeriesData = function(){
+    this.clearSeriesData = function (this: any){
         if(this.seriesManager){
             for(var k in this.seriesManager){
                 if(this.seriesManager[k].data)
@@ -10711,7 +10746,7 @@ FUSION.engine = function () {
         }
     }
 
-    this.getMainSeries = function(){
+    this.getMainSeries = function (this: any){
         if(this.model && this.model.instrumentsSeries && this.model.instrumentsSeries.length >0){
             var id = this.model.instrumentsSeries[0].seriesId;
             return this.seriesManager[id];
@@ -10720,19 +10755,19 @@ FUSION.engine = function () {
         if(this.model.mainSeries && this.seriesManager[this.model.mainSeries])
             return this.seriesManager[this.model.mainSeries];
 
-        return null;
+        return null as unknown as FusionSeriesRuntime;
     }
 
-    this.getScriptsManager = function(){
+    this.getScriptsManager = function (this: any){
         return this.scriptsManager;
     }
 
-    this.getSeriesManager = function(){
+    this.getSeriesManager = function (this: any){
         return this.seriesManager;
     }
 
-    this.getSeriesManagerSnapshot = function(){
-        var snapshot = {};
+    this.getSeriesManagerSnapshot = function (this: any){
+        var snapshot: Record<string, FusionRecord> = {};
         var index = this.getMainSeriesLastIndex();
         for(var id in this.seriesManager){
             var series = this.seriesManager[id];
@@ -10752,15 +10787,15 @@ FUSION.engine = function () {
 
     }
 
-    this.getMainSeriesLastIndex = function(){
+    this.getMainSeriesLastIndex = function (this: any){
         return this.getMainSeries().data.length-1;
     }
 
-    this.getSeriesById = function(seriesId){
+    this.getSeriesById = function (this: any, seriesId: any){
         return this.seriesManager[seriesId];
     }
 
-    this.isLoaded = function(){
+    this.isLoaded = function (this: any){
         for(var k in this.seriesManager){
             if(this.seriesManager[k].instrument && (!this.seriesManager[k].data || !Array.isArray(this.seriesManager[k].data)))
                 return false;
@@ -10768,7 +10803,7 @@ FUSION.engine = function () {
         return true;
     }
 
-    this.areAllSeriesEmpty = function () {
+    this.areAllSeriesEmpty = function (this: any) {
         for(var k in this.seriesManager){
             if(this.seriesManager[k].data && Array.isArray(this.seriesManager[k].data) && this.seriesManager[k].data.length !== 0)
                return false;
@@ -10776,8 +10811,8 @@ FUSION.engine = function () {
         return true;
     }
 
-    this.getEmptyInstrumentSeries = function () {
-        const emptySeries = {};
+    this.getEmptyInstrumentSeries = function (this: any) {
+        const emptySeries: Record<string, FusionSeriesRuntime> = {};
 
         for(const k in this.seriesManager){
             const series = this.seriesManager[k];
@@ -10786,13 +10821,13 @@ FUSION.engine = function () {
         }
         return emptySeries; 
     }
-}
+} as unknown as CoreFusionStatic["engine"];
 
-FUSION.loader = function(){
+FUSION.loader = function(this: CoreFusionLoader){
     var self = this;
     this.loaded = {};
 
-    this.loadFusionData = function(engine, onSuccess, onError){
+    this.loadFusionData = function (this: any, engine: any, onSuccess: any, onError: any){
         engine.clearSeriesData();
 
         var interval = engine.model.interval || engine.model.instrumentsSeries[0].interval;
@@ -10800,23 +10835,25 @@ FUSION.loader = function(){
         for(var k in engine.model.instrumentsSeries){
             var is = engine.model.instrumentsSeries[k];
             load(is.instrument, interval, this,
-                function(data){
+                function(data: FusionRecord){
                     setData(engine, data);
                     onSuccess(engine, data);
                 },
-                (error) => {
+                (error: FusionRecord) => {
                     error.instrument = is.instrument;
                     onError(error);
                 })
         }
     }
 
-    function setData(engine, data){
+    function setData(engine: CoreFusionRuntime, data: FusionRecord){
         var sm = engine.getSeriesManager();
+        const modelInterval = engine.model.interval as FusionRecord | null;
 
-        if(engine.model.interval.symbol == data.interval.symbol){
+        if(modelInterval && modelInterval.symbol == data.interval.symbol){
             for(var k in sm){
-                if(sm[k].instrument && sm[k].instrument.id == data.instrument.id){
+                const seriesInstrument = sm[k].instrument;
+                if(seriesInstrument && seriesInstrument.id == data.instrument.id){
                     sm[k].data = JSON.parse(JSON.stringify(data.candles));
                     sm[k].title = data.instrument.symbol;
                     sm[k].instrument = data.instrument;
@@ -10826,24 +10863,24 @@ FUSION.loader = function(){
         }
     }
 
-    function load(instrument, interval, loader, onSuccess, onError){
+    function load(instrument: FusionRecord, interval: FusionRecord, loader: CoreFusionLoader, onSuccess: (data: FusionRecord) => void, onError: (error: any) => void){
         loader.loaded[interval.symbol] = loader.loaded[interval.symbol] || {};
 
         if(loader.loaded[interval.symbol][instrument.id]){
             onSuccess(loader.loded[interval.symbol][instrument.id]);
         }else{
             SERVICES.datasource.loadInstrumentCandles(instrument, interval.symbol, null, null,
-                function (data) {
+                function (data: FusionRecord) {
                     loader.loaded[interval.symbol][instrument.id] = data;
                     onSuccess(loader.loaded[interval.symbol][instrument.id]);
                 },
-                function(errorMessage){
+                function(errorMessage: any){
                     onError(errorMessage);
                 });
         }
     }
 
-    this.loadFusionDataHistoric = function(engine, onSuccess, onError){
+    this.loadFusionDataHistoric = function (this: any, engine: any, onSuccess: any, onError: any){
         var interval = engine.model.interval || engine.model.instrumentsSeries[0].interval;
         var toStamp = engine.getSeriesManager()[engine.model.instrumentsSeries[0].seriesId].data[0].stamp - 1;
         var instrumentsToLoad = [];
@@ -10853,26 +10890,28 @@ FUSION.loader = function(){
         }
 
         loadHistoric(instrumentsToLoad, interval, toStamp, this,
-            function(data){
+            function(data: FusionRecord){
                 setDataHistoric(engine, data, toStamp);
                 onSuccess(engine, data);
             }, onError)
 
     }
 
-    function setDataHistoric(engine, _data, toStamp) {
+    function setDataHistoric(engine: CoreFusionRuntime, _data: Record<string, FusionRecord>, toStamp: number) {
         const sm = engine.getSeriesManager();
+        const modelInterval = engine.model.interval as FusionRecord | null;
 
         for (const id in _data) {
-            if (engine.model.interval.symbol === _data[id].interval.symbol) {
+            if (modelInterval && modelInterval.symbol === _data[id].interval.symbol) {
                 const data = _data[id];
                 for (const k in sm) {
-                    if (sm[k].instrument && sm[k].instrument.id === data.instrument.id) {
-                        const history = data.candles.filter(c => c.stamp <= toStamp);
-                        const joined = history.concat(sm[k].data);
-                        const map = new Map();
+                    const seriesInstrument = sm[k].instrument;
+                    if (seriesInstrument && seriesInstrument.id === data.instrument.id) {
+                        const history = data.candles.filter((c: FusionRecord) => c.stamp <= toStamp);
+                        const joined = history.concat((sm[k].data || []) as FusionSeriesData);
+                        const map = new Map<number, FusionRecord>();
                         
-                        joined.forEach(c => map.set(c.stamp, c));
+                        joined.forEach((c: FusionRecord) => map.set(c.stamp, c));
                         sm[k].data = Array.from(map.values());
                     }
                 }
@@ -10880,20 +10919,20 @@ FUSION.loader = function(){
         }
     }
 
-    function loadHistoric(instruments, interval, toStamp, loader, onSuccess, onError) {
+    function loadHistoric(instruments: FusionRecord[], interval: FusionRecord, toStamp: number, loader: CoreFusionLoader, onSuccess: (data: FusionRecord) => void, onError: (error: any) => void) {
         SERVICES.datasource.loadCandlesHistory(2000, interval.symbol, null, toStamp, instruments,
             //some cache ???
-            function (data) {
+            function (data: FusionRecord) {
                 onSuccess(data);
             },
-            function (errorMessage) {
+            function (errorMessage: any) {
                 onError(errorMessage);
             });
 
     }
 
     //metoda KUBY dla charta
-    this.loadHistory = function(engine, onSuccess, onError){
+    this.loadHistory = function (this: any, engine: any, onSuccess: any, onError: any){
         var model = engine.model;
         var instruments = [];
         for(var series in model.instrumentsSeries){
@@ -10902,13 +10941,13 @@ FUSION.loader = function(){
         var toStamp = engine.getSeriesManager()[model.instrumentsSeries[0].seriesId].data[0].stamp - 1;
         SERVICES.datasource.loadCandlesHistory(2000, model.interval.symbol, null, toStamp, instruments, onSuccess, onError);
     }
-}
+} as unknown as CoreFusionStatic["loader"];
 
 
 /*
  * ENGINE BUILDER
  */
-FUSION.builder = function(engine){
+FUSION.builder = function(this: CoreFusionBuilder, engine: CoreFusionRuntime | null){
     var self = this;
 
     this._engine = engine ? engine : null;
@@ -10925,27 +10964,27 @@ FUSION.builder = function(engine){
         scripts:[]
     };
 
-    this.setModel = function(model){
+    this.setModel = function (this: any, model: any){
         this._model = model;
         return this;
     }
 
-    this.addInstrument = function(instrument, seriesId){
+    this.addInstrument = function (this: any, instrument: any, seriesId: any){
         this._instrumentsToAdd.push({instrument:instrument, seriesId: seriesId});
         return this;
     }
 
-    this.replaceInstrumentByOther = function(oldInstrument, newInstrument, withRelated){
+    this.replaceInstrumentByOther = function (this: any, oldInstrument: any, newInstrument: any, withRelated: any){
         this._instrumentsToReplace.push({old: oldInstrument, new: newInstrument, withRelated: withRelated});
         return this;
     }
 
-    this.setInterval = function(interval){
+    this.setInterval = function (this: any, interval: any){
         this._interval = interval;
         return this;
     }
 
-    this.addScript = function(script, pos){
+    this.addScript = function (this: any, script: any, pos: any){
         if(pos==null || pos == undefined)
             this._scripts.push(script);
         else
@@ -10953,24 +10992,25 @@ FUSION.builder = function(engine){
         return this;
     }
 
-    this.addSeries = function(series){
+    this.addSeries = function (this: any, series: any){
         this._series.push(series);
+        return this;
     }
 
-    this.build = function(){
+    this.build = function (this: any): CoreFusionRuntime {
         var self = this;
-        var engine = null;
-        var model = null;
+        var engine: CoreFusionRuntime;
+        var model: FusionModelRuntime;
 
         if(!self._model && !self._engine)
             throw new FusionBuilderException("Give me some model or primal engine by builder param ", null);
 
 
         if(self._engine){
-            engine = self._engine;
+            engine = self._engine as CoreFusionRuntime;
             model = engine.model;
         }else{
-            engine = new FUSION.engine();
+            engine = new (FUSION.engine as CoreFusionStatic["engine"])();
             model = self._model;
         }
 
@@ -10978,7 +11018,7 @@ FUSION.builder = function(engine){
 
         return engine;
 
-        function prepareModel(engine){
+        function prepareModel(engine: CoreFusionRuntime){
             //set interval - default if none
             if(self._interval) model.interval = self._interval;
 
@@ -11039,8 +11079,9 @@ FUSION.builder = function(engine){
                 delete series.data;  //no data in model!
 
                 if(_tmp && _tmp[engine.model.instrumentsSeries[k].seriesId]){
-                    if(_tmp[engine.model.instrumentsSeries[k].seriesId].instrument.id == engine.model.instrumentsSeries[k].instrument.id){
-                        engine.seriesManager[engine.model.instrumentsSeries[k].seriesId].data = _tmp[engine.model.instrumentsSeries[k].seriesId].data;
+                    const previousSeries = _tmp[engine.model.instrumentsSeries[k].seriesId];
+                    if(previousSeries && previousSeries.instrument && previousSeries.instrument.id == engine.model.instrumentsSeries[k].instrument.id){
+                        engine.seriesManager[engine.model.instrumentsSeries[k].seriesId].data = previousSeries.data;
                     }
                 }
             }
@@ -11053,14 +11094,19 @@ FUSION.builder = function(engine){
         }
     }
 
-    const FusionBuilderException = function(message, model){
-        this.model = model;
-        this.message = message;
+    class FusionBuilderException {
+        model: FusionModelRuntime | null;
+        message: string;
+
+        constructor(message: string, model: FusionModelRuntime | null) {
+            this.model = model;
+            this.message = message;
+        }
     }
 
 
-    function mergeScriptInputObjectsWithObjects(model){
-        model.scripts.forEach(s => {
+    function mergeScriptInputObjectsWithObjects(model: FusionModelRuntime){
+        model.scripts.forEach((s: FusionRecord) => {
             if(s.key === "OBJECT"){
                 const id = s.inputs["OBJECT"].id;
                 const o = findObjectById(model,id);
@@ -11069,11 +11115,11 @@ FUSION.builder = function(engine){
         });
     }
 
-    function findObjectById(model, id){
-        var obj = null;
+    function findObjectById(model: FusionModelRuntime, id: string | number){
+        var obj: FusionRecord | null = null;
         if (!model.panels) return null;
-        model.panels.forEach(panel => {
-           panel.objects.forEach(o =>{
+        model.panels.forEach((panel: FusionRecord) => {
+           panel.objects.forEach((o: FusionRecord) =>{
               if(o.id === id)
                 obj = o; 
            }); 
@@ -11083,7 +11129,7 @@ FUSION.builder = function(engine){
 
 
 
-    function createOhlcvModel(id, instrument, interval){
+    function createOhlcvModel(id: string, instrument: FusionRecord, interval: FusionRecord | null | undefined){
         var res = {
             seriesId: id,
             title: (instrument.relatedKey ? instrument.symbol+"."+instrument.name : instrument.symbol),
@@ -11097,7 +11143,7 @@ FUSION.builder = function(engine){
         return JSON.parse(JSON.stringify(res));
     }
 
-    function containsInstrument(instrument, model){
+    function containsInstrument(instrument: FusionRecord, model: FusionModelRuntime){
         for(var i in model.instrumentsSeries){
             if(model.instrumentsSeries[i] && model.instrumentsSeries[i].instrument.id == instrument.id)
                 return model.instrumentsSeries[i];
@@ -11105,8 +11151,8 @@ FUSION.builder = function(engine){
         return false;
     }
 
-    function findInstrumentSeriesRelatedTo(instrument, model){
-        var related = [];
+    function findInstrumentSeriesRelatedTo(instrument: FusionRecord, model: FusionModelRuntime){
+        var related: FusionRecord[] = [];
         for(var i in model.instrumentsSeries){
             for(var j in instrument.related){
                 if(instrument.related[j].id == model.instrumentsSeries[i].instrument.id){
@@ -11118,7 +11164,7 @@ FUSION.builder = function(engine){
         return related;
     }
 
-    function getInstrumentsRelatedFromBaseInstrumentByRelatedKey(instrument, key){
+    function getInstrumentsRelatedFromBaseInstrumentByRelatedKey(instrument: FusionRecord, key: string){
         for(var j in instrument.related){
             if(instrument.related[j].relatedKey == key){
                 return instrument.related[j];
@@ -11127,7 +11173,7 @@ FUSION.builder = function(engine){
         return null;
     }
 
-    function containsSeries(seriesId, model){
+    function containsSeries(seriesId: string, model: FusionModelRuntime){
         for(var i in model.instrumentsSeries){
             if(model.instrumentsSeries[i] && model.instrumentsSeries[i].seriesId == seriesId)
                 return model.instrumentsSeries[i];
@@ -11135,7 +11181,7 @@ FUSION.builder = function(engine){
         return false;
     }
 
-    function deleteInstrumentSeriesById(seriesId, model){
+    function deleteInstrumentSeriesById(seriesId: string, model: FusionModelRuntime){
         for(var c = 0; c < model.instrumentsSeries.length; c++){
             if( model.instrumentsSeries[c].seriesId == seriesId){
                 model.instrumentsSeries.splice(c, 1);
@@ -11144,6 +11190,6 @@ FUSION.builder = function(engine){
         }
         return false;
     }
-}
+} as unknown as CoreFusionStatic["builder"];
 
 export default FUSION;
