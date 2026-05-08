@@ -158,7 +158,7 @@ function MultiLineObject(this: ShapeRuntime){
 		var i = interactor.currentAnchor.selected - 1;
 		o.anchors[i].value = LIB.round(v,renderer.getPrecision(model,panel));
 		o.anchors[i]._index = idx;
-		o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+		o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 	};
 
 	this.stageUp			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -173,7 +173,7 @@ function MultiLineObject(this: ShapeRuntime){
 				var fV = LIB.getReferenceValue(o, model, seriesManager);
 				var v = renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV});
 				var idx = renderer.getPointIndex (e._offset.offsetX, model);
-				o.anchors.push( {stamp: 0, offset: 0, value: v, _index: idx} );
+				o.anchors.push( {stamp: renderer.getIndexStamp(idx, model, seriesManager), referenceStamp: 0, offset: 0, value: v, _index: idx} );
 				return false;
 			}else{
 				o.hidden=false;

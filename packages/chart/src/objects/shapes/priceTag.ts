@@ -108,7 +108,7 @@ import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 		
 				if(Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) this.wasDrag = true;
 		
-				let index = renderer.getStampIndex(baseAnchors[0].prawilnyStamp, model, seriesManager) + xOffset;
+				let index = renderer.getStampIndex(baseAnchors[0].stamp, model, seriesManager) + xOffset;
 				var v = baseAnchors[0].value+yOffset;
 				if(o.sticky){		
 					var candles = this.getCurrentCandles(index, model, seriesManager);
@@ -116,7 +116,7 @@ import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 				}
 				o.anchors[0].value = LIB.round(v,renderer.getPrecision(model,panel));
 				o.anchors[0]._index = index;
-				o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+				o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 			};
 
 		
@@ -133,7 +133,7 @@ import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 					var idx = renderer.getPointIndex (e._offset.offsetX, model);
 					if(i!=null && i < o.anchors.length){
 						o.anchors[i]._index = idx;
-						o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+						o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 					}
 				}
 			};

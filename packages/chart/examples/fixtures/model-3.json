@@ -549,24 +549,24 @@
           "fillBg": false,
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 21746,
               "_index": -1,
               "expandable": true,
               "expanded": false,
               "defaultDirection": "left",
-              "prawilnyStamp": 1661518800000
+              "stamp": 1661518800000
             },
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 19564.113,
               "_index": -1,
               "expandable": true,
               "expanded": false,
               "defaultDirection": "right",
-              "prawilnyStamp": 1662112800000
+              "stamp": 1662112800000
             }
           ],
           "order": 6,
@@ -586,18 +586,18 @@
           "dash": [],
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 22523.47337,
               "_index": -1,
-              "prawilnyStamp": 1661522400000
+              "stamp": 1661522400000
             },
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 22047.90717,
               "_index": -1,
-              "prawilnyStamp": 1661522400000
+              "stamp": 1661522400000
             }
           ],
           "order": 8,
@@ -620,11 +620,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 24921.1195,
               "_index": -1,
-              "prawilnyStamp": 1660528800000
+              "stamp": 1660528800000
             }
           ],
           "order": 16,
@@ -647,11 +647,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 20808,
               "_index": -1,
-              "prawilnyStamp": 1661025600000
+              "stamp": 1661025600000
             }
           ],
           "order": 16,
@@ -674,11 +674,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 24921.1195,
               "_index": -1,
-              "prawilnyStamp": 1660528800000
+              "stamp": 1660528800000
             }
           ],
           "order": 16,
@@ -701,11 +701,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 0,
+              "referenceStamp": 0,
               "offset": 0,
               "value": 20738,
               "_index": -1,
-              "prawilnyStamp": 1658851200000
+              "stamp": 1658851200000
             }
           ],
           "order": 16,

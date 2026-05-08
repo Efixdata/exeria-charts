@@ -230,29 +230,29 @@ function TextObject(this: ShapeRuntime){
 		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 		if(idx==0){
-			var index0 = renderer.getStampIndex(baseAnchors[0].prawilnyStamp, model, seriesManager);
+			var index0 = renderer.getStampIndex(baseAnchors[0].stamp, model, seriesManager);
 			o.anchors[0]._index = index0+xOffset;
 			o.anchors[0].value = baseAnchors[0].value+yOffset;
-			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+			o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 			if(!o.anchors[1].dragged){
-				var index1 = renderer.getStampIndex(baseAnchors[1].prawilnyStamp, model, seriesManager);
+				var index1 = renderer.getStampIndex(baseAnchors[1].stamp, model, seriesManager);
 				o.anchors[1]._index = index1+xOffset;
 				o.anchors[1].value = baseAnchors[1].value+yOffset;
-				o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
+				o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 			}
 		}else if(idx==1){
-			var index11 = renderer.getStampIndex(baseAnchors[1].prawilnyStamp, model, seriesManager);
+			var index11 = renderer.getStampIndex(baseAnchors[1].stamp, model, seriesManager);
 			o.anchors[1]._index = index11+xOffset;
 			o.anchors[1].value = baseAnchors[1].value+yOffset;
 			o.anchors[1].dragged = true;
-			o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
+			o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 		}else{
 			for(var i=0; i< o.anchors.length ;i++){
 				if(!o.anchors[i].dragged){
-					var ix = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+					var ix = renderer.getStampIndex(baseAnchors[i].stamp, model, seriesManager);
 					o.anchors[i]._index = ix+xOffset;
 					o.anchors[i].value = baseAnchors[i].value+yOffset;
-					o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+					o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 				}
 			}
 		}
@@ -270,10 +270,10 @@ function TextObject(this: ShapeRuntime){
 		if(interactor.currentAnchor==null){
 			o.anchors[0].value = v;
 			o.anchors[0]._index = idx;
-			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+			o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 			o.anchors[1].value = v;
 			o.anchors[1]._index = idx;
-			o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
+			o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 			//panel.objects.push(o);
 			var ca = {selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			return ca;

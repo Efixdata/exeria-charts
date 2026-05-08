@@ -1,0 +1,1 @@
+export type UnknownFn = (...args: any[]) => any;

@@ -12,6 +12,7 @@ function HorizontalLineObject(this: ShapeRuntime){
 		var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
 		var lastIndex = seriesManager[model.mainSeries].data.length-1;
 		o.anchors[0].stamp = lastStamp;
+		o.anchors[0].referenceStamp = lastStamp;
 		o.anchors[0].offset = 0;
 		o.anchors[0]._index = lastIndex;
 	}
@@ -20,6 +21,7 @@ function HorizontalLineObject(this: ShapeRuntime){
 		var lastStamp = seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length-1]['stamp'];
 		var lastIndex = seriesManager[model.mainSeries].data.length-1;
 		o.anchors[0].stamp = lastStamp;
+		o.anchors[0].referenceStamp = lastStamp;
 		o.anchors[0].offset = 0;
 		o.anchors[0]._index = lastIndex;
 	}

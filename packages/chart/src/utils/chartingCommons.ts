@@ -3,14 +3,16 @@ import type { Interval, Instrument } from "../types";
 import type {
   ChartLike,
   ChartModelFragment,
-  ChartPanelObject,
+} from "../internal-types/chart";
+import type { ChartPanelObject } from "../internal-types/objects";
+import type { ScriptModelConfig } from "../internal-types/scripts";
+import type {
   OhlcvCandle,
-  ScriptModelConfig,
   SeriesManager,
   SeriesModel,
   SeriesWithData,
   TickLike,
-} from "../internalTypes";
+} from "../internal-types/series";
 
 declare global {
   interface CanvasRenderingContext2D {

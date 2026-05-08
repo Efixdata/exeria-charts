@@ -103,27 +103,27 @@ function CycleObject(this: ShapeRuntime){
 
 		var xOffset = currentMouseIndex - baseMouseIndex;
 
-		let index1 = renderer.getStampIndex(baseAnchors[1].prawilnyStamp, model, seriesManager);
-		let index0 = renderer.getStampIndex(baseAnchors[0].prawilnyStamp, model, seriesManager);
+		let index1 = renderer.getStampIndex(baseAnchors[1].stamp, model, seriesManager);
+		let index0 = renderer.getStampIndex(baseAnchors[0].stamp, model, seriesManager);
 		var oldPeriods = Math.abs(index1 - index0);
 
 		if(idx!=null){
 			if(xOffset < 0){
 				o.anchors[0]._index = baseMouseIndex - oldPeriods;
 				o.anchors[1]._index = baseMouseIndex +xOffset;
-				o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
-				o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
+				o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+				o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 			}else if(xOffset > 0){
 				o.anchors[0]._index = baseMouseIndex +xOffset;
 				o.anchors[1]._index = baseMouseIndex - oldPeriods;
-				o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
-				o.anchors[1].prawilnyStamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
+				o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+				o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
 			}
 		}else{
 			for(var i=0; i< o.anchors.length ;i++){
-				let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+				let index = renderer.getStampIndex(baseAnchors[i].stamp, model, seriesManager);
 				o.anchors[i]._index = index+xOffset;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);			}
+				o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);			}
 		}
 	};
 

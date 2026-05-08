@@ -7,7 +7,7 @@ import type {
   ToolDrawerApi,
   TrendLineToolOptions,
 } from "./types";
-import type { ChartPanelObject } from "./internalTypes";
+import type { ChartPanelObject } from "./internal-types/objects";
 
 interface ToolDrawerChart {
   model: {
@@ -56,7 +56,7 @@ export default class ToolDrawer implements ToolDrawerApi {
   drawTrendLine(initialOptions: TrendLineToolOptions = {}): string | number | void {
     const anchors: ToolAnchor[] = [
       {
-        prawilnyStamp: initialOptions.startStamp,
+        stamp: initialOptions.startStamp,
         offset: 0,
         value: initialOptions.startPrice,
         _index: 0,
@@ -65,7 +65,7 @@ export default class ToolDrawer implements ToolDrawerApi {
         defaultDirection: "left",
       },
       {
-        prawilnyStamp: initialOptions.endStamp,
+        stamp: initialOptions.endStamp,
         offset: 0,
         value: initialOptions.endPrice,
         _index: 0,
@@ -99,7 +99,7 @@ export default class ToolDrawer implements ToolDrawerApi {
   drawTimeBet(initialOptions: TimeBetToolOptions): string | number | void {
     const anchors: ToolAnchor[] = [
       {
-        prawilnyStamp: initialOptions.startTime,
+        stamp: initialOptions.startTime,
         offset: 0,
         value: initialOptions.price,
         _index: 0,
@@ -108,7 +108,7 @@ export default class ToolDrawer implements ToolDrawerApi {
         defaultDirection: "left",
       },
       {
-        prawilnyStamp: initialOptions.startTime + initialOptions.timeRange,
+        stamp: initialOptions.startTime + initialOptions.timeRange,
         offset: 0,
         value: initialOptions.price,
         _index: 0,

@@ -7,17 +7,19 @@ import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment"
 import Hammer from "./lib/hammer.min.js"
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
 import type {
-	ChartRuntimeObject,
 	CoreChartController,
 	CoreChartModel,
 	CoreChartPanel,
-	CoreFusionRuntime,
+} from "./internal-types/chart";
+import type { CoreFusionRuntime } from "./internal-types/fusion";
+import type {
 	CoreInteractor,
 	CoreInteractorConstructor,
 	CoreInteractionMode,
-	CoreRenderer,
 	PointerEventLike,
-} from "./internalTypes";
+} from "./internal-types/interactor";
+import type { ChartRuntimeObject } from "./internal-types/objects";
+import type { CoreRenderer } from "./internal-types/renderer";
 
 declare const $: any;
 
@@ -1712,7 +1714,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
 	this.initAnchor				=	function (a) {
 
-		a._index = this.getStampIndex(a.stamp) + a.offset;
+		a._index = this.getStampIndex(a.referenceStamp) + a.offset;
 
 	}
 

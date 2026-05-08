@@ -1,4 +1,4 @@
-import type { RendererSettings } from "./internalTypes";
+import type { RendererSettings } from "./internal-types/renderer";
 
 const rendererSettings: RendererSettings = {
   orders: {

@@ -134,7 +134,8 @@ export interface ToolDrawerApi {
 }
 
 export interface ToolAnchor {
-  prawilnyStamp?: number;
+  stamp?: number;
+  referenceStamp?: number;
   offset: number;
   value?: number;
   _index: number;

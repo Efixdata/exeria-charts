@@ -155,25 +155,25 @@ var ParallelChannelObject	=	function (this: ShapeRuntime) {
 
 		// if(i!=null){
 		// 	if(i===0 || i == 1){
-		// 		let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+		// 		let index = renderer.getStampIndex(baseAnchors[i].stamp, model, seriesManager);
 		// 		o.anchors[i]._index = index+xOffset;
 		// 		o.anchors[i].value = baseAnchors[i].value+yOffset;
-		// 		o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+		// 		o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 		// 		var pts = self.getPoints(o, renderer, panel, model,seriesManager);
 		// 		var mid = findMidPoint(pts[0], pts[1]);
 		// 		var h = pts[2].y-mid.y;
 		// 		o.anchors[2]._index = Math.round((o.anchors[0]._index + o.anchors[1]._index)/2);
 		// 		o.anchors[2]._value = renderer.getPriceForYCoordinate(mid.y+h, panel._height, panel.vMin, panel.vMax)+panel._offset;
-		// 		o.anchors[2].prawilnyStamp = renderer.getIndexStamp(o.anchors[2]._index, model, seriesManager);
+		// 		o.anchors[2].stamp = renderer.getIndexStamp(o.anchors[2]._index, model, seriesManager);
 		// 	}else if(i===2){
 		// 		o.anchors[2].value = baseAnchors[2].value+yOffset;
 		// 	}
 		// }else{
 		// 	for(var j=0; j< o.anchors.length ;j++){
-		// 		let index = renderer.getStampIndex(baseAnchors[j].prawilnyStamp, model, seriesManager);
+		// 		let index = renderer.getStampIndex(baseAnchors[j].stamp, model, seriesManager);
 		// 		o.anchors[j]._index = index+xOffset;
 		// 		o.anchors[j].value = baseAnchors[j].value+yOffset;
-		// 		o.anchors[j].prawilnyStamp = renderer.getIndexStamp(o.anchors[j]._index, model, seriesManager);
+		// 		o.anchors[j].stamp = renderer.getIndexStamp(o.anchors[j]._index, model, seriesManager);
 		// 	}
 		// }
 	};
@@ -254,14 +254,14 @@ var ParallelChannelObject	=	function (this: ShapeRuntime) {
 		// 		if(i===0 || i == 1){
 		// 			o.anchors[i]._index = idx;
 		// 			o.anchors[i].value = v;
-		// 			o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+		// 			o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 		// 			var pts = self.getPoints(o, renderer, panel, model,seriesManager);
 		// 			var mid = findMidPoint(pts[0], pts[1]);
 		// 			var h = pts[2].y-mid.y;
 		// 			var newIndex = (interactor.currentAnchor.anchors[0]._index + interactor.currentAnchor.anchors[1]._index)/2;
 		// 			o.anchors[2]._index = newIndex;
 		// 			o.anchors[2].value = renderer.getPriceForYCoordinate(mid.y-panel._offset, panel._height, panel.vMin, panel.vMax);
-		// 			o.anchors[2].prawilnyStamp = renderer.getIndexStamp(newIndex, model, seriesManager);
+		// 			o.anchors[2].stamp = renderer.getIndexStamp(newIndex, model, seriesManager);
 		// 			console.log("MID: ", mid.y, o.anchors[2].value);
 		// 		}else if(i===2){
 		// 			o.anchors[2].value = v;

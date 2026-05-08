@@ -3,7 +3,7 @@ import LIB from "./utils/chartingCommons";
 import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
 import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
-import type { CoreRenderer, CoreRendererConstructor, ValueAxisTick } from "./internalTypes";
+import type { CoreRenderer, CoreRendererConstructor, ValueAxisTick } from "./internal-types/renderer";
 
 type LegendRenderValue = {
 	label: { text?: string; x?: number; y?: number };

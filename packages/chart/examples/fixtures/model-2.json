@@ -232,11 +232,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 1662102000000,
+              "referenceStamp": 1662102000000,
               "offset": 0,
               "value": 0.01,
               "_index": 999,
-              "prawilnyStamp": 1510012800000
+              "stamp": 1510012800000
             }
           ],
           "color": "#ff9800",
@@ -272,11 +272,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 1662102000000,
+              "referenceStamp": 1662102000000,
               "offset": 0,
               "value": -0.01,
               "_index": 999,
-              "prawilnyStamp": 1513900800000
+              "stamp": 1513900800000
             }
           ],
           "color": "#ff9800",
@@ -604,11 +604,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 1662102000000,
+              "referenceStamp": 1662102000000,
               "offset": 0,
               "value": 0.01,
               "_index": 999,
-              "prawilnyStamp": 1510012800000
+              "stamp": 1510012800000
             }
           ],
           "color": "#ff9800",
@@ -630,11 +630,11 @@
           "setAnchorValue": [0],
           "anchors": [
             {
-              "stamp": 1662102000000,
+              "referenceStamp": 1662102000000,
               "offset": 0,
               "value": -0.01,
               "_index": 999,
-              "prawilnyStamp": 1513900800000
+              "stamp": 1513900800000
             }
           ],
           "color": "#ff9800",

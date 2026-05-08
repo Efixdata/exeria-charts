@@ -2,7 +2,7 @@ import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { hitTolerance, isTouchDevice } from "./utils/environment";
 import { drawAnchor, drawAnchors, drawAnchorArrow, drawAnchorsArrow } from "./utils/objects-lib";
-import type { ChartRuntimeObject } from "./internalTypes";
+import type { ChartRuntimeObject } from "./internal-types/objects";
 
 type AnyRecord = Record<string, any>;
 
@@ -23,10 +23,10 @@ export interface LegacySeriesObject extends ChartRuntimeObject {
 }
 
 export interface LegacyAnchor extends AnyRecord {
-  prawilnyStamp: number;
+  stamp: number;
   value: number;
   _index: number;
-  stamp?: number;
+  referenceStamp?: number;
   offset?: number;
   expandable?: boolean;
   defaultDirection?: string;
@@ -153,7 +153,7 @@ export class Shape {
 
     for (let index = 0; index < object.anchors.length; index += 1) {
       const anchor = object.anchors[index];
-      const stampIndex = renderer.getStampIndex(anchor.prawilnyStamp, model, seriesManager);
+      const stampIndex = renderer.getStampIndex(anchor.stamp, model, seriesManager);
       const value = anchor.value;
       const point: LegacyShapePoint = {
         x: renderer.getIndexPoint(stampIndex, model) + model._midOffset,
@@ -197,18 +197,18 @@ export class Shape {
     const lastIndex = mainSeries.data.length - 1;
 
     object.anchors.forEach((anchor) => {
-      let stamp: number;
-      anchor.stamp = lastStamp;
+      let anchorStamp: number;
+      anchor.referenceStamp = lastStamp;
 
       if (anchor._index > lastIndex) {
-        stamp = lastStamp + (anchor._index - lastIndex) * mainSeries.interval.milis;
+        anchorStamp = lastStamp + (anchor._index - lastIndex) * mainSeries.interval.milis;
       } else if (anchor._index < 0) {
-        stamp = -1;
+        anchorStamp = -1;
       } else {
-        stamp = mainSeries.data[Math.floor(anchor._index)].stamp;
+        anchorStamp = mainSeries.data[Math.floor(anchor._index)].stamp;
       }
 
-      anchor.offset = lastStamp - stamp;
+      anchor.offset = lastStamp - anchorStamp;
     });
   }
 
@@ -218,15 +218,15 @@ export class Shape {
     const lastIndex = mainSeries.data.length - 1;
 
     object.anchors.forEach((anchor) => {
-      const stamp = (anchor.stamp ?? lastStamp) - (anchor.offset ?? 0);
+      const resolvedStamp = (anchor.referenceStamp ?? lastStamp) - (anchor.offset ?? 0);
 
-      if (stamp > lastStamp) {
+      if (resolvedStamp > lastStamp) {
         const offsetIndex = (anchor.offset ?? 0) / mainSeries.interval.milis;
         anchor._index = Math.round(lastIndex - offsetIndex);
-      } else if (stamp < 0) {
+      } else if (resolvedStamp < 0) {
         anchor._index = -1;
       } else {
-        anchor._index = interactor.getStampIndex(stamp);
+        anchor._index = interactor.getStampIndex(resolvedStamp);
       }
     });
   }
@@ -445,7 +445,7 @@ export class Shape {
   isValid(object: LegacyShapeObject): boolean | undefined {
     for (const key in object.anchors) {
       if (object.anchors[key]._index < 0) return false;
-      if ((object.anchors[key].stamp as number) - (object.anchors[key].offset as number) <= 0) return false;
+      if ((object.anchors[key].referenceStamp as number) - (object.anchors[key].offset as number) <= 0) return false;
     }
     return undefined;
   }
@@ -717,22 +717,22 @@ export class Shape {
     }
 
     if (selectedAnchor != null) {
-      const index = renderer.getStampIndex(baseAnchors[selectedAnchor].prawilnyStamp, model, seriesManager) + xOffset;
+      const index = renderer.getStampIndex(baseAnchors[selectedAnchor].stamp, model, seriesManager) + xOffset;
       const value = object.sticky
         ? this.stickToCandleValue(yValue, this.getCurrentCandles(index, model, seriesManager), panel, renderer, referenceValue)
         : baseAnchors[selectedAnchor].value + yOffset;
 
       object.anchors[selectedAnchor]._index = index;
       object.anchors[selectedAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[selectedAnchor].prawilnyStamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
+      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
       return;
     }
 
     for (let index = 0; index < object.anchors.length; index += 1) {
-      const anchorIndex = renderer.getStampIndex(baseAnchors[index].prawilnyStamp, model, seriesManager);
+      const anchorIndex = renderer.getStampIndex(baseAnchors[index].stamp, model, seriesManager);
       object.anchors[index]._index = anchorIndex + xOffset;
       object.anchors[index].value = baseAnchors[index].value + yOffset;
-      object.anchors[index].prawilnyStamp = renderer.getIndexStamp(object.anchors[index]._index, model, seriesManager);
+      object.anchors[index].stamp = renderer.getIndexStamp(object.anchors[index]._index, model, seriesManager);
     }
   }
 
@@ -755,13 +755,13 @@ export class Shape {
       for (const key in object.anchors) {
         object.anchors[key]._index = index;
         object.anchors[key].value = LIB.round(value, renderer.getPrecision(model, panel));
-        object.anchors[key].prawilnyStamp = renderer.getIndexStamp(object.anchors[key]._index, model, seriesManager);
+        object.anchors[key].stamp = renderer.getIndexStamp(object.anchors[key]._index, model, seriesManager);
       }
     } else {
       interactor.pushPanel(this, object, panel);
       object.anchors[currentAnchor]._index = index;
       object.anchors[currentAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[currentAnchor].prawilnyStamp = renderer.getIndexStamp(object.anchors[currentAnchor]._index, model, seriesManager);
+      object.anchors[currentAnchor].stamp = renderer.getIndexStamp(object.anchors[currentAnchor]._index, model, seriesManager);
     }
 
     return {
@@ -790,7 +790,7 @@ export class Shape {
     if (selectedAnchor != null && selectedAnchor < object.anchors.length) {
       object.anchors[selectedAnchor]._index = index;
       object.anchors[selectedAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[selectedAnchor].prawilnyStamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
+      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
     }
   }
 

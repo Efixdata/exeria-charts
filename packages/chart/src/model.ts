@@ -1,4 +1,4 @@
-import type { CoreChartModel } from "./internalTypes";
+import type { CoreChartModel } from "./internal-types/chart";
 
 const model2 = {
   mainSeries: "1498208873173@38826f3a-3399-8cca-52f2-710fd3cf14cb",

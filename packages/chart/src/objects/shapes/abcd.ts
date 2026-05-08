@@ -18,7 +18,7 @@ function AbcdObject(this: ShapeRuntime){
 		pts.push({
 			x: x,
 			y: y,
-			prawilnyStamp: renderer.getIndexStamp(index, model, seriesManager),
+			stamp: renderer.getIndexStamp(index, model, seriesManager),
 			expandable:true,
 			expanded:pts[2].expanded
 		});
@@ -205,12 +205,12 @@ function AbcdObject(this: ShapeRuntime){
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(idx, model, seriesManager);
+				o.anchors[i].stamp = renderer.getIndexStamp(idx, model, seriesManager);
 
 				for(var ii=i+1; ii< o.anchors.length; ii++){
 					o.anchors[ii].value = v;
 					o.anchors[ii]._index = idx;
-					o.anchors[i].prawilnyStamp = renderer.getIndexStamp(idx, model, seriesManager);
+					o.anchors[i].stamp = renderer.getIndexStamp(idx, model, seriesManager);
 				}
 
 			}

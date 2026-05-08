@@ -6,13 +6,15 @@ import type {
     FusionModelRuntime,
     CoreFusionRuntime,
     CoreFusionStatic,
+} from "./internal-types/fusion";
+import type {
     FusionScriptControllerConstructor,
     FusionScriptControllerRuntime,
-    FusionSeriesRuntime,
     FusionSignalMatrix,
     RuntimeScriptConfig,
     RuntimeScriptDefinition,
-} from "./internalTypes";
+} from "./internal-types/scripts";
+import type { FusionSeriesRuntime } from "./internal-types/series";
 
 declare const SERVICES: any;
 
@@ -939,16 +941,16 @@ FUSION.scripts['OBJECT'] = {
                 var lastIndex = len - 1;
                 var lastStamp = this.Value.getStamp(lastIndex);
                 this.OBJECT.anchors.forEach(function(a: FusionRecord){
-                    //var stamp = a.stamp - a.offset;
-                    var stamp = a.prawilnyStamp;
-                    if(stamp > lastStamp){
+                    //var anchorStamp = a.referenceStamp - a.offset;
+                    var anchorStamp = a.stamp;
+                    if(anchorStamp > lastStamp){
                         var lastIndex = self.getStampIndex(lastStamp);
-                        var offsetIndex = Math.round((stamp - lastStamp) / self.context.getMainSeries().interval.milis);
+                        var offsetIndex = Math.round((anchorStamp - lastStamp) / self.context.getMainSeries().interval.milis);
                         a._index = Math.round(lastIndex + offsetIndex);
-                    }else if(stamp < 0){
+                    }else if(anchorStamp < 0){
                         a._index = -1;
                     }else{
-                        a._index = self.getStampIndex(stamp);
+                        a._index = self.getStampIndex(anchorStamp);
                     }
                 });
             };

@@ -24,23 +24,21 @@ import type {
   ChartEventEnvelope,
   ChartMarginInfo,
   ChartRecalculateOptions,
-  ChartRuntimeObject,
   CoreChartController,
   CoreChartModel,
   CoreChartPanel,
-  CoreFusionRuntime,
-  CoreFusionStatic,
-  CoreInteractor,
-  CoreInteractorConstructor,
+} from "./internal-types/chart";
+import type { CoreFusionRuntime, CoreFusionStatic } from "./internal-types/fusion";
+import type { CoreInteractor, CoreInteractorConstructor } from "./internal-types/interactor";
+import type { ChartRuntimeObject } from "./internal-types/objects";
+import type {
   CoreRenderer,
   CoreRendererConstructor,
-  OhlcvCandle,
-  RuntimeScriptConfig,
-  RuntimeScriptDefinition,
-  TickLike,
-  UnknownFn,
   ValueConverterLike,
-} from "./internalTypes";
+} from "./internal-types/renderer";
+import type { RuntimeScriptConfig, RuntimeScriptDefinition } from "./internal-types/scripts";
+import type { OhlcvCandle, TickLike } from "./internal-types/series";
+import type { UnknownFn } from "./internal-types/shared";
 
 export default class Chart implements CoreChartController {
   [key: string]: any;

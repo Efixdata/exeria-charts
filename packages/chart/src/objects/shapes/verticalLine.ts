@@ -9,7 +9,7 @@ import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 function VerticalLineObject(this: ShapeRuntime){
 	this.getPoints = function(o, renderer, panel, model, seriesManager){
 		if (!panel) return;
-		var index = renderer.getStampIndex(o.anchors[0].prawilnyStamp, model, seriesManager);
+		var index = renderer.getStampIndex(o.anchors[0].stamp, model, seriesManager);
 		var x = renderer.getIndexPoint(index, model)+ model._midOffset;
 		//var x = renderer.getIndexPoint(o.anchors[0]._index, model)+ model._midOffset;
 		return [{x:x, y:panel._offset+this.anchorPointSize},{x:x,y:panel._height+panel._offset}];
@@ -88,9 +88,9 @@ function VerticalLineObject(this: ShapeRuntime){
 	// 	var idx = interactor.currentAnchor.selected;
 	// 	var baseAnchors = interactor.currentAnchor.anchors;
 	// 	var xOffset = renderer.getPointIndex(e._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-	// 	for(var i=0; i< o.anchors.length ;i++){
-	// 		o.anchors[0]._index = baseAnchors[0]._index+xOffset;
-	// 		o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+	// 		for(var i=0; i< o.anchors.length ;i++){
+	// 			o.anchors[0]._index = baseAnchors[0]._index+xOffset;
+	// 			o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 	// 	}
 	// };
 
@@ -106,7 +106,7 @@ function VerticalLineObject(this: ShapeRuntime){
 		if(interactor.currentAnchor==null){
 			o.anchors[0].value = v;
 			o.anchors[0]._index = idx;
-			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+			o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 			//panel.objects.push(o);
 			var ca = {selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors))};
 			return ca;
@@ -127,7 +127,7 @@ function VerticalLineObject(this: ShapeRuntime){
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			o.anchors[0]._index = idx;
 			o.anchors[0].value = v;
-			o.anchors[0].prawilnyStamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
+			o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
 		}
 	};
 
@@ -155,7 +155,7 @@ function VerticalLineObject(this: ShapeRuntime){
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
 				o.anchors[i].value = v;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+				o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 			}
 		}
 	};

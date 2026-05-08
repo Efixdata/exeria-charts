@@ -130,10 +130,10 @@ function VerticalRangeObject(this: ShapeRuntime){
 			}
 		}else{
 			for(var i=0; i< o.anchors.length ;i++){
-				let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+				let index = renderer.getStampIndex(baseAnchors[i].stamp, model, seriesManager);
 				o.anchors[i]._index = index+xOffset;
 				o.anchors[i].value = baseAnchors[i].value+yOffset;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+				o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 			}
 		}
 	};

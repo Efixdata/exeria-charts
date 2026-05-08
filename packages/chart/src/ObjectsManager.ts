@@ -1,6 +1,9 @@
 import LIB from "./utils/chartingCommons";
 import { Shape } from "./Objects2";
-import type { ChartPanelObject, ChartPanel, ChartModelFragment, SeriesManager, ScriptModelConfig } from "./internalTypes";
+import type { ChartPanel, ChartModelFragment } from "./internal-types/chart";
+import type { ChartPanelObject } from "./internal-types/objects";
+import type { ScriptModelConfig } from "./internal-types/scripts";
+import type { SeriesManager } from "./internal-types/series";
 
 interface RendererObjectsRegistry {
   [key: string]: unknown;

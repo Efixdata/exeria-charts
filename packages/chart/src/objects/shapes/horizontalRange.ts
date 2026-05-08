@@ -120,15 +120,15 @@ function HorizontalRangeObject(this: ShapeRuntime){
 		var yOffset = parseFloat((renderer.getPriceForYCoordinate(e._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV}) - renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY-panel._offset, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax,valueAxisMode:  panel.valueAxisMode, fV})).toFixed(panel.precision));
 
 		if(idx!=null){
-			let index = renderer.getStampIndex(baseAnchors[idx].prawilnyStamp, model, seriesManager);
+			let index = renderer.getStampIndex(baseAnchors[idx].stamp, model, seriesManager);
 			o.anchors[idx]._index = index+xOffset;
-			o.anchors[idx].prawilnyStamp = renderer.getIndexStamp(o.anchors[idx]._index, model, seriesManager);
+			o.anchors[idx].stamp = renderer.getIndexStamp(o.anchors[idx]._index, model, seriesManager);
 		}else{
 			for(var i=0; i< o.anchors.length ;i++){
-				let index = renderer.getStampIndex(baseAnchors[i].prawilnyStamp, model, seriesManager);
+				let index = renderer.getStampIndex(baseAnchors[i].stamp, model, seriesManager);
 				o.anchors[i]._index = index+xOffset;
 				o.anchors[i].value = baseAnchors[i].value+yOffset;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+				o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 			}
 		}
 	};
@@ -146,7 +146,7 @@ function HorizontalRangeObject(this: ShapeRuntime){
 			var idx = renderer.getPointIndex (e._offset.offsetX, model);
 			if(i!=null && i < o.anchors.length){
 				o.anchors[i]._index = idx;
-				o.anchors[i].prawilnyStamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
+				o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
 			}
 		}
 	};
