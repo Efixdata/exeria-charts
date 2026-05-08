@@ -5,7 +5,7 @@ import { Indicators } from "../../../img/icons";
 import { useState } from "react";
 import { IndicatorsDialog } from "./IndicatorsDialog";
 import styled from "styled-components";
-import { Portal } from 'react-portal';
+import { Portal } from "react-portal";
 import { usePortalNode } from "../../../hooks/usePortalNode";
 import { Icon } from "ui/src/Icon";
 
@@ -13,10 +13,9 @@ const IndicatorsText = styled.span`
   @media (max-width: 600px) {
     display: none;
   }
-`
+`;
 
 export const IndicatorsButton = (props) => {
-  
   const [isModalVisible, setModalVisible] = useState(false);
   const [indicators, setIndicators] = useState([]);
   const [strategies, setStrategies] = useState([]);
@@ -38,11 +37,11 @@ export const IndicatorsButton = (props) => {
 
       script.key = i;
 
-      if (script.type === 'indicators') {
+      if (script.type === "indicators") {
         tempIndicators.push(script);
-      } else if (script.type === 'strategies') {
+      } else if (script.type === "strategies") {
         tempStrategies.push(script);
-      } else if (script.type === 'functions') {
+      } else if (script.type === "functions") {
         tempFunctions.push(script);
       }
     }
@@ -50,7 +49,7 @@ export const IndicatorsButton = (props) => {
     setIndicators(tempIndicators);
     setStrategies(tempStrategies);
     setFunctions(tempFunctions);
-  }
+  };
 
   const onClick = () => {
     setModalVisible(true);
@@ -64,15 +63,14 @@ export const IndicatorsButton = (props) => {
   return (
     <>
       <TextButton themeContext="toolbar" onClick={onClick}>
-        <Icon themeContext="toolbar" style={{ marginLeft: -6 }}><Indicators/></Icon> <IndicatorsText>Indicators</IndicatorsText>
+        <Icon themeContext="toolbar" style={{ marginLeft: -6 }}>
+          <Indicators />
+        </Icon>{" "}
+        <IndicatorsText>Indicators</IndicatorsText>
       </TextButton>
       <Portal node={usePortalNode(document)}>
-        <Modal
-          visible={isModalVisible}
-          onCloseOutsideClick={true}
-          onClose={onClose}
-        >
-          <IndicatorsDialog onClose={onClose} indicators={indicators} chart={props.chart}/>
+        <Modal visible={isModalVisible} onCloseOutsideClick={true} onClose={onClose}>
+          <IndicatorsDialog onClose={onClose} indicators={indicators} chart={props.chart} />
         </Modal>
       </Portal>
     </>

@@ -5,12 +5,12 @@ import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu/LeftMenu";
 import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
-import {Theme, ThemeInterface} from "ui";
+import { Theme, ThemeInterface } from "ui";
 import type { NullableChartInstance } from "./chartTypes";
 
 interface ChartUIProps {
   chart: NullableChartInstance;
-  children?: JSX.Element|JSX.Element[];
+  children?: JSX.Element | JSX.Element[];
   leftMenuWidth?: number;
   topMenuHeight?: number;
   loading?: boolean;
@@ -35,26 +35,26 @@ const WrapperOuter = styled.div`
   width: 100%;
   height: 100%;
   overflow: hidden;
-`
+`;
 
-const WrapperInner = styled.div<{height: string}>`
+const WrapperInner = styled.div<{ height: string }>`
   display: flex;
-  flexDirection: row;
-  flexGrow: 1;
-  height: ${props => props.height};
+  flexdirection: row;
+  flexgrow: 1;
+  height: ${(props) => props.height};
   width: 100%;
   overflow-y: auto;
 
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
-  &::-webkit-scrollbar { 
-      display: none;  /* Safari and Chrome */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
   }
-`
+`;
 
 class ChartUI extends React.Component {
   containerRef: RefObject<HTMLDivElement>;
-  containerOffset: { offsetTop?: number, offsetBottom?: number };
+  containerOffset: { offsetTop?: number; offsetBottom?: number };
   props: ChartUIProps;
 
   constructor(props: ChartUIProps) {
@@ -67,10 +67,15 @@ class ChartUI extends React.Component {
   componentDidMount() {
     this.setBoundingClientRect();
 
-    if (typeof window !== 'undefined') {
-      ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"].forEach(event => {
-        window.addEventListener(event, this.setBoundingClientRect)
-      })
+    if (typeof window !== "undefined") {
+      [
+        "fullscreenchange",
+        "webkitfullscreenchange",
+        "mozfullscreenchange",
+        "msfullscreenchange",
+      ].forEach((event) => {
+        window.addEventListener(event, this.setBoundingClientRect);
+      });
     }
   }
 
@@ -80,7 +85,8 @@ class ChartUI extends React.Component {
 
   render() {
     const gap = this.props.theme?.gap || 0;
-    const borders = (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
+    const borders =
+      (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
     const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
     const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
     let topMenuStyles: any = {
@@ -93,10 +99,29 @@ class ChartUI extends React.Component {
         <Container ref={this.containerRef} className="UI-container">
           <WrapperOuter className="wrapperOuter">
             <ContainerOffsetContext.Provider value={this.containerOffset}>
-              <TopMenu chart={this.props.chart} className={this.props.theme?.toolbar?.topMenuPosition === 'right' ? 'right' : ''} style={topMenuStyles} mainContainer={this.containerRef} onIntervalChange={this.props.onIntervalChange} />
-              <WrapperInner className="wrapperInner" height={`calc(100% - ${topMenuHeight + gap + 'px'})`}>
-                <LeftMenu chart={this.props.chart} style={{ width: leftMenuWidth, marginRight: gap }} />
-                <div style={{ position: 'absolute', inset: `${topMenuHeight + gap + 'px'} 0 0 ${leftMenuWidth + gap + 'px'}` }}>{this.props.children}</div>
+              <TopMenu
+                chart={this.props.chart}
+                className={this.props.theme?.toolbar?.topMenuPosition === "right" ? "right" : ""}
+                style={topMenuStyles}
+                mainContainer={this.containerRef}
+                onIntervalChange={this.props.onIntervalChange}
+              />
+              <WrapperInner
+                className="wrapperInner"
+                height={`calc(100% - ${topMenuHeight + gap + "px"})`}
+              >
+                <LeftMenu
+                  chart={this.props.chart}
+                  style={{ width: leftMenuWidth, marginRight: gap }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: `${topMenuHeight + gap + "px"} 0 0 ${leftMenuWidth + gap + "px"}`,
+                  }}
+                >
+                  {this.props.children}
+                </div>
               </WrapperInner>
             </ContainerOffsetContext.Provider>
           </WrapperOuter>
@@ -107,12 +132,12 @@ class ChartUI extends React.Component {
 
   setBoundingClientRect = () => {
     const boundingClientRect = this.containerRef.current?.getBoundingClientRect();
-  
+
     if (boundingClientRect) {
       this.containerOffset.offsetBottom = boundingClientRect.bottom;
       this.containerOffset.offsetTop = boundingClientRect.top;
     }
-  }
+  };
 }
 
 export { ChartUI };

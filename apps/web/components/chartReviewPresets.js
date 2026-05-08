@@ -3,13 +3,7 @@ import bnbUsd5m from "../data/BNBUSD-5m.json";
 import btcUsdHourly from "../data/BTCUSD.json";
 import exampleRange from "../data/EXAMPLE-0-100.json";
 
-const AVAILABLE_DRAW_MODES = [
-  "OHLC",
-  "Bars",
-  "Line",
-  "Histogram",
-  "Line and Histogram",
-];
+const AVAILABLE_DRAW_MODES = ["OHLC", "Bars", "Line", "Histogram", "Line and Histogram"];
 
 function createInterval(symbol, milis) {
   return { symbol, milis };
@@ -87,7 +81,8 @@ const reviewPresets = [
   {
     id: "dexer",
     label: "Dexer Signal",
-    summary: "High-contrast runtime palette moved out of the package and into the app review surface.",
+    summary:
+      "High-contrast runtime palette moved out of the package and into the app review surface.",
     callout: "Good for validating neon contrast, crosshair readability, and line-based studies.",
     runtimeThemeId: "dexer",
     uiThemeId: "dexer",
@@ -109,8 +104,10 @@ const reviewPresets = [
   {
     id: "exeria",
     label: "Exeria Reference",
-    summary: "Legacy exeria palette paired with a deterministic synthetic dataset for regression checks.",
-    callout: "Useful when you want repeatable structure while switching between draw modes in the toolbar.",
+    summary:
+      "Legacy exeria palette paired with a deterministic synthetic dataset for regression checks.",
+    callout:
+      "Useful when you want repeatable structure while switching between draw modes in the toolbar.",
     runtimeThemeId: "exeria",
     uiThemeId: "exeria",
     themeVariant: "dark",
@@ -149,10 +146,4 @@ function buildInstrument(preset, intervalSymbol) {
   };
 }
 
-export {
-  AVAILABLE_DRAW_MODES,
-  buildInstrument,
-  getIntervalFixture,
-  getPresetById,
-  reviewPresets,
-};
+export { AVAILABLE_DRAW_MODES, buildInstrument, getIntervalFixture, getPresetById, reviewPresets };

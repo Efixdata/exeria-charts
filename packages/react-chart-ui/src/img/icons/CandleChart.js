@@ -19,17 +19,11 @@ const SvgCandleChart = (props) => (
       }
     </style>
     <g id="candle_chart_svg__candle_chart">
-      <path
-        className="candle_chart_svg__st0"
-        d="M11 13v3h-1v-3h1m1-1H9v5h3v-5z"
-      />
+      <path className="candle_chart_svg__st0" d="M11 13v3h-1v-3h1m1-1H9v5h3v-5z" />
       <path className="candle_chart_svg__st1" d="M10.5 17v3M10.5 10v2" />
       <path className="candle_chart_svg__st0" d="M13 10h3v6h-3z" />
       <path className="candle_chart_svg__st1" d="M14.5 7v11" />
-      <path
-        className="candle_chart_svg__st0"
-        d="M19 14v3h-1v-3h1m1-1h-3v5h3v-5z"
-      />
+      <path className="candle_chart_svg__st0" d="M19 14v3h-1v-3h1m1-1h-3v5h3v-5z" />
       <path className="candle_chart_svg__st1" d="M18.5 18v2M18.5 11v2" />
     </g>
   </svg>

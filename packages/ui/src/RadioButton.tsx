@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
-import { radioButton } from "../theme"; 
+import { radioButton } from "../theme";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -8,27 +8,25 @@ const Container = styled.div`
   width: fit-content;
   border-radius: ${radioButton.borderRadius}px;
   overflow: hidden;
-  background-color: ${props => props.theme.radioButton.background };
+  background-color: ${(props) => props.theme.radioButton.background};
   grid-gap: ${radioButton.gap}px;
-`
+`;
 
 interface RadioButtonProps {
   buttons: ReactElement[];
-  style?: React.CSSProperties
-  horizontal?: true
-  currentButton: string
-  defaultButton: string
-  onSelect: (id: string) => void
+  style?: React.CSSProperties;
+  horizontal?: true;
+  currentButton: string;
+  defaultButton: string;
+  onSelect: (id: string) => void;
 }
 
 export const RadioButton = (props: RadioButtonProps) => {
-  const buttons = renderButtons()
+  const buttons = renderButtons();
 
   return (
-    <Container style={{ flexDirection: props.horizontal ? 'row' : 'column' }}>
-      {buttons}
-    </Container>
-  )
+    <Container style={{ flexDirection: props.horizontal ? "row" : "column" }}>{buttons}</Container>
+  );
 
   function onSelectOption(clickedButton: any) {
     const id = clickedButton.id;
@@ -39,13 +37,13 @@ export const RadioButton = (props: RadioButtonProps) => {
       props.onSelect(id);
     }
   }
-  
+
   function renderButtons() {
-    return props.buttons.map((button : ReactElement) => {
-      return React.cloneElement( button, {
+    return props.buttons.map((button: ReactElement) => {
+      return React.cloneElement(button, {
         onClick: onSelectOption.bind(null, button.props),
-        style: { borderRadius: 0 }
+        style: { borderRadius: 0 },
       });
     });
-  };
+  }
 };

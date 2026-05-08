@@ -9,9 +9,12 @@ export const LockButton = (props) => {
   const icon = isObjectSelectionAllowed ? <LockOpen /> : <Lock />;
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe("OBJECT_SELECTION_ALLOWED_CHANGE", (data: boolean) => {
-      setObjectSelectionAllowed(data);
-    });
+    const subscription = props?.chart?.subscribe(
+      "OBJECT_SELECTION_ALLOWED_CHANGE",
+      (data: boolean) => {
+        setObjectSelectionAllowed(data);
+      }
+    );
 
     return () => {
       subscription?.unsubscribe();
@@ -20,18 +23,17 @@ export const LockButton = (props) => {
 
   const onClick = () => {
     if (isObjectSelectionAllowed) {
-        props.chart.setObjectSelectionAllowed(false);
-        setObjectSelectionAllowed(false);
-
+      props.chart.setObjectSelectionAllowed(false);
+      setObjectSelectionAllowed(false);
     } else {
-        props.chart.setObjectSelectionAllowed(true);
-        setObjectSelectionAllowed(true);
+      props.chart.setObjectSelectionAllowed(true);
+      setObjectSelectionAllowed(true);
     }
   };
 
-return (
+  return (
     <IconButton onClick={onClick} themeContext="toolbar">
-    { icon }
+      {icon}
     </IconButton>
-);
+  );
 };

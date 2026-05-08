@@ -7,7 +7,7 @@ import { useState } from "react";
 export const FullScreenButton = (props) => {
   const [isInFullScreen, setFullScreen] = useState(false);
   const icon = isInFullScreen ? <ExitFullscreen /> : <Fullscreen />;
-  
+
   const eventTypes = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -29,10 +29,8 @@ export const FullScreenButton = (props) => {
 
     return (
       (document.fullscreenElement && document.fullscreenElement !== null) ||
-      (document.webkitFullscreenElement &&
-        document.webkitFullscreenElement !== null) ||
-      (document.mozFullScreenElement &&
-        document.mozFullScreenElement !== null) ||
+      (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
+      (document.mozFullScreenElement && document.mozFullScreenElement !== null) ||
       (document.msFullscreenElement && document.msFullscreenElement !== null)
     );
   };
@@ -42,7 +40,7 @@ export const FullScreenButton = (props) => {
       document.fullscreenEnabled /* Standard syntax */ ||
       document.webkitFullscreenEnabled /* Safari */ ||
       document.msFullscreenEnabled /* IE11 */
-    ); 
+    );
   };
 
   const onClick = () => {
@@ -77,10 +75,10 @@ export const FullScreenButton = (props) => {
   if (isFullScreenAvailable()) {
     return (
       <IconButton onClick={onClick} themeContext="toolbar">
-        { icon }
+        {icon}
       </IconButton>
     );
   }
-  
+
   return null;
 };

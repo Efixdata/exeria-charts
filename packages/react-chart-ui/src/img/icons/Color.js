@@ -13,9 +13,7 @@ const SvgColor = (props) => (
     role="img"
     {...props}
   >
-    <style>
-      {".color_svg__st1{fill:none;stroke:#000;stroke-miterlimit:10}"}
-    </style>
+    <style>{".color_svg__st1{fill:none;stroke:#000;stroke-miterlimit:10}"}</style>
     <path
       style={{
         fill: "none",

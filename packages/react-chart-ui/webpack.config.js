@@ -1,6 +1,6 @@
-const path = require('path')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const nodeExternals = require('webpack-node-externals');
+const path = require("path");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
   entry: "./index.tsx",
@@ -14,7 +14,7 @@ module.exports = {
           options: {
             presets: [
               "@babel/preset-env",
-              ["@babel/preset-react", {"runtime": "automatic"}],
+              ["@babel/preset-react", { runtime: "automatic" }],
               "@babel/preset-typescript",
             ],
           },
@@ -29,7 +29,7 @@ module.exports = {
         test: /\.(svg|png|jpe?g|gif)$/i,
         use: [
           {
-            loader: 'file-loader',
+            loader: "file-loader",
           },
         ],
       },
@@ -43,8 +43,8 @@ module.exports = {
     filename: "index.js",
     path: path.resolve(__dirname, "dist"),
     library: {
-      name: 'ReactChartUI',
-      type: 'umd',
+      name: "ReactChartUI",
+      type: "umd",
     },
   },
   optimization: {
@@ -54,17 +54,17 @@ module.exports = {
     // nodeExternals(),
     {
       react: {
-        root: 'React',
-        commonjs2: 'react',
-        commonjs: 'react',
-        amd: 'react'
+        root: "React",
+        commonjs2: "react",
+        commonjs: "react",
+        amd: "react",
       },
-      'react-dom': {
-        root: 'ReactDOM',
-        commonjs2: 'react-dom',
-        commonjs: 'react-dom',
-        amd: 'react-dom'
-      }
-    }
-  ]   
+      "react-dom": {
+        root: "ReactDOM",
+        commonjs2: "react-dom",
+        commonjs: "react-dom",
+        amd: "react-dom",
+      },
+    },
+  ],
 };

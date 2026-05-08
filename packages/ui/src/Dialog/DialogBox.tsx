@@ -4,7 +4,7 @@ import { DialogHeader } from "./DialogHeader";
 import { DialogContainer } from "./DialogContainer";
 
 interface DialogBoxProps {
-  children?: JSX.Element|JSX.Element[]|string;
+  children?: JSX.Element | JSX.Element[] | string;
   style?: React.CSSProperties;
   onClose: () => void;
   title?: string;
@@ -13,10 +13,8 @@ interface DialogBoxProps {
 export const DialogBox = (props: DialogBoxProps) => {
   return (
     <DialogContainer style={props.style}>
-        <DialogHeader>{props.title}</DialogHeader>
-        <DialogBody>
-            {props.children}
-        </DialogBody>
+      <DialogHeader>{props.title}</DialogHeader>
+      <DialogBody>{props.children}</DialogBody>
     </DialogContainer>
   );
 };

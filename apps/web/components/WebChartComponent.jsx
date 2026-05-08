@@ -191,8 +191,9 @@ export function WebChartComponent() {
           <p className="reviewEyebrow">Apps/Web Review Surface</p>
           <h1>Theme and chart-type playground</h1>
           <p>
-            Example themes and review fixtures now live in the app, not in the published chart runtime.
-            Theme swaps recreate the chart instance because the chart color manager is global.
+            Example themes and review fixtures now live in the app, not in the published chart
+            runtime. Theme swaps recreate the chart instance because the chart color manager is
+            global.
           </p>
         </div>
 
@@ -238,8 +239,13 @@ export function WebChartComponent() {
           </div>
           <ul className="reviewChecklist">
             <li>Use the chart toolbar to switch between all five main draw modes.</li>
-            <li>Swap presets here to review runtime theme palettes without touching package source.</li>
-            <li>Change interval inside the chart to verify spacing, axis density, and overlay contrast.</li>
+            <li>
+              Swap presets here to review runtime theme palettes without touching package source.
+            </li>
+            <li>
+              Change interval inside the chart to verify spacing, axis density, and overlay
+              contrast.
+            </li>
           </ul>
         </div>
       </section>
@@ -287,15 +293,20 @@ export function WebChartComponent() {
         </div>
 
         <div className="reviewPanel reviewChartPanel">
-          <ChartUI key={chartUiKey} chart={chart} onIntervalChange={handleIntervalChange} theme={activeUiTheme}>
+          <ChartUI
+            key={chartUiKey}
+            chart={chart}
+            onIntervalChange={handleIntervalChange}
+            theme={activeUiTheme}
+          >
             <div ref={containerRef} className="reviewChartCanvas" />
           </ChartUI>
         </div>
 
         <div className="reviewPanel reviewStageFooter">
           <p>
-            Overlay examples are injected from <code>apps/web</code> only. The package runtime now keeps just
-            live source and the vendored Hammer bundle.
+            Overlay examples are injected from <code>apps/web</code> only. The package runtime now
+            keeps just live source and the vendored Hammer bundle.
           </p>
         </div>
       </section>

@@ -124,13 +124,34 @@ const dexerChartTheme = {
     fibonacciRetracementLine: { light: "rgba(0, 0, 0, 0.06)", dark: "rgba(255, 255, 255, 0.12)" },
   },
   fonts: {
-    title: { light: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    text: { light: "11px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "11px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    price: { light: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    priceSubscript: { light: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    time: { light: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    legend: { light: "12px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "12px Mulish, Roboto, Tahoma, Arial, sans-serif" },
-    legendSubscript: { light: "10px Mulish, Roboto, Tahoma, Arial, sans-serif", dark: "10px Mulish, Roboto, Tahoma, Arial, sans-serif" },
+    title: {
+      light: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    text: {
+      light: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    price: {
+      light: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    priceSubscript: {
+      light: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    time: {
+      light: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legend: {
+      light: "12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendSubscript: {
+      light: "10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      dark: "10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+    },
     fontName: { light: "Mulish", dark: "Mulish" },
   },
 };
@@ -180,13 +201,34 @@ const exeriaChartTheme = {
     fibonacciRetracementLine: { light: "rgba(0, 0, 0, 0.06)", dark: "rgba(255, 255, 255, 0.12)" },
   },
   fonts: {
-    title: { light: "bold 12px Roboto, Tahoma, Arial, sans-serif", dark: "bold 12px Roboto, Tahoma, Arial, sans-serif" },
-    text: { light: "11px Roboto, Tahoma, Arial, sans-serif", dark: "11px Roboto, Tahoma, Arial, sans-serif" },
-    price: { light: "bold 11px Roboto, Tahoma, Arial, sans-serif", dark: "bold 11px Roboto, Tahoma, Arial, sans-serif" },
-    priceSubscript: { light: "bold 10px Roboto, Tahoma, Arial, sans-serif", dark: "bold 10px Roboto, Tahoma, Arial, sans-serif" },
-    time: { light: "bold 11px Roboto, Tahoma, Arial, sans-serif", dark: "bold 11px Roboto, Tahoma, Arial, sans-serif" },
-    legend: { light: "11px Roboto, Tahoma, Arial, sans-serif", dark: "11px Roboto, Tahoma, Arial, sans-serif" },
-    legendSubscript: { light: "9px Roboto, Tahoma, Arial, sans-serif", dark: "9px Roboto, Tahoma, Arial, sans-serif" },
+    title: {
+      light: "bold 12px Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 12px Roboto, Tahoma, Arial, sans-serif",
+    },
+    text: {
+      light: "11px Roboto, Tahoma, Arial, sans-serif",
+      dark: "11px Roboto, Tahoma, Arial, sans-serif",
+    },
+    price: {
+      light: "bold 11px Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 11px Roboto, Tahoma, Arial, sans-serif",
+    },
+    priceSubscript: {
+      light: "bold 10px Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 10px Roboto, Tahoma, Arial, sans-serif",
+    },
+    time: {
+      light: "bold 11px Roboto, Tahoma, Arial, sans-serif",
+      dark: "bold 11px Roboto, Tahoma, Arial, sans-serif",
+    },
+    legend: {
+      light: "11px Roboto, Tahoma, Arial, sans-serif",
+      dark: "11px Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendSubscript: {
+      light: "9px Roboto, Tahoma, Arial, sans-serif",
+      dark: "9px Roboto, Tahoma, Arial, sans-serif",
+    },
     fontName: { light: "Roboto", dark: "Roboto" },
   },
 };

@@ -1,293 +1,295 @@
 @import url("https://fonts.googleapis.com/css2?family=Chivo:wght@300;400;700&family=Mulish:wght@300;400;500;600;700;800&display=swap");
 
 :root {
-    --page-background: #07111e;
-    --panel-background: rgba(9, 18, 32, 0.78);
-    --panel-border: rgba(137, 175, 223, 0.16);
-    --panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-    --text-primary: #ecf5ff;
-    --text-secondary: rgba(236, 245, 255, 0.72);
-    --accent-primary: #21c1f2;
-    --accent-secondary: #3cc3af;
+  --page-background: #07111e;
+  --panel-background: rgba(9, 18, 32, 0.78);
+  --panel-border: rgba(137, 175, 223, 0.16);
+  --panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  --text-primary: #ecf5ff;
+  --text-secondary: rgba(236, 245, 255, 0.72);
+  --accent-primary: #21c1f2;
+  --accent-secondary: #3cc3af;
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html,
 body,
 #__next {
-    height: 100%;
-    margin: 0;
+  height: 100%;
+  margin: 0;
 }
 
 body {
-    font-family: "Mulish", sans-serif;
-    background:
-        radial-gradient(circle at top left, rgba(33, 193, 242, 0.14), transparent 32%),
-        radial-gradient(circle at bottom right, rgba(60, 195, 175, 0.12), transparent 34%),
-        linear-gradient(180deg, #07111e 0%, #081423 44%, #09192a 100%);
-    color: var(--text-primary);
+  font-family: "Mulish", sans-serif;
+  background: radial-gradient(circle at top left, rgba(33, 193, 242, 0.14), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(60, 195, 175, 0.12), transparent 34%),
+    linear-gradient(180deg, #07111e 0%, #081423 44%, #09192a 100%);
+  color: var(--text-primary);
 }
 
 button,
 input,
 select,
 textarea {
-    font: inherit;
+  font: inherit;
 }
 
 .reviewPage {
-    min-height: 100%;
-    display: grid;
-    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-    gap: 20px;
-    padding: 24px;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  padding: 24px;
 }
 
 .reviewSidebar,
 .reviewStage {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .reviewPanel {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--panel-border);
-    border-radius: 24px;
-    background: var(--panel-background);
-    box-shadow: var(--panel-shadow);
-    backdrop-filter: blur(18px);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  background: var(--panel-background);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(18px);
 }
 
 .reviewHero,
 .reviewStageHeader,
 .reviewModeStrip,
 .reviewStageFooter {
-    padding: 24px;
+  padding: 24px;
 }
 
 .reviewHero::after {
-    content: "";
-    position: absolute;
-    inset: auto -12% -20% auto;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(circle, rgba(33, 193, 242, 0.22), transparent 72%);
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: auto -12% -20% auto;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(33, 193, 242, 0.22), transparent 72%);
+  pointer-events: none;
 }
 
 .reviewEyebrow {
-    margin: 0 0 8px;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent-primary);
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
 }
 
 .reviewHero h1,
 .reviewStageHeader h2 {
-    margin: 0;
-    font-family: "Chivo", sans-serif;
-    font-size: clamp(2rem, 3vw, 3rem);
-    line-height: 1;
+  margin: 0;
+  font-family: "Chivo", sans-serif;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1;
 }
 
 .reviewHero p,
 .reviewStageHeader p,
 .reviewStageFooter p {
-    margin: 12px 0 0;
-    color: var(--text-secondary);
-    line-height: 1.6;
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .reviewSectionHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    padding: 20px 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 20px 20px 0;
 }
 
 .reviewSectionHeader h2 {
-    margin: 0;
-    font-family: "Chivo", sans-serif;
-    font-size: 1rem;
+  margin: 0;
+  font-family: "Chivo", sans-serif;
+  font-size: 1rem;
 }
 
 .reviewSectionHeader span,
 .presetMeta,
 .reviewMetricLabel {
-    color: var(--text-secondary);
-    font-size: 0.83rem;
+  color: var(--text-secondary);
+  font-size: 0.83rem;
 }
 
 .presetGrid {
-    display: grid;
-    gap: 12px;
-    padding: 20px;
+  display: grid;
+  gap: 12px;
+  padding: 20px;
 }
 
 .presetCard {
-    width: 100%;
-    display: grid;
-    gap: 8px;
-    padding: 16px;
-    border: 1px solid rgba(137, 175, 223, 0.14);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.03);
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(137, 175, 223, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .presetCard:hover {
-    transform: translateY(-1px);
-    border-color: rgba(33, 193, 242, 0.32);
-    background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+  border-color: rgba(33, 193, 242, 0.32);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .presetCard.is-active {
-    border-color: rgba(33, 193, 242, 0.48);
-    background: rgba(15, 36, 59, 0.84);
+  border-color: rgba(33, 193, 242, 0.48);
+  background: rgba(15, 36, 59, 0.84);
 }
 
 .presetSwatch {
-    width: 64px;
-    height: 8px;
-    border-radius: 999px;
+  width: 64px;
+  height: 8px;
+  border-radius: 999px;
 }
 
 .presetLabel {
-    font-family: "Chivo", sans-serif;
-    font-size: 1.05rem;
+  font-family: "Chivo", sans-serif;
+  font-size: 1.05rem;
 }
 
 .presetSummary {
-    font-size: 0.94rem;
-    line-height: 1.5;
-    color: var(--text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .reviewChecklist {
-    margin: 0;
-    padding: 12px 20px 20px 38px;
-    color: var(--text-secondary);
-    line-height: 1.6;
+  margin: 0;
+  padding: 12px 20px 20px 38px;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .reviewChecklist li + li {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .reviewMetrics {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .reviewMetric {
-    padding: 12px 14px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(137, 175, 223, 0.1);
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(137, 175, 223, 0.1);
 }
 
 .reviewMetric strong {
-    display: block;
-    margin-top: 4px;
-    font-size: 0.98rem;
+  display: block;
+  margin-top: 4px;
+  font-size: 0.98rem;
 }
 
 .reviewPills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 16px 24px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 24px 24px;
 }
 
 .reviewPill {
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(137, 175, 223, 0.16);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--text-secondary);
-    font-size: 0.88rem;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(137, 175, 223, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
 }
 
 .reviewChartPanel {
-    min-height: 620px;
-    padding: 12px;
+  min-height: 620px;
+  padding: 12px;
 }
 
 .reviewChartPanel .UI-container,
 .reviewChartPanel .wrapperOuter,
 .reviewChartPanel .wrapperInner {
-    height: 100%;
+  height: 100%;
 }
 
 .reviewChartCanvas {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .reviewStageFooter {
-    font-size: 0.95rem;
+  font-size: 0.95rem;
 }
 
 .reviewStageFooter code {
-    padding: 0.15rem 0.35rem;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 1100px) {
-    .reviewPage {
-        grid-template-columns: 1fr;
-    }
+  .reviewPage {
+    grid-template-columns: 1fr;
+  }
 
-    .reviewStage {
-        order: -1;
-    }
+  .reviewStage {
+    order: -1;
+  }
 
-    .reviewChartPanel {
-        min-height: 560px;
-    }
+  .reviewChartPanel {
+    min-height: 560px;
+  }
 }
 
 @media (max-width: 720px) {
-    .reviewPage {
-        padding: 16px;
-        gap: 16px;
-    }
+  .reviewPage {
+    padding: 16px;
+    gap: 16px;
+  }
 
-    .reviewHero,
-    .reviewStageHeader,
-    .reviewModeStrip,
-    .reviewStageFooter {
-        padding: 18px;
-    }
+  .reviewHero,
+  .reviewStageHeader,
+  .reviewModeStrip,
+  .reviewStageFooter {
+    padding: 18px;
+  }
 
-    .reviewSectionHeader {
-        padding: 18px 18px 0;
-    }
+  .reviewSectionHeader {
+    padding: 18px 18px 0;
+  }
 
-    .presetGrid,
-    .reviewPills {
-        padding: 18px;
-    }
+  .presetGrid,
+  .reviewPills {
+    padding: 18px;
+  }
 
-    .reviewMetrics {
-        grid-template-columns: 1fr;
-    }
+  .reviewMetrics {
+    grid-template-columns: 1fr;
+  }
 
-    .reviewChartPanel {
-        min-height: 70vh;
-    }
+  .reviewChartPanel {
+    min-height: 70vh;
+  }
 }

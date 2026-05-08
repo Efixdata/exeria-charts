@@ -18,10 +18,7 @@ const SvgChecked = (props) => (
         ".checked_svg__st3{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:square;stroke-miterlimit:10}"
       }
     </style>
-    <path
-      className="checked_svg__st3"
-      d="m23.7 32.7 11.2-13.4M17.5 27.2l6.2 5.5"
-    />
+    <path className="checked_svg__st3" d="m23.7 32.7 11.2-13.4M17.5 27.2l6.2 5.5" />
   </svg>
 );
 export default SvgChecked;

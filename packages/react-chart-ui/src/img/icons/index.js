@@ -39,4 +39,3 @@ export { default as Up } from "./Up";
 export { default as Visible } from "./Visible";
 export { default as Width } from "./Width";
 export { default as Zoom } from "./Zoom";
-

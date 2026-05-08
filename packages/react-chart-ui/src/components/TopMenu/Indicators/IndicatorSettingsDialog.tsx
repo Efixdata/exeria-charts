@@ -1,6 +1,17 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { DialogHeader, DialogBody, DialogContainer, DialogFooter, TextInput, TextButton, Label, CheckboxInput, Select, Form } from "ui";
+import {
+  DialogHeader,
+  DialogBody,
+  DialogContainer,
+  DialogFooter,
+  TextInput,
+  TextButton,
+  Label,
+  CheckboxInput,
+  Select,
+  Form,
+} from "ui";
 import { X } from "phosphor-react";
 import type { NullableChartInstance } from "../../../chartTypes";
 
@@ -26,7 +37,7 @@ const initializeConfig = (indicator, seriesManager) => {
       for (let key in seriesManager) {
         const series = seriesManager[key];
         for (let i in series.labels) {
-          const value = series.seriesId + ':' + series.fields[i];
+          const value = series.seriesId + ":" + series.fields[i];
           if (input?.properties?.def === series.fields[i]) {
             input.value = value;
             break;
@@ -37,59 +48,72 @@ const initializeConfig = (indicator, seriesManager) => {
   }
 
   return config;
-}
+};
 
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
-
-  const [config, setConfig] = useState(initializeConfig(props.indicator, props.chart.getSeriesManager()));
+  const [config, setConfig] = useState(
+    initializeConfig(props.indicator, props.chart.getSeriesManager())
+  );
 
   const renderInputs = () => {
     const inputs = [];
 
-    for(let i in config.inputs) {
+    for (let i in config.inputs) {
       inputs.push(renderInput(config.inputs[i], i));
     }
-    
+
     return inputs;
-  }
+  };
 
   const onInputChange = (key, value) => {
     const newConfig = { ...config };
     newConfig.inputs[key].value = value;
-    
-    setConfig(config => ({
-      ...newConfig
-    }))
-  }
+
+    setConfig((config) => ({
+      ...newConfig,
+    }));
+  };
 
   const renderInput = (input: any, key: string) => {
     // input props: type, name, properties { def, max, min }, value
     // input types: integer, double, series, list, boolean, matrix (join, doublecheck, mix), conditional, booleanList, timezone, object
     if (input.type === "integer") {
-      return <Label name={input.name} key={key + 'label'}><TextInput
-        key={key}
-        placeholder={input.name}
-        type="number"
-        min={input?.properties?.min}
-        max={input?.properties?.max}
-        step={1}
-        allowEmpty={false}
-        value={config.inputs[key].value}
-        onChange={(event) => {onInputChange(key, event.target.value)}}
-      ></TextInput></Label>
+      return (
+        <Label name={input.name} key={key + "label"}>
+          <TextInput
+            key={key}
+            placeholder={input.name}
+            type="number"
+            min={input?.properties?.min}
+            max={input?.properties?.max}
+            step={1}
+            allowEmpty={false}
+            value={config.inputs[key].value}
+            onChange={(event) => {
+              onInputChange(key, event.target.value);
+            }}
+          ></TextInput>
+        </Label>
+      );
     } else if (input.type === "double") {
-      return <Label name={input.name} key={key + 'label'}><TextInput
-        key={key}
-        placeholder={input.name}
-        type="number"
-        min={input?.properties?.min}
-        max={input?.properties?.max}
-        step={input?.properties?.step}
-        allowEmpty={false}
-        value={config.inputs[key].value}
-        onChange={(event) => {onInputChange(key, event.target.value)}}
-      ></TextInput></Label>
-    } else if(input.type === "series") {
+      return (
+        <Label name={input.name} key={key + "label"}>
+          <TextInput
+            key={key}
+            placeholder={input.name}
+            type="number"
+            min={input?.properties?.min}
+            max={input?.properties?.max}
+            step={input?.properties?.step}
+            allowEmpty={false}
+            value={config.inputs[key].value}
+            onChange={(event) => {
+              onInputChange(key, event.target.value);
+            }}
+          ></TextInput>
+        </Label>
+      );
+    } else if (input.type === "series") {
       const seriesManager = props.chart.getSeriesManager();
 
       if (!seriesManager) {
@@ -99,62 +123,93 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
       const translate = (text) => {
         return props.chart.translate(text);
-      }
-      
+      };
+
       const renderOptions = () => {
         const options = [];
 
         for (let key in seriesManager) {
           const series = seriesManager[key];
           for (let i in series.labels) {
-            const value = series.seriesId + ':' + series.fields[i];
-            options.push(<option key={value} value={value}>{translate(series.title)}.{translate(series.labels[i])}</option>);
+            const value = series.seriesId + ":" + series.fields[i];
+            options.push(
+              <option key={value} value={value}>
+                {translate(series.title)}.{translate(series.labels[i])}
+              </option>
+            );
           }
         }
         return options;
-      }
+      };
 
-      return <Label name={input.name} key={key + 'label'}>
-        <Select value={input.value} key={key} onChange={(event) => { onInputChange(key, event.target.value) }}>
-          {renderOptions()}
-        </Select>
-      </Label>
-    } else if(input.type === "list") {
+      return (
+        <Label name={input.name} key={key + "label"}>
+          <Select
+            value={input.value}
+            key={key}
+            onChange={(event) => {
+              onInputChange(key, event.target.value);
+            }}
+          >
+            {renderOptions()}
+          </Select>
+        </Label>
+      );
+    } else if (input.type === "list") {
       const renderOptions = () => {
         const options = [];
 
         for (let key in input.list) {
           const value = input.list[key];
 
-          options.push(<option key={value} value={value}>{value}</option>);
+          options.push(
+            <option key={value} value={value}>
+              {value}
+            </option>
+          );
         }
         return options;
-      }
+      };
 
-      return <Label name={input.name} key={key + 'label'}>
-        <select key={key} value={input.value} onChange={(event) => { onInputChange(key, event.target.value) }}>
-          {renderOptions()}
-        </select>
-      </Label>
+      return (
+        <Label name={input.name} key={key + "label"}>
+          <select
+            key={key}
+            value={input.value}
+            onChange={(event) => {
+              onInputChange(key, event.target.value);
+            }}
+          >
+            {renderOptions()}
+          </select>
+        </Label>
+      );
     } else if (input.type === "boolean") {
-      return <Label name={input.name} key={key + 'label'}><CheckboxInput
-        key={key}
-        value={config.inputs[key].value}
-        onChange={(event) => {onInputChange(key, event.target.checked)}}
-      ></CheckboxInput></Label>
+      return (
+        <Label name={input.name} key={key + "label"}>
+          <CheckboxInput
+            key={key}
+            value={config.inputs[key].value}
+            onChange={(event) => {
+              onInputChange(key, event.target.checked);
+            }}
+          ></CheckboxInput>
+        </Label>
+      );
     }
-    
-  }
-
+  };
 
   const renderDialogBody = () => {
-      return <Form onSubmit={(e) => {
-        e.preventDefault();
-        onIndicatorAdd();
-      }
-        }>
-        { renderInputs() }
+    return (
+      <Form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onIndicatorAdd();
+        }}
+      >
+        {renderInputs()}
       </Form>
+    );
   };
 
   const validateForm = () => {
@@ -164,7 +219,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     }
     // TODO: add better form validation, indicate to the user what to do to make
     return true;
-  }
+  };
 
   const onIndicatorAdd = () => {
     const isFormValid = validateForm();
@@ -176,7 +231,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
     props.chart.addScript(config.key, config);
     props.onClose();
-  }
+  };
 
   return (
     <>
@@ -188,14 +243,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
           </TextButton>
         </DialogHeader>
 
-        <DialogBody style={{ padding: "20px" }}>
-          {renderDialogBody()}
-        </DialogBody>
+        <DialogBody style={{ padding: "20px" }}>{renderDialogBody()}</DialogBody>
         <DialogFooter style={{ margin: "10px" }}>
-          <TextButton
-            style={{ marginLeft: "auto", padding: "24px" }}
-            onClick={onIndicatorAdd}
-          >
+          <TextButton style={{ marginLeft: "auto", padding: "24px" }} onClick={onIndicatorAdd}>
             OK
           </TextButton>
         </DialogFooter>

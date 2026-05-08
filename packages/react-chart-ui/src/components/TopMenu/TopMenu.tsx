@@ -30,7 +30,7 @@ const RightSection = styled.div`
     gap: 4px;
     margin-left: auto !important;
   }
-`
+`;
 
 const Container = styled.div`
   box-sizing: border-box;
@@ -38,13 +38,13 @@ const Container = styled.div`
   flex-direction: row;
   padding: 8px 0 8px 8px;
   grid-gap: 12px;
-  background: ${props => props.theme.toolbar.background};
+  background: ${(props) => props.theme.toolbar.background};
 
-  border-bottom: ${props => props.theme.border.inner || "none"};
-  border-left: ${props => props.theme.border.outter || "none"};
-  border-right: ${props => props.theme.border.outter || "none"};
-  border-top: ${props => props.theme.border.outter || "none"};
-  border-radius: ${props => props.theme.border.radius + 'px' || 0};
+  border-bottom: ${(props) => props.theme.border.inner || "none"};
+  border-left: ${(props) => props.theme.border.outter || "none"};
+  border-right: ${(props) => props.theme.border.outter || "none"};
+  border-top: ${(props) => props.theme.border.outter || "none"};
+  border-radius: ${(props) => props.theme.border.radius + "px" || 0};
 
   &.right {
     @media (min-width: 600px) {
@@ -52,18 +52,18 @@ const Container = styled.div`
       margin-left: auto;
     }
   }
-`
+`;
 const LeftSection = styled.div`
   display: flex;
   flex-grow: 1;
   flex-direction: row;
   z-index: 2;
-`
+`;
 
 const Icons = styled.div`
   display: flex;
   gap: 2px;
-`
+`;
 
 export const TopMenu = (props: TopMenuProps) => {
   const instrument = props?.chart?.getInstrument();
@@ -75,42 +75,41 @@ export const TopMenu = (props: TopMenuProps) => {
       return interval.symbol;
     });
   };
-  
+
   const renderShareChartButton = () => {
-    if (tc?.toolbar?.showShareChartButton)
-      return <ShareChartButton chart={props.chart} />
-  }
+    if (tc?.toolbar?.showShareChartButton) return <ShareChartButton chart={props.chart} />;
+  };
 
   const renderChartScaleSwitch = () => {
     if (tc?.toolbar?.showChartScaleSwitch === false) return;
-    return <ChartScaleSwitch chart={props.chart} />
-  }
+    return <ChartScaleSwitch chart={props.chart} />;
+  };
 
   const renderShowCurrency = () => {
     if (tc?.toolbar?.showCurrency === false) return;
-    return <CurrencySwitch chart={props.chart} />
-  }
+    return <CurrencySwitch chart={props.chart} />;
+  };
 
   return (
     <Container style={props.style} className={props.className}>
       <LeftSection
         style={{
-          paddingRight: tc?.toolbar?.showCurrency === false ? '8px' : '0'
+          paddingRight: tc?.toolbar?.showCurrency === false ? "8px" : "0",
         }}
       >
         <MainChartTypeSelect chart={props.chart} />
-        <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange}/>
+        <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange} />
         <IndicatorsButton chart={props.chart} />
-        
+
         <RightSection
           style={{
-            marginLeft: tc?.toolbar?.topMenuPosition === 'right' ? '8px' : '0'
+            marginLeft: tc?.toolbar?.topMenuPosition === "right" ? "8px" : "0",
           }}
         >
           <AutoScaleSwitch chart={props.chart} />
           {renderChartScaleSwitch()}
           <Icons>
-            <FullScreenButton chart={props.chart} mainContainer={props.mainContainer}/>
+            <FullScreenButton chart={props.chart} mainContainer={props.mainContainer} />
             {renderShareChartButton()}
           </Icons>
         </RightSection>
@@ -119,4 +118,3 @@ export const TopMenu = (props: TopMenuProps) => {
     </Container>
   );
 };
-

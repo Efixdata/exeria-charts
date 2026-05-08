@@ -12,15 +12,14 @@ const SaveImageButtonWrapper = styled.div`
   position: relative;
   &.active {
     background-color: ${selectButton.backgroundActiveColor};
-    border-radius: ${selectButton.borderRadius}px ${selectButton.borderRadius}px
-      0px 0px;
+    border-radius: ${selectButton.borderRadius}px ${selectButton.borderRadius}px 0px 0px;
   }
 `;
 
 const OptionsContainer = styled.div`
   box-sizing: border-box;
-  border-radius: ${selectButton.borderRadius}px 0px
-    ${selectButton.borderRadius}px ${selectButton.borderRadius}px;
+  border-radius: ${selectButton.borderRadius}px 0px ${selectButton.borderRadius}px
+    ${selectButton.borderRadius}px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -46,12 +45,10 @@ const OptionValue = styled.span`
   }
 `;
 
-
 export const SaveChartImageButton = (props) => {
-  const { waterMark64 } = useGenerateWatermark()
-  const { shareImage, actionLoading} =
-    useShareChartImage(props.chart);
-   
+  const { waterMark64 } = useGenerateWatermark();
+  const { shareImage, actionLoading } = useShareChartImage(props.chart);
+
   const dropDownRef = React.useRef(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
@@ -70,16 +67,13 @@ export const SaveChartImageButton = (props) => {
   });
 
   return (
-    <SaveImageButtonWrapper
-      ref={dropDownRef}
-      className={isOpen ? "active" : null}
-    >
+    <SaveImageButtonWrapper ref={dropDownRef} className={isOpen ? "active" : null}>
       <IconButton onClick={() => setIsOpen((prev) => !prev)}>
         <Camera />
       </IconButton>
       {isOpen && (
         <OptionsContainer>
-          <OptionValue onClick={()=> shareImage('copyImage', ActionEnum.copy)}>
+          <OptionValue onClick={() => shareImage("copyImage", ActionEnum.copy)}>
             {actionLoading.copyImage ? <Loading /> : <Copy />}
             Copy chart image
           </OptionValue>

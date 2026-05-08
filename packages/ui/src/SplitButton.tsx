@@ -1,6 +1,6 @@
 import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent, RefObject } from "react";
 import styled from "styled-components";
-import { splitButton, buttonOption as buttonOption } from "../theme"; 
+import { splitButton, buttonOption as buttonOption } from "../theme";
 
 // @ts-ignore-next-line: Unreachable code error
 import { ChevronRight } from "./img/icons/index.js";
@@ -8,16 +8,18 @@ import { ChevronRight } from "./img/icons/index.js";
 const Container = styled.div`
   position: relative;
 
-  &:hover .chevron, &.open .chevron {
+  &:hover .chevron,
+  &.open .chevron {
     width: ${splitButton.buttonSize}px;
     height: ${splitButton.buttonSize}px;
     left: 0;
   }
 
-  &:hover .chevron svg, &.open .chevron svg {
+  &:hover .chevron svg,
+  &.open .chevron svg {
     transform: scale(1);
   }
-`
+`;
 
 const ButtonContainer = styled.div`
   border-radius: ${splitButton.borderRadius}px;
@@ -26,21 +28,24 @@ const ButtonContainer = styled.div`
   display: flex;
 
   &:hover {
-    background-color: ${props => props.theme.splitButton.hoverBackground};
+    background-color: ${(props) => props.theme.splitButton.hoverBackground};
 
-    path, circle {
-      fill: ${props => props.theme.splitButton.hoverColor}
+    path,
+    circle {
+      fill: ${(props) => props.theme.splitButton.hoverColor};
     }
   }
 
-  .open &, .open:hover & {
-    background-color: ${props => props.theme.splitButton.openBackground};
+  .open &,
+  .open:hover & {
+    background-color: ${(props) => props.theme.splitButton.openBackground};
 
-    path, circle {
-      fill: ${props => props.theme.splitButton.openColor}
+    path,
+    circle {
+      fill: ${(props) => props.theme.splitButton.openColor};
     }
   }
-`
+`;
 
 const ChevronContainer = styled.div`
   position: relative;
@@ -54,32 +59,33 @@ const ChevronContainer = styled.div`
   box-sizing: border-box;
 
   &:hover {
-    background-color: ${props => props.theme.splitButton.arrowHoverBackground};
+    background-color: ${(props) => props.theme.splitButton.arrowHoverBackground};
   }
-  
+
   svg {
     transform: scale(0.5);
     transition: all 100ms ease-in-out;
   }
 
-  path, circle {
-    fill: ${props => props.theme.splitButton.arrowColor};
+  path,
+  circle {
+    fill: ${(props) => props.theme.splitButton.arrowColor};
   }
-`
+`;
 
-const OptionsContainer = styled.div<{top: number}>`
+const OptionsContainer = styled.div<{ top: number }>`
   box-sizing: border-box;
   border-radius: ${splitButton.borderRadius}px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: ${props => props.theme.subMenu.background};
+  background-color: ${(props) => props.theme.subMenu.background};
   padding: ${splitButton.menuPadding}px 0;
   position: absolute;
   left: ${splitButton.buttonSize}px;
-  top: ${props => props.top}px;
+  top: ${(props) => props.top}px;
   z-index: 1;
-`
+`;
 
 const Option = styled.div`
   display: flex;
@@ -90,30 +96,32 @@ const Option = styled.div`
   padding-bottom: ${buttonOption.basePadding}px;
 
   &:hover {
-    background-color: ${props => props.theme.subMenu.buttons.hoverBackground};
+    background-color: ${(props) => props.theme.subMenu.buttons.hoverBackground};
 
-    button > div, button {
-      background-color: transparent !important
+    button > div,
+    button {
+      background-color: transparent !important;
     }
   }
 
   &.active {
-    background-color: ${props => props.theme.subMenu.buttons.activeBackground};
+    background-color: ${(props) => props.theme.subMenu.buttons.activeBackground};
 
     button {
-      color: ${props => props.theme.subMenu.buttons.activeColor};
+      color: ${(props) => props.theme.subMenu.buttons.activeColor};
     }
-    path, circle {
-      fill: ${props => props.theme.subMenu.buttons.activeColor};
+    path,
+    circle {
+      fill: ${(props) => props.theme.subMenu.buttons.activeColor};
     }
   }
-`
+`;
 
 interface SplitButtonOption {
-  text?: ReactElement
-  icon: ReactElement
-  callback: () => void
-  id: string
+  text?: ReactElement;
+  icon: ReactElement;
+  callback: () => void;
+  id: string;
 }
 
 interface SplitButtonOptions {
@@ -121,65 +129,71 @@ interface SplitButtonOptions {
 }
 
 interface SplitButtonProps {
-  defaultOption: string
-  options: SplitButtonOptions
-  setCurrentOption?: boolean
-  activeOption: string
-  containerOffset: { offsetTop?: number, offsetBottom?: number}
+  defaultOption: string;
+  options: SplitButtonOptions;
+  setCurrentOption?: boolean;
+  activeOption: string;
+  containerOffset: { offsetTop?: number; offsetBottom?: number };
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
   const myRef = useRef<HTMLDivElement>(null);
-  const buttonRef : RefObject<HTMLDivElement> = React.createRef();
+  const buttonRef: RefObject<HTMLDivElement> = React.createRef();
   const [isOpen, setOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState(-buttonOption.basePadding)
+  const [menuPosition, setMenuPosition] = useState(-buttonOption.basePadding);
 
-  const activeOptionProps : SplitButtonOption = props.options[props.activeOption || props.defaultOption];
+  const activeOptionProps: SplitButtonOption =
+    props.options[props.activeOption || props.defaultOption];
   const currentButton = React.cloneElement(activeOptionProps.icon, {
     style: { borderRadius: 0 },
     onClick: () => onActiveOptionClick(activeOptionProps.callback),
     active: !!props.activeOption,
-    themeContext: 'toolbar'
+    themeContext: "toolbar",
   });
 
   useEffect(() => {
-    setMenuPosition(calculateMenuPosition())
+    setMenuPosition(calculateMenuPosition());
     // @ts-ignore
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     // @ts-ignore
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   });
 
   return (
-    <Container className={ (isOpen ? 'open' : undefined)} ref={myRef}>
+    <Container className={isOpen ? "open" : undefined} ref={myRef}>
       <ButtonContainer ref={buttonRef}>
-        { currentButton }
-        <ChevronContainer className="chevron" onClick={() => { setOpen(!isOpen) }}>
+        {currentButton}
+        <ChevronContainer
+          className="chevron"
+          onClick={() => {
+            setOpen(!isOpen);
+          }}
+        >
           <ChevronRight />
         </ChevronContainer>
       </ButtonContainer>
-      { isOpen &&  
-        <OptionsContainer top={menuPosition}>
-          { renderOptions() }
-        </OptionsContainer>
-      }
+      {isOpen && <OptionsContainer top={menuPosition}>{renderOptions()}</OptionsContainer>}
     </Container>
   );
 
-  function onOptionClick(callback: () => void) : void {
+  function onOptionClick(callback: () => void): void {
     setOpen(false);
     callback();
   }
 
-  function onActiveOptionClick(callback: () => void) : void {
-    if (isOpen) { // otwarte
+  function onActiveOptionClick(callback: () => void): void {
+    if (isOpen) {
+      // otwarte
       setOpen(false); // zamknąć
-      if (props.activeOption) { // otwarte i aktywne
+      if (props.activeOption) {
+        // otwarte i aktywne
         onOptionClick.call(null, callback); // wyłączyć defaultowe
       }
-    } else if (props.activeOption) { // zamknięte i aktywne
+    } else if (props.activeOption) {
+      // zamknięte i aktywne
       setOpen(true); // otworzyć
-    } else { // zamknięte i nieaktywne
+    } else {
+      // zamknięte i nieaktywne
       onOptionClick.call(null, callback); // włączyć
     }
   }
@@ -191,24 +205,26 @@ export const SplitButton = (props: SplitButtonProps) => {
       const option = props.options[o];
       options.push(
         <Option
-        // @ts-ignore
-          onClick={() => { onOptionClick(option.callback, o) }}
+          // @ts-ignore
+          onClick={() => {
+            onOptionClick(option.callback, o);
+          }}
           key={o}
-          className={ props.activeOption === o ? 'active' : undefined }
+          className={props.activeOption === o ? "active" : undefined}
         >
-          { option.icon && option.icon }
-          { option.text }
+          {option.icon && option.icon}
+          {option.text}
         </Option>
-      )
+      );
     }
 
     return options;
   }
 
-  function handleClickOutside(e : SyntheticEvent) {
+  function handleClickOutside(e: SyntheticEvent) {
     // @ts-ignore
     if (!myRef.current?.contains(e.target)) {
-        setOpen(false);
+      setOpen(false);
     }
   }
 
@@ -225,7 +241,7 @@ export const SplitButton = (props: SplitButtonProps) => {
         topMenuPosition -= menuHeight - fromBottomToButton;
       }
     }
-    
+
     return topMenuPosition;
   }
 

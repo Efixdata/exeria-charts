@@ -19,4 +19,3 @@ export const Eraser = (props: any) => (
 );
 
 export default Eraser;
-

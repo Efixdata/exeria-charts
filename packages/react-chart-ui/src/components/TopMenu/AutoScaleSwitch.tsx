@@ -28,7 +28,7 @@ export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
 
   return (
     <TextButton
-    //@ts-ignore
+      //@ts-ignore
       style={props.style}
       onClick={() => {
         changeMode();

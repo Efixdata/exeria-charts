@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import WaterMark from "../img/icons/WaterMark.svg"
+import WaterMark from "../img/icons/WaterMark.svg";
 import useGenerateWatermark from "./useGenerateWatermark";
 import type { NullableChartInstance } from "../chartTypes";
 
@@ -9,7 +9,7 @@ export enum ActionEnum {
 }
 
 export default function useShareChartImage(chart: NullableChartInstance) {
-  const { waterMark64 } = useGenerateWatermark()
+  const { waterMark64 } = useGenerateWatermark();
   const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
   const TEMPLATE_TEXT = `Chart by Dexer.io`;
   const STARTING_POINT = window.location.href;
@@ -34,7 +34,7 @@ export default function useShareChartImage(chart: NullableChartInstance) {
       const positionX = (chart.canvasWidth || 0) / 2 - watermarkWidth / 2;
 
       const image = new Image();
-      image.onload = setUpWaterMark; 
+      image.onload = setUpWaterMark;
       image.src = waterMark64;
 
       function setUpWaterMark() {
@@ -58,7 +58,7 @@ export default function useShareChartImage(chart: NullableChartInstance) {
     socialName: string,
     action: ActionEnum,
     socialURI?: string,
-    text?: string,
+    text?: string
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
     const shareModeIsActive = action === ActionEnum.share;
@@ -72,9 +72,9 @@ export default function useShareChartImage(chart: NullableChartInstance) {
       const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${STARTING_POINT}`;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {
-        const windowReference = shareModeIsActive ? window.open('', '_blank') : null;
-        if(windowReference){
-          windowReference.location = generatedURI;    
+        const windowReference = shareModeIsActive ? window.open("", "_blank") : null;
+        if (windowReference) {
+          windowReference.location = generatedURI;
         }
       } else {
         await navigator.clipboard.writeText(generatedURI);

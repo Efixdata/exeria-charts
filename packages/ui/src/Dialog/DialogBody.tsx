@@ -2,40 +2,36 @@ import * as React from "react";
 import styled from "styled-components";
 
 const Body = styled.div`
-    overflow-y: auto;
+  overflow-y: auto;
 
-    /* width */
-    &&::-webkit-scrollbar {
-      width: 12px;
-    }
+  /* width */
+  &&::-webkit-scrollbar {
+    width: 12px;
+  }
 
-    /* Track */
-    &&::-webkit-scrollbar-track {
-      background: ${props => props.theme.scrollBar.trackColor};
-      border-radius: 6px;
-    }
+  /* Track */
+  &&::-webkit-scrollbar-track {
+    background: ${(props) => props.theme.scrollBar.trackColor};
+    border-radius: 6px;
+  }
 
-    /* Handle */
-    &&::-webkit-scrollbar-thumb {
-      background: ${props => props.theme.scrollBar.thumbColor};
-      border-radius: 6px;
-    }
+  /* Handle */
+  &&::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme.scrollBar.thumbColor};
+    border-radius: 6px;
+  }
 
-    /* Handle on hover */
-    &&::-webkit-scrollbar-thumb:hover {
-      background:${props => props.theme.scrollBar.thumbHoverColor};
-    }
-`
+  /* Handle on hover */
+  &&::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.scrollBar.thumbHoverColor};
+  }
+`;
 
 interface DialogBodyProps {
-  children?: JSX.Element|JSX.Element[]|string;
+  children?: JSX.Element | JSX.Element[] | string;
   style?: React.CSSProperties;
 }
 
 export const DialogBody = (props: DialogBodyProps) => {
-  return (
-        <Body style={props.style}>
-            {props.children}
-        </Body>
-  );
+  return <Body style={props.style}>{props.children}</Body>;
 };

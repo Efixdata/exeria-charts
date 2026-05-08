@@ -7,10 +7,7 @@ export const Cross = (props: any) => (
     role="img"
     {...props}
   >
-    <path
-      fill="#7F9DCC"
-      d="M1 8h7v1H1zM11 8h7v1h-7zM8.999 7.001v-7h1v7zM8.991 17.009v-7h1v7z"
-    />
+    <path fill="#7F9DCC" d="M1 8h7v1H1zM11 8h7v1h-7zM8.999 7.001v-7h1v7zM8.991 17.009v-7h1v7z" />
   </svg>
 );
 export default Cross;

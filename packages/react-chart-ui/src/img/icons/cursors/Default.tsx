@@ -7,10 +7,7 @@ export const Default = (props: any) => (
     role="img"
     {...props}
   >
-    <path
-      fill="#7F9DCC"
-      d="m9.7 8 3.8-1.3-10-3 3 10L7.8 10l4.3 4.3 2-2L9.7 8z"
-    />
+    <path fill="#7F9DCC" d="m9.7 8 3.8-1.3-10-3 3 10L7.8 10l4.3 4.3 2-2L9.7 8z" />
   </svg>
 );
 
