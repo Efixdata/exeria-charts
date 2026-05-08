@@ -119,7 +119,7 @@ export default class Chart implements CoreChartController {
     this.renderer = new (ChartRenderer as unknown as CoreRendererConstructor)(
       rendererSettings,
       this.ctx,
-      this,
+      this
     );
     this.objectsManager = new ObjectsManager(this);
     this.subscriptionManager = new SubscriptionManager(this);
@@ -142,23 +142,11 @@ export default class Chart implements CoreChartController {
     this.addScript("VOLUME");
 
     this.fit();
-    this.renderer.render(
-      this.ctx,
-      this.model,
-      this.fusion,
-      false,
-      this.objectOnlyOnOverlay
-    );
+    this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
 
     const onSizeChange = () => {
       this.fit();
-      this.renderer.render(
-        this.ctx,
-        this.model,
-        this.fusion,
-        false,
-        this.objectOnlyOnOverlay
-      );
+      this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
     };
 
     this.resizeObserver = new ResizeObserver(onSizeChange);
@@ -169,7 +157,8 @@ export default class Chart implements CoreChartController {
   destroy() {
     if (typeof window === "undefined") return;
 
-    this.currentAnimationFrame !== undefined && window.cancelAnimationFrame(this.currentAnimationFrame);
+    this.currentAnimationFrame !== undefined &&
+      window.cancelAnimationFrame(this.currentAnimationFrame);
     this.currentAnimationFrame = undefined;
 
     if (this.interactor?.currentAnimationFrame !== undefined) {
@@ -203,9 +192,10 @@ export default class Chart implements CoreChartController {
     this.initialized = false;
   }
 
-  async recalculateScripts(
-    { rerender = true, shortSynchronization = false }: ChartRecalculateOptions = {},
-  ) {
+  async recalculateScripts({
+    rerender = true,
+    shortSynchronization = false,
+  }: ChartRecalculateOptions = {}) {
     try {
       if (shortSynchronization) {
         this.fusion.shortSynchronization();
@@ -214,9 +204,9 @@ export default class Chart implements CoreChartController {
         this.fusion.configureScripts();
         await this.fusion.initAll();
       }
-      
+
       this.fusion.calculateAll();
-  
+
       if (rerender) this.rerender();
     } catch (error) {
       console.warn(error);
@@ -227,13 +217,12 @@ export default class Chart implements CoreChartController {
     if (!this.initialized) return;
 
     this.fit();
-    
+
     this.render(this.objectOnlyOnOverlay);
     this.renderOverlay();
   }
 
   render(objectOnlyOnOverlay?: ChartRuntimeObject | boolean | null) {
-
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visibled
     }
@@ -243,13 +232,7 @@ export default class Chart implements CoreChartController {
     // }
 
     if (!this.isChartEmpty()) {
-      this.renderer.render(
-        this.ctx,
-        this.model,
-        this.fusion,
-        false,
-        objectOnlyOnOverlay
-      );
+      this.renderer.render(this.ctx, this.model, this.fusion, false, objectOnlyOnOverlay);
     } else this.renderEmpty();
 
     // if (this.options.loadableHistory) {
@@ -293,7 +276,7 @@ export default class Chart implements CoreChartController {
       this.fusion.getMainSeries().data.length > 0
     ) {
       let ratio = 1;
-      
+
       if (window) {
         ratio = window.devicePixelRatio;
       }
@@ -305,8 +288,8 @@ export default class Chart implements CoreChartController {
       const widthWithRatio = this.canvasWidth * ratio;
       const widthPx = this.canvasWidth + "px";
       const heightWithRatio = this.canvasHeight * ratio;
-      const heightPx = this.canvasHeight + "px"
-      
+      const heightPx = this.canvasHeight + "px";
+
       this.canvas.width = widthWithRatio;
       this.canvas.height = heightWithRatio;
       this.canvas.style.width = widthPx;
@@ -323,9 +306,13 @@ export default class Chart implements CoreChartController {
       this.model["_width"] = this.canvasWidth;
       this.model["_height"] = this.canvasHeight;
 
-      this.model["_timeAxisWidth"] = this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
+      this.model["_timeAxisWidth"] =
+        this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
       this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
-      this.model["_rightIndex"] = this.renderer.getPointIndex(this.model._timeAxisWidth, this.model);
+      this.model["_rightIndex"] = this.renderer.getPointIndex(
+        this.model._timeAxisWidth,
+        this.model
+      );
 
       this.model["_midOffset"] = Math.trunc(this.model.periodWidth / 2);
 
@@ -359,10 +346,7 @@ export default class Chart implements CoreChartController {
   }
 
   fitPanel(panel: CoreChartPanel, index: number, offset: number) {
-    if (
-      !this.valueConverter ||
-      this.valueConverter.mode !== panel.valueAxisMode
-    )
+    if (!this.valueConverter || this.valueConverter.mode !== panel.valueAxisMode)
       this.valueConverter = new LIB.ValueConverter(panel.valueAxisMode);
 
     var _minValueHeight = 20;
@@ -376,16 +360,14 @@ export default class Chart implements CoreChartController {
     panel["_offset"] = offset;
 
     if (index == this.model.panels.length - 1) {
-      panel._height =
-        this.model._height - this.model.timeAxisHeight - panel._offset;
+      panel._height = this.model._height - this.model.timeAxisHeight - panel._offset;
     }
 
     if (panel.objects.length > 0) {
       var extremes = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
 
       for (var i = 0; i < panel.objects.length; i++) {
-        if (panel.objects[i]["hidden"] && panel.objects[i]["hidden"] == true)
-          continue;
+        if (panel.objects[i]["hidden"] && panel.objects[i]["hidden"] == true) continue;
 
         if (!this.fusion.getMainSeries() || !this.fusion.getMainSeries().data) {
           continue;
@@ -408,10 +390,7 @@ export default class Chart implements CoreChartController {
           this.fusion.getSeriesManager()
         );
 
-        if (
-          Math.abs(ext.min) < Number.MAX_VALUE &&
-          Math.abs(ext.max) < Number.MAX_VALUE
-        ) {
+        if (Math.abs(ext.min) < Number.MAX_VALUE && Math.abs(ext.max) < Number.MAX_VALUE) {
           ext.max = this.valueConverter.realToAxis(ext.max, fV);
           ext.min = this.valueConverter.realToAxis(ext.min, fV);
           if (ext.max > extremes.max) extremes.max = ext.max;
@@ -420,7 +399,6 @@ export default class Chart implements CoreChartController {
       }
 
       if (this.model.autoScale == true) {
-
         if (
           Math.abs(extremes.max) == Number.MAX_VALUE &&
           Math.abs(extremes.min) == Number.MAX_VALUE
@@ -464,7 +442,6 @@ export default class Chart implements CoreChartController {
   updateToolsOptions(config: Record<string, unknown>) {}
 
   renderOverlay() {
-
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visible
     }
@@ -477,11 +454,7 @@ export default class Chart implements CoreChartController {
       if (this.interactor.currentMode.renderOverlay)
         this.interactor.currentMode.renderOverlay(this.octx);
 
-      this.renderer.postRenderOverlay(
-        this.octx,
-        this.model,
-        this.fusion.getSeriesManager()
-      );
+      this.renderer.postRenderOverlay(this.octx, this.model, this.fusion.getSeriesManager());
     }
   }
 
@@ -517,7 +490,7 @@ export default class Chart implements CoreChartController {
     this.renderer.calculatePriceRenderingOptions(
       mainSeries.data,
       this.model,
-      mainSeries.instrument.precision ?? this.instrument?.precision ?? 0,
+      mainSeries.instrument.precision ?? this.instrument?.precision ?? 0
     );
 
     try {
@@ -526,17 +499,16 @@ export default class Chart implements CoreChartController {
       this.rerender();
     } catch (error) {
       console.error(error);
-    }
-    finally {
+    } finally {
       setTimeout(() => {
         this.emitEvent({
-          topic: 'VALUE_AXIS_WIDTH_CHANGE',
-          data: this.renderer.getPriceRenderingOptions().valueAxisWidth
+          topic: "VALUE_AXIS_WIDTH_CHANGE",
+          data: this.renderer.getPriceRenderingOptions().valueAxisWidth,
         });
 
         if (interval) {
           this.emitEvent({
-            topic: 'INTERVAL_CHANGE',
+            topic: "INTERVAL_CHANGE",
             data: interval,
           });
         }
@@ -555,9 +527,7 @@ export default class Chart implements CoreChartController {
   }
 
   appendTick(tick: TickLike, recalculate = true) {
-    const newCandleAdded = LIB.getOHLCSeriesWrapper(
-      this.fusion.getMainSeries()
-    ).update(tick);
+    const newCandleAdded = LIB.getOHLCSeriesWrapper(this.fusion.getMainSeries()).update(tick);
 
     if (newCandleAdded) this.moveChartAfterNewCandle();
 
@@ -587,9 +557,9 @@ export default class Chart implements CoreChartController {
   }
 
   upsertCandle(candle: OhlcvCandle, recalculate = true) {
-    const newCandleAdded = LIB.getOHLCSeriesWrapper(
-      this.fusion.getMainSeries()
-    ).upsertCandle(candle);
+    const newCandleAdded = LIB.getOHLCSeriesWrapper(this.fusion.getMainSeries()).upsertCandle(
+      candle
+    );
 
     try {
       if (newCandleAdded) this.moveChartAfterNewCandle();
@@ -602,24 +572,31 @@ export default class Chart implements CoreChartController {
   moveChartAfterNewCandle() {
     const margin = this.checkMargin();
     if (margin) {
-      this.moveIndexToPoint(margin.i, this.model._width-this.model.valueAxisWidth-this.model.endMargin);
+      this.moveIndexToPoint(
+        margin.i,
+        this.model._width - this.model.valueAxisWidth - this.model.endMargin
+      );
     }
   }
 
   checkMargin(): ChartMarginInfo | null {
-		const lastIndex = this.fusion.getMainSeries().data.length >0 ? this.fusion.getMainSeries().data.length-1 : 0;
-		const lastIndexPoint = this.renderer.getIndexPoint(lastIndex, this.model);
-		if(lastIndexPoint >= (this.model._width-this.model.valueAxisWidth-this.model.endMargin) && lastIndexPoint < this.model._width-this.model.valueAxisWidth)
-			return {i: lastIndex, x: lastIndexPoint};
-		else
-			return null;
-	}
+    const lastIndex =
+      this.fusion.getMainSeries().data.length > 0 ? this.fusion.getMainSeries().data.length - 1 : 0;
+    const lastIndexPoint = this.renderer.getIndexPoint(lastIndex, this.model);
+    if (
+      lastIndexPoint >= this.model._width - this.model.valueAxisWidth - this.model.endMargin &&
+      lastIndexPoint < this.model._width - this.model.valueAxisWidth
+    )
+      return { i: lastIndex, x: lastIndexPoint };
+    else return null;
+  }
 
   moveIndexToPoint(index: number, x: number) {
-		var vpl = (this.model.periodWidth * index)-x; if (vpl<0) vpl = 0;
-		this.model.viewportLeft = vpl;
-	}
-  
+    var vpl = this.model.periodWidth * index - x;
+    if (vpl < 0) vpl = 0;
+    this.model.viewportLeft = vpl;
+  }
+
   prependMainSeriesData(_data: OhlcvCandle[]) {
     // this.model.instrumentsSeries[0].data = data.append(this.model.instrumentsSeries[0].data);
     // this.calculateAll();
@@ -627,40 +604,39 @@ export default class Chart implements CoreChartController {
   }
 
   onCrosshair() {
-	var v = false;
-		if (this.interactor.currentMode.symbol == 'CROSSHAIR') {
-			this.interactor.setMode('DEFAULT');
-			v = false;
-		}
-		else {
-			this.interactor.setMode('CROSSHAIR');
-			v = true;
-		}
-		this.refreshTools();
-		return v;
+    var v = false;
+    if (this.interactor.currentMode.symbol == "CROSSHAIR") {
+      this.interactor.setMode("DEFAULT");
+      v = false;
+    } else {
+      this.interactor.setMode("CROSSHAIR");
+      v = true;
+    }
+    this.refreshTools();
+    return v;
   }
 
   refreshTools() {
-	// if (this.layout.menuLayout === 'fixed') if (this.fixedTools) this.fixedTools.fixedChartTools('doRefresh', this);
-	// 	else if (this.smartTools) this.smartTools.smartChartTools('refreshBottomTools', this);
+    // if (this.layout.menuLayout === 'fixed') if (this.fixedTools) this.fixedTools.fixedChartTools('doRefresh', this);
+    // 	else if (this.smartTools) this.smartTools.smartChartTools('refreshBottomTools', this);
   }
 
   repaint() {
     if (this.currentAnimationFrame !== undefined) {
       window.cancelAnimationFrame(this.currentAnimationFrame);
     }
-		var self = this;
+    var self = this;
 
-		this.currentAnimationFrame = window.requestAnimationFrame(function () {
-			self.render();
-		});
+    this.currentAnimationFrame = window.requestAnimationFrame(function () {
+      self.render();
+    });
   }
 
   addScript(scriptKey: string): void;
   addScript(scriptKey: string, proto?: ScriptDefinition): void;
   addScript(scriptKey: string, proto?: ScriptDefinition) {
     this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
-	}
+  }
 
   createScriptConfig(scriptKey: string, proto?: ScriptDefinition) {
     const resolvedProto =
@@ -679,7 +655,7 @@ export default class Chart implements CoreChartController {
     const getDefaultSeries = (input: RuntimeScriptDefinition["inputs"][string]) => {
       for (var key in this.fusion.getSeriesManager()) {
         const series = this.fusion.getSeriesManager()[key];
-  
+
         for (var i = 0; i < series.fields.length; i++) {
           if (input.properties?.def === series.fields[i]) {
             return series.seriesId + ":" + series.fields[i];
@@ -705,145 +681,150 @@ export default class Chart implements CoreChartController {
     return scriptCfg;
   }
 
-  async onScriptEditorApply(config: RuntimeScriptConfig){
+  async onScriptEditorApply(config: RuntimeScriptConfig) {
     const proto = (FUSION as unknown as CoreFusionStatic).getScript(config.key);
 
-		if(config.id){
-			await this.fusion.modifyScript(config);
-
-		}else{
-			await this.fusion.addScript(config);
+    if (config.id) {
+      await this.fusion.modifyScript(config);
+    } else {
+      await this.fusion.addScript(config);
 
       let pane = this.interactor.getMainPanel() as CoreChartPanel;
-			if(config.pane){
-				if(config.pane=='new'){
-					pane = this.addPanelToModel();
-					config.pane = pane.id;
-					if(proto.centerZero && proto.centerZero==true)
-						pane.centerZero = true;
-					else
-						pane.centerZero = false;
-				}else{
-					for(var i=0 ; i < this.model.panels.length; i++){
-						if(this.model.panels[i].id==config.pane){
-							pane = this.model.panels[i];
-							break;
-						}
-					}
-				}
-			}
+      if (config.pane) {
+        if (config.pane == "new") {
+          pane = this.addPanelToModel();
+          config.pane = pane.id;
+          if (proto.centerZero && proto.centerZero == true) pane.centerZero = true;
+          else pane.centerZero = false;
+        } else {
+          for (var i = 0; i < this.model.panels.length; i++) {
+            if (this.model.panels[i].id == config.pane) {
+              pane = this.model.panels[i];
+              break;
+            }
+          }
+        }
+      }
 
       const plotters = proto.plotters ?? [];
 
-      for (var i=0; i<plotters.length; i++) {
-
+      for (var i = 0; i < plotters.length; i++) {
         const plotter = JSON.parse(JSON.stringify(plotters[i])) as ChartRuntimeObject;
-        plotter['id']=(FUSION as unknown as CoreFusionStatic).uniqueId();
-				var link = plotter.dataLink;
+        plotter["id"] = (FUSION as unknown as CoreFusionStatic).uniqueId();
+        var link = plotter.dataLink;
         plotter.dataLink = config.outputs[link as string];
-				plotter.reference = config.reference;
-				plotter.hidden = !config.visible && proto.permHide;
-				pane.objects.push(plotter);
-			}
-		}
+        plotter.reference = config.reference;
+        plotter.hidden = !config.visible && proto.permHide;
+        pane.objects.push(plotter);
+      }
+    }
 
     const s = config;
     const seriesManager = this.fusion.getSeriesManager();
-		for (var key in s.outputs) {
-			if(seriesManager[s.outputs[key]])
-				seriesManager[s.outputs[key]].userName = s.userName;
+    for (var key in s.outputs) {
+      if (seriesManager[s.outputs[key]]) seriesManager[s.outputs[key]].userName = s.userName;
 
-			for(var pi in this.model.panels){
-				for(var oi in this.model.panels[pi].objects){
-					var o = this.model.panels[pi].objects[oi];
-					if(o.dataLink && o.dataLink == s.outputs[key])
-							o.hidden = s.visible==true && !s.permHide ? false : true;
-				}
-			}
-		}
+      for (var pi in this.model.panels) {
+        for (var oi in this.model.panels[pi].objects) {
+          var o = this.model.panels[pi].objects[oi];
+          if (o.dataLink && o.dataLink == s.outputs[key])
+            o.hidden = s.visible == true && !s.permHide ? false : true;
+        }
+      }
+    }
 
     this.recalculateScripts();
-		await this.rerender();
-		// this.onResize();
-		// if(this.options.controller)
-		// 	this.options.controller.chartStructureChanged();
-	}
+    await this.rerender();
+    // this.onResize();
+    // if(this.options.controller)
+    // 	this.options.controller.chartStructureChanged();
+  }
 
-  addPanelToModel (): CoreChartPanel {
-
+  addPanelToModel(): CoreChartPanel {
     const panel = {
-        id: LIB.getUniqueId(),
-				valueAxisMode: "lin",
-				hGrid: true,
-				vGrid: true,
-				basis: 25,
-				vMax: 100,
-				vMin: 0,
-				precision: this.instrument?.precision || 4,
-				centerZero: false,
-				zeroLine: {color: WEBRCP.utils.colorManager.getColor("chartZeroColor"), width: 1, dash: [3, 3]},
-        objects: [],
-        _visible: true,
-        _width: this.canvasWidth,
-        _height: 0,
-        _offset: 0,
+      id: LIB.getUniqueId(),
+      valueAxisMode: "lin",
+      hGrid: true,
+      vGrid: true,
+      basis: 25,
+      vMax: 100,
+      vMin: 0,
+      precision: this.instrument?.precision || 4,
+      centerZero: false,
+      zeroLine: {
+        color: WEBRCP.utils.colorManager.getColor("chartZeroColor"),
+        width: 1,
+        dash: [3, 3],
+      },
+      objects: [],
+      _visible: true,
+      _width: this.canvasWidth,
+      _height: 0,
+      _offset: 0,
     } as CoreChartPanel;
 
-		//make room
+    //make room
     var sub = Math.trunc(25 / this.model.panels.length);
-		for (var i=0; i<this.model.panels.length; i++){
-			if(this.model.panels[i].basis > sub)
-				this.model.panels[i].basis-=sub;
+    for (var i = 0; i < this.model.panels.length; i++) {
+      if (this.model.panels[i].basis > sub) this.model.panels[i].basis -= sub;
 
-			if(this.model.panels[i].basis <0 )
-				this.model.panels[i].basis = 25;
-		}
-		this.model.panels.push(panel);
-		return panel;
-	}
+      if (this.model.panels[i].basis < 0) this.model.panels[i].basis = 25;
+    }
+    this.model.panels.push(panel);
+    return panel;
+  }
 
   moveToEnd({ rerender = true }: { rerender?: boolean } = {}) {
     if (!this.isChartEmpty()) {
-      this.doMoveToEnd = (this.canvasWidth == 0);
+      this.doMoveToEnd = this.canvasWidth == 0;
 
       const dataLength = this.fusion.getMainSeries().data.length;
       const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;
 
-      let vpl = (this.model.periodWidth * dataLength) - (this.canvasWidth - valueAxisWidth) + this.model.endMargin;
+      let vpl =
+        this.model.periodWidth * dataLength -
+        (this.canvasWidth - valueAxisWidth) +
+        this.model.endMargin;
 
-      if (vpl < 0) { vpl = 0; }
+      if (vpl < 0) {
+        vpl = 0;
+      }
 
       this.model.viewportLeft = vpl;
 
       if (rerender) this.rerender();
     }
-	}
+  }
 
   moveToStamp(stamp: number) {
     if (!this.isChartEmpty()) {
       const index = this.renderer.getStampIndex(stamp, this.model, this.getSeriesManager());
       const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;
 
-      let vpl = (this.model.periodWidth * index) - (this.canvasWidth - valueAxisWidth) + this.model.endMargin;;
+      let vpl =
+        this.model.periodWidth * index - (this.canvasWidth - valueAxisWidth) + this.model.endMargin;
 
-      if (vpl < 0) { vpl = 0; }
+      if (vpl < 0) {
+        vpl = 0;
+      }
 
       this.model.viewportLeft = vpl;
       this.rerender();
     }
-	}
+  }
 
   setInstrument(instrument?: Instrument) {
     if (!instrument) return;
 
-    this.model.instrumentsSeries[0].instrument = { ...this.model.instrumentsSeries[0].instrument, ...instrument };
+    this.model.instrumentsSeries[0].instrument = {
+      ...this.model.instrumentsSeries[0].instrument,
+      ...instrument,
+    };
     this.instrument = instrument;
-    
-    if (instrument.symbol)
-      this.model.instrumentsSeries[0].title = instrument.symbol;
 
-    if (instrument.precision)
-      this.model.panels[0].precision = instrument.precision;
+    if (instrument.symbol) this.model.instrumentsSeries[0].title = instrument.symbol;
+
+    if (instrument.precision) this.model.panels[0].precision = instrument.precision;
 
     if (!this.fusion) return;
 
@@ -864,11 +845,11 @@ export default class Chart implements CoreChartController {
     this.interactor.currentMode.onCancel?.();
   }
 
-	onDrawingDone() {
+  onDrawingDone() {
     // TODO: fire subscription for
-		// this.setActiveTool();
+    // this.setActiveTool();
     // console.log(this.interactor.model);
-	}
+  }
 
   getValueAxisWidth() {
     return this.renderer.getPriceRenderingOptions().valueAxisWidth;
@@ -883,46 +864,42 @@ export default class Chart implements CoreChartController {
     return this.model.panels[0].valueAxisMode;
   }
 
-  setValueAxisMode (mode: ValueAxisMode){
-    if (mode === '%') mode = "perc";
+  setValueAxisMode(mode: ValueAxisMode) {
+    if (mode === "%") mode = "perc";
     if (this.model.panels[0].valueAxisMode == mode) return;
 
-		if (mode === 'perc') {
-      this.model.panels[0].valueAxisMode =  "perc";
+    if (mode === "perc") {
+      this.model.panels[0].valueAxisMode = "perc";
+    } else if (mode === "lin") {
+      this.model.panels[0].valueAxisMode = "lin";
+    } else if (mode === "log") {
+      this.model.panels[0].valueAxisMode = "log";
     }
-			
-		else if (mode === 'lin') {
-      this.model.panels[0].valueAxisMode =  "lin";
-    }
-			
-		else if (mode === 'log') {
-      this.model.panels[0].valueAxisMode =  "log";
-    }
-    
+
     this.setAutoScale(true);
     this.rerender();
-		// this.refreshTools();
-	}
+    // this.refreshTools();
+  }
 
   getAutoScale() {
     return this.model.autoScale;
   }
 
-  setAutoScale (autoScale: boolean){
+  setAutoScale(autoScale: boolean) {
     if (this.model.autoScale == autoScale) return;
 
-		this.model.autoScale = autoScale;
-		this.rerender();
+    this.model.autoScale = autoScale;
+    this.rerender();
 
     this.emitEvent({
       topic: "AUTOSCALE",
       data: {
-        autoScale: autoScale
-      }
+        autoScale: autoScale,
+      },
     });
 
-		// this.refreshTools();
-	}
+    // this.refreshTools();
+  }
 
   onDelete(objectId?: string | number) {
     if (!objectId) return;
@@ -934,8 +911,8 @@ export default class Chart implements CoreChartController {
   setCursor(mode: string) {
     if (this.interactor.currentMode.symbol === mode) return;
 
-		this.interactor.setMode(mode);
-		// this.refreshTools();
+    this.interactor.setMode(mode);
+    // this.refreshTools();
   }
 
   getScriptsManager() {
@@ -948,7 +925,7 @@ export default class Chart implements CoreChartController {
 
   subscribe<TTopic extends keyof ChartEventPayloads>(
     topic: TTopic,
-    callback: (data: ChartEventPayloads[TTopic]) => void,
+    callback: (data: ChartEventPayloads[TTopic]) => void
   ) {
     // TOPICS: AUTOSCALE, CURSOR_CHANGE, VALUE_AXIS_WIDTH_CHANGE
     this.subscriptionManager.subscribe(topic, callback);
@@ -967,52 +944,60 @@ export default class Chart implements CoreChartController {
     // mode: OHLC, Bars, Line, Histogram, Line and Histogram
     this.onDrawModeSelected({
       type: mode,
-      object: 'main@link',
-			selected: false
-    })
+      object: "main@link",
+      selected: false,
+    });
   }
 
-  onDrawModeSelected(data: { object?: ChartRuntimeObject | string; type?: DrawMode | string; selected?: boolean; [key: string]: unknown }) {
-    let object 		= data.object;
-    const drawMode 	= data.type;
-    const selected 	= data.selected;
+  onDrawModeSelected(data: {
+    object?: ChartRuntimeObject | string;
+    type?: DrawMode | string;
+    selected?: boolean;
+    [key: string]: unknown;
+  }) {
+    let object = data.object;
+    const drawMode = data.type;
+    const selected = data.selected;
 
-    if (object === 'main@link' || (object && typeof object !== 'string' && object.id === 'main@link')) {
-			var objects = this.model.panels[0].objects;
-			var mainInstrumentSeries = this.model.instrumentsSeries[0];
+    if (
+      object === "main@link" ||
+      (object && typeof object !== "string" && object.id === "main@link")
+    ) {
+      var objects = this.model.panels[0].objects;
+      var mainInstrumentSeries = this.model.instrumentsSeries[0];
       var length = objects.length;
 
       for (let index = 0; index < length; index++) {
         if (objects[index].dataLink === mainInstrumentSeries.seriesId) {
           object = objects[index];
-					break;
-				}
-			}
-		}
+          break;
+        }
+      }
+    }
 
-    if (!object || typeof object === 'string' || !drawMode) return;
+    if (!object || typeof object === "string" || !drawMode) return;
 
-		object.renderAs = drawMode;
+    object.renderAs = drawMode;
 
-		if (selected) {
-			var mode = (drawMode === 'OHLC' || drawMode === 'Bars')? 'candles' : 'series';
-			this.updateToolsOptions({mode: mode, object: object});
-		}
+    if (selected) {
+      var mode = drawMode === "OHLC" || drawMode === "Bars" ? "candles" : "series";
+      this.updateToolsOptions({ mode: mode, object: object });
+    }
 
-		this.rerender();
-	}
+    this.rerender();
+  }
 
   onDownload(watermark?: string, watermarkWidth = 0, watermarkHeight = 0) {
-		var link = document.createElement('a');
+    var link = document.createElement("a");
     const positionY = this.canvasHeight / 2 - watermarkHeight / 2;
     const positionX = this.canvasWidth / 2 - watermarkWidth / 2;
     const title = `${this.instrument?.name ?? "chart"}_${this.model.interval?.symbol ?? ""}`;
 
     if (!watermark) {
       link.href = this.canvas.toDataURL();
-			link.download = title + "_" + Date.now() + ".png";
-			link.click();
-			this.render();
+      link.download = title + "_" + Date.now() + ".png";
+      link.click();
+      this.render();
     } else {
       var image = new Image();
       image.src = watermark;
@@ -1026,7 +1011,7 @@ export default class Chart implements CoreChartController {
         this.render();
       };
     }
-	}
+  }
 
   getInterval() {
     return this.model.interval;
@@ -1053,7 +1038,7 @@ export default class Chart implements CoreChartController {
         if (output.type === "series" && output.series) {
           const series = output.series;
           series.title = translator.getMessage(series.title, series.title);
-          
+
           if (output.labels) {
             const seriesLabels = (series.labels ?? {}) as Record<string, string>;
             for (let labelKey in output.labels) {
@@ -1064,7 +1049,7 @@ export default class Chart implements CoreChartController {
             }
             series.labels = seriesLabels;
           }
-        }  
+        }
       }
     }
 
@@ -1076,28 +1061,27 @@ export default class Chart implements CoreChartController {
   }
 
   removePanelFromModel(panel: CoreChartPanel) {
-		var basis = panel.basis;
+    var basis = panel.basis;
 
-		for (var i = 0; i < this.model.panels.length; i++) {
-			if (panel.id === this.model.panels[i].id) {
-				this.model.panels[i].objects.forEach((e) => {
+    for (var i = 0; i < this.model.panels.length; i++) {
+      if (panel.id === this.model.panels[i].id) {
+        this.model.panels[i].objects.forEach((e) => {
           this.objectsManager.detachObject(e.id);
         });
 
-				this.model.panels.splice(i,1);
-				break;
-			}
-		}
+        this.model.panels.splice(i, 1);
+        break;
+      }
+    }
 
     var sub = Math.trunc(basis / this.model.panels.length);
 
-		for (var i = 0; i < this.model.panels.length; i++) {
+    for (var i = 0; i < this.model.panels.length; i++) {
       this.model.panels[i].basis += sub;
     }
-	}
+  }
 
   setObjectSelectionAllowed(isAllowed: boolean) {
     this.interactor.setObjectSelectionAllowed(isAllowed);
   }
-
 }

@@ -1,1397 +1,1641 @@
 import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
-import { Series, SeriesObject, StrategyObject, IndicatorObject, CandlestickPatternStrategyObject, FractalsObject, TradeObject, StopLimitObject,  MovePaneArrows } from "./Objects";
-import { Shape, TrendLineObject,  FibonLinesObject, ParallelChannelObject, ArrowObject, HorizontalLineObject, VerticalLineObject, DiNapoliLevels, DiNapoliAbcObject, MultiLineObject, AbcdObject, EllipseObject, HorizontalRangeObject, VerticalRangeObject, TimeRangeObject, TimeBetObject, CycleObject, TextObject, BoxObject, TriangleObject, PriceTagObject } from "./Objects2"
+import {
+  Series,
+  SeriesObject,
+  StrategyObject,
+  IndicatorObject,
+  CandlestickPatternStrategyObject,
+  FractalsObject,
+  TradeObject,
+  StopLimitObject,
+  MovePaneArrows,
+} from "./Objects";
+import {
+  Shape,
+  TrendLineObject,
+  FibonLinesObject,
+  ParallelChannelObject,
+  ArrowObject,
+  HorizontalLineObject,
+  VerticalLineObject,
+  DiNapoliLevels,
+  DiNapoliAbcObject,
+  MultiLineObject,
+  AbcdObject,
+  EllipseObject,
+  HorizontalRangeObject,
+  VerticalRangeObject,
+  TimeRangeObject,
+  TimeBetObject,
+  CycleObject,
+  TextObject,
+  BoxObject,
+  TriangleObject,
+  PriceTagObject,
+} from "./Objects2";
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
-import type { CoreRenderer, CoreRendererConstructor, ValueAxisTick } from "./internal-types/renderer";
+import type {
+  CoreRenderer,
+  CoreRendererConstructor,
+  ValueAxisTick,
+} from "./internal-types/renderer";
 
 type LegendRenderValue = {
-	label: { text?: string; x?: number; y?: number };
-	value: { text?: string; x?: number; y?: number; zerosToReduce?: number };
-	separator: { text?: string; x?: number; y?: number };
+  label: { text?: string; x?: number; y?: number };
+  value: { text?: string; x?: number; y?: number; zerosToReduce?: number };
+  separator: { text?: string; x?: number; y?: number };
 };
 
 const Renderer: CoreRendererConstructor = function (
-	this: CoreRenderer,
-	settings: any,
-	context: CanvasRenderingContext2D | null,
-	controller: any,
+  this: CoreRenderer,
+  settings: any,
+  context: CanvasRenderingContext2D | null,
+  controller: any
 ) {
-	this.context = context;
-	this.controller = controller;
-	this.settings = settings;
-	this.priceRenderingOptions = {
-		valueAxisWidth: 0,
-		magnitude: 1,
-		zerosToReduce: 0
-	};
-	this.volumePrecision = 2;
-
-	this.objects = {};
-	this.timeTicks = [];
-
-	var series = new Series(); //instancja bazowa
-	SeriesObject.prototype = series;
-	StrategyObject.prototype = series;
-	IndicatorObject.prototype = series;
-
-	this.objects['SeriesObject'] = new SeriesObject();
-	this.objects['StrategyObject'] = new StrategyObject();
-	this.objects['CandlestickPatternStrategyObject'] = new CandlestickPatternStrategyObject();
-	this.objects['FractalsObject'] = new FractalsObject();
-	this.objects['IndicatorObject'] = new StrategyObject();
-
-	this.objects['TradeObject'] = new TradeObject(this.settings.positions);
-	this.objects['StopLimitObject'] = new StopLimitObject(this.settings.positions);
-	this.objects['POSITION'] = new TradeObject(this.settings.positions);
-	this.objects['TP'] = new TradeObject(this.settings.orders);
-	this.objects['SL'] = new TradeObject(this.settings.orders);
-	this.objects['BUY LIMIT'] = new TradeObject(this.settings.orders);
-	this.objects['BUY STOP'] = new TradeObject(this.settings.orders);
-	this.objects['BUY STOP_LIMIT'] = new StopLimitObject(this.settings.orders);
-	this.objects['SELL LIMIT'] = new TradeObject(this.settings.orders);
-	this.objects['SELL STOP'] = new TradeObject(this.settings.orders);
-	this.objects['SELL STOP_LIMIT'] = new StopLimitObject(this.settings.orders);
-
-	this.objects['SELL TRAILING_STOP'] = new TradeObject(this.settings.orders);
-	this.objects['BUY TRAILING_STOP'] = new TradeObject(this.settings.orders);
-	this.objects['SELL TAKE_PROFIT'] = new TradeObject(this.settings.orders);
-	this.objects['BUY TAKE_PROFIT'] = new TradeObject(this.settings.orders);
-	this.objects['SELL TAKE_PROFIT_MARKET'] = new TradeObject(this.settings.orders);
-	this.objects['BUY TAKE_PROFIT_MARKET'] = new TradeObject(this.settings.orders);
-	this.objects['SELL TAKE_PROFIT_LIMIT'] = new StopLimitObject(this.settings.orders);
-	this.objects['BUY TAKE_PROFIT_LIMIT'] = new StopLimitObject(this.settings.orders);
-
-	this.objects['MovePaneArrows'] = new MovePaneArrows();
-
-	var shape = new Shape();  //instancja bazowa
-		TrendLineObject.prototype = shape;
-		ArrowObject.prototype = shape;
-		ParallelChannelObject.prototype = shape;
-		FibonLinesObject.prototype = shape;
-		HorizontalLineObject.prototype = shape;
-		VerticalLineObject.prototype = shape;
-		MultiLineObject.prototype = shape;
-		AbcdObject.prototype = shape;
-		EllipseObject.prototype = shape;
-		HorizontalRangeObject.prototype = shape;
-		VerticalRangeObject.prototype = shape;
-		TimeRangeObject.prototype = shape;
-		TimeBetObject.prototype = shape;
-		CycleObject.prototype = shape;
-		BoxObject.prototype = shape;
-		TextObject.prototype = shape;
-		TriangleObject.prototype = shape;
-		PriceTagObject.prototype = shape;
-	
-		DiNapoliLevels.prototype = shape;
-		DiNapoliAbcObject.prototype = shape;
-
-	this.objects['trendLine'] = new TrendLineObject();
-	this.objects['arrow'] = new ArrowObject();
-	this.objects['parallelChannel'] = new ParallelChannelObject();
-	this.objects['fibonLines'] = new FibonLinesObject();
-	this.objects['hLine'] = new HorizontalLineObject();
-	this.objects['vLine'] = new VerticalLineObject();
-	this.objects['mLine'] = new MultiLineObject();
-	this.objects['abcd'] = new AbcdObject();
-	this.objects['ellipse'] = new EllipseObject();
-	this.objects['box'] = new BoxObject();
-	this.objects['hRange'] = new HorizontalRangeObject();
-	this.objects['vRange'] = new VerticalRangeObject();
-	this.objects['timeRange'] = new TimeRangeObject();
-	this.objects['timeBet'] = new TimeBetObject();
-	this.objects['cycle'] = new CycleObject();
-	this.objects['textAnnotation'] = new TextObject();
-	this.objects['triangle'] = new TriangleObject();
-	this.objects['priceTag'] = new PriceTagObject();
-
-	//DiNapoli tools
-	this.objects['diNapoliLevels'] = new DiNapoliLevels();
-	this.objects['diNapoliAbcd'] = new DiNapoliAbcObject();
-
-	this.validateSeriesBeforeRender = function(series){
-		try {
-			if (!series.data[0])
-				throw {type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series"}
-		} catch(e: any) {
-			throw {type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series"}
-		}
-	}
-
-	this.render		=	function (ctx, model, fusion, translate, omitObject) {
-
-		try {
-			//ctx.translate(0.5, 0.5);
-			ctx.clearRect(-1, -1, model._width + 2, model._height + 2);
-			var seriesManager = fusion.getSeriesManager();
-			
-			this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
-
-			ctx.font = WEBRCP.utils.colorManager.getFont("text");
-
-			this.calculateTimeTicks(model, seriesManager);
-
-			//## Render panels
-			var panel = null;
-			for (var i=0; i<model.panels.length; i++) {
-				panel = model.panels[i];
-				if(panel._visible)
-					this.renderPanel(ctx, model, panel, fusion, omitObject);
-			}
-
-			//## Render time axis
-			this.renderTimeAxis(ctx, model, this.timeTicks, fusion);
-
-			//## Render handlers
-			for (var i=0; i<model.panels.length; i++) {
-				panel = model.panels[i];
-				if(panel._visible)
-					this.renderHandler(ctx, model, panel);
-			}
-
-			//## Post rendering - all objects have the possibility to draw something on whole chart after rendering
-			for (var i=0; i<model.panels.length; i++) {
-				panel = model.panels[i];
-				if(panel._visible)
-					this.postRenderPlotPane(ctx, model, panel, seriesManager, omitObject);
-			}
-
-		} catch(err: any) {
-			if (err.type && err.type === "EMPTY_SERIES")
-				console.warn(err.message);
-			else
-				console.warn(err)
-		} finally {
-			// ctx.translate (-0.5, -0.5);
-		}
-	};
-
-	this.renderPanel		=	function (ctx, model, panel, fusion, omitObject) {
-		const seriesManager = fusion.getSeriesManager();
-		const valueTick = this.calculateNiceTick(model, panel);
-		
-		try { this.validateSeriesBeforeRender(seriesManager[model.mainSeries]); }
-		catch(e) { this.onErrorWhileRendering(e) }
-
-		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("backgroundColor");
-		ctx.fillRect(0, panel._offset, panel._width-this.priceRenderingOptions.valueAxisWidth, panel._height);
-
-		if (panel.hGrid) this.renderHGrid (ctx, model, panel, valueTick);
-		if (panel.vGrid) this.renderVGrid (ctx, model, panel, this.timeTicks);
-
-		this.renderPlotPane(ctx, model, panel, seriesManager, omitObject);
-		this.renderValueAxis(ctx, model, panel, valueTick);
-
-		if (model.mode === 'normal') {
-			try { this.renderLegend(ctx, model, panel, fusion); }
-			catch(e) { this.onErrorWhileRendering(e) }
-		}
-	};
-
-	this.renderPlotPane	=	function (ctx, model, panel, seriesManager, omitObject) {
-		if (!omitObject) omitObject = { id: 'none' };
-
-		ctx.save();
-		ctx.rect(0, panel._offset, panel._width-this.priceRenderingOptions.valueAxisWidth, panel._height);
-		ctx.clip();
-		ctx.font = WEBRCP.utils.colorManager.getFont("text");
-
-		if (panel.zeroLine) {
-			var y = this.getYCoordinateForPrice(0, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
-			ctx.strokeStyle = panel.zeroLine.color;
-			ctx.lineWidth = panel.zeroLine.width;
-			ctx.setLineDash(panel.zeroLine.dash);
-			ctx.beginPath();
-			ctx.moveTo(0,y);
-			ctx.lineTo(panel._width,y);
-			ctx.stroke();
-			ctx.setLineDash([]);
-			ctx.closePath();
-		}
-
-		for (var i = 0; i < panel.objects.length; i++) {
-			let object = panel.objects[i];
-
-			if (object.isValid && !object.isValid(object)) continue;
-			if (object.permHide) object.hidden = true;
-			if (object.hidden && object.hidden === true) continue;
-			if (object.isBeingDragged) continue;
-
-			if (this.objects[object.type] != null && object.id != omitObject.id) {
-				try { this.objects[object.type].render(object, ctx, this, model, panel, seriesManager); }
-				catch(e) { this.onErrorWhileRendering(e) }
-			}
-		}
-
-		if (model.orders.visible) {
-			if (panel.main == true && model.orders &&  model.orders.list && model.orders.list.length > 0) {
-				for (var i = 0; i < model.orders.list.length; i++){
-					if (model.orders.list[i] != omitObject && !model.orders.list[i].drag)
-						try { this.objects[model.orders.list[i].type].render( model.orders.list[i], ctx, this, model, panel, seriesManager); }
-						catch(e) { this.onErrorWhileRendering(e) }
-				}
-			}
-		}
-
-		if (model.positions.visible) {
-			if (panel.main == true && model.positions && model.positions.list && model.positions.list.length > 0) {
-					for (var i = 0; i < model.positions.list.length; i++){
-						if (model.positions.list[i]!=omitObject)
-							try { this.objects[model.positions.list[i].type].render(model.positions.list[i], ctx, this, model, panel, seriesManager); }
-							catch(e) { this.onErrorWhileRendering(e) }
-					}
-			}
-		}
-
-		try { this.objects.MovePaneArrows.render(null, ctx, this, model, panel, seriesManager); }
-		catch(e) { this.onErrorWhileRendering(e) }
-
-		ctx.restore();
-	};
-
-	this.onErrorWhileRendering = function(e) {
-		if (e.type && e.type === "EMPTY_SERIES") console.warn(e.message);
-		else console.warn(e);
-	}
-
-	this.postRenderPlotPane		=	function (ctx, model, panel, seriesManager, omitObject) {
-
-		if (model.orders.visible) {
-			if (panel.main == true && model.orders && model.orders.list && model.orders.list.length > 0) {
-				for (var i = 0; i < model.orders.list.length; i++) {
-					if (model.orders.list[i] != omitObject && !model.orders.list[i].drag) try {
-						this.objects[model.orders.list[i].type].postRender(model.orders.list[i], ctx, this, model, panel, seriesManager);
-					}
-					catch(e) { this.onErrorWhileRendering(e) }
-				}
-			}
-		}
-
-		if (model.positions.visible) {
-			if (panel.main == true && model.positions && model.positions.list && model.positions.list.length > 0) {
-				for (var i = 0; i < model.positions.list.length; i++) {
-					if (model.positions.list[i]!=omitObject) try {
-						this.objects[model.positions.list[i].type].postRender(model.positions.list[i], ctx, this, model, panel, seriesManager);
-					}
-					catch(e) { this.onErrorWhileRendering(e) }
-				}
-			}
-		}
-
-		for (var i = 0; i < panel.objects.length; i++) {
-			if (panel.objects[i]['hidden'] && panel.objects[i]['hidden'] == true) continue;
-
-			if (this.objects[panel.objects[i].type] != null) try {
-				this.objects[panel.objects[i].type].postRender(panel.objects[i], ctx, this, model, panel, seriesManager);
-			}
-			catch(e) { this.onErrorWhileRendering(e) }
-		}
-	};
-
-	this.shouldBePanelVisible = function(panel){
-		for(var i=0; i< panel.objects.length; i++){
-			if(!panel.objects[i].hidden) return true;
-		}
-		return false;
-	}
-
-	this.renderOverlay		=	function (octx, model, fusion) {
-		var seriesManager = fusion.getSeriesManager();
-		octx.font = WEBRCP.utils.colorManager.getFont("text");
-
-		//## fire render overlay on all objects!
-		for (var pi = 0; pi < model.panels.length; pi++) {
-			var panel = model.panels[pi];
-
-			try {
-				octx.save();
-				// octx.translate (0.5, 0.5);
-				octx.rect(0, panel._offset, panel._width - this.priceRenderingOptions.valueAxisWidth, panel._height);
-				octx.clip();
-				octx.font = WEBRCP.utils.colorManager.getFont("text");
-
-				for (var oi = 0; oi < panel.objects.length; oi++) {
-					var o = panel.objects[oi];
-					if (o.hidden && o.hidden === true) continue;
-
-					if (this.objects[o.type] != null && this.objects[o.type].renderOverlay) {
-						this.objects[o.type].renderOverlay(o, octx, this, model, panel, seriesManager);
-					}
-				}
-
-				if (model.orders.visible) {
-					if (panel.main == true && model.orders &&  model.orders.list && model.orders.list.length > 0) {
-						for (var i = 0; i < model.orders.list.length; i++) {
-							this.objects[model.orders.list[i].type].renderOverlay(
-								model.orders.list[i], 
-								octx,
-								this,
-								model,
-								panel,
-								seriesManager
-							);
-						}
-					}
-				}
-
-				if (model.positions.visible) {
-					if (panel.main == true && model.positions && model.positions.list && model.positions.list.length > 0) {
-						for (var i = 0; i < model.positions.list.length; i++) {
-							this.objects[model.positions.list[i].type].renderOverlay(
-								model.positions.list[i], 
-								octx,
-								this,
-								model,
-								panel,
-								seriesManager
-							);
-						}
-					}
-				}
-			} catch(e: any) {
-				console.error(e,e.stack)
-			} finally {
-				//permamently close all earlier paths (some can be unclosed)
-				octx.beginPath();
-				octx.closePath();
-				// octx.translate (-0.5, -0.5);
-				octx.restore();
-			}
-		}
-	}
-
-	this.postRenderOverlay		=	function (octx, model, seriesManager) {
-		//postRenderOverlay
-		for (var pi=0; pi<model.panels.length; pi++) {
-			var panel = model.panels[pi];
-
-			try{
-				octx.save();
-				// octx.translate (0.5, 0.5);
-				octx.rect(0, panel._offset, panel._width, panel._height);
-				octx.clip();
-
-				for(var oi=0; oi < panel.objects.length; oi++){
-					var o = panel.objects[oi];
-					if(o['hidden'] && o['hidden']==true) continue;
-
-					if (this.objects[o.type]!=null && this.objects[o.type].postRenderOverlay) {
-						this.objects[o.type].postRenderOverlay(o, octx, this, model, panel, seriesManager);
-					}
-				}
-
-				if(model.orders.visible){
-					if(panel.main == true && model.orders &&  model.orders.list && model.orders.list.length > 0){
-						for(var i=0; i<model.orders.list.length;i++){
-							this.objects[model.orders.list[i].type].postRenderOverlay(model.orders.list[i], octx, this, model, panel, seriesManager);
-						}
-					}
-				}
-
-				if(model.positions.visible){
-					if(panel.main == true && model.positions && model.positions.list && model.positions.list.length > 0){
-						for(var i=0; i<model.positions.list.length;i++){
-							this.objects[model.positions.list[i].type].postRenderOverlay(model.positions.list[i], octx, this, model, panel, seriesManager);
-						}
-					}
-				}
-			}catch(e: any){
-				console.error(e, e.stack)
-			}finally{
-				//permamently close all earlier paths (some can be unclosed)
-				octx.beginPath();
-				octx.closePath();
-				// octx.translate (-0.5, -0.5);
-				octx.restore();
-			}
-		}
-	}
-
-
-
-	this.renderValueAxis	=	function (ctx, model, panel, tick) {
-		const mode = panel.valueAxisMode;
-
-		try {
-			let tickValue = tick.niceMin;
-			const texts = [];
-			let tickPoint = 0;
-			let precision = this.getPrecision(model, panel);
-
-			if (mode == 'perc') { 
-				precision = 2;
-			}
-	
-			while (tickValue < tick.niceMax) {
-				//drawTickValue
-				tickValue += tick.tickSpacing;
-				tickPoint = this.getYCoordinateForPrice(tickValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
-
-				if (tickPoint < panel._offset) continue;
-				
-				let value = tickValue;
-
-				if (mode == 'log') {
-					value = (LIB._converterLog as any).axisToReal(tickValue, 1);
-				}
-
-				let text = value.toFixed(precision);
-				
-				if (value > 999999)	{
-					text = LIB.nFormatter(value, precision);
-				}
-								
-				if (panel.valueAxisMode == "perc") {
-					text += '%';
-				}
-				
-				texts.push({
-					text,
-					ctx,
-					y: tickPoint + 2
-				});
-			}
-
-			const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + 1;
-			const panelWidth = Math.round(panel._width)
-			const panelStartX = panelWidth - valueAxisWidth;
-
-			ctx.save();
-			ctx.beginPath();
-			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisBackground"); //priceAxisBackground
-			ctx.rect(panelWidth - valueAxisWidth, panel._offset, valueAxisWidth, panel._height);
-			ctx.fill()
-			
-			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor"); // handlerColor
-			ctx.fillRect(panelWidth - valueAxisWidth, panel._offset, 1, panel._height);
-
-			ctx.clip();
-
-			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
-
-			texts.forEach(options => renderPriceText.call(this, {
-				...options,
-				x: panelStartX + model.valueAxisPadding,
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce,
-				mode
-			}));
-		} catch(error: any) {
-			console.error(error, error.stack)
-		} finally {
-			ctx.closePath();
-			ctx.restore();
-		}
-	};
-
-	this.renderHGrid = function (ctx, model, panel, tick) {
-
-		var tickValue = tick.niceMin;
-		var tickPoint = 0;
-
-		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
-		ctx.lineWidth = 1;
-
-		while (tickValue<tick.niceMax) {
-
-			//drawTickValue
-			tickValue += tick.tickSpacing;
-			tickPoint = this.getYCoordinateForPrice(tickValue, {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
-			if (tickPoint<panel._offset) continue;
-
-			ctx.beginPath();
-			ctx.moveTo(0, tickPoint);
-			ctx.lineTo(panel._width - this.priceRenderingOptions.valueAxisWidth, tickPoint);
-			ctx.stroke();
-			ctx.closePath();
-
-		}
-
-	};
-
-	this.renderVGrid = function (ctx, model, panel, ticks) {
-		var tickIndex = 0;
-		var tickX = 0;
-
-		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
-		ctx.lineWidth = 1;
-
-		for (var i = 0; i < ticks.length; i++) {
-			tickIndex = ticks[i];
-			tickX = this.getIndexPoint(tickIndex, model);
-
-			if (tickX > panel._width) continue;
-
-			ctx.beginPath();
-			ctx.moveTo(tickX + 0.5, 0 + panel._offset);
-			ctx.lineTo(tickX + 0.5, panel._offset + panel._height);
-			ctx.stroke();
-			ctx.closePath();
-		}
-	};
-
-	this.renderTimeAxis	= function (ctx, model, ticks, fusion) {
-		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
-		ctx.fillRect (0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight);
-		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
-		ctx.fillRect (-0.5, model._height-model.timeAxisHeight -0.5, model._width, 1);
-
-		var tickIndex = 0;
-		var tickX = 0;
-		var tickY = model._height-model.timeAxisHeight;
-		var stamp = 0;
-
-		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
-		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisTextColor");
-		ctx.lineWidth = 1;
-		ctx.font = WEBRCP.utils.colorManager.getFont("time");
-
-		const data = fusion.getMainSeries().data;
-
-		const stamp0 = data[ticks[0]].stamp;
-		const stamp1 = data[ticks[1]].stamp;
-		//const lastStamp = data[data.length - 1].stamp;
-		const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
-		const currentDate = new Date(Date.now());
-		const firstDate = new Date(stamp0);
-
-		const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
-		const isInCurrentDay = isInCurrentYear && firstDate.getDay() === currentDate.getDay() && firstDate.getMonth() === currentDate.getMonth();
-
-		const hidden = {
-			year: isInCurrentYear,
-			month: isInCurrentDay && diffInHours <= 2,
-			day: isInCurrentDay  && diffInHours <= 2,
-			hour: diffInHours > 24
-		};
-
-		for (var i = 0; i < ticks.length; i++) {
-			tickIndex = ticks[i];
-
-			if (!fusion.getMainSeries().data || tickIndex > fusion.getMainSeriesLastIndex()) return;
-
-			tickX = this.getIndexPoint(tickIndex, model);
-			stamp = fusion.getMainSeries().data[tickIndex].stamp;
-
-			if (tickX > model._width - this.priceRenderingOptions.valueAxisWidth) continue;
-
-			ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + 18);
-
-			ctx.beginPath();
-			ctx.moveTo(tickX + 0.5, tickY);
-			ctx.lineTo(tickX + 0.5, tickY + 6);
-			ctx.stroke();
-		}
-	};
-
-	this.renderHandler		=	function (ctx, model, panel) {
-
-		//## Don't draw last one
-		if (panel._index == model.panels.length-1) return;
-
-		ctx.beginPath();
-		ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
-		ctx.lineWidth = 1;
-		ctx.moveTo(0, panel._height+panel._offset);
-		ctx.lineTo(panel._width, panel._height+panel._offset);
-		ctx.stroke();
-		ctx.closePath();
-
-	};
-
-	this.renderLegend		=	function (ctx, model, panel, fusion) {
-		var seriesManager = fusion.getSeriesManager();
-
-		var legendCount = 0;
-		const legendsRendered: string[] = [];
-		var idx = fusion.getMainSeriesLastIndex();
-
-		for (var i=0; i<panel.objects.length; i++) {
-			if (panel.objects[i].hidden!=true && panel.objects[i].dataLink) {
-				if (this.renderLegendLine (ctx, model, panel, panel.objects[i], legendCount, fusion, legendsRendered)) {
-					legendCount++;
-				} 
-			}
-		};
-
-	};
-
-	this.renderLegendLine = function (ctx, model, panel, object, count, fusion, legendsRendered) {
-		function isThisSeriesOutputOfScript(dataLink: string) {
-			const sm = fusion.getScriptsManager();
-			for (const property in sm) {
-				if (sm.hasOwnProperty(property)) {
-					const script = sm[property];
-					const outputs = script.outputs;
-					for (const key in outputs) {
-						if (outputs.hasOwnProperty(key)) {
-							if (outputs[key] === dataLink) {
-								return script;
-							}
-						}
-					}
-				}
-			}
-			return null;
-		}
-		if (object.renderLegend === false) return false;
-		const seriesManager = fusion.getSeriesManager();
-		const series = seriesManager[object.dataLink];
-		const script = isThisSeriesOutputOfScript(object.dataLink);
-
-		this.validateSeriesBeforeRender(series);
-
-		const index = fusion.getMainSeriesLastIndex();
-
-		if (legendsRendered.indexOf(object.dataLink) > -1) return false;
-		legendsRendered.push(object.dataLink);
-		
-		let name = series.userName || WEBRCP.locale.fusion.getMessage(series.title, series.title, true);
-		if (series.instrument && series.instrument.relatedKey) {
-			name = series.instrument.symbol + "." + series.instrument.name;
-		}
-
-		if (script) {
-			const formattedInputs: string[] = [];
-			for (const key in script.inputs) {
-				let input = script.inputs[key];
-				if (input === null) continue;
-				input = input.slice ? input.slice(0, -2) : null;
-				input = input && input.split ? input.split(':')[0] : input;
-
-				if (seriesManager[input]) {
-					if (!formattedInputs.includes(seriesManager[input].title))
-						formattedInputs.push(WEBRCP.locale.fusion.getMessage(seriesManager[input].title, seriesManager[input].title, true));
-				}
-				else if (typeof script.inputs[key] === 'string' || typeof script.inputs[key] === 'number') {
-					formattedInputs.push(WEBRCP.locale.fusion.getMessage(script.inputs[key].toString(), script.inputs[key].toString(), true));
-				}
-			}
-			name += " (" + formattedInputs.join(", ") + ")";
-		}
-
-		let color = object.color;
-		if (object.renderAs == "OHLC" && series && series.data && series.data[series.data.length - 1].o) {
-			if (series.instrument)
-				name += ' (' + series.instrument.interval.symbol + ')';
-			const o = series.data[series.data.length - 1].o;
-			const c = series.data[series.data.length - 1].c;
-			if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");
-			else if (o <= c) color = WEBRCP.utils.colorManager.getColor("chartGreen");
-		} else if (!color) color = WEBRCP.utils.colorManager.getColor("legendValueColor");
-
-		let objectTitle = name + '  ';
-
-		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
-
-		let lineWidth = 0;
-		const startX = 12;
-		let x = startX;
-		const y = panel._offset + 24 + count * 18;
-
-		x += ctx.measureText(objectTitle).width;
-
-		const valuesToRender: LegendRenderValue[] = [];
-
-		for (var i = 0; i < series.fields.length; i++) {
-			const field = series.data[index][series.fields[i]];
-			if (!field) continue;
-			
-			const valueToRender: LegendRenderValue = {
-				label: {},
-				value: {},
-				separator: {}
-			};
-			let precision = 2;
-			let zerosToReduce = this.priceRenderingOptions.zerosToReduce;
-
-			if (series.precisions && series.precisions[i] !== null && series.precisions[i] !== undefined) {
-				precision = series.precisions[i];
-				zerosToReduce = 0;
-			} else if (object.renderAs == "OHLC" && series.labels[i] == "V") {
-				precision = this.volumePrecision;
-				zerosToReduce = 0;
-			} else {
-				precision = this.getPrecision(model, panel);
-			}
-
-			var v = LIB.nFormatter(field, precision);
-
-			valueToRender.label.text= WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ': ';
-			if (series.fields.length == 1 && series.labels[i] == 'value') valueToRender.label.text = '';
-			else {
-				valueToRender.label.x = x;
-				valueToRender.label.y = y;
-				x += ctx.measureText(valueToRender.label.text).width;
-			}
-
-			valueToRender.value.x = x;
-			valueToRender.value.y = y;
-			valueToRender.value.text = v;
-			valueToRender.value.zerosToReduce = zerosToReduce;
-			x += measurePriceTextWidth({
-				text: v,
-				ctx,
-				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
-				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
-				zerosToReduce: zerosToReduce
-			});
-
-			if (i < series.fields.length - 1) {
-				const comma = ', ';
-				valueToRender.separator.text = comma;
-				valueToRender.separator.x = x;
-				valueToRender.separator.y = y;
-				x += ctx.measureText(comma).width
-			}
-
-			valuesToRender.push(valueToRender);
-		};
-
-		ctx.save();
-		ctx.beginPath();
-		ctx.rect(0, panel._offset, model._width - this.priceRenderingOptions.valueAxisWidth - 1, panel._height);
-		ctx.closePath();
-		ctx.clip();
-		
-		ctx.beginPath();
-		ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
-		if (ctx.roundRect)
-			ctx.roundRect(startX - 4, y-11, x - 4, 16, [4]);
-		else
-			ctx.rect(startX - 4, y-11, x - 4, 16, [4]);
-		ctx.fill();
-
-		ctx.fillStyle = color;
-		ctx.font = WEBRCP.utils.colorManager.getFont("legend");
-		ctx.fillText(objectTitle, startX, y);
-
-		for (const valueToRender of valuesToRender) {
-			if (valueToRender.label.text) {
-				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
-				ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
-			}
-
-			ctx.fillStyle = color;
-			renderPriceText({
-				text: valueToRender.value.text,
-				ctx,
-				x: valueToRender.value.x,
-				y: valueToRender.value.y,
-				priceFont: WEBRCP.utils.colorManager.getFont("legend"),
-				subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
-				zerosToReduce: valueToRender.value.zerosToReduce
-			});
-
-			if (valueToRender.separator.text) {
-				ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
-				ctx.fillText(", ", valueToRender.separator.x, valueToRender.separator.y);
-			}
-		}
-
-		ctx.restore();
-
-		return true;
-	};
-
-	//------------------------------------------------------------------------------
-
-	this.drawPriceTag = function (ctx, model, panel, y, color, textColor, value, valueType, style = 'RECTANGLE') {
-		try {
-			ctx.save();
-			ctx.beginPath();
-			ctx.rect(model._width - this.priceRenderingOptions.valueAxisWidth, panel._offset, this.priceRenderingOptions.valueAxisWidth, panel._height);
-			ctx.clip();
-
-			ctx.fillStyle = color;
-			ctx.font = WEBRCP.utils.colorManager.getFont("price");
-			// if (style === "TRADE") {
-			// 	ctx.save();
-			// 	ctx.fillStyle = "#fff";
-			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
-			// 	ctx.fillStyle = "#000";
-			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
-			// 	ctx.restore();
-			// 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
-			// } 
-			if (style === "ARROW") {
-				ctx.beginPath();
-				ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
-				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
-				ctx.lineTo(model._width, y - 10);
-				ctx.lineTo(model._width, y + 10);
-				ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
-				ctx.closePath();
-				ctx.fill();	
-			} else {
-				ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 9, this.priceRenderingOptions.valueAxisWidth, 16);
-			}
-
-			ctx.fillStyle = textColor;
-
-			var v = value;
-			if (v) {
-				if (panel.valueAxisMode == 'log' && valueType != 'real') {
-					v = (LIB._converterLog as any).axisToReal(value, 1);
-				}
-				var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
-				renderPriceText({
-					text: vs,
-					ctx,
-					x: model._width - this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding,
-					y: y + 3,
-					zerosToReduce: this.priceRenderingOptions.zerosToReduce
-				});
-			}
-		} catch (e: any) {
-			console.error(e, e.stack);
-		} finally {
-			ctx.restore();
-		}
-	};
-
-	this.drawDoublePriceTag		=	function (ctx, model, panel, y1, y2, color, textColor, innerColor, innerTextColor, v1, v2, valueType) {
-		try{
-			ctx.save();
-			ctx.rect(model._width-this.priceRenderingOptions.valueAxisWidth, panel._offset, this.priceRenderingOptions.valueAxisWidth, panel._height);
-			ctx.clip();
-
-			if (y2 < y1) {
-				var a = y1;
-				y1 = y2;
-				y2 = a;
-			}
-
-			if (v2 > v1) {
-				var b = v1;
-				v1 = v2;
-				v2 = b;
-			}
-
-			ctx.font = WEBRCP.utils.colorManager.getFont("price");
-			var fontMetrics = ctx.measureText('8');
-			var fontSize = fontMetrics.fontBoundingBoxAscent + fontMetrics.fontBoundingBoxDescent;
-			var hMin = 4 * fontSize;
-			var h = y2 - y1 - 20;
-			var labelY = (y1 + h / 2) + 8;
-			var bottomOffset = panel._height - (y2 - panel._offset);
-
-			const x = model._width-this.priceRenderingOptions.valueAxisWidth;
-			const xL = model._width;
-
-			ctx.fillStyle = color;
-			ctx.beginPath();
-			ctx.moveTo(x, y1);
-			ctx.lineTo(x+5, y1-10);
-			ctx.lineTo(xL, y1-10);
-			ctx.lineTo(xL, y1+10);
-			ctx.lineTo(x+5, y1+10);
-			ctx.closePath();
-			ctx.fill();
-
-			ctx.fillStyle = textColor;
-			let vp1 = v1;
-			if (panel.valueAxisMode=='log' && valueType != 'real') vp1 = (LIB._converterLog as any).axisToReal(v1,1);
-			var vs1 = LIB.nFormatter(vp1, this.getPrecision(model,panel));
-			renderPriceText({
-				text: vs1,
-				ctx,
-				x: model._width-this.priceRenderingOptions.valueAxisWidth+8,
-				y: y1+3,
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
-			});
-
-			ctx.fillStyle = innerColor;
-			ctx.beginPath();
-			ctx.moveTo(x+5, y1+10);
-
-			if (h > hMin) {
-				ctx.lineTo(xL, y1+10);
-				ctx.lineTo(xL, y2-10);
-				ctx.lineTo(x+5, y2-10);
-				ctx.lineTo(x+5, y1+10);
-			}
-			else if (bottomOffset < hMin + 15) {
-				ctx.lineTo(x+5, y2-10);
-				ctx.lineTo(xL, y2-10);
-				ctx.lineTo(xL, y1+10);
-				ctx.lineTo(x+5, y1+10);
-
-				ctx.moveTo(x+5, y1-10);
-
-				ctx.lineTo(xL, y1-10);
-				ctx.lineTo(xL, y1-10-hMin-5);
-				ctx.lineTo(x+5, y1-10-hMin-5);
-				ctx.lineTo(x+5, y1-10);
-
-				labelY = y1 - 32 - 5;
-			}
-			else {
-				ctx.lineTo(xL, y1+10);
-				ctx.lineTo(xL, y2+10+hMin+5);
-				ctx.lineTo(x+5, y2+10+hMin+5);
-				ctx.lineTo(x+5, y1+10);
-
-				labelY = y2 + 32;
-			}
-
-			ctx.closePath();
-			ctx.fill();
-
-			ctx.fillStyle = color;
-			ctx.beginPath();
-			ctx.moveTo(x, y2);
-			ctx.lineTo(x+5, y2-10);
-			ctx.lineTo(xL, y2-10);
-			ctx.lineTo(xL, y2+10);
-			ctx.lineTo(x+5, y2+10);
-			ctx.closePath();
-			ctx.fill();
-
-			var rv1 = v1;
-			var rv2 = v2;
-			if(panel.valueAxisMode=='log'){
-				rv1 = LIB._converterLog.axisToReal(v1);
-				rv2 = LIB._converterLog.axisToReal(v2);
-			}
-
-			// arrows
-
-			ctx.beginPath();
-			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor")
-			ctx.moveTo(model._width-this.priceRenderingOptions.valueAxisWidth+12, labelY - 0.5 * fontSize - 4);
-			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+18, labelY - 0.5 * fontSize - 4);
-			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+15, labelY - 0.5 * fontSize - 8);
-			ctx.fill();
-
-			ctx.beginPath();
-			ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor")
-			ctx.moveTo(model._width-this.priceRenderingOptions.valueAxisWidth+12, labelY + 1.5 * fontSize - 4);
-			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+18, labelY + 1.5 * fontSize - 4);
-			ctx.lineTo(model._width-this.priceRenderingOptions.valueAxisWidth+15, labelY + 1.5 * fontSize);
-			ctx.fill();
-
-			// labels
-
-			var labelDn = (Math.abs((rv1-rv2)/v1)*100).toFixed(2)+"%";
-			var labelUp = (Math.abs((rv1-rv2)/v2)*100).toFixed(2)+"%";
-			var label = (Math.abs(rv1-rv2)).toFixed(this.getPrecision(model, panel));
-
-			let vp2 = v2
-			if (panel.valueAxisMode=='log' && valueType != 'real') vp2 = (LIB._converterLog as any).axisToReal(v2,1);
-			var vs2 = LIB.nFormatter(vp2, this.getPrecision(model,panel));
-
-			ctx.fillStyle = textColor;
-			renderPriceText({
-				text: vs2,
-				ctx,
-				x: model._width-this.priceRenderingOptions.valueAxisWidth+8,
-				y: y2+3,
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
-			});
-
-			ctx.fillStyle = innerTextColor;
-			ctx.font = WEBRCP.utils.colorManager.getFont("text");
-			console.log(fontSize)
-			ctx.fillText(labelUp, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY - 0.5 * fontSize - 2);
-			renderPriceText({
-				text: label,
-				ctx,
-				x: model._width-this.priceRenderingOptions.valueAxisWidth+12,
-				y: labelY + fontSize / 2,
-				zerosToReduce: this.priceRenderingOptions.zerosToReduce
-			});
-			ctx.fillText(labelDn, model._width-this.priceRenderingOptions.valueAxisWidth+23, labelY + 1.5 * fontSize + 2);
-
-		}catch(e: any){
-			console.error(e, e.stack)
-		}finally{
-			ctx.restore();
-		}
-	};
-
-	this.drawTimeTag		=	function (ctx, model, x, color, textColor, fusion) {
-		try{
-			if (x > model._timeAxisWidth) return;
-
-			ctx.save();
-			ctx.rect(0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight + 10);
-			ctx.clip();
-
-			var index = this.getPointIndex(x, model);
-			if (!fusion.getMainSeries().data || index > fusion.getMainSeriesLastIndex()) return;
-
-			var stamp = fusion.getMainSeries().data[index].stamp;
-			var prettyDate = this.getPrettyDate(stamp);
-			var y = model._height-20/2;
-			var yT = model._height-20;
-			var yB = model._height;
-			var w = 90;
-
-			ctx.fillStyle = color;
-
-			ctx.beginPath();
-			ctx.moveTo(x-10, yT+5);
-			ctx.lineTo(x, y);
-			ctx.lineTo(x+5, yT);
-			ctx.lineTo(x+w-5, yT);
-			ctx.lineTo(x+w, y);
-			ctx.lineTo(x+w-5, yB);
-			ctx.lineTo(x+5, yB);
-			ctx.lineTo(x, y);
-			ctx.closePath();
-			ctx.fill();
-
-			ctx.fillStyle = textColor;
-			ctx.font = WEBRCP.utils.colorManager.getFont("time");
-
-			var tw =  ctx.measureText(prettyDate).width;
-			var txtX = x + w/2 -tw/2;
-			ctx.fillText(prettyDate, txtX, y+4);
-		}catch(e: any){
-			console.error(e, e.stack)
-		}finally{
-			ctx.restore();
-		}
-
-	};
-
-	this.drawDoubleTimeTag		=	function (ctx, model, x1, x2, color, textColor, fusion) {
-		try{
-			ctx.save();
-			ctx.rect(0, model._height-model.timeAxisHeight, model._width, model.timeAxisHeight + 10);
-			ctx.clip();
-
-			if (x1 > model._timeAxisWidth) return;
-			if (x2 > model._timeAxisWidth) return;
-			if(x2 < x1){
-				var a = x1;
-				x1 = x2;
-				x2 = a;
-			}
-			var withDateDiff = true;
-			var index1 = this.getPointIndex(x1, model);
-			if (index1 > fusion.getMainSeries().data.length-1) return;
-			var index2 = this.getPointIndex(x2, model);
-			if (index2 > fusion.getMainSeries().data.length-1){
-				withDateDiff = false;
-			}
-
-			var y = model._height-20/2 - 5;
-			var yT = model._height-20 - 5;
-			var yB = model._height - 5;
-			var wMin = 150;
-			var w = 150;
-			if(Math.abs(x2-x1)>w) w= Math.abs(x2-x1);
-
-			ctx.fillStyle = color;
-
-			ctx.beginPath();
-			ctx.moveTo(x1-10, yT+5);
-			ctx.lineTo(x1, y);
-			ctx.lineTo(x1+5, yT);
-
-			if(w > wMin){
-				ctx.lineTo(x2-5, yT);
-				ctx.lineTo(x2, y);
-				ctx.lineTo(x2-5, yB);
-			}else{
-				ctx.lineTo(x1+w-5, yT);
-				ctx.lineTo(x1+w, y);
-				ctx.lineTo(x1+w-5, yB);
-			}
-
-			ctx.lineTo(x1+5, yB);
-			ctx.lineTo(x1, y);
-			ctx.closePath();
-			ctx.fill();
-
-			ctx.fillStyle = textColor;
-			ctx.font = WEBRCP.utils.colorManager.getFont("time");
-
-			var label="";
-			if(withDateDiff){
-				var stamp1 = fusion.getMainSeries().data[index1].stamp;
-				var stamp2 = fusion.getMainSeries().data[index2].stamp;
-				var delta = Math.abs(stamp2 - stamp1)/1000;
-				var days = Math.floor(delta / 86400);
-				delta -= days * 86400;
-				var hours = Math.floor(delta / 3600) % 24;
-				delta -= hours * 3600;
-				var minutes = Math.floor(delta / 60) % 60;
-				delta -= minutes * 60;
-				label = days +"d : "+ hours+"h : "+minutes+"m "+(index2-index1)+" periods"
-			}else{
-				label = (index2-index1)+" periods"
-			}
-			var tw =  ctx.measureText(label).width;
-			var txtX = x1 + w/2 -tw/2;
-
-			ctx.fillText(label, txtX, y+4);
-		}catch(e: any){
-			console.error(e, e.stack)
-		}finally{
-			ctx.restore();
-		}
-	};
-
-	this.getIndexPoint = function (i, model) {
-		return i * model.periodWidth - model.viewportLeft;
-	};
-
-	this.getPointIndex = function (x, model) {
-		return Math.floor ((x + model.viewportLeft) / model.periodWidth);
-	};
-
-	this.getStampPoint = function(s, model, seriesManager){
-		var index = this.getStampIndex(s, model, seriesManager);
-		return this.getIndexPoint(index, model);
-	};
-
-	this.getStampIndex = function(s, model, seriesManager){
-		var lastIndex = seriesManager[model.mainSeries].data.length-1;
-		
-		for (var i=0; i<seriesManager[model.mainSeries].data.length; i++) {
-			var stamp = seriesManager[model.mainSeries].data[i].stamp;
-
-			if (stamp==s) return i;
-
-			if(i< lastIndex){
-				var nextStamp = seriesManager[model.mainSeries].data[i+1].stamp;
-				if(s > stamp && s < nextStamp) return i;
-			}
-
-			if(i == lastIndex){
-				var intervalInMilis = seriesManager[model.mainSeries].interval.milis;
-				if(s > stamp && s < stamp+intervalInMilis) return i;
-			}
-		}
-		stamp += intervalInMilis;
-		return i + Math.floor( (s-stamp) / seriesManager[model.mainSeries].interval.milis);
-	};
-
-
-	this.getIndexStamp = function(index, model, seriesManager){
-		var seriesLength = seriesManager[model.mainSeries].data.length;
-		if (isNaN(index)) index = 0;
-		if(index >= seriesLength){
-			let stamp = seriesManager[model.mainSeries].data[seriesLength - 1].stamp;
-			let leftOver = (index-seriesLength)*seriesManager[model.mainSeries].interval.milis;
-			return stamp + leftOver;
-		}
-		if(index < 0){
-			let stamp = seriesManager[model.mainSeries].data[0].stamp;
-			let leftOver = index*seriesManager[model.mainSeries].interval.milis;
-			return stamp - leftOver;
-		}
-		else{
-			return seriesManager[model.mainSeries].data[index].stamp
-		}
-	};
-
-	this.getYCoordinateForPrice = function (price, options) {
-		const {panelHeight, minValue, maxValue, valueAxisMode, fV} = options;
-		var len = maxValue - minValue;
-		var max = maxValue;
-		var min = minValue;
-
-		var nv	= null;
-		if (valueAxisMode == 'perc')
-			nv = LIB._converterPerc.realToAxis(price, fV);
-		else if (valueAxisMode == 'log')
-			nv = (LIB._converterLog as any).realToAxis(price, fV);
-		else
-			nv = (LIB._converterLin as any).realToAxis(price, fV);
-
-		if (minValue<0) {
-
-			min = 0;
-			max += Math.abs(minValue);
-			nv = Number(nv) + Math.abs(minValue);
-
-		} else {
-			nv -= Math.abs(minValue);
-		}
-
-		var yy = (nv * panelHeight) / len;
-
-		return panelHeight - Math.floor(yy);
-	};
-
-
-	this.getPriceForYCoordinate	=	function (p, options) {
-		const {panelHeight, minValue, maxValue, valueAxisMode, fV} = options;
-		
-		var	len 	= maxValue - minValue;
-		var point	= panelHeight - p;
-
-		var aV = (point * len) / panelHeight;
-		aV+=minValue;
-
-		var nv = null;
-		if(valueAxisMode == 'perc')
-			nv = LIB._converterPerc.axisToReal(aV, fV)
-		else if(valueAxisMode == 'log')
-			nv = (LIB._converterLog as any).axisToReal(aV, fV)
-		else
-			nv = (LIB._converterLin as any).axisToReal(aV, fV)
-
-			//return Math.floor(nv*100000)/100000;
-			return nv;
-	};
-
-	this.calculateTimeTicks = function (model) {
-		this.timeTicks = new Array();
-
-		var lastIndexPoint = 4 - model.minTimeTickWidth;
-		var indexPoint = 0;
-
-		for (var i = model._leftIndex; i < model._rightIndex; i++) {
-			indexPoint = this.getIndexPoint(i, model);
-
-			if (indexPoint - lastIndexPoint >= model.minTimeTickWidth) {
-				lastIndexPoint = indexPoint;
-				this.timeTicks.push(i);
-			}
-		}
-
-		return this.timeTicks;
-	};
-
-	this.calculateNiceTick	=	 function (model, panel) {
-
-		const tick: ValueAxisTick = {
-			maxTicks: 0,
-			range: 0,
-			tickSpacing: 0,
-			niceMin: 0,
-			niceMax: 0,
-		};
-
-		tick.maxTicks 		= panel._height / model.minValueTickHeight;
-		tick.range 			= this.niceNum(panel.vMax - panel.vMin, false);
-		tick.tickSpacing		= this.niceNum(tick.range / tick.maxTicks, true);
-		tick.niceMin			= Math.floor(panel.vMin / tick.tickSpacing) * tick.tickSpacing;
-		tick.niceMax			= Math.ceil(panel.vMax / tick.tickSpacing) * tick.tickSpacing;
-
-		return tick;
-
-	};
-
-	this.niceNum	=	function (range, round) {
-
-		var exponent	=	0;
-		var fraction	=	0;
-		var niceFraction	=	0;
-
-		exponent = Math.floor(Math.log10(range));
-		fraction = range / Math.pow(10, exponent);
-
-		if (round) {
-			if (fraction < 1.5)
-				niceFraction = 1;
-			else if (fraction < 3)
-				niceFraction = 2;
-			else if (fraction < 7)
-				niceFraction = 5;
-			else
-				niceFraction = 10;
-		} else {
-			if (fraction <= 1)
-				niceFraction = 1;
-			else if (fraction <= 2)
-				niceFraction = 2;
-			else if (fraction <= 5)
-				niceFraction = 5;
-			else
-				niceFraction = 10;
-		}
-
-		return niceFraction * Math.pow(10, exponent);
-	}
-
-	this.months = ['01', '02', '03', '04' , '05', '06', '07', '08', '09', '10', '11', '12'];
-	this.getPrettyDate = function (stamp, hidden) {
-		const date = new Date(stamp);
-		let str = '';
-
-		if (!hidden || !hidden.day) str += this.zeroLead(date.getDate())
-		if (!hidden || !hidden.month) str += '.' + this.months[date.getMonth()];
-		if (!hidden || !hidden.year) str += '.' + String(date.getFullYear()).substring(2, 4);
-		if (!hidden || !hidden.hour) str += ' ' + this.zeroLead(date.getHours()) + ':' + this.zeroLead(date.getMinutes());
-
-		return str;
-	};
-
-	this.zeroLead = function (num) {
-
-		if (num<10) return '0'+num;
-		return ''+num;
-
-	};
-
-	this.getPrecision = function(model, panel){
-		var p = 5;
-
-		if (model.instrumentsSeries && model.instrumentsSeries.length > 0) {
-				p = model.instrumentsSeries[0].instrument.precision > 4 ? model.instrumentsSeries[0].instrument.precision : model.instrumentsSeries[0].instrument.precision
-		}
-
-		return p;
-	}
-
-	this.calculatePriceRenderingOptions = function(data, model, precision) {
-		let magnitude;
-		let valueAxisWidth;
-		let zerosToReduce;
-		let greatestNumber = Number.MIN_VALUE;
-		let greatestFraction = Number.MIN_VALUE;
-		let text = '';
-
-		for (let i = 0; i < data.length; i++) {
-			const candle = data[i];
-			const h = candle.h;
-			greatestNumber = h > greatestNumber ? h : greatestNumber;
-			
-			greatestFraction = getGreater(greatestFraction, candle.o);
-			greatestFraction = getGreater(greatestFraction, h);
-			greatestFraction = getGreater(greatestFraction, candle.l);
-			greatestFraction = getGreater(greatestFraction, candle.c);
-		}
-
-		magnitude = (Math.log(Math.floor(greatestNumber)) * Math.LOG10E + 1 | 0) || 1;
-		zerosToReduce = greatestFraction > 0 && greatestFraction !== Number.MIN_VALUE ? -Math.floor(Math.log10(greatestFraction) + 1) : 0;
-
-		for (let i = 0; i < magnitude; i++) {
-			text += '8';
-		}
-		
-		if (precision > 0) {
-			text += '.';
-
-			for (let i = 0; i < precision; i++) {
-				text += '8';
-			}
-		}
-
-		valueAxisWidth = measurePriceTextWidth({
-			text, ctx: this.context, zerosToReduce
-		}) + model.valueAxisPadding * 2;
-
-		this.priceRenderingOptions = {
-			magnitude, zerosToReduce, valueAxisWidth
-		};
-
-		function getGreater(current: number, proposal: number) {
-			const positiveProposal = Math.abs(proposal);
-			const y = positiveProposal - Math.floor(positiveProposal);
-			return y > current ? y : current;
-		}
-	}
-
-	this.getPriceRenderingOptions = function() {
-		return this.priceRenderingOptions;
-	}
+  this.context = context;
+  this.controller = controller;
+  this.settings = settings;
+  this.priceRenderingOptions = {
+    valueAxisWidth: 0,
+    magnitude: 1,
+    zerosToReduce: 0,
+  };
+  this.volumePrecision = 2;
+
+  this.objects = {};
+  this.timeTicks = [];
+
+  var series = new Series(); //instancja bazowa
+  SeriesObject.prototype = series;
+  StrategyObject.prototype = series;
+  IndicatorObject.prototype = series;
+
+  this.objects["SeriesObject"] = new SeriesObject();
+  this.objects["StrategyObject"] = new StrategyObject();
+  this.objects["CandlestickPatternStrategyObject"] = new CandlestickPatternStrategyObject();
+  this.objects["FractalsObject"] = new FractalsObject();
+  this.objects["IndicatorObject"] = new StrategyObject();
+
+  this.objects["TradeObject"] = new TradeObject(this.settings.positions);
+  this.objects["StopLimitObject"] = new StopLimitObject(this.settings.positions);
+  this.objects["POSITION"] = new TradeObject(this.settings.positions);
+  this.objects["TP"] = new TradeObject(this.settings.orders);
+  this.objects["SL"] = new TradeObject(this.settings.orders);
+  this.objects["BUY LIMIT"] = new TradeObject(this.settings.orders);
+  this.objects["BUY STOP"] = new TradeObject(this.settings.orders);
+  this.objects["BUY STOP_LIMIT"] = new StopLimitObject(this.settings.orders);
+  this.objects["SELL LIMIT"] = new TradeObject(this.settings.orders);
+  this.objects["SELL STOP"] = new TradeObject(this.settings.orders);
+  this.objects["SELL STOP_LIMIT"] = new StopLimitObject(this.settings.orders);
+
+  this.objects["SELL TRAILING_STOP"] = new TradeObject(this.settings.orders);
+  this.objects["BUY TRAILING_STOP"] = new TradeObject(this.settings.orders);
+  this.objects["SELL TAKE_PROFIT"] = new TradeObject(this.settings.orders);
+  this.objects["BUY TAKE_PROFIT"] = new TradeObject(this.settings.orders);
+  this.objects["SELL TAKE_PROFIT_MARKET"] = new TradeObject(this.settings.orders);
+  this.objects["BUY TAKE_PROFIT_MARKET"] = new TradeObject(this.settings.orders);
+  this.objects["SELL TAKE_PROFIT_LIMIT"] = new StopLimitObject(this.settings.orders);
+  this.objects["BUY TAKE_PROFIT_LIMIT"] = new StopLimitObject(this.settings.orders);
+
+  this.objects["MovePaneArrows"] = new MovePaneArrows();
+
+  var shape = new Shape(); //instancja bazowa
+  TrendLineObject.prototype = shape;
+  ArrowObject.prototype = shape;
+  ParallelChannelObject.prototype = shape;
+  FibonLinesObject.prototype = shape;
+  HorizontalLineObject.prototype = shape;
+  VerticalLineObject.prototype = shape;
+  MultiLineObject.prototype = shape;
+  AbcdObject.prototype = shape;
+  EllipseObject.prototype = shape;
+  HorizontalRangeObject.prototype = shape;
+  VerticalRangeObject.prototype = shape;
+  TimeRangeObject.prototype = shape;
+  TimeBetObject.prototype = shape;
+  CycleObject.prototype = shape;
+  BoxObject.prototype = shape;
+  TextObject.prototype = shape;
+  TriangleObject.prototype = shape;
+  PriceTagObject.prototype = shape;
+
+  DiNapoliLevels.prototype = shape;
+  DiNapoliAbcObject.prototype = shape;
+
+  this.objects["trendLine"] = new TrendLineObject();
+  this.objects["arrow"] = new ArrowObject();
+  this.objects["parallelChannel"] = new ParallelChannelObject();
+  this.objects["fibonLines"] = new FibonLinesObject();
+  this.objects["hLine"] = new HorizontalLineObject();
+  this.objects["vLine"] = new VerticalLineObject();
+  this.objects["mLine"] = new MultiLineObject();
+  this.objects["abcd"] = new AbcdObject();
+  this.objects["ellipse"] = new EllipseObject();
+  this.objects["box"] = new BoxObject();
+  this.objects["hRange"] = new HorizontalRangeObject();
+  this.objects["vRange"] = new VerticalRangeObject();
+  this.objects["timeRange"] = new TimeRangeObject();
+  this.objects["timeBet"] = new TimeBetObject();
+  this.objects["cycle"] = new CycleObject();
+  this.objects["textAnnotation"] = new TextObject();
+  this.objects["triangle"] = new TriangleObject();
+  this.objects["priceTag"] = new PriceTagObject();
+
+  //DiNapoli tools
+  this.objects["diNapoliLevels"] = new DiNapoliLevels();
+  this.objects["diNapoliAbcd"] = new DiNapoliAbcObject();
+
+  this.validateSeriesBeforeRender = function (series) {
+    try {
+      if (!series.data[0])
+        throw { type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series" };
+    } catch (e: any) {
+      throw { type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series" };
+    }
+  };
+
+  this.render = function (ctx, model, fusion, translate, omitObject) {
+    try {
+      //ctx.translate(0.5, 0.5);
+      ctx.clearRect(-1, -1, model._width + 2, model._height + 2);
+      var seriesManager = fusion.getSeriesManager();
+
+      this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
+
+      ctx.font = WEBRCP.utils.colorManager.getFont("text");
+
+      this.calculateTimeTicks(model, seriesManager);
+
+      //## Render panels
+      var panel = null;
+      for (var i = 0; i < model.panels.length; i++) {
+        panel = model.panels[i];
+        if (panel._visible) this.renderPanel(ctx, model, panel, fusion, omitObject);
+      }
+
+      //## Render time axis
+      this.renderTimeAxis(ctx, model, this.timeTicks, fusion);
+
+      //## Render handlers
+      for (var i = 0; i < model.panels.length; i++) {
+        panel = model.panels[i];
+        if (panel._visible) this.renderHandler(ctx, model, panel);
+      }
+
+      //## Post rendering - all objects have the possibility to draw something on whole chart after rendering
+      for (var i = 0; i < model.panels.length; i++) {
+        panel = model.panels[i];
+        if (panel._visible) this.postRenderPlotPane(ctx, model, panel, seriesManager, omitObject);
+      }
+    } catch (err: any) {
+      if (err.type && err.type === "EMPTY_SERIES") console.warn(err.message);
+      else console.warn(err);
+    } finally {
+      // ctx.translate (-0.5, -0.5);
+    }
+  };
+
+  this.renderPanel = function (ctx, model, panel, fusion, omitObject) {
+    const seriesManager = fusion.getSeriesManager();
+    const valueTick = this.calculateNiceTick(model, panel);
+
+    try {
+      this.validateSeriesBeforeRender(seriesManager[model.mainSeries]);
+    } catch (e) {
+      this.onErrorWhileRendering(e);
+    }
+
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("backgroundColor");
+    ctx.fillRect(
+      0,
+      panel._offset,
+      panel._width - this.priceRenderingOptions.valueAxisWidth,
+      panel._height
+    );
+
+    if (panel.hGrid) this.renderHGrid(ctx, model, panel, valueTick);
+    if (panel.vGrid) this.renderVGrid(ctx, model, panel, this.timeTicks);
+
+    this.renderPlotPane(ctx, model, panel, seriesManager, omitObject);
+    this.renderValueAxis(ctx, model, panel, valueTick);
+
+    if (model.mode === "normal") {
+      try {
+        this.renderLegend(ctx, model, panel, fusion);
+      } catch (e) {
+        this.onErrorWhileRendering(e);
+      }
+    }
+  };
+
+  this.renderPlotPane = function (ctx, model, panel, seriesManager, omitObject) {
+    if (!omitObject) omitObject = { id: "none" };
+
+    ctx.save();
+    ctx.rect(
+      0,
+      panel._offset,
+      panel._width - this.priceRenderingOptions.valueAxisWidth,
+      panel._height
+    );
+    ctx.clip();
+    ctx.font = WEBRCP.utils.colorManager.getFont("text");
+
+    if (panel.zeroLine) {
+      var y =
+        this.getYCoordinateForPrice(0, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+        }) + panel._offset;
+      ctx.strokeStyle = panel.zeroLine.color;
+      ctx.lineWidth = panel.zeroLine.width;
+      ctx.setLineDash(panel.zeroLine.dash);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(panel._width, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.closePath();
+    }
+
+    for (var i = 0; i < panel.objects.length; i++) {
+      let object = panel.objects[i];
+
+      if (object.isValid && !object.isValid(object)) continue;
+      if (object.permHide) object.hidden = true;
+      if (object.hidden && object.hidden === true) continue;
+      if (object.isBeingDragged) continue;
+
+      if (this.objects[object.type] != null && object.id != omitObject.id) {
+        try {
+          this.objects[object.type].render(object, ctx, this, model, panel, seriesManager);
+        } catch (e) {
+          this.onErrorWhileRendering(e);
+        }
+      }
+    }
+
+    if (model.orders.visible) {
+      if (panel.main == true && model.orders && model.orders.list && model.orders.list.length > 0) {
+        for (var i = 0; i < model.orders.list.length; i++) {
+          if (model.orders.list[i] != omitObject && !model.orders.list[i].drag)
+            try {
+              this.objects[model.orders.list[i].type].render(
+                model.orders.list[i],
+                ctx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            } catch (e) {
+              this.onErrorWhileRendering(e);
+            }
+        }
+      }
+    }
+
+    if (model.positions.visible) {
+      if (
+        panel.main == true &&
+        model.positions &&
+        model.positions.list &&
+        model.positions.list.length > 0
+      ) {
+        for (var i = 0; i < model.positions.list.length; i++) {
+          if (model.positions.list[i] != omitObject)
+            try {
+              this.objects[model.positions.list[i].type].render(
+                model.positions.list[i],
+                ctx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            } catch (e) {
+              this.onErrorWhileRendering(e);
+            }
+        }
+      }
+    }
+
+    try {
+      this.objects.MovePaneArrows.render(null, ctx, this, model, panel, seriesManager);
+    } catch (e) {
+      this.onErrorWhileRendering(e);
+    }
+
+    ctx.restore();
+  };
+
+  this.onErrorWhileRendering = function (e) {
+    if (e.type && e.type === "EMPTY_SERIES") console.warn(e.message);
+    else console.warn(e);
+  };
+
+  this.postRenderPlotPane = function (ctx, model, panel, seriesManager, omitObject) {
+    if (model.orders.visible) {
+      if (panel.main == true && model.orders && model.orders.list && model.orders.list.length > 0) {
+        for (var i = 0; i < model.orders.list.length; i++) {
+          if (model.orders.list[i] != omitObject && !model.orders.list[i].drag)
+            try {
+              this.objects[model.orders.list[i].type].postRender(
+                model.orders.list[i],
+                ctx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            } catch (e) {
+              this.onErrorWhileRendering(e);
+            }
+        }
+      }
+    }
+
+    if (model.positions.visible) {
+      if (
+        panel.main == true &&
+        model.positions &&
+        model.positions.list &&
+        model.positions.list.length > 0
+      ) {
+        for (var i = 0; i < model.positions.list.length; i++) {
+          if (model.positions.list[i] != omitObject)
+            try {
+              this.objects[model.positions.list[i].type].postRender(
+                model.positions.list[i],
+                ctx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            } catch (e) {
+              this.onErrorWhileRendering(e);
+            }
+        }
+      }
+    }
+
+    for (var i = 0; i < panel.objects.length; i++) {
+      if (panel.objects[i]["hidden"] && panel.objects[i]["hidden"] == true) continue;
+
+      if (this.objects[panel.objects[i].type] != null)
+        try {
+          this.objects[panel.objects[i].type].postRender(
+            panel.objects[i],
+            ctx,
+            this,
+            model,
+            panel,
+            seriesManager
+          );
+        } catch (e) {
+          this.onErrorWhileRendering(e);
+        }
+    }
+  };
+
+  this.shouldBePanelVisible = function (panel) {
+    for (var i = 0; i < panel.objects.length; i++) {
+      if (!panel.objects[i].hidden) return true;
+    }
+    return false;
+  };
+
+  this.renderOverlay = function (octx, model, fusion) {
+    var seriesManager = fusion.getSeriesManager();
+    octx.font = WEBRCP.utils.colorManager.getFont("text");
+
+    //## fire render overlay on all objects!
+    for (var pi = 0; pi < model.panels.length; pi++) {
+      var panel = model.panels[pi];
+
+      try {
+        octx.save();
+        // octx.translate (0.5, 0.5);
+        octx.rect(
+          0,
+          panel._offset,
+          panel._width - this.priceRenderingOptions.valueAxisWidth,
+          panel._height
+        );
+        octx.clip();
+        octx.font = WEBRCP.utils.colorManager.getFont("text");
+
+        for (var oi = 0; oi < panel.objects.length; oi++) {
+          var o = panel.objects[oi];
+          if (o.hidden && o.hidden === true) continue;
+
+          if (this.objects[o.type] != null && this.objects[o.type].renderOverlay) {
+            this.objects[o.type].renderOverlay(o, octx, this, model, panel, seriesManager);
+          }
+        }
+
+        if (model.orders.visible) {
+          if (
+            panel.main == true &&
+            model.orders &&
+            model.orders.list &&
+            model.orders.list.length > 0
+          ) {
+            for (var i = 0; i < model.orders.list.length; i++) {
+              this.objects[model.orders.list[i].type].renderOverlay(
+                model.orders.list[i],
+                octx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            }
+          }
+        }
+
+        if (model.positions.visible) {
+          if (
+            panel.main == true &&
+            model.positions &&
+            model.positions.list &&
+            model.positions.list.length > 0
+          ) {
+            for (var i = 0; i < model.positions.list.length; i++) {
+              this.objects[model.positions.list[i].type].renderOverlay(
+                model.positions.list[i],
+                octx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            }
+          }
+        }
+      } catch (e: any) {
+        console.error(e, e.stack);
+      } finally {
+        //permamently close all earlier paths (some can be unclosed)
+        octx.beginPath();
+        octx.closePath();
+        // octx.translate (-0.5, -0.5);
+        octx.restore();
+      }
+    }
+  };
+
+  this.postRenderOverlay = function (octx, model, seriesManager) {
+    //postRenderOverlay
+    for (var pi = 0; pi < model.panels.length; pi++) {
+      var panel = model.panels[pi];
+
+      try {
+        octx.save();
+        // octx.translate (0.5, 0.5);
+        octx.rect(0, panel._offset, panel._width, panel._height);
+        octx.clip();
+
+        for (var oi = 0; oi < panel.objects.length; oi++) {
+          var o = panel.objects[oi];
+          if (o["hidden"] && o["hidden"] == true) continue;
+
+          if (this.objects[o.type] != null && this.objects[o.type].postRenderOverlay) {
+            this.objects[o.type].postRenderOverlay(o, octx, this, model, panel, seriesManager);
+          }
+        }
+
+        if (model.orders.visible) {
+          if (
+            panel.main == true &&
+            model.orders &&
+            model.orders.list &&
+            model.orders.list.length > 0
+          ) {
+            for (var i = 0; i < model.orders.list.length; i++) {
+              this.objects[model.orders.list[i].type].postRenderOverlay(
+                model.orders.list[i],
+                octx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            }
+          }
+        }
+
+        if (model.positions.visible) {
+          if (
+            panel.main == true &&
+            model.positions &&
+            model.positions.list &&
+            model.positions.list.length > 0
+          ) {
+            for (var i = 0; i < model.positions.list.length; i++) {
+              this.objects[model.positions.list[i].type].postRenderOverlay(
+                model.positions.list[i],
+                octx,
+                this,
+                model,
+                panel,
+                seriesManager
+              );
+            }
+          }
+        }
+      } catch (e: any) {
+        console.error(e, e.stack);
+      } finally {
+        //permamently close all earlier paths (some can be unclosed)
+        octx.beginPath();
+        octx.closePath();
+        // octx.translate (-0.5, -0.5);
+        octx.restore();
+      }
+    }
+  };
+
+  this.renderValueAxis = function (ctx, model, panel, tick) {
+    const mode = panel.valueAxisMode;
+
+    try {
+      let tickValue = tick.niceMin;
+      const texts = [];
+      let tickPoint = 0;
+      let precision = this.getPrecision(model, panel);
+
+      if (mode == "perc") {
+        precision = 2;
+      }
+
+      while (tickValue < tick.niceMax) {
+        //drawTickValue
+        tickValue += tick.tickSpacing;
+        tickPoint =
+          this.getYCoordinateForPrice(tickValue, {
+            panelHeight: panel._height,
+            minValue: panel.vMin,
+            maxValue: panel.vMax,
+          }) + panel._offset;
+
+        if (tickPoint < panel._offset) continue;
+
+        let value = tickValue;
+
+        if (mode == "log") {
+          value = (LIB._converterLog as any).axisToReal(tickValue, 1);
+        }
+
+        let text = value.toFixed(precision);
+
+        if (value > 999999) {
+          text = LIB.nFormatter(value, precision);
+        }
+
+        if (panel.valueAxisMode == "perc") {
+          text += "%";
+        }
+
+        texts.push({
+          text,
+          ctx,
+          y: tickPoint + 2,
+        });
+      }
+
+      const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + 1;
+      const panelWidth = Math.round(panel._width);
+      const panelStartX = panelWidth - valueAxisWidth;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisBackground"); //priceAxisBackground
+      ctx.rect(panelWidth - valueAxisWidth, panel._offset, valueAxisWidth, panel._height);
+      ctx.fill();
+
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor"); // handlerColor
+      ctx.fillRect(panelWidth - valueAxisWidth, panel._offset, 1, panel._height);
+
+      ctx.clip();
+
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
+
+      texts.forEach((options) =>
+        renderPriceText.call(this, {
+          ...options,
+          x: panelStartX + model.valueAxisPadding,
+          zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+          mode,
+        })
+      );
+    } catch (error: any) {
+      console.error(error, error.stack);
+    } finally {
+      ctx.closePath();
+      ctx.restore();
+    }
+  };
+
+  this.renderHGrid = function (ctx, model, panel, tick) {
+    var tickValue = tick.niceMin;
+    var tickPoint = 0;
+
+    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+    ctx.lineWidth = 1;
+
+    while (tickValue < tick.niceMax) {
+      //drawTickValue
+      tickValue += tick.tickSpacing;
+      tickPoint =
+        this.getYCoordinateForPrice(tickValue, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+        }) + panel._offset;
+      if (tickPoint < panel._offset) continue;
+
+      ctx.beginPath();
+      ctx.moveTo(0, tickPoint);
+      ctx.lineTo(panel._width - this.priceRenderingOptions.valueAxisWidth, tickPoint);
+      ctx.stroke();
+      ctx.closePath();
+    }
+  };
+
+  this.renderVGrid = function (ctx, model, panel, ticks) {
+    var tickIndex = 0;
+    var tickX = 0;
+
+    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+    ctx.lineWidth = 1;
+
+    for (var i = 0; i < ticks.length; i++) {
+      tickIndex = ticks[i];
+      tickX = this.getIndexPoint(tickIndex, model);
+
+      if (tickX > panel._width) continue;
+
+      ctx.beginPath();
+      ctx.moveTo(tickX + 0.5, 0 + panel._offset);
+      ctx.lineTo(tickX + 0.5, panel._offset + panel._height);
+      ctx.stroke();
+      ctx.closePath();
+    }
+  };
+
+  this.renderTimeAxis = function (ctx, model, ticks, fusion) {
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
+    ctx.fillRect(0, model._height - model.timeAxisHeight, model._width, model.timeAxisHeight);
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
+    ctx.fillRect(-0.5, model._height - model.timeAxisHeight - 0.5, model._width, 1);
+
+    var tickIndex = 0;
+    var tickX = 0;
+    var tickY = model._height - model.timeAxisHeight;
+    var stamp = 0;
+
+    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisTextColor");
+    ctx.lineWidth = 1;
+    ctx.font = WEBRCP.utils.colorManager.getFont("time");
+
+    const data = fusion.getMainSeries().data;
+
+    const stamp0 = data[ticks[0]].stamp;
+    const stamp1 = data[ticks[1]].stamp;
+    //const lastStamp = data[data.length - 1].stamp;
+    const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
+    const currentDate = new Date(Date.now());
+    const firstDate = new Date(stamp0);
+
+    const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
+    const isInCurrentDay =
+      isInCurrentYear &&
+      firstDate.getDay() === currentDate.getDay() &&
+      firstDate.getMonth() === currentDate.getMonth();
+
+    const hidden = {
+      year: isInCurrentYear,
+      month: isInCurrentDay && diffInHours <= 2,
+      day: isInCurrentDay && diffInHours <= 2,
+      hour: diffInHours > 24,
+    };
+
+    for (var i = 0; i < ticks.length; i++) {
+      tickIndex = ticks[i];
+
+      if (!fusion.getMainSeries().data || tickIndex > fusion.getMainSeriesLastIndex()) return;
+
+      tickX = this.getIndexPoint(tickIndex, model);
+      stamp = fusion.getMainSeries().data[tickIndex].stamp;
+
+      if (tickX > model._width - this.priceRenderingOptions.valueAxisWidth) continue;
+
+      ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + 18);
+
+      ctx.beginPath();
+      ctx.moveTo(tickX + 0.5, tickY);
+      ctx.lineTo(tickX + 0.5, tickY + 6);
+      ctx.stroke();
+    }
+  };
+
+  this.renderHandler = function (ctx, model, panel) {
+    //## Don't draw last one
+    if (panel._index == model.panels.length - 1) return;
+
+    ctx.beginPath();
+    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
+    ctx.lineWidth = 1;
+    ctx.moveTo(0, panel._height + panel._offset);
+    ctx.lineTo(panel._width, panel._height + panel._offset);
+    ctx.stroke();
+    ctx.closePath();
+  };
+
+  this.renderLegend = function (ctx, model, panel, fusion) {
+    var seriesManager = fusion.getSeriesManager();
+
+    var legendCount = 0;
+    const legendsRendered: string[] = [];
+    var idx = fusion.getMainSeriesLastIndex();
+
+    for (var i = 0; i < panel.objects.length; i++) {
+      if (panel.objects[i].hidden != true && panel.objects[i].dataLink) {
+        if (
+          this.renderLegendLine(
+            ctx,
+            model,
+            panel,
+            panel.objects[i],
+            legendCount,
+            fusion,
+            legendsRendered
+          )
+        ) {
+          legendCount++;
+        }
+      }
+    }
+  };
+
+  this.renderLegendLine = function (ctx, model, panel, object, count, fusion, legendsRendered) {
+    function isThisSeriesOutputOfScript(dataLink: string) {
+      const sm = fusion.getScriptsManager();
+      for (const property in sm) {
+        if (sm.hasOwnProperty(property)) {
+          const script = sm[property];
+          const outputs = script.outputs;
+          for (const key in outputs) {
+            if (outputs.hasOwnProperty(key)) {
+              if (outputs[key] === dataLink) {
+                return script;
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+    if (object.renderLegend === false) return false;
+    const seriesManager = fusion.getSeriesManager();
+    const series = seriesManager[object.dataLink];
+    const script = isThisSeriesOutputOfScript(object.dataLink);
+
+    this.validateSeriesBeforeRender(series);
+
+    const index = fusion.getMainSeriesLastIndex();
+
+    if (legendsRendered.indexOf(object.dataLink) > -1) return false;
+    legendsRendered.push(object.dataLink);
+
+    let name = series.userName || WEBRCP.locale.fusion.getMessage(series.title, series.title, true);
+    if (series.instrument && series.instrument.relatedKey) {
+      name = series.instrument.symbol + "." + series.instrument.name;
+    }
+
+    if (script) {
+      const formattedInputs: string[] = [];
+      for (const key in script.inputs) {
+        let input = script.inputs[key];
+        if (input === null) continue;
+        input = input.slice ? input.slice(0, -2) : null;
+        input = input && input.split ? input.split(":")[0] : input;
+
+        if (seriesManager[input]) {
+          if (!formattedInputs.includes(seriesManager[input].title))
+            formattedInputs.push(
+              WEBRCP.locale.fusion.getMessage(
+                seriesManager[input].title,
+                seriesManager[input].title,
+                true
+              )
+            );
+        } else if (
+          typeof script.inputs[key] === "string" ||
+          typeof script.inputs[key] === "number"
+        ) {
+          formattedInputs.push(
+            WEBRCP.locale.fusion.getMessage(
+              script.inputs[key].toString(),
+              script.inputs[key].toString(),
+              true
+            )
+          );
+        }
+      }
+      name += " (" + formattedInputs.join(", ") + ")";
+    }
+
+    let color = object.color;
+    if (
+      object.renderAs == "OHLC" &&
+      series &&
+      series.data &&
+      series.data[series.data.length - 1].o
+    ) {
+      if (series.instrument) name += " (" + series.instrument.interval.symbol + ")";
+      const o = series.data[series.data.length - 1].o;
+      const c = series.data[series.data.length - 1].c;
+      if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");
+      else if (o <= c) color = WEBRCP.utils.colorManager.getColor("chartGreen");
+    } else if (!color) color = WEBRCP.utils.colorManager.getColor("legendValueColor");
+
+    let objectTitle = name + "  ";
+
+    ctx.font = WEBRCP.utils.colorManager.getFont("legend");
+
+    let lineWidth = 0;
+    const startX = 12;
+    let x = startX;
+    const y = panel._offset + 24 + count * 18;
+
+    x += ctx.measureText(objectTitle).width;
+
+    const valuesToRender: LegendRenderValue[] = [];
+
+    for (var i = 0; i < series.fields.length; i++) {
+      const field = series.data[index][series.fields[i]];
+      if (!field) continue;
+
+      const valueToRender: LegendRenderValue = {
+        label: {},
+        value: {},
+        separator: {},
+      };
+      let precision = 2;
+      let zerosToReduce = this.priceRenderingOptions.zerosToReduce;
+
+      if (
+        series.precisions &&
+        series.precisions[i] !== null &&
+        series.precisions[i] !== undefined
+      ) {
+        precision = series.precisions[i];
+        zerosToReduce = 0;
+      } else if (object.renderAs == "OHLC" && series.labels[i] == "V") {
+        precision = this.volumePrecision;
+        zerosToReduce = 0;
+      } else {
+        precision = this.getPrecision(model, panel);
+      }
+
+      var v = LIB.nFormatter(field, precision);
+
+      valueToRender.label.text =
+        WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ": ";
+      if (series.fields.length == 1 && series.labels[i] == "value") valueToRender.label.text = "";
+      else {
+        valueToRender.label.x = x;
+        valueToRender.label.y = y;
+        x += ctx.measureText(valueToRender.label.text).width;
+      }
+
+      valueToRender.value.x = x;
+      valueToRender.value.y = y;
+      valueToRender.value.text = v;
+      valueToRender.value.zerosToReduce = zerosToReduce;
+      x += measurePriceTextWidth({
+        text: v,
+        ctx,
+        priceFont: WEBRCP.utils.colorManager.getFont("legend"),
+        subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
+        zerosToReduce: zerosToReduce,
+      });
+
+      if (i < series.fields.length - 1) {
+        const comma = ", ";
+        valueToRender.separator.text = comma;
+        valueToRender.separator.x = x;
+        valueToRender.separator.y = y;
+        x += ctx.measureText(comma).width;
+      }
+
+      valuesToRender.push(valueToRender);
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(
+      0,
+      panel._offset,
+      model._width - this.priceRenderingOptions.valueAxisWidth - 1,
+      panel._height
+    );
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.beginPath();
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
+    if (ctx.roundRect) ctx.roundRect(startX - 4, y - 11, x - 4, 16, [4]);
+    else ctx.rect(startX - 4, y - 11, x - 4, 16, [4]);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.font = WEBRCP.utils.colorManager.getFont("legend");
+    ctx.fillText(objectTitle, startX, y);
+
+    for (const valueToRender of valuesToRender) {
+      if (valueToRender.label.text) {
+        ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+        ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
+      }
+
+      ctx.fillStyle = color;
+      renderPriceText({
+        text: valueToRender.value.text,
+        ctx,
+        x: valueToRender.value.x,
+        y: valueToRender.value.y,
+        priceFont: WEBRCP.utils.colorManager.getFont("legend"),
+        subscriptFont: WEBRCP.utils.colorManager.getFont("legendSubscript"),
+        zerosToReduce: valueToRender.value.zerosToReduce,
+      });
+
+      if (valueToRender.separator.text) {
+        ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+        ctx.fillText(", ", valueToRender.separator.x, valueToRender.separator.y);
+      }
+    }
+
+    ctx.restore();
+
+    return true;
+  };
+
+  //------------------------------------------------------------------------------
+
+  this.drawPriceTag = function (
+    ctx,
+    model,
+    panel,
+    y,
+    color,
+    textColor,
+    value,
+    valueType,
+    style = "RECTANGLE"
+  ) {
+    try {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(
+        model._width - this.priceRenderingOptions.valueAxisWidth,
+        panel._offset,
+        this.priceRenderingOptions.valueAxisWidth,
+        panel._height
+      );
+      ctx.clip();
+
+      ctx.fillStyle = color;
+      ctx.font = WEBRCP.utils.colorManager.getFont("price");
+      // if (style === "TRADE") {
+      // 	ctx.save();
+      // 	ctx.fillStyle = "#fff";
+      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
+      // 	ctx.fillStyle = "#000";
+      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
+      // 	ctx.restore();
+      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
+      // }
+      if (style === "ARROW") {
+        ctx.beginPath();
+        ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
+        ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
+        ctx.lineTo(model._width, y - 10);
+        ctx.lineTo(model._width, y + 10);
+        ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillRect(
+          model._width - this.priceRenderingOptions.valueAxisWidth,
+          y - 9,
+          this.priceRenderingOptions.valueAxisWidth,
+          16
+        );
+      }
+
+      ctx.fillStyle = textColor;
+
+      var v = value;
+      if (v) {
+        if (panel.valueAxisMode == "log" && valueType != "real") {
+          v = (LIB._converterLog as any).axisToReal(value, 1);
+        }
+        var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
+        renderPriceText({
+          text: vs,
+          ctx,
+          x: model._width - this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding,
+          y: y + 3,
+          zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+        });
+      }
+    } catch (e: any) {
+      console.error(e, e.stack);
+    } finally {
+      ctx.restore();
+    }
+  };
+
+  this.drawDoublePriceTag = function (
+    ctx,
+    model,
+    panel,
+    y1,
+    y2,
+    color,
+    textColor,
+    innerColor,
+    innerTextColor,
+    v1,
+    v2,
+    valueType
+  ) {
+    try {
+      ctx.save();
+      ctx.rect(
+        model._width - this.priceRenderingOptions.valueAxisWidth,
+        panel._offset,
+        this.priceRenderingOptions.valueAxisWidth,
+        panel._height
+      );
+      ctx.clip();
+
+      if (y2 < y1) {
+        var a = y1;
+        y1 = y2;
+        y2 = a;
+      }
+
+      if (v2 > v1) {
+        var b = v1;
+        v1 = v2;
+        v2 = b;
+      }
+
+      ctx.font = WEBRCP.utils.colorManager.getFont("price");
+      var fontMetrics = ctx.measureText("8");
+      var fontSize = fontMetrics.fontBoundingBoxAscent + fontMetrics.fontBoundingBoxDescent;
+      var hMin = 4 * fontSize;
+      var h = y2 - y1 - 20;
+      var labelY = y1 + h / 2 + 8;
+      var bottomOffset = panel._height - (y2 - panel._offset);
+
+      const x = model._width - this.priceRenderingOptions.valueAxisWidth;
+      const xL = model._width;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, y1);
+      ctx.lineTo(x + 5, y1 - 10);
+      ctx.lineTo(xL, y1 - 10);
+      ctx.lineTo(xL, y1 + 10);
+      ctx.lineTo(x + 5, y1 + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = textColor;
+      let vp1 = v1;
+      if (panel.valueAxisMode == "log" && valueType != "real")
+        vp1 = (LIB._converterLog as any).axisToReal(v1, 1);
+      var vs1 = LIB.nFormatter(vp1, this.getPrecision(model, panel));
+      renderPriceText({
+        text: vs1,
+        ctx,
+        x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
+        y: y1 + 3,
+        zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+      });
+
+      ctx.fillStyle = innerColor;
+      ctx.beginPath();
+      ctx.moveTo(x + 5, y1 + 10);
+
+      if (h > hMin) {
+        ctx.lineTo(xL, y1 + 10);
+        ctx.lineTo(xL, y2 - 10);
+        ctx.lineTo(x + 5, y2 - 10);
+        ctx.lineTo(x + 5, y1 + 10);
+      } else if (bottomOffset < hMin + 15) {
+        ctx.lineTo(x + 5, y2 - 10);
+        ctx.lineTo(xL, y2 - 10);
+        ctx.lineTo(xL, y1 + 10);
+        ctx.lineTo(x + 5, y1 + 10);
+
+        ctx.moveTo(x + 5, y1 - 10);
+
+        ctx.lineTo(xL, y1 - 10);
+        ctx.lineTo(xL, y1 - 10 - hMin - 5);
+        ctx.lineTo(x + 5, y1 - 10 - hMin - 5);
+        ctx.lineTo(x + 5, y1 - 10);
+
+        labelY = y1 - 32 - 5;
+      } else {
+        ctx.lineTo(xL, y1 + 10);
+        ctx.lineTo(xL, y2 + 10 + hMin + 5);
+        ctx.lineTo(x + 5, y2 + 10 + hMin + 5);
+        ctx.lineTo(x + 5, y1 + 10);
+
+        labelY = y2 + 32;
+      }
+
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, y2);
+      ctx.lineTo(x + 5, y2 - 10);
+      ctx.lineTo(xL, y2 - 10);
+      ctx.lineTo(xL, y2 + 10);
+      ctx.lineTo(x + 5, y2 + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      var rv1 = v1;
+      var rv2 = v2;
+      if (panel.valueAxisMode == "log") {
+        rv1 = LIB._converterLog.axisToReal(v1);
+        rv2 = LIB._converterLog.axisToReal(v2);
+      }
+
+      // arrows
+
+      ctx.beginPath();
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor");
+      ctx.moveTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 12,
+        labelY - 0.5 * fontSize - 4
+      );
+      ctx.lineTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 18,
+        labelY - 0.5 * fontSize - 4
+      );
+      ctx.lineTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 15,
+        labelY - 0.5 * fontSize - 8
+      );
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor");
+      ctx.moveTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 12,
+        labelY + 1.5 * fontSize - 4
+      );
+      ctx.lineTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 18,
+        labelY + 1.5 * fontSize - 4
+      );
+      ctx.lineTo(
+        model._width - this.priceRenderingOptions.valueAxisWidth + 15,
+        labelY + 1.5 * fontSize
+      );
+      ctx.fill();
+
+      // labels
+
+      var labelDn = (Math.abs((rv1 - rv2) / v1) * 100).toFixed(2) + "%";
+      var labelUp = (Math.abs((rv1 - rv2) / v2) * 100).toFixed(2) + "%";
+      var label = Math.abs(rv1 - rv2).toFixed(this.getPrecision(model, panel));
+
+      let vp2 = v2;
+      if (panel.valueAxisMode == "log" && valueType != "real")
+        vp2 = (LIB._converterLog as any).axisToReal(v2, 1);
+      var vs2 = LIB.nFormatter(vp2, this.getPrecision(model, panel));
+
+      ctx.fillStyle = textColor;
+      renderPriceText({
+        text: vs2,
+        ctx,
+        x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
+        y: y2 + 3,
+        zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+      });
+
+      ctx.fillStyle = innerTextColor;
+      ctx.font = WEBRCP.utils.colorManager.getFont("text");
+      console.log(fontSize);
+      ctx.fillText(
+        labelUp,
+        model._width - this.priceRenderingOptions.valueAxisWidth + 23,
+        labelY - 0.5 * fontSize - 2
+      );
+      renderPriceText({
+        text: label,
+        ctx,
+        x: model._width - this.priceRenderingOptions.valueAxisWidth + 12,
+        y: labelY + fontSize / 2,
+        zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+      });
+      ctx.fillText(
+        labelDn,
+        model._width - this.priceRenderingOptions.valueAxisWidth + 23,
+        labelY + 1.5 * fontSize + 2
+      );
+    } catch (e: any) {
+      console.error(e, e.stack);
+    } finally {
+      ctx.restore();
+    }
+  };
+
+  this.drawTimeTag = function (ctx, model, x, color, textColor, fusion) {
+    try {
+      if (x > model._timeAxisWidth) return;
+
+      ctx.save();
+      ctx.rect(0, model._height - model.timeAxisHeight, model._width, model.timeAxisHeight + 10);
+      ctx.clip();
+
+      var index = this.getPointIndex(x, model);
+      if (!fusion.getMainSeries().data || index > fusion.getMainSeriesLastIndex()) return;
+
+      var stamp = fusion.getMainSeries().data[index].stamp;
+      var prettyDate = this.getPrettyDate(stamp);
+      var y = model._height - 20 / 2;
+      var yT = model._height - 20;
+      var yB = model._height;
+      var w = 90;
+
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.moveTo(x - 10, yT + 5);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x + 5, yT);
+      ctx.lineTo(x + w - 5, yT);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w - 5, yB);
+      ctx.lineTo(x + 5, yB);
+      ctx.lineTo(x, y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = textColor;
+      ctx.font = WEBRCP.utils.colorManager.getFont("time");
+
+      var tw = ctx.measureText(prettyDate).width;
+      var txtX = x + w / 2 - tw / 2;
+      ctx.fillText(prettyDate, txtX, y + 4);
+    } catch (e: any) {
+      console.error(e, e.stack);
+    } finally {
+      ctx.restore();
+    }
+  };
+
+  this.drawDoubleTimeTag = function (ctx, model, x1, x2, color, textColor, fusion) {
+    try {
+      ctx.save();
+      ctx.rect(0, model._height - model.timeAxisHeight, model._width, model.timeAxisHeight + 10);
+      ctx.clip();
+
+      if (x1 > model._timeAxisWidth) return;
+      if (x2 > model._timeAxisWidth) return;
+      if (x2 < x1) {
+        var a = x1;
+        x1 = x2;
+        x2 = a;
+      }
+      var withDateDiff = true;
+      var index1 = this.getPointIndex(x1, model);
+      if (index1 > fusion.getMainSeries().data.length - 1) return;
+      var index2 = this.getPointIndex(x2, model);
+      if (index2 > fusion.getMainSeries().data.length - 1) {
+        withDateDiff = false;
+      }
+
+      var y = model._height - 20 / 2 - 5;
+      var yT = model._height - 20 - 5;
+      var yB = model._height - 5;
+      var wMin = 150;
+      var w = 150;
+      if (Math.abs(x2 - x1) > w) w = Math.abs(x2 - x1);
+
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.moveTo(x1 - 10, yT + 5);
+      ctx.lineTo(x1, y);
+      ctx.lineTo(x1 + 5, yT);
+
+      if (w > wMin) {
+        ctx.lineTo(x2 - 5, yT);
+        ctx.lineTo(x2, y);
+        ctx.lineTo(x2 - 5, yB);
+      } else {
+        ctx.lineTo(x1 + w - 5, yT);
+        ctx.lineTo(x1 + w, y);
+        ctx.lineTo(x1 + w - 5, yB);
+      }
+
+      ctx.lineTo(x1 + 5, yB);
+      ctx.lineTo(x1, y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = textColor;
+      ctx.font = WEBRCP.utils.colorManager.getFont("time");
+
+      var label = "";
+      if (withDateDiff) {
+        var stamp1 = fusion.getMainSeries().data[index1].stamp;
+        var stamp2 = fusion.getMainSeries().data[index2].stamp;
+        var delta = Math.abs(stamp2 - stamp1) / 1000;
+        var days = Math.floor(delta / 86400);
+        delta -= days * 86400;
+        var hours = Math.floor(delta / 3600) % 24;
+        delta -= hours * 3600;
+        var minutes = Math.floor(delta / 60) % 60;
+        delta -= minutes * 60;
+        label = days + "d : " + hours + "h : " + minutes + "m " + (index2 - index1) + " periods";
+      } else {
+        label = index2 - index1 + " periods";
+      }
+      var tw = ctx.measureText(label).width;
+      var txtX = x1 + w / 2 - tw / 2;
+
+      ctx.fillText(label, txtX, y + 4);
+    } catch (e: any) {
+      console.error(e, e.stack);
+    } finally {
+      ctx.restore();
+    }
+  };
+
+  this.getIndexPoint = function (i, model) {
+    return i * model.periodWidth - model.viewportLeft;
+  };
+
+  this.getPointIndex = function (x, model) {
+    return Math.floor((x + model.viewportLeft) / model.periodWidth);
+  };
+
+  this.getStampPoint = function (s, model, seriesManager) {
+    var index = this.getStampIndex(s, model, seriesManager);
+    return this.getIndexPoint(index, model);
+  };
+
+  this.getStampIndex = function (s, model, seriesManager) {
+    var lastIndex = seriesManager[model.mainSeries].data.length - 1;
+
+    for (var i = 0; i < seriesManager[model.mainSeries].data.length; i++) {
+      var stamp = seriesManager[model.mainSeries].data[i].stamp;
+
+      if (stamp == s) return i;
+
+      if (i < lastIndex) {
+        var nextStamp = seriesManager[model.mainSeries].data[i + 1].stamp;
+        if (s > stamp && s < nextStamp) return i;
+      }
+
+      if (i == lastIndex) {
+        var intervalInMilis = seriesManager[model.mainSeries].interval.milis;
+        if (s > stamp && s < stamp + intervalInMilis) return i;
+      }
+    }
+    stamp += intervalInMilis;
+    return i + Math.floor((s - stamp) / seriesManager[model.mainSeries].interval.milis);
+  };
+
+  this.getIndexStamp = function (index, model, seriesManager) {
+    var seriesLength = seriesManager[model.mainSeries].data.length;
+    if (isNaN(index)) index = 0;
+    if (index >= seriesLength) {
+      let stamp = seriesManager[model.mainSeries].data[seriesLength - 1].stamp;
+      let leftOver = (index - seriesLength) * seriesManager[model.mainSeries].interval.milis;
+      return stamp + leftOver;
+    }
+    if (index < 0) {
+      let stamp = seriesManager[model.mainSeries].data[0].stamp;
+      let leftOver = index * seriesManager[model.mainSeries].interval.milis;
+      return stamp - leftOver;
+    } else {
+      return seriesManager[model.mainSeries].data[index].stamp;
+    }
+  };
+
+  this.getYCoordinateForPrice = function (price, options) {
+    const { panelHeight, minValue, maxValue, valueAxisMode, fV } = options;
+    var len = maxValue - minValue;
+    var max = maxValue;
+    var min = minValue;
+
+    var nv = null;
+    if (valueAxisMode == "perc") nv = LIB._converterPerc.realToAxis(price, fV);
+    else if (valueAxisMode == "log") nv = (LIB._converterLog as any).realToAxis(price, fV);
+    else nv = (LIB._converterLin as any).realToAxis(price, fV);
+
+    if (minValue < 0) {
+      min = 0;
+      max += Math.abs(minValue);
+      nv = Number(nv) + Math.abs(minValue);
+    } else {
+      nv -= Math.abs(minValue);
+    }
+
+    var yy = (nv * panelHeight) / len;
+
+    return panelHeight - Math.floor(yy);
+  };
+
+  this.getPriceForYCoordinate = function (p, options) {
+    const { panelHeight, minValue, maxValue, valueAxisMode, fV } = options;
+
+    var len = maxValue - minValue;
+    var point = panelHeight - p;
+
+    var aV = (point * len) / panelHeight;
+    aV += minValue;
+
+    var nv = null;
+    if (valueAxisMode == "perc") nv = LIB._converterPerc.axisToReal(aV, fV);
+    else if (valueAxisMode == "log") nv = (LIB._converterLog as any).axisToReal(aV, fV);
+    else nv = (LIB._converterLin as any).axisToReal(aV, fV);
+
+    //return Math.floor(nv*100000)/100000;
+    return nv;
+  };
+
+  this.calculateTimeTicks = function (model) {
+    this.timeTicks = [];
+
+    var lastIndexPoint = 4 - model.minTimeTickWidth;
+    var indexPoint = 0;
+
+    for (var i = model._leftIndex; i < model._rightIndex; i++) {
+      indexPoint = this.getIndexPoint(i, model);
+
+      if (indexPoint - lastIndexPoint >= model.minTimeTickWidth) {
+        lastIndexPoint = indexPoint;
+        this.timeTicks.push(i);
+      }
+    }
+
+    return this.timeTicks;
+  };
+
+  this.calculateNiceTick = function (model, panel) {
+    const tick: ValueAxisTick = {
+      maxTicks: 0,
+      range: 0,
+      tickSpacing: 0,
+      niceMin: 0,
+      niceMax: 0,
+    };
+
+    tick.maxTicks = panel._height / model.minValueTickHeight;
+    tick.range = this.niceNum(panel.vMax - panel.vMin, false);
+    tick.tickSpacing = this.niceNum(tick.range / tick.maxTicks, true);
+    tick.niceMin = Math.floor(panel.vMin / tick.tickSpacing) * tick.tickSpacing;
+    tick.niceMax = Math.ceil(panel.vMax / tick.tickSpacing) * tick.tickSpacing;
+
+    return tick;
+  };
+
+  this.niceNum = function (range, round) {
+    var exponent = 0;
+    var fraction = 0;
+    var niceFraction = 0;
+
+    exponent = Math.floor(Math.log10(range));
+    fraction = range / Math.pow(10, exponent);
+
+    if (round) {
+      if (fraction < 1.5) niceFraction = 1;
+      else if (fraction < 3) niceFraction = 2;
+      else if (fraction < 7) niceFraction = 5;
+      else niceFraction = 10;
+    } else {
+      if (fraction <= 1) niceFraction = 1;
+      else if (fraction <= 2) niceFraction = 2;
+      else if (fraction <= 5) niceFraction = 5;
+      else niceFraction = 10;
+    }
+
+    return niceFraction * Math.pow(10, exponent);
+  };
+
+  this.months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+  this.getPrettyDate = function (stamp, hidden) {
+    const date = new Date(stamp);
+    let str = "";
+
+    if (!hidden || !hidden.day) str += this.zeroLead(date.getDate());
+    if (!hidden || !hidden.month) str += "." + this.months[date.getMonth()];
+    if (!hidden || !hidden.year) str += "." + String(date.getFullYear()).substring(2, 4);
+    if (!hidden || !hidden.hour)
+      str += " " + this.zeroLead(date.getHours()) + ":" + this.zeroLead(date.getMinutes());
+
+    return str;
+  };
+
+  this.zeroLead = function (num) {
+    if (num < 10) return "0" + num;
+    return "" + num;
+  };
+
+  this.getPrecision = function (model, panel) {
+    var p = 5;
+
+    if (model.instrumentsSeries && model.instrumentsSeries.length > 0) {
+      p =
+        model.instrumentsSeries[0].instrument.precision > 4
+          ? model.instrumentsSeries[0].instrument.precision
+          : model.instrumentsSeries[0].instrument.precision;
+    }
+
+    return p;
+  };
+
+  this.calculatePriceRenderingOptions = function (data, model, precision) {
+    let magnitude;
+    let valueAxisWidth;
+    let zerosToReduce;
+    let greatestNumber = Number.MIN_VALUE;
+    let greatestFraction = Number.MIN_VALUE;
+    let text = "";
+
+    for (let i = 0; i < data.length; i++) {
+      const candle = data[i];
+      const h = candle.h;
+      greatestNumber = h > greatestNumber ? h : greatestNumber;
+
+      greatestFraction = getGreater(greatestFraction, candle.o);
+      greatestFraction = getGreater(greatestFraction, h);
+      greatestFraction = getGreater(greatestFraction, candle.l);
+      greatestFraction = getGreater(greatestFraction, candle.c);
+    }
+
+    magnitude = (Math.log(Math.floor(greatestNumber)) * Math.LOG10E + 1) | 0 || 1;
+    zerosToReduce =
+      greatestFraction > 0 && greatestFraction !== Number.MIN_VALUE
+        ? -Math.floor(Math.log10(greatestFraction) + 1)
+        : 0;
+
+    for (let i = 0; i < magnitude; i++) {
+      text += "8";
+    }
+
+    if (precision > 0) {
+      text += ".";
+
+      for (let i = 0; i < precision; i++) {
+        text += "8";
+      }
+    }
+
+    valueAxisWidth =
+      measurePriceTextWidth({
+        text,
+        ctx: this.context,
+        zerosToReduce,
+      }) +
+      model.valueAxisPadding * 2;
+
+    this.priceRenderingOptions = {
+      magnitude,
+      zerosToReduce,
+      valueAxisWidth,
+    };
+
+    function getGreater(current: number, proposal: number) {
+      const positiveProposal = Math.abs(proposal);
+      const y = positiveProposal - Math.floor(positiveProposal);
+      return y > current ? y : current;
+    }
+  };
+
+  this.getPriceRenderingOptions = function () {
+    return this.priceRenderingOptions;
+  };
 } as unknown as CoreRendererConstructor;
 
 export default Renderer;

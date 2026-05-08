@@ -1,9 +1,6 @@
 import WEBRCP from "../WebRCP";
 import type { Interval, Instrument } from "../types";
-import type {
-  ChartLike,
-  ChartModelFragment,
-} from "../internal-types/chart";
+import type { ChartLike, ChartModelFragment } from "../internal-types/chart";
 import type { ChartPanelObject } from "../internal-types/objects";
 import type { ScriptModelConfig } from "../internal-types/scripts";
 import type {
@@ -24,7 +21,7 @@ declare global {
       r1: number,
       r2: number,
       r3: number,
-      r4: number,
+      r4: number
     ): CanvasRenderingContext2D;
   }
 }
@@ -91,9 +88,16 @@ function round(num: number, digits: number): number {
   return Math.round(num * factor) / factor;
 }
 
-function getObjectById(model: Pick<ChartModelFragment, "panels">, id: string | number): ChartPanelObject | null {
+function getObjectById(
+  model: Pick<ChartModelFragment, "panels">,
+  id: string | number
+): ChartPanelObject | null {
   for (let panelIndex = 0; panelIndex < model.panels.length; panelIndex += 1) {
-    for (let objectIndex = 0; objectIndex < model.panels[panelIndex].objects.length; objectIndex += 1) {
+    for (
+      let objectIndex = 0;
+      objectIndex < model.panels[panelIndex].objects.length;
+      objectIndex += 1
+    ) {
       if (model.panels[panelIndex].objects[objectIndex].id === id) {
         return model.panels[panelIndex].objects[objectIndex];
       }
@@ -309,7 +313,7 @@ function synchronizeSeries(seriesManager: SeriesManager): void {
 
 function synchronizeAllWithAll(
   seriesManager: SeriesManager,
-  model: Pick<ChartModelFragment, "instrumentsSeries">,
+  model: Pick<ChartModelFragment, "instrumentsSeries">
 ): void {
   let longestLength = 1;
   const stampIndex: Record<string, Record<number, number>> = {};
@@ -329,8 +333,7 @@ function synchronizeAllWithAll(
     }
   }
 
-  const stampsArray = Object.keys(stamps)
-    .sort((a, b) => Number(a) - Number(b));
+  const stampsArray = Object.keys(stamps).sort((a, b) => Number(a) - Number(b));
 
   const lastValue: Record<string, OhlcvCandle> = {};
 
@@ -400,7 +403,7 @@ function createStrategyToExport(o: ChartPanelObject, chart: ChartLike) {
 
 function getPlottersForScriptByScriptId(
   model: Pick<ChartModelFragment, "scripts" | "panels">,
-  scriptId: string | number,
+  scriptId: string | number
 ): ChartPanelObject[] {
   let script: ScriptModelConfig | null = null;
 
@@ -415,7 +418,11 @@ function getPlottersForScriptByScriptId(
   if (script === null) return plotters;
 
   for (let panelIndex = 0; panelIndex < model.panels.length; panelIndex += 1) {
-    for (let objectIndex = 0; objectIndex < model.panels[panelIndex].objects.length; objectIndex += 1) {
+    for (
+      let objectIndex = 0;
+      objectIndex < model.panels[panelIndex].objects.length;
+      objectIndex += 1
+    ) {
       const panelObject = model.panels[panelIndex].objects[objectIndex];
       if (panelObject.dataLink) {
         for (const key in script.outputs) {
@@ -456,7 +463,7 @@ function florStampToInterval(tickStamp: number, interval: Interval, lastStamp?: 
       0,
       0,
       0,
-      0,
+      0
     );
     return floored.getTime() - floored.getTimezoneOffset() * 60 * 1000;
   }
@@ -611,14 +618,18 @@ class ValueConverter implements AxisValueConverter {
 function getReferenceValue(
   o: ChartPanelObject,
   model: Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">,
-  seriesManager: SeriesManager,
+  seriesManager: SeriesManager
 ): number | null {
   let link = o.dataLink;
   let field = o.dataField;
 
   if (field === "BBMiddle") field = null;
 
-  if (o.type === "StrategyObject" || o.type === "CandlestickPatternStrategyObject" || o.type === "FractalsObject") {
+  if (
+    o.type === "StrategyObject" ||
+    o.type === "CandlestickPatternStrategyObject" ||
+    o.type === "FractalsObject"
+  ) {
     link = model.mainSeries;
     field = "c";
   }
@@ -646,7 +657,7 @@ function getReferenceValue(
 function getFirstAvailableValue(
   model: Pick<ChartModelFragment, "_leftIndex" | "_rightIndex">,
   data: DataPoint[],
-  field: string,
+  field: string
 ): number | null {
   if (model._leftIndex < model._rightIndex) {
     for (let index = model._leftIndex; index < model._rightIndex; index += 1) {
@@ -661,10 +672,9 @@ function getFirstAvailableValue(
   return null;
 }
 
-function synchronizeArraysByObjId<T extends { id?: string | number; drag?: boolean; [key: string]: unknown }>(
-  src: T[],
-  dst: T[],
-): void {
+function synchronizeArraysByObjId<
+  T extends { id?: string | number; drag?: boolean; [key: string]: unknown },
+>(src: T[], dst: T[]): void {
   const newDest = dst.filter((item) => getObjById(src, item.id) !== null);
   dst.splice(0, dst.length);
   newDest.forEach((item) => dst.push(item));
@@ -701,7 +711,7 @@ function capitalizeFirstLetter(value: string): string {
 
 function validateIntervalSymbolForInstrument(
   instrument: Instrument,
-  intervalSymbol: string,
+  intervalSymbol: string
 ): Interval | false {
   for (const interval of instrument.availableIntervals || []) {
     if (interval.symbol === intervalSymbol) return interval;
@@ -709,7 +719,10 @@ function validateIntervalSymbolForInstrument(
   return false;
 }
 
-function validateIntervalSymbol(instrument: InstrumentWithDefaultInterval, intervalSymbol: string): Interval | undefined {
+function validateIntervalSymbol(
+  instrument: InstrumentWithDefaultInterval,
+  intervalSymbol: string
+): Interval | undefined {
   let firstInterval = instrument.defaultInterval;
 
   for (const interval of instrument.availableIntervals || []) {
@@ -720,7 +733,10 @@ function validateIntervalSymbol(instrument: InstrumentWithDefaultInterval, inter
   return firstInterval;
 }
 
-if (typeof CanvasRenderingContext2D !== "undefined" && !CanvasRenderingContext2D.prototype.rectRound) {
+if (
+  typeof CanvasRenderingContext2D !== "undefined" &&
+  !CanvasRenderingContext2D.prototype.rectRound
+) {
   CanvasRenderingContext2D.prototype.rectRound = function rectRound(
     x: number,
     y: number,
@@ -729,7 +745,7 @@ if (typeof CanvasRenderingContext2D !== "undefined" && !CanvasRenderingContext2D
     r1: number,
     r2: number,
     r3: number,
-    r4: number,
+    r4: number
   ) {
     if (w < 2 * r1) r1 = w / 2;
     if (h < 2 * r1) r1 = h / 2;
@@ -748,7 +764,7 @@ function resizeImage(
   image: string,
   onSuccess: (base64Image: string) => void,
   width = 300,
-  height = 150,
+  height = 150
 ): void {
   const img = new Image();
   img.src = image;
@@ -767,7 +783,10 @@ function resizeImage(
   };
 }
 
-function getSortedKeys(orderModel: string[] | null | undefined, object: Record<string, unknown>): string[] {
+function getSortedKeys(
+  orderModel: string[] | null | undefined,
+  object: Record<string, unknown>
+): string[] {
   const objectKeys = Object.keys(object);
   if (!orderModel) return objectKeys;
 
@@ -783,7 +802,10 @@ function getSortedKeys(orderModel: string[] | null | undefined, object: Record<s
   return objectKeys.concat(sortedKeys);
 }
 
-function groupBy<T extends Record<string, unknown>>(property: keyof T, array: T[]): Record<string, T> {
+function groupBy<T extends Record<string, unknown>>(
+  property: keyof T,
+  array: T[]
+): Record<string, T> {
   const map: Record<string, T> = {};
   for (let index = 0; index < array.length; index += 1) {
     map[String(array[index][property])] = array[index];

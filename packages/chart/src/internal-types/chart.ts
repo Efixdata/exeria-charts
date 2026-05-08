@@ -7,18 +7,10 @@ import type {
 } from "../types";
 import type { CoreFusionRuntime } from "./fusion";
 import type { CoreInteractor } from "./interactor";
-import type {
-  ChartObjectCollection,
-  ChartPanelObject,
-  ChartRuntimeObject,
-} from "./objects";
+import type { ChartObjectCollection, ChartPanelObject, ChartRuntimeObject } from "./objects";
 import type { CoreRenderer, ValueConverterLike } from "./renderer";
 import type { ScriptModelConfig } from "./scripts";
-import type {
-  InstrumentSeriesRef,
-  InstrumentSeriesRuntime,
-  SeriesManager,
-} from "./series";
+import type { InstrumentSeriesRef, InstrumentSeriesRuntime, SeriesManager } from "./series";
 import type { UnknownFn } from "./shared";
 
 export interface ChartPanel {

@@ -39,13 +39,17 @@ export interface PointerEventLike {
   ctrlKey?: boolean;
   isPrimary?: boolean;
   preventDefault?: () => void;
-  target?: (EventTarget & {
-    getBoundingClientRect?: () => DOMRect;
-    closest?: (selectors: string) => Element | null;
-  }) | null;
-  toElement?: (EventTarget & {
-    closest?: (selectors: string) => Element | null;
-  }) | null;
+  target?:
+    | (EventTarget & {
+        getBoundingClientRect?: () => DOMRect;
+        closest?: (selectors: string) => Element | null;
+      })
+    | null;
+  toElement?:
+    | (EventTarget & {
+        closest?: (selectors: string) => Element | null;
+      })
+    | null;
   srcEvent?: any;
   center?: any;
   pointers?: any[];
@@ -167,5 +171,5 @@ export type CoreInteractorConstructor = new (
   topLayer: HTMLDivElement,
   config: ChartConfig,
   fusion: CoreFusionRuntime,
-  controller: CoreChartController,
+  controller: CoreChartController
 ) => CoreInteractor;

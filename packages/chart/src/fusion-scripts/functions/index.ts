@@ -11,16 +11,16 @@ import createAVERAGEFunctionScript from "./AVERAGE";
 import createFIBONACCIFunctionScript from "./FIBONACCI";
 
 export function createFusionFunctionScripts(FUSION: CoreFusionStatic) {
-    return {
-        'IF': createIFFunctionScript(FUSION),
-        'HIGHEST': createHIGHESTFunctionScript(FUSION),
-        'LOWEST': createLOWESTFunctionScript(FUSION),
-        'IGLUE': createIGLUEFunctionScript(FUSION),
-        'IMOD': createIMODFunctionScript(FUSION),
-        'DISPLACE': createDISPLACEFunctionScript(FUSION),
-        '1x': createScript1xFunctionScript(FUSION),
-        'SUM': createSUMFunctionScript(FUSION),
-        'AVERAGE': createAVERAGEFunctionScript(FUSION),
-        'FIBONACCI': createFIBONACCIFunctionScript(FUSION),
-    };
+  return {
+    IF: createIFFunctionScript(FUSION),
+    HIGHEST: createHIGHESTFunctionScript(FUSION),
+    LOWEST: createLOWESTFunctionScript(FUSION),
+    IGLUE: createIGLUEFunctionScript(FUSION),
+    IMOD: createIMODFunctionScript(FUSION),
+    DISPLACE: createDISPLACEFunctionScript(FUSION),
+    "1x": createScript1xFunctionScript(FUSION),
+    SUM: createSUMFunctionScript(FUSION),
+    AVERAGE: createAVERAGEFunctionScript(FUSION),
+    FIBONACCI: createFIBONACCIFunctionScript(FUSION),
+  };
 }

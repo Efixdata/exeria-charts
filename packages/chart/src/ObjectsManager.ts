@@ -111,7 +111,10 @@ export default class ObjectsManager {
       this.detachToolObject(object.id);
       const relatedScript = findRelatedScript(object);
       if (relatedScript) {
-        const plotters = LIB.getPlottersForScriptByScriptId(this.chart.model, relatedScript.id as string | number);
+        const plotters = LIB.getPlottersForScriptByScriptId(
+          this.chart.model,
+          relatedScript.id as string | number
+        );
         if (plotters.length > 0) {
           this.detachSeriesObject(plotters[0]);
         }
@@ -202,7 +205,7 @@ export default class ObjectsManager {
           object.type === "SeriesObject" ||
           object.type === "StrategyObject" ||
           object.type === "CandlestickPatternStrategyObject" ||
-          object.type === "FractalsObject",
+          object.type === "FractalsObject"
       ).length;
       if (count === 0) {
         this.chart.removePanelFromModel(panels[index]);
@@ -211,11 +214,15 @@ export default class ObjectsManager {
   }
 
   getSeriesById(objectId: string): unknown {
-    return (this.chart.model as { objects?: { seriesManager?: Record<string, unknown> } }).objects?.seriesManager?.[objectId];
+    return (this.chart.model as { objects?: { seriesManager?: Record<string, unknown> } }).objects
+      ?.seriesManager?.[objectId];
   }
 
   getScriptControllerById(scriptId: string | number): ScriptController | undefined {
-    return this.chart.getScriptsManager()[String(scriptId)] || this.chart.getScriptsManager()[scriptId as never];
+    return (
+      this.chart.getScriptsManager()[String(scriptId)] ||
+      this.chart.getScriptsManager()[scriptId as never]
+    );
   }
 
   getScriptModelById(scriptId: string | number): ScriptModelConfig | undefined {
@@ -312,7 +319,10 @@ export default class ObjectsManager {
         for (let panelIndex = 0; panelIndex < model.panels.length; panelIndex += 1) {
           const panel = model.panels[panelIndex];
           for (let objectIndex = 0; objectIndex < panel.objects.length; objectIndex += 1) {
-            if (panel.objects[objectIndex].dataLink && panel.objects[objectIndex].dataLink === dataLink) {
+            if (
+              panel.objects[objectIndex].dataLink &&
+              panel.objects[objectIndex].dataLink === dataLink
+            ) {
               panel.objects.splice(objectIndex, 1);
               objectIndex -= 1;
             }
@@ -323,7 +333,10 @@ export default class ObjectsManager {
       }
     }
 
-    const inputs = script.inputs as Record<string, { canBeIndicator?: boolean; isIndicator?: boolean }>;
+    const inputs = script.inputs as Record<
+      string,
+      { canBeIndicator?: boolean; isIndicator?: boolean }
+    >;
     for (const property in inputs) {
       if (inputs[property].canBeIndicator) {
         inputs[property].isIndicator = false;
@@ -356,7 +369,10 @@ export default class ObjectsManager {
         const script = scriptsManager[property];
         const outputs = script.outputs;
         for (const outputKey in outputs) {
-          if (Object.prototype.hasOwnProperty.call(outputs, outputKey) && outputs[outputKey] === dataLink) {
+          if (
+            Object.prototype.hasOwnProperty.call(outputs, outputKey) &&
+            outputs[outputKey] === dataLink
+          ) {
             return script;
           }
         }

@@ -1,8 +1,4 @@
-import type {
-  ScriptDefinition,
-  ScriptInputDefinition,
-  ScriptOutputDefinition,
-} from "../types";
+import type { ScriptDefinition, ScriptInputDefinition, ScriptOutputDefinition } from "../types";
 import type { CoreFusionRuntime } from "./fusion";
 import type { ChartRuntimeObject } from "./objects";
 import type { UnknownFn } from "./shared";
@@ -27,7 +23,7 @@ export interface RuntimeScriptDefinition extends ScriptDefinition {
   controller?: (
     context: CoreFusionRuntime,
     inputs: Record<string, any>,
-    outputs: Record<string, any>,
+    outputs: Record<string, any>
   ) => FusionScriptControllerRuntime;
   [key: string]: any;
 }

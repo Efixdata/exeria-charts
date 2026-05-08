@@ -12,7 +12,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "convert-svg": "npx svgr --out-dir packages/react-chart-ui/src/img/icons -- packages/react-chart-ui/src/img/icons"
   },
   "devDependencies": {

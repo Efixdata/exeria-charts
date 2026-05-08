@@ -6,7 +6,8 @@
   "types": "./index.tsx",
   "license": "UNLICENSED",
   "scripts": {
-    "lint": "eslint *.ts*"
+    "lint": "eslint --ext .ts,.tsx index.tsx src",
+    "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.0.8",

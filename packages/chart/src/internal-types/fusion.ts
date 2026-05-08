@@ -64,21 +64,9 @@ export interface CoreFusionRuntime {
 
 export interface CoreFusionLoader {
   loaded: Record<string, any>;
-  loadFusionData(
-    engine: CoreFusionRuntime,
-    onSuccess: UnknownFn,
-    onError: UnknownFn,
-  ): void;
-  loadFusionDataHistoric(
-    engine: CoreFusionRuntime,
-    onSuccess: UnknownFn,
-    onError: UnknownFn,
-  ): void;
-  loadHistory(
-    engine: CoreFusionRuntime,
-    onSuccess: UnknownFn,
-    onError: UnknownFn,
-  ): void;
+  loadFusionData(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
+  loadFusionDataHistoric(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
+  loadHistory(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
   [key: string]: any;
 }
 
@@ -97,7 +85,7 @@ export interface CoreFusionBuilder {
   replaceInstrumentByOther(
     oldInstrument: any,
     newInstrument: any,
-    withRelated?: boolean,
+    withRelated?: boolean
   ): CoreFusionBuilder;
   setInterval(interval: Interval): CoreFusionBuilder;
   addScript(script: Record<string, any>, pos?: number): CoreFusionBuilder;
@@ -107,7 +95,7 @@ export interface CoreFusionBuilder {
 }
 
 export type CoreFusionBuilderConstructor = new (
-  engine?: CoreFusionRuntime | null,
+  engine?: CoreFusionRuntime | null
 ) => CoreFusionBuilder;
 
 export interface CoreFusionStatic {

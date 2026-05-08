@@ -174,9 +174,10 @@ function getContrastColor(color: string, dark = "#424242", light = "#ffffff"): s
 
 function parseColor(color: string): { r: number; g: number; b: number } | null {
   if (color.startsWith("#")) {
-    const normalized = color.length === 4
-      ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
-      : color;
+    const normalized =
+      color.length === 4
+        ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+        : color;
 
     const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
     if (!match) {

@@ -35,9 +35,13 @@
     "build": "webpack && npm run build:types",
     "build:types": "tsc -p tsconfig.build.json",
     "dev": "webpack --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint --ext .ts src",
+    "lint:fix": "npm run lint -- --fix"
   },
   "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
     "svg-inline-loader": "^0.8.2",
     "ts-loader": "^9.4.1",
     "typescript": "^4.5.2",

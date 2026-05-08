@@ -1,0 +1,11 @@
+**/.next
+**/.turbo
+**/dist
+**/node_modules
+**/*.min.js
+**/coverage
+**/data/*.json
+packages/chart/examples/fixtures/*.json
+packages/react-chart-ui/BTCUSD.json
+yarn.lock
+package-lock.json

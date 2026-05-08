@@ -143,7 +143,7 @@ export class Shape {
     renderer: AnyRecord,
     panel: AnyRecord | null | undefined,
     model: AnyRecord,
-    seriesManager: AnyRecord,
+    seriesManager: AnyRecord
   ): LegacyShapePoint[] | undefined {
     if (!panel) return undefined;
 
@@ -191,7 +191,12 @@ export class Shape {
     return points;
   }
 
-  push(object: LegacyShapeObject, _renderer: AnyRecord, model: AnyRecord, seriesManager: AnyRecord): void {
+  push(
+    object: LegacyShapeObject,
+    _renderer: AnyRecord,
+    model: AnyRecord,
+    seriesManager: AnyRecord
+  ): void {
     const mainSeries = seriesManager[model.mainSeries];
     const lastStamp = mainSeries.data[mainSeries.data.length - 1].stamp;
     const lastIndex = mainSeries.data.length - 1;
@@ -212,7 +217,13 @@ export class Shape {
     });
   }
 
-  pop(object: LegacyShapeObject, _renderer: AnyRecord, model: AnyRecord, seriesManager: AnyRecord, interactor: AnyRecord): void {
+  pop(
+    object: LegacyShapeObject,
+    _renderer: AnyRecord,
+    model: AnyRecord,
+    seriesManager: AnyRecord,
+    interactor: AnyRecord
+  ): void {
     const mainSeries = seriesManager[model.mainSeries];
     const lastStamp = mainSeries.data[mainSeries.data.length - 1].stamp;
     const lastIndex = mainSeries.data.length - 1;
@@ -243,7 +254,7 @@ export class Shape {
     options?: {
       drawArrowHandles?: boolean;
       redrawAnchorsWhenSelected?: boolean;
-    },
+    }
   ): void {
     const points = this.getPoints(object, renderer, panel, model, seriesManager);
     if (!points) return;
@@ -253,7 +264,14 @@ export class Shape {
       for (let index = 0; index < points.length; index += 1) {
         const point = points[index];
         if (point.x === object._hitAnchor.x && point.y === object._hitAnchor.y) {
-          drawAnchor(overlayContext, overlayPanel, point, this.hitTolerance, this.anchorColorHover, 0.5);
+          drawAnchor(
+            overlayContext,
+            overlayPanel,
+            point,
+            this.hitTolerance,
+            this.anchorColorHover,
+            0.5
+          );
         }
       }
     }
@@ -269,7 +287,7 @@ export class Shape {
             this.anchorPointArrowSize + 2,
             this.anchorPointDistanceToArrow,
             this.anchorColorHover,
-            0.5,
+            0.5
           );
         }
       }
@@ -281,7 +299,14 @@ export class Shape {
 
     if (object.selected) {
       if (options?.redrawAnchorsWhenSelected) {
-        drawAnchors(overlayContext, overlayPanel, points, this.anchorPointSize, this.anchorColor, 1);
+        drawAnchors(
+          overlayContext,
+          overlayPanel,
+          points,
+          this.anchorPointSize,
+          this.anchorColor,
+          1
+        );
       }
       if (options?.drawArrowHandles !== false) {
         drawAnchorsArrow(
@@ -291,7 +316,7 @@ export class Shape {
           this.anchorPointArrowSize,
           this.anchorPointDistanceToArrow,
           this.anchorColor,
-          1,
+          1
         );
       }
     }
@@ -323,7 +348,12 @@ export class Shape {
       icon: false,
       callback: function callback() {
         if (!object.userName) object.userName = null;
-        chart.requestObjectText(object, "userName", object.userName, chart.options.locale.getMessage("set_name", "Set name"));
+        chart.requestObjectText(
+          object,
+          "userName",
+          object.userName,
+          chart.options.locale.getMessage("set_name", "Set name")
+        );
         if (!object.userName || object.userName.trim().length === 0) object.userName = null;
         return true;
       },
@@ -445,7 +475,11 @@ export class Shape {
   isValid(object: LegacyShapeObject): boolean | undefined {
     for (const key in object.anchors) {
       if (object.anchors[key]._index < 0) return false;
-      if ((object.anchors[key].referenceStamp as number) - (object.anchors[key].offset as number) <= 0) return false;
+      if (
+        (object.anchors[key].referenceStamp as number) - (object.anchors[key].offset as number) <=
+        0
+      )
+        return false;
     }
     return undefined;
   }
@@ -474,7 +508,14 @@ export class Shape {
     return renderer.getIndexPoint(series.data.length, model) + 10;
   }
 
-  stickToCandlePoint(_event: AnyRecord, panel: AnyRecord, renderer: AnyRecord, referenceValue: unknown, candles: AnyRecord[], point: number): number {
+  stickToCandlePoint(
+    _event: AnyRecord,
+    panel: AnyRecord,
+    renderer: AnyRecord,
+    referenceValue: unknown,
+    candles: AnyRecord[],
+    point: number
+  ): number {
     const offset = 20;
     let minDifference = Number.POSITIVE_INFINITY;
     let closestPoint = point;
@@ -501,7 +542,13 @@ export class Shape {
     return minDifference < offset ? closestPoint : point;
   }
 
-  stickToCandleValue(point: number, candles: AnyRecord[], panel: AnyRecord, renderer: AnyRecord, referenceValue: unknown): any {
+  stickToCandleValue(
+    point: number,
+    candles: AnyRecord[],
+    panel: AnyRecord,
+    renderer: AnyRecord,
+    referenceValue: unknown
+  ): any {
     const offset = 20;
     let minDifference = Number.POSITIVE_INFINITY;
     let closestValue: any = 0;
@@ -542,7 +589,7 @@ export class Shape {
     interactor: AnyRecord,
     model: AnyRecord,
     panel: AnyRecord,
-    seriesManager: AnyRecord,
+    seriesManager: AnyRecord
   ): LegacyAnchorSelection {
     this.wasDrag = false;
 
@@ -552,7 +599,15 @@ export class Shape {
     }
 
     for (let index = 0; index < points.length; index += 1) {
-      if (interactor.isOver(event._offset.offsetX, event._offset.offsetY, points[index].x, points[index].y, this.hitTolerance)) {
+      if (
+        interactor.isOver(
+          event._offset.offsetX,
+          event._offset.offsetY,
+          points[index].x,
+          points[index].y,
+          this.hitTolerance
+        )
+      ) {
         return this.createAnchorSelection(object, index);
       }
     }
@@ -567,10 +622,19 @@ export class Shape {
     interactor: AnyRecord,
     model: AnyRecord,
     panel: AnyRecord,
-    seriesManager: AnyRecord,
+    seriesManager: AnyRecord
   ): LegacyAnchorSelection {
     interactor.pushPanel(this, object, panel);
-    return Shape.prototype.mouseDown.call(this, event, object, renderer, interactor, model, panel, seriesManager);
+    return Shape.prototype.mouseDown.call(
+      this,
+      event,
+      object,
+      renderer,
+      interactor,
+      model,
+      panel,
+      seriesManager
+    );
   }
 
   mouseDownWithExpandableArrowSelection(
@@ -583,7 +647,7 @@ export class Shape {
     seriesManager: AnyRecord,
     options?: {
       pushPanel?: boolean;
-    },
+    }
   ): LegacyAnchorSelection {
     if (object._hitArrow) {
       const points = this.getPoints(object, renderer, panel, model, seriesManager);
@@ -595,7 +659,7 @@ export class Shape {
               event._offset.offsetY,
               points[index].x,
               points[index].y + this.anchorPointDistanceToArrow,
-              this.hitTolerance,
+              this.hitTolerance
             )
           ) {
             this.expandAnchor(object.anchors[index]);
@@ -608,7 +672,16 @@ export class Shape {
       interactor.pushPanel(this, object, panel);
     }
 
-    return Shape.prototype.mouseDown.call(this, event, object, renderer, interactor, model, panel, seriesManager);
+    return Shape.prototype.mouseDown.call(
+      this,
+      event,
+      object,
+      renderer,
+      interactor,
+      model,
+      panel,
+      seriesManager
+    );
   }
 
   mouseUp(
@@ -618,7 +691,7 @@ export class Shape {
     interactor: AnyRecord,
     _model: AnyRecord,
     panel: AnyRecord,
-    _seriesManager?: AnyRecord,
+    _seriesManager?: AnyRecord
   ): void {
     interactor.popPanel(this, object, panel);
   }
@@ -634,7 +707,7 @@ export class Shape {
     options?: {
       popPanel?: boolean;
       requireHitArrow?: boolean;
-    },
+    }
   ): void {
     if (!this.wasDrag && (!options?.requireHitArrow || object._hitArrow)) {
       const points = this.getPoints(object, renderer, panel, model, seriesManager);
@@ -646,7 +719,7 @@ export class Shape {
               event._offset.offsetY,
               points[index].x,
               points[index].y + this.anchorPointDistanceToArrow,
-              this.hitTolerance,
+              this.hitTolerance
             )
           ) {
             this.expandAnchor(object.anchors[index]);
@@ -667,7 +740,7 @@ export class Shape {
     interactor: AnyRecord,
     _model: AnyRecord,
     panel: AnyRecord,
-    _seriesManager?: AnyRecord,
+    _seriesManager?: AnyRecord
   ): void {
     this.clearHits(object);
     this.wasDrag = false;
@@ -681,17 +754,27 @@ export class Shape {
     interactor: AnyRecord,
     _model: AnyRecord,
     panel: AnyRecord,
-    _seriesManager?: AnyRecord,
+    _seriesManager?: AnyRecord
   ): void {
     this.wasDrag = false;
     interactor.popPanel(this, object, panel);
   }
 
-  mouseDrag(event: AnyRecord, object: LegacyShapeObject, renderer: AnyRecord, interactor: AnyRecord, model: AnyRecord, panel: AnyRecord, seriesManager: AnyRecord): void {
+  mouseDrag(
+    event: AnyRecord,
+    object: LegacyShapeObject,
+    renderer: AnyRecord,
+    interactor: AnyRecord,
+    model: AnyRecord,
+    panel: AnyRecord,
+    seriesManager: AnyRecord
+  ): void {
     const selectedAnchor = interactor.currentAnchor.selected;
     const yValue = event._offset.offsetY - panel._offset;
     const baseAnchors = interactor.currentAnchor.anchors as LegacyAnchor[];
-    const xOffset = renderer.getPointIndex(event._offset.offsetX, model) - renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
+    const xOffset =
+      renderer.getPointIndex(event._offset.offsetX, model) -
+      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
     const referenceValue = LIB.getReferenceValue(object, model as any, seriesManager as any);
     const yOffset = Number.parseFloat(
       (
@@ -702,14 +785,17 @@ export class Shape {
           valueAxisMode: panel.valueAxisMode,
           fV: referenceValue,
         }) -
-        renderer.getPriceForYCoordinate(interactor.initialMouseEvent._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV: referenceValue,
-        })
-      ).toFixed(panel.precision ?? 0),
+        renderer.getPriceForYCoordinate(
+          interactor.initialMouseEvent._offset.offsetY - panel._offset,
+          {
+            panelHeight: panel._height,
+            minValue: panel.vMin,
+            maxValue: panel.vMax,
+            valueAxisMode: panel.valueAxisMode,
+            fV: referenceValue,
+          }
+        )
+      ).toFixed(panel.precision ?? 0)
     );
 
     if (Math.abs(xOffset) > 0 && Math.abs(yOffset) > 0) {
@@ -717,14 +803,25 @@ export class Shape {
     }
 
     if (selectedAnchor != null) {
-      const index = renderer.getStampIndex(baseAnchors[selectedAnchor].stamp, model, seriesManager) + xOffset;
+      const index =
+        renderer.getStampIndex(baseAnchors[selectedAnchor].stamp, model, seriesManager) + xOffset;
       const value = object.sticky
-        ? this.stickToCandleValue(yValue, this.getCurrentCandles(index, model, seriesManager), panel, renderer, referenceValue)
+        ? this.stickToCandleValue(
+            yValue,
+            this.getCurrentCandles(index, model, seriesManager),
+            panel,
+            renderer,
+            referenceValue
+          )
         : baseAnchors[selectedAnchor].value + yOffset;
 
       object.anchors[selectedAnchor]._index = index;
       object.anchors[selectedAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
+      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(
+        object.anchors[selectedAnchor]._index,
+        model,
+        seriesManager
+      );
       return;
     }
 
@@ -732,17 +829,35 @@ export class Shape {
       const anchorIndex = renderer.getStampIndex(baseAnchors[index].stamp, model, seriesManager);
       object.anchors[index]._index = anchorIndex + xOffset;
       object.anchors[index].value = baseAnchors[index].value + yOffset;
-      object.anchors[index].stamp = renderer.getIndexStamp(object.anchors[index]._index, model, seriesManager);
+      object.anchors[index].stamp = renderer.getIndexStamp(
+        object.anchors[index]._index,
+        model,
+        seriesManager
+      );
     }
   }
 
-  stageDown(event: AnyRecord, object: LegacyShapeObject, renderer: AnyRecord, interactor: AnyRecord, model: AnyRecord, panel: AnyRecord, seriesManager: AnyRecord): { selected: number; anchors: LegacyAnchor[] } {
+  stageDown(
+    event: AnyRecord,
+    object: LegacyShapeObject,
+    renderer: AnyRecord,
+    interactor: AnyRecord,
+    model: AnyRecord,
+    panel: AnyRecord,
+    seriesManager: AnyRecord
+  ): { selected: number; anchors: LegacyAnchor[] } {
     const referenceValue = LIB.getReferenceValue(object, model as any, seriesManager as any);
     const index = renderer.getPointIndex(event._offset.offsetX, model);
     const yValue = event._offset.offsetY - panel._offset;
     const currentAnchor = interactor.currentAnchor ? interactor.currentAnchor.selected : 0;
     const value = object.sticky
-      ? this.stickToCandleValue(yValue, this.getCurrentCandles(index, model, seriesManager), panel, renderer, referenceValue)
+      ? this.stickToCandleValue(
+          yValue,
+          this.getCurrentCandles(index, model, seriesManager),
+          panel,
+          renderer,
+          referenceValue
+        )
       : renderer.getPriceForYCoordinate(yValue, {
           panelHeight: panel._height,
           minValue: panel.vMin,
@@ -755,13 +870,21 @@ export class Shape {
       for (const key in object.anchors) {
         object.anchors[key]._index = index;
         object.anchors[key].value = LIB.round(value, renderer.getPrecision(model, panel));
-        object.anchors[key].stamp = renderer.getIndexStamp(object.anchors[key]._index, model, seriesManager);
+        object.anchors[key].stamp = renderer.getIndexStamp(
+          object.anchors[key]._index,
+          model,
+          seriesManager
+        );
       }
     } else {
       interactor.pushPanel(this, object, panel);
       object.anchors[currentAnchor]._index = index;
       object.anchors[currentAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[currentAnchor].stamp = renderer.getIndexStamp(object.anchors[currentAnchor]._index, model, seriesManager);
+      object.anchors[currentAnchor].stamp = renderer.getIndexStamp(
+        object.anchors[currentAnchor]._index,
+        model,
+        seriesManager
+      );
     }
 
     return {
@@ -770,7 +893,15 @@ export class Shape {
     };
   }
 
-  stageMove(event: AnyRecord, object: LegacyShapeObject, renderer: AnyRecord, interactor: AnyRecord, model: AnyRecord, panel: AnyRecord, seriesManager: AnyRecord): void {
+  stageMove(
+    event: AnyRecord,
+    object: LegacyShapeObject,
+    renderer: AnyRecord,
+    interactor: AnyRecord,
+    model: AnyRecord,
+    panel: AnyRecord,
+    seriesManager: AnyRecord
+  ): void {
     if (!interactor.currentAnchor) return;
 
     const selectedAnchor = interactor.currentAnchor.selected;
@@ -778,7 +909,13 @@ export class Shape {
     const index = renderer.getPointIndex(event._offset.offsetX, model);
     const yValue = event._offset.offsetY - panel._offset;
     const value = object.sticky
-      ? this.stickToCandleValue(yValue, this.getCurrentCandles(index, model, seriesManager), panel, renderer, referenceValue)
+      ? this.stickToCandleValue(
+          yValue,
+          this.getCurrentCandles(index, model, seriesManager),
+          panel,
+          renderer,
+          referenceValue
+        )
       : renderer.getPriceForYCoordinate(yValue, {
           panelHeight: panel._height,
           minValue: panel.vMin,
@@ -790,22 +927,45 @@ export class Shape {
     if (selectedAnchor != null && selectedAnchor < object.anchors.length) {
       object.anchors[selectedAnchor]._index = index;
       object.anchors[selectedAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(object.anchors[selectedAnchor]._index, model, seriesManager);
+      object.anchors[selectedAnchor].stamp = renderer.getIndexStamp(
+        object.anchors[selectedAnchor]._index,
+        model,
+        seriesManager
+      );
     }
   }
 
-  stageDrag(event: AnyRecord, object: LegacyShapeObject, renderer: AnyRecord, interactor: AnyRecord, model: AnyRecord, panel: AnyRecord, seriesManager: AnyRecord): void {
+  stageDrag(
+    event: AnyRecord,
+    object: LegacyShapeObject,
+    renderer: AnyRecord,
+    interactor: AnyRecord,
+    model: AnyRecord,
+    panel: AnyRecord,
+    seriesManager: AnyRecord
+  ): void {
     const xPointsOffset = event._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     const yPointsOffset = event._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
 
-    if (Math.abs(xPointsOffset) > this.hitTolerance || Math.abs(yPointsOffset) > this.hitTolerance) {
+    if (
+      Math.abs(xPointsOffset) > this.hitTolerance ||
+      Math.abs(yPointsOffset) > this.hitTolerance
+    ) {
       interactor.currentAnchor.drag = true;
     }
 
     this.stageMove(event, object, renderer, interactor, model, panel, seriesManager);
   }
 
-  stageOut(event: AnyRecord, object: LegacyShapeObject, renderer: AnyRecord, interactor: AnyRecord, model: AnyRecord, panel: AnyRecord, seriesManager: AnyRecord): boolean | void {
+  stageOut(
+    event: AnyRecord,
+    object: LegacyShapeObject,
+    renderer: AnyRecord,
+    interactor: AnyRecord,
+    model: AnyRecord,
+    panel: AnyRecord,
+    seriesManager: AnyRecord
+  ): boolean | void {
     this.stageUp(event, object, renderer, interactor, model, panel, seriesManager);
     return undefined;
   }
@@ -817,7 +977,7 @@ export class Shape {
     interactor: AnyRecord,
     _model: AnyRecord,
     panel: AnyRecord,
-    selectedLimit: number,
+    selectedLimit: number
   ): boolean | void {
     interactor.popPanel(this, object, panel);
     if (interactor.currentAnchor && interactor.currentAnchor.drag) {
@@ -832,8 +992,26 @@ export class Shape {
     return undefined;
   }
 
-  stageUp(_event: AnyRecord, object: LegacyShapeObject, _renderer: AnyRecord, interactor: AnyRecord, _model: AnyRecord, panel: AnyRecord, _seriesManager?: AnyRecord): boolean | void {
-    const selectedLimit = interactor.currentAnchor ? interactor.currentAnchor.anchors.length : Number.POSITIVE_INFINITY;
-    return this.stageUpWithSelectionLimit(_event, object, _renderer, interactor, _model, panel, selectedLimit);
+  stageUp(
+    _event: AnyRecord,
+    object: LegacyShapeObject,
+    _renderer: AnyRecord,
+    interactor: AnyRecord,
+    _model: AnyRecord,
+    panel: AnyRecord,
+    _seriesManager?: AnyRecord
+  ): boolean | void {
+    const selectedLimit = interactor.currentAnchor
+      ? interactor.currentAnchor.anchors.length
+      : Number.POSITIVE_INFINITY;
+    return this.stageUpWithSelectionLimit(
+      _event,
+      object,
+      _renderer,
+      interactor,
+      _model,
+      panel,
+      selectedLimit
+    );
   }
 }

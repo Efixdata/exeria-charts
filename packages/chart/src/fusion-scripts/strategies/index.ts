@@ -12,17 +12,17 @@ import createDIFFERStrategyScript from "./DIFFER";
 import createCANDLESTICKPATTERNSStrategyScript from "./CANDLESTICKPATTERNS";
 
 export function createFusionStrategyScripts(FUSION: CoreFusionStatic) {
-    return {
-        'EXCEED': createEXCEEDStrategyScript(FUSION),
-        'CROSS': createCROSSStrategyScript(FUSION),
-        'REBOUND': createREBOUNDStrategyScript(FUSION),
-        'GREATERLESS': createGREATERLESSStrategyScript(FUSION),
-        'SINGLE': createSINGLEStrategyScript(FUSION),
-        'JOIN': createJOINStrategyScript(FUSION),
-        'DOUBLECHECK': createDOUBLECHECKStrategyScript(FUSION),
-        'MIX': createMIXStrategyScript(FUSION),
-        'POSITION': createPOSITIONStrategyScript(FUSION),
-        'DIFFER': createDIFFERStrategyScript(FUSION),
-        'CANDLESTICKPATTERNS': createCANDLESTICKPATTERNSStrategyScript(FUSION),
-    };
+  return {
+    EXCEED: createEXCEEDStrategyScript(FUSION),
+    CROSS: createCROSSStrategyScript(FUSION),
+    REBOUND: createREBOUNDStrategyScript(FUSION),
+    GREATERLESS: createGREATERLESSStrategyScript(FUSION),
+    SINGLE: createSINGLEStrategyScript(FUSION),
+    JOIN: createJOINStrategyScript(FUSION),
+    DOUBLECHECK: createDOUBLECHECKStrategyScript(FUSION),
+    MIX: createMIXStrategyScript(FUSION),
+    POSITION: createPOSITIONStrategyScript(FUSION),
+    DIFFER: createDIFFERStrategyScript(FUSION),
+    CANDLESTICKPATTERNS: createCANDLESTICKPATTERNSStrategyScript(FUSION),
+  };
 }

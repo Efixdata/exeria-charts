@@ -47,7 +47,10 @@ export default class ToolDrawer implements ToolDrawerApi {
   }
 
   drawTool(toolConfig: DrawToolConfig): string | number | void {
-    const config = { ...this.createDefaultToolConfig(toolConfig), ...toolConfig } as ToolObjectConfig;
+    const config = {
+      ...this.createDefaultToolConfig(toolConfig),
+      ...toolConfig,
+    } as ToolObjectConfig;
 
     this.chart.model.panels[0].objects.push(config);
     return config.id;

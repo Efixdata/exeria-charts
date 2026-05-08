@@ -15,11 +15,7 @@ const model2 = {
         currency: "currency not set",
         precision: 6,
         chart: "ohlc",
-        availableIntervals: [
-          {symbol: "5m" },
-          { symbol: "1h" },
-          { symbol: "1D" },
-        ],
+        availableIntervals: [{ symbol: "5m" }, { symbol: "1h" }, { symbol: "1D" }],
         defaultInterval: {
           symbol: "1h",
         },
@@ -82,14 +78,14 @@ const model2 = {
           _hitAnchor: null,
           _hitArrow: null,
           selected: false,
-        }
+        },
       ],
       _visible: true,
       _height: 432,
       _index: 0,
       _width: 800,
       _offset: 0,
-    }
+    },
   ],
   id: "1498208873150@989ae815-e237-249e-23d7-47d488777f46", // data model
 } as unknown as CoreChartModel;

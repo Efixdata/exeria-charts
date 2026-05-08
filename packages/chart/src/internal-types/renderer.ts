@@ -138,5 +138,5 @@ export interface CoreRenderer {
 export type CoreRendererConstructor = new (
   settings: RendererSettings,
   context: CanvasRenderingContext2D | null,
-  controller: CoreChartController,
+  controller: CoreChartController
 ) => CoreRenderer;

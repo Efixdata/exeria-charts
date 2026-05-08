@@ -4,7 +4,7 @@ Example:
 import Chart from "path-to-chart.js";
 
 const chart = new Chart({
-  container: DOMElement
+  container: DOMElement,
 });
 
 // Should be called when changing an instrument on the chart and before chart.init
@@ -32,6 +32,7 @@ chart.init();
 ```
 
 Appending candles to the main series
+
 ```js
 chart.appendMainSeriesData([
   {
@@ -50,15 +51,16 @@ chart.appendMainSeriesData([
     c: 1.32624,
     v: 0,
   },
-])
+]);
 ```
 
 Appending a tick to main series. The tick will be added to the current or next candle based on the stamp value.
+
 ```js
 chart.appendTick({
-    "stamp": 1375056000000,
-    "price": 1.32849,
-    "volume": 1000,
-    "dailyVolume": 101938 // not needed - will set the volume value if the interval is set to 1 day
+  stamp: 1375056000000,
+  price: 1.32849,
+  volume: 1000,
+  dailyVolume: 101938, // not needed - will set the volume value if the interval is set to 1 day
 });
 ```

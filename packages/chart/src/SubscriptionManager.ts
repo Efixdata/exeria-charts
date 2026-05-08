@@ -18,10 +18,16 @@ export default class SubscriptionManager {
 
   subscribe<TTopic extends KnownTopic>(
     topic: TTopic,
-    callback: ChartEventCallback<ChartEventPayloads[TTopic]>,
+    callback: ChartEventCallback<ChartEventPayloads[TTopic]>
   ): ChartSubscription | void;
-  subscribe(topic: ChartEventTopic, callback: ChartEventCallback<unknown>): ChartSubscription | void;
-  subscribe(topic: ChartEventTopic, callback: ChartEventCallback<unknown>): ChartSubscription | void {
+  subscribe(
+    topic: ChartEventTopic,
+    callback: ChartEventCallback<unknown>
+  ): ChartSubscription | void;
+  subscribe(
+    topic: ChartEventTopic,
+    callback: ChartEventCallback<unknown>
+  ): ChartSubscription | void {
     if (topic === undefined) return;
     if (!this.callbacks.get(topic)) this.callbacks.set(topic, []);
 

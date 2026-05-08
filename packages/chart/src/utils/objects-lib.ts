@@ -90,7 +90,11 @@ export function calcLine(p1: PointLike, p2: PointLike): LinearEquation {
   return { a, b };
 }
 
-export function calcPointOnPerpendicularLine(baseLine: LinearEquation, point: PointLike, distance: number): PointLike {
+export function calcPointOnPerpendicularLine(
+  baseLine: LinearEquation,
+  point: PointLike,
+  distance: number
+): PointLike {
   if (baseLine.a === 0) {
     return { x: point.x, y: point.y + distance };
   }
@@ -102,11 +106,15 @@ export function calcPointOnPerpendicularLine(baseLine: LinearEquation, point: Po
   const c = Math.sqrt(1 + (1 / baseLine.a) * (1 / baseLine.a));
   return {
     x: point.x + distance / c,
-    y: point.y - (distance / baseLine.a) / c,
+    y: point.y - distance / baseLine.a / c,
   };
 }
 
-export function movePointByDistance(point: PointLike, distance: number, byLine: LinearEquation): PointLike {
+export function movePointByDistance(
+  point: PointLike,
+  distance: number,
+  byLine: LinearEquation
+): PointLike {
   if (byLine.a === 0) {
     return { x: point.x + distance, y: point.y };
   }
@@ -137,7 +145,12 @@ export function between(min: number, point: number, max: number, tolerance = 0):
   return point === min || point === max;
 }
 
-export function findAnchorPointForXY(points: AnchorPoint[], x: number, y: number, tolerance: number): AnchorPoint | null {
+export function findAnchorPointForXY(
+  points: AnchorPoint[],
+  x: number,
+  y: number,
+  tolerance: number
+): AnchorPoint | null {
   let result: AnchorPoint | null = null;
   points.forEach((point) => {
     if (isPointInCircle({ x, y, r: tolerance }, point.x, point.y)) {
@@ -152,7 +165,7 @@ export function findAnchorPointArrowForXY(
   x: number,
   y: number,
   distance: number,
-  tolerance: number,
+  tolerance: number
 ): AnchorPoint | null {
   let result: AnchorPoint | null = null;
   points.forEach((point) => {
@@ -169,9 +182,12 @@ export function drawAnchor(
   point: PointLike,
   radius: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
-  if (!between(0, point.x, panel._width) || !between(panel._offset, point.y, panel._offset + panel._height)) {
+  if (
+    !between(0, point.x, panel._width) ||
+    !between(panel._offset, point.y, panel._offset + panel._height)
+  ) {
     return;
   }
 
@@ -190,10 +206,13 @@ export function drawAnchors(
   points: PointLike[],
   radius: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
   for (const point of points) {
-    if (!between(0, point.x, panel._width) || !between(panel._offset, point.y, panel._offset + panel._height)) {
+    if (
+      !between(0, point.x, panel._width) ||
+      !between(panel._offset, point.y, panel._offset + panel._height)
+    ) {
       continue;
     }
 
@@ -214,7 +233,7 @@ export function drawAnchorArrow(
   size: number,
   distance: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
   let direction = point.dir === "left" ? -1 : 1;
   if (point.expanded === true) {
@@ -242,10 +261,13 @@ export function drawAnchorsArrow(
   size: number,
   distance: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
   for (const point of points) {
-    if (!between(0, point.x, panel._width) || !between(panel._offset, point.y, panel._offset + panel._height)) {
+    if (
+      !between(0, point.x, panel._width) ||
+      !between(panel._offset, point.y, panel._offset + panel._height)
+    ) {
       continue;
     }
 
@@ -261,7 +283,7 @@ export function drawIndicatorMarker(
   point: PointLike,
   radius: number,
   color: string,
-  alpha: number,
+  alpha: number
 ): void {
   const x = point.x + radius;
   const y = point.y - radius - 13;
@@ -295,14 +317,7 @@ export function drawIndicatorMarker(
 }
 
 export function renderPriceText(options: PriceTextOptions): void {
-  const {
-    text = "",
-    ctx,
-    x = 0,
-    y = 0,
-    mode,
-    zerosToReduce = 0,
-  } = options;
+  const { text = "", ctx, x = 0, y = 0, mode, zerosToReduce = 0 } = options;
   let { priceFont, subscriptFont } = options;
 
   if (!ctx) {
@@ -341,12 +356,7 @@ export function renderPriceText(options: PriceTextOptions): void {
 }
 
 export function measurePriceTextWidth(options: PriceMeasureOptions): number {
-  const {
-    text = "",
-    ctx,
-    mode,
-    zerosToReduce = 0,
-  } = options;
+  const { text = "", ctx, mode, zerosToReduce = 0 } = options;
   let { priceFont, subscriptFont } = options;
 
   if (!ctx) {
