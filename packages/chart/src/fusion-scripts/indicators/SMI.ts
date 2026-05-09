@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createSMIIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "smiTitle",
     description: "smiDescription",
     type: "indicators",
@@ -107,21 +105,7 @@ export default function createSMIIndicatorScript(FUSION: CoreFusionStatic) {
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var SMIController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries([
@@ -187,8 +171,6 @@ export default function createSMIIndicatorScript(FUSION: CoreFusionStatic) {
             FUSION.lib.getEMA(this.SMI, index, this.SIGNAL_PERIOD, this.SMISignal)
           );
         };
-      };
-      return new SMIController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

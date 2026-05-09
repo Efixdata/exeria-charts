@@ -1,11 +1,15 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesLinePlotter,
+  createSeriesOutput,
+  defineScript,
+} from "../helpers/scriptDefinition";
+import { updateStochasticOscillator } from "../helpers/indicatorMath";
 
 export default function createDINAPOLIPREFERREDSTOCHASTICIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "diNapoliPreferredStochasticTitle",
     description: "diNapoliPreferredStochasticDescription",
     subscriptionPack: "diNapoliTools",
@@ -43,116 +47,74 @@ export default function createDINAPOLIPREFERREDSTOCHASTICIndicatorScript(FUSION:
     },
 
     outputs: {
-      SO: {
-        type: "series",
-        series: {
-          seriesId: null,
-          title: "diNapoliPreferredStochasticTitle",
-          labels: ["SOLineK", "SOLineD", "SOBaseHI", "SOBaseLO"],
-          fields: ["SOLineK", "SOLineD", "SOBaseHI", "SOBaseLO"],
-          data: null,
-        },
-      },
+      SO: createSeriesOutput(
+        "diNapoliPreferredStochasticTitle",
+        ["SOLineK", "SOLineD", "SOBaseHI", "SOBaseLO"],
+        ["SOLineK", "SOLineD", "SOBaseHI", "SOBaseLO"]
+      ),
     },
 
     plotters: [
-      {
-        type: "SeriesObject",
+      createSeriesLinePlotter({
         dataLink: "SO",
-        renderAs: "Line",
         dataField: "SOLineK",
         color: "#03a9f4",
         width: 1.5,
-        dash: [],
         priceTag: true,
         priceLine: false,
-      },
-      {
-        type: "SeriesObject",
+      }),
+      createSeriesLinePlotter({
         dataLink: "SO",
-        renderAs: "Line",
         dataField: "SOLineD",
         color: "#f403ea",
         width: 1.5,
-        dash: [],
         priceTag: true,
         priceLine: false,
-      },
-      {
-        type: "SeriesObject",
+      }),
+      createSeriesLinePlotter({
         dataLink: "SO",
-        renderAs: "Line",
         dataField: "SOBaseHI",
         color: "#607d8b",
         width: 1,
-        dash: [],
         priceTag: false,
         priceLine: false,
-      },
-      {
-        type: "SeriesObject",
+      }),
+      createSeriesLinePlotter({
         dataLink: "SO",
-        renderAs: "Line",
         dataField: "SOBaseLO",
         color: "#607d8b",
         width: 1,
-        dash: [],
         priceTag: false,
         priceLine: false,
-      },
+      }),
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var SOController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
-
-        this.init = function (this: any) {
-          this.helper = this.context.createSeries(["KSERIES"]);
-          this.KSERIES = this.context.getRawSeriesWrapper(this.helper, "KSERIES");
-        };
-
-        this.calculate = function (this: any, index: any) {
-          if (
-            this.CLOSE.getValue(index) === null ||
-            this.HIGH.getValue(index) === null ||
-            this.LOW.getValue(index) === null
-          )
-            return;
-          this.SOBaseHI.setValue(index, this.HI_BASELINE);
-          this.SOBaseLO.setValue(index, this.LO_BASELINE);
-
-          var lo = FUSION.lib.getMin(this.LOW, index, this.PERIOD);
-          var hi = FUSION.lib.getMax(this.HIGH, index, this.PERIOD);
-
-          var diff = hi - lo;
-
-          this.KSERIES.setValue(index, 0);
-          if (diff > 0)
-            this.KSERIES.setValue(index, (100 * (this.CLOSE.getValue(index) - lo)) / diff);
-
-          this.SOLineK.setValue(
-            index,
-            FUSION.lib.getMMA(this.KSERIES, index, this.K_SLOW_PERIOD, this.SOLineK)
-          );
-          this.SOLineD.setValue(
-            index,
-            FUSION.lib.getMMA(this.SOLineK, index, this.D_SLOW_PERIOD, this.SOLineD)
-          );
-        };
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.init = function (this: any) {
+        this.helper = this.context.createSeries(["KSERIES"]);
+        this.KSERIES = this.context.getRawSeriesWrapper(this.helper, "KSERIES");
       };
-      return new SOController(context, inputs, outputs);
-    },
-  };
+
+      this.calculate = function (this: any, index: any) {
+        updateStochasticOscillator({
+          FUSION,
+          high: this.HIGH,
+          low: this.LOW,
+          close: this.CLOSE,
+          index,
+          period: this.PERIOD,
+          kPeriod: this.K_SLOW_PERIOD,
+          dPeriod: this.D_SLOW_PERIOD,
+          kBaseSeries: this.KSERIES,
+          kSeries: this.SOLineK,
+          dSeries: this.SOLineD,
+          highBaselineSeries: this.SOBaseHI,
+          lowBaselineSeries: this.SOBaseLO,
+          highBaselineValue: this.HI_BASELINE,
+          lowBaselineValue: this.LO_BASELINE,
+          smoothing: "MMA",
+        });
+      };
+    }),
+  });
 }

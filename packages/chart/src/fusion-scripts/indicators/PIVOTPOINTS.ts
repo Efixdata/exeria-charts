@@ -1,13 +1,11 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 type FusionRecord = Record<string, any>;
 
 export default function createPIVOTPOINTSIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "pivotPointTitle",
     description: "pivotPointDescription",
     type: "indicators",
@@ -109,21 +107,7 @@ export default function createPIVOTPOINTSIndicatorScript(FUSION: CoreFusionStati
         dash: [1, 8],
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var Controller: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           var getInterval = function (interval: FusionRecord, availableIntervals: FusionRecord[]) {
@@ -222,9 +206,6 @@ export default function createPIVOTPOINTSIndicatorScript(FUSION: CoreFusionStati
           this.Resistance2.setValue(index, pivotPoint + candleHeight);
           this.Resistance3.setValue(index, high + 2 * (pivotPoint - low));
         };
-      };
-
-      return new Controller(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

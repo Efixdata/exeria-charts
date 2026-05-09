@@ -1,11 +1,15 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesLinePlotter,
+  createSeriesOutput,
+  defineScript,
+} from "../helpers/scriptDefinition";
+import { updateMacdSeries } from "../helpers/indicatorMath";
 
 export default function createDINAPOLIMACDIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "diNapoliMacdTitle",
     description: "diNapoliMacdDescription",
     subscriptionPack: "diNapoliTools",
@@ -35,93 +39,56 @@ export default function createDINAPOLIMACDIndicatorScript(FUSION: CoreFusionStat
     },
 
     outputs: {
-      MACD: {
-        type: "series",
-        series: {
-          seriesId: null,
-          title: "diNapoliMacdTitle",
-          labels: ["line", "signal", "histogram"],
-          fields: ["MACDLine", "MACDSignal"],
-          data: null,
-        },
-      },
+      MACD: createSeriesOutput(
+        "diNapoliMacdTitle",
+        ["line", "signal", "histogram"],
+        ["MACDLine", "MACDSignal"]
+      ),
     },
 
     plotters: [
-      {
-        type: "SeriesObject",
+      createSeriesLinePlotter({
         dataLink: "MACD",
-        renderAs: "Line",
         dataField: "MACDSignal",
         color: "#f403ea",
         width: 1.5,
-        dash: [],
         priceTag: true,
         priceLine: false,
-      },
-      {
-        type: "SeriesObject",
+      }),
+      createSeriesLinePlotter({
         dataLink: "MACD",
-        renderAs: "Line",
         dataField: "MACDLine",
         color: "#03a9f4",
         width: 1.5,
-        dash: [],
         priceTag: true,
         priceLine: false,
-      },
+      }),
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var MACDController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
-
-        this.init = function (this: any) {
-          this.helper = this.context.createSeries(["EMAF", "EMAS", "EMAG"]);
-          this.EMAF = this.context.getRawSeriesWrapper(this.helper, "EMAF");
-          this.EMAS = this.context.getRawSeriesWrapper(this.helper, "EMAS");
-          this.EMAG = this.context.getRawSeriesWrapper(this.helper, "EMAG");
-        };
-
-        this.calculate = function (this: any, index: any) {
-          this.EMAF.setValue(
-            index,
-            FUSION.lib.getMMA(this.CLOSE, index, 1 / this.SMOOTHINGFACTOR1, this.EMAF)
-          );
-          this.EMAS.setValue(
-            index,
-            FUSION.lib.getMMA(this.CLOSE, index, 1 / this.SMOOTHINGFACTOR2, this.EMAS)
-          );
-
-          var fema = this.EMAF.getValue(index);
-          var sema = this.EMAS.getValue(index);
-
-          if (fema === null || sema === null) return;
-
-          this.MACDLine.setValue(index, fema - sema);
-
-          this.EMAG.setValue(
-            index,
-            FUSION.lib.getMMA(this.MACDLine, index, 1 / this.SIGNALLINESMOOTHINGFACTOR, this.EMAG)
-          );
-          var sgema = this.EMAG.getValue(index);
-          this.MACDSignal.setValue(index, sgema);
-        };
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.init = function (this: any) {
+        this.helper = this.context.createSeries(["EMAF", "EMAS", "EMAG"]);
+        this.EMAF = this.context.getRawSeriesWrapper(this.helper, "EMAF");
+        this.EMAS = this.context.getRawSeriesWrapper(this.helper, "EMAS");
+        this.EMAG = this.context.getRawSeriesWrapper(this.helper, "EMAG");
       };
 
-      return new MACDController(context, inputs, outputs);
-    },
-  };
+      this.calculate = function (this: any, index: any) {
+        updateMacdSeries({
+          FUSION,
+          source: this.CLOSE,
+          index,
+          fastPeriod: 1 / this.SMOOTHINGFACTOR1,
+          slowPeriod: 1 / this.SMOOTHINGFACTOR2,
+          signalPeriod: 1 / this.SIGNALLINESMOOTHINGFACTOR,
+          fastSeries: this.EMAF,
+          slowSeries: this.EMAS,
+          signalAverageSeries: this.EMAG,
+          lineSeries: this.MACDLine,
+          signalSeries: this.MACDSignal,
+          smoothing: "MMA",
+        });
+      };
+    }),
+  });
 }

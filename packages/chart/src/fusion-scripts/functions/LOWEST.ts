@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createLOWESTFunctionScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "lowestTitle",
     description: "lowestDescription",
     type: "functions",
@@ -44,30 +42,12 @@ export default function createLOWESTFunctionScript(FUSION: CoreFusionStatic) {
         dash: [],
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var LOWESTController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.init = function (this: any) {};
 
-        this.init = function (this: any) {};
-
-        this.calculate = function (this: any, index: any) {
-          this.LOWEST.setValue(index, FUSION.lib.getMin(this.LOW, index, this.PERIODS));
-        };
+      this.calculate = function (this: any, index: any) {
+        this.LOWEST.setValue(index, FUSION.lib.getMin(this.LOW, index, this.PERIODS));
       };
-
-      return new LOWESTController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createPIVOTPOINTSHLIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "pivotPointHLTitle",
     description: "pivotPointHLDescription",
     type: "indicators",
@@ -41,21 +39,7 @@ export default function createPIVOTPOINTSHLIndicatorScript(FUSION: CoreFusionSta
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var Controller: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {};
         this.calculate = function (this: any, index: any) {
@@ -67,9 +51,6 @@ export default function createPIVOTPOINTSHLIndicatorScript(FUSION: CoreFusionSta
             this.PivotPointsHL.setValue(index, FUSION.BUY);
           }
         };
-      };
-
-      return new Controller(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

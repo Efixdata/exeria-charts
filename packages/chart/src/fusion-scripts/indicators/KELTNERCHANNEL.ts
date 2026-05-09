@@ -1,11 +1,15 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesLinePlotter,
+  createSeriesOutput,
+  defineScript,
+} from "../helpers/scriptDefinition";
+import { updateAtrSeries } from "../helpers/indicatorMath";
 
 export default function createKELTNERCHANNELIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "keltnerChannelIndicatorTitle",
     description: "keltnerChannelIndicatorDescription",
     type: "indicators",
@@ -23,16 +27,11 @@ export default function createKELTNERCHANNELIndicatorScript(FUSION: CoreFusionSt
       },
     },
     outputs: {
-      KELTNERCHANNEL: {
-        type: "series",
-        series: {
-          seriesId: null,
-          title: "keltnerChannelIndicatorTitle",
-          labels: ["upper", "lower", "middle"],
-          fields: ["Upper", "Lower", "Middle"],
-          data: null,
-        },
-      },
+      KELTNERCHANNEL: createSeriesOutput(
+        "keltnerChannelIndicatorTitle",
+        ["upper", "lower", "middle"],
+        ["Upper", "Lower", "Middle"]
+      ),
     },
     plotters: [
       {
@@ -45,61 +44,45 @@ export default function createKELTNERCHANNELIndicatorScript(FUSION: CoreFusionSt
         width: 1,
         dash: [0, 0],
       },
-      {
-        type: "SeriesObject",
+      createSeriesLinePlotter({
         dataLink: "KELTNERCHANNEL",
-        renderAs: "Line",
         dataField: "Middle",
         color: "#425166",
         width: 1,
         dash: [0, 0],
         priceTag: false,
         priceLine: false,
-      },
+      }),
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var Controller: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
-
-        this.init = function (this: any) {
-          this.helper = this.context.createSeries(["TRUERANGE", "ATR", "EMA"]);
-          this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, "TRUERANGE");
-          this.ATR = this.context.getRawSeriesWrapper(this.helper, "ATR");
-          this.EMA = this.context.getRawSeriesWrapper(this.helper, "EMA");
-        };
-
-        this.calculate = function (this: any, index: any) {
-          this.TRUERANGE.setValue(
-            index,
-            FUSION.lib.getTrueRange(this.HIGH, this.LOW, this.CLOSE, index)
-          );
-
-          var ema = FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA);
-          var atr = FUSION.lib.getMMA(this.TRUERANGE, index, this.ATRPERIODS, this.ATR);
-          this.ATR.setValue(index, atr);
-          this.EMA.setValue(index, ema);
-
-          if (index < this.PERIODS || index < this.ATRPERIODS) return;
-
-          this.Upper.setValue(index, ema + 2 * atr);
-          this.Lower.setValue(index, ema - 2 * atr);
-          this.Middle.setValue(index, ema);
-        };
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.init = function (this: any) {
+        this.helper = this.context.createSeries(["TRUERANGE", "ATR", "EMA"]);
+        this.TRUERANGE = this.context.getRawSeriesWrapper(this.helper, "TRUERANGE");
+        this.ATR = this.context.getRawSeriesWrapper(this.helper, "ATR");
+        this.EMA = this.context.getRawSeriesWrapper(this.helper, "EMA");
       };
 
-      return new Controller(context, inputs, outputs);
-    },
-  };
+      this.calculate = function (this: any, index: any) {
+        var ema = FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA);
+        var atr = updateAtrSeries({
+          FUSION,
+          high: this.HIGH,
+          low: this.LOW,
+          close: this.CLOSE,
+          index,
+          period: this.ATRPERIODS,
+          trueRangeSeries: this.TRUERANGE,
+          atrSeries: this.ATR,
+        }).atr;
+
+        this.EMA.setValue(index, ema);
+
+        if (index < this.PERIODS || index < this.ATRPERIODS) return;
+
+        this.Upper.setValue(index, ema + 2 * atr);
+        this.Lower.setValue(index, ema - 2 * atr);
+        this.Middle.setValue(index, ema);
+      };
+    }),
+  });
 }

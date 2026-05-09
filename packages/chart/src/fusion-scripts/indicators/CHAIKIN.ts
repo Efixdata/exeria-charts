@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createCHAIKINIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "chaikinTitle",
     description: "chaikinDescription",
     type: "indicators",
@@ -43,21 +41,7 @@ export default function createCHAIKINIndicatorScript(FUSION: CoreFusionStatic) {
         priceLine: false,
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var CHAIKINController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.emaf = function (
           this: any,
@@ -112,8 +96,6 @@ export default function createCHAIKINIndicatorScript(FUSION: CoreFusionStatic) {
             this.CHAIKIN.setValue(index, vc);
           }
         };
-      };
-      return new CHAIKINController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

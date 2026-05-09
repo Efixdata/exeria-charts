@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createRSIIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "rsiTitle",
     description: "rsiDescription",
     type: "indicators",
@@ -76,21 +74,7 @@ export default function createRSIIndicatorScript(FUSION: CoreFusionStatic) {
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var RSIController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries(["AU", "AD", "MAU", "TRUERANGE"]);
@@ -134,8 +118,6 @@ export default function createRSIIndicatorScript(FUSION: CoreFusionStatic) {
             else this.RSI.setValue(index, (100 * mmaAU) / (mmaAU + mmaAD));
           }
         };
-      };
-      return new RSIController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

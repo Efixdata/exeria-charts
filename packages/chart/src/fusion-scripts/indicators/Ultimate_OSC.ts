@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createUltimateOSCIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "ultimateOscillatorTitle",
     description: "ultimateOscillatorDescription",
     type: "indicators",
@@ -61,21 +59,7 @@ export default function createUltimateOSCIndicatorScript(FUSION: CoreFusionStati
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var UOController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries(["TRUERANGE", "BPSERIES"]);
@@ -103,8 +87,6 @@ export default function createUltimateOSCIndicatorScript(FUSION: CoreFusionStati
             this.UltimateOsc.setValue(index, v);
           }
         };
-      };
-      return new UOController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

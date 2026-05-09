@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createADXIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "adxTitle",
     description: "adxDescription",
     type: "indicators",
@@ -44,17 +42,7 @@ export default function createADXIndicatorScript(FUSION: CoreFusionStatic) {
         priceLine: false,
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var ADXController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
+    controller: createController(function (this: FusionScriptControllerRuntime) {
         this.getWilders = function (this: any, series: any, idx: any, prd: any, prev: any) {
           if (idx < prd) {
             return null;
@@ -81,10 +69,6 @@ export default function createADXIndicatorScript(FUSION: CoreFusionStatic) {
           }
         };
 
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries([
@@ -167,9 +151,6 @@ export default function createADXIndicatorScript(FUSION: CoreFusionStatic) {
             this.ADX.setValue(INDEX, this.ADX.getValue(INDEX - 1));
           }
         };
-      };
-
-      return new ADXController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

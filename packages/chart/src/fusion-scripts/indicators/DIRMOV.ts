@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createDIRMOVIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "dirmovTitle",
     description: "dirmovDescription",
     type: "indicators",
@@ -54,21 +52,7 @@ export default function createDIRMOVIndicatorScript(FUSION: CoreFusionStatic) {
         priceLine: false,
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var DIRMOVController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries([
@@ -142,8 +126,6 @@ export default function createDIRMOVIndicatorScript(FUSION: CoreFusionStatic) {
             (100 * this.PMAU.getValue(index)) / this.PMAD.getValue(index)
           );
         };
-      };
-      return new DIRMOVController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

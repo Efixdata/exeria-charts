@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createENVELOPEIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "envelopeTitle",
     description: "envelopeDescription",
     type: "indicators",
@@ -65,21 +63,7 @@ export default function createENVELOPEIndicatorScript(FUSION: CoreFusionStatic) 
         priceLine: false,
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var ENVELOPEController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {};
 
@@ -95,8 +79,6 @@ export default function createENVELOPEIndicatorScript(FUSION: CoreFusionStatic) 
             this.ENVELOPE_DN.setValue(index, avg - this.VSHIFT);
           }
         };
-      };
-      return new ENVELOPEController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

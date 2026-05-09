@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createCONNORSRSIIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "connorsRsiTitle",
     description: "connorsRsiDescription",
     type: "indicators",
@@ -95,21 +93,7 @@ export default function createCONNORSRSIIndicatorScript(FUSION: CoreFusionStatic
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var Controller: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries([
@@ -210,8 +194,6 @@ export default function createCONNORSRSIIndicatorScript(FUSION: CoreFusionStatic
           var crsi = (this.RSI.getValue(index) + this.UPDOWNLENGTHRSI.getValue(index) + roc) / 3;
           this.CONNORSRSI.setValue(index, crsi);
         };
-      };
-      return new Controller(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

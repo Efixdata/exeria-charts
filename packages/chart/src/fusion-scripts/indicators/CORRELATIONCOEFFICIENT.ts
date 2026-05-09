@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createCORRELATIONCOEFFICIENTIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "correlationCoefficientTitle",
     description: "correlationCoefficientDescription",
     type: "indicators",
@@ -43,21 +41,7 @@ export default function createCORRELATIONCOEFFICIENTIndicatorScript(FUSION: Core
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var Controller: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries([
@@ -128,9 +112,6 @@ export default function createCORRELATIONCOEFFICIENTIndicatorScript(FUSION: Core
 
           this.CORRELATIONCOEFFICIENT.setValue(index, correlationCoefficient);
         };
-      };
-
-      return new Controller(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

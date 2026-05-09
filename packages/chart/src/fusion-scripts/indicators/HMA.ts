@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createHMAIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "hmaTitle",
     description: "hmaDescription",
     type: "indicators",
@@ -40,21 +38,7 @@ export default function createHMAIndicatorScript(FUSION: CoreFusionStatic) {
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var HMAController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {
           this.helper = this.context.createSeries(["DIFFWMA"]);
@@ -71,9 +55,6 @@ export default function createHMAIndicatorScript(FUSION: CoreFusionStatic) {
           this.DIFFWMA.setValue(index, wman2 - wman);
           this.HMAValue.setValue(index, FUSION.lib.getWMA(this.DIFFWMA, index, this.sqrtPeriod));
         };
-      };
-
-      return new HMAController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

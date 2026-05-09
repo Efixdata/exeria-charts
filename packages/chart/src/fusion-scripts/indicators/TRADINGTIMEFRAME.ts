@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createTRADINGTIMEFRAMEIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "ttfTitle",
     description: "ttfDescription",
     type: "indicators",
@@ -197,21 +195,7 @@ export default function createTRADINGTIMEFRAMEIndicatorScript(FUSION: CoreFusion
         dash: [],
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var TradingTimeFrameController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.hourToMinutes = function (this: any, h: any) {
           var hour = h.split(":");
@@ -259,8 +243,6 @@ export default function createTRADINGTIMEFRAMEIndicatorScript(FUSION: CoreFusion
             }
           }
         };
-      };
-      return new TradingTimeFrameController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

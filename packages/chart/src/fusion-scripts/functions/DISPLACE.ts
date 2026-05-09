@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createDISPLACEFunctionScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "displaceTitle",
     description: "displaceDescription",
     type: "functions",
@@ -46,21 +44,7 @@ export default function createDISPLACEFunctionScript(FUSION: CoreFusionStatic) {
       },
     ],
 
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var DISPLACEController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
         this.init = function (this: any) {};
         this.calculate = function (this: any, index: any) {
           var displace = FUSION.lib.displace(this.DSERIES, index, this.PERIODS);
@@ -80,9 +64,6 @@ export default function createDISPLACEFunctionScript(FUSION: CoreFusionStatic) {
             }
           }
         };
-      };
-
-      return new DISPLACEController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }

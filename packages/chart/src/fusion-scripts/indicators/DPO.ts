@@ -1,11 +1,9 @@
-import type { CoreFusionRuntime, CoreFusionStatic } from "../../internal-types/fusion";
-import type {
-  FusionScriptControllerConstructor,
-  FusionScriptControllerRuntime,
-} from "../../internal-types/scripts";
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createDPOIndicatorScript(FUSION: CoreFusionStatic) {
-  return {
+  return defineScript({
     title: "dpoTitle",
     description: "dpoDescription",
     type: "indicators",
@@ -40,21 +38,7 @@ export default function createDPOIndicatorScript(FUSION: CoreFusionStatic) {
         priceTag: true,
       },
     ],
-    controller: function (
-      context: CoreFusionRuntime,
-      inputs: Record<string, unknown>,
-      outputs: Record<string, string>
-    ) {
-      var DPOController: FusionScriptControllerConstructor = function (
-        this: FusionScriptControllerRuntime,
-        context: CoreFusionRuntime,
-        inputs: Record<string, any>,
-        outputs: Record<string, any>
-      ) {
-        this.id = "";
-        this.context = context;
-        this.inputs = inputs;
-        this.outputs = outputs;
+    controller: createController(function (this: FusionScriptControllerRuntime) {
 
         this.init = function (this: any) {};
 
@@ -65,9 +49,6 @@ export default function createDPOIndicatorScript(FUSION: CoreFusionStatic) {
 
           this.DPOValue.setValue(index, close - ma);
         };
-      };
-
-      return new DPOController(context, inputs, outputs);
-    },
-  };
+    }),
+  });
 }
