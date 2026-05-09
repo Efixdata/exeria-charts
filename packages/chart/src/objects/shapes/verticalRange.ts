@@ -2,22 +2,8 @@ import WEBRCP from "../../WebRCP";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
-  calcLine,
-  isPointInCircle,
-  pointsDistance,
-  findMidPoint,
-  getLinePointNearestMouse,
-  calcPointOnPerpendicularLine,
-  movePointByDistance,
   findAnchorPointForXY,
-  findAnchorPointArrowForXY,
-  drawAnchor,
-  drawAnchors,
-  drawAnchorArrow,
-  drawAnchorsArrow,
-  drawIndicatorMarker,
 } from "../../utils/objects-lib";
-import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
 import {
@@ -25,7 +11,7 @@ import {
   shapeStageOutDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
-import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
+import type { ShapeRuntime } from "./_sharedTypes";
 
 function VerticalRangeObject(this: ShapeRuntime) {
   this.render = function (

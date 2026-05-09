@@ -1,23 +1,8 @@
 import WEBRCP from "../../WebRCP";
-import LIB from "../../utils/chartingCommons";
 import {
   between,
-  calcLine,
-  isPointInCircle,
-  pointsDistance,
-  findMidPoint,
-  getLinePointNearestMouse,
-  calcPointOnPerpendicularLine,
-  movePointByDistance,
   findAnchorPointForXY,
-  findAnchorPointArrowForXY,
-  drawAnchor,
-  drawAnchors,
-  drawAnchorArrow,
-  drawAnchorsArrow,
-  drawIndicatorMarker,
 } from "../../utils/objects-lib";
-import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
 import {
   createShapeAnchorOverlayDelegate,
@@ -25,7 +10,7 @@ import {
   shapeStageOutDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
-import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
+import type { ShapeRuntime } from "./_sharedTypes";
 
 function CycleObject(this: ShapeRuntime) {
   function getCycleValues(x1: number, x2: number, panel: any) {

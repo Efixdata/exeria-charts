@@ -1,5 +1,4 @@
 import WEBRCP from "../../WebRCP";
-import FUSION from "../../fusion";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -8,13 +7,10 @@ import {
   getLinePointNearestMouse,
   roundAndTranslate,
 } from "../../utils/objects-lib";
-import imageCandleChartWhite from "../../img/icons/candle_chart_white.svg";
-import { Series } from "../../objectRuntimeBases";
 import { createSeriesMenu } from "./_menu";
 import { renderSeriesPriceTag } from "./_priceTag";
 import { getScriptTitle } from "./_sharedTypes";
 import type {
-  PatternStrategyRuntime,
   SeriesMenuOption,
   SeriesRuntime,
 } from "./_sharedTypes";

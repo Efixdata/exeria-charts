@@ -2,14 +2,9 @@ import WEBRCP from "../../WebRCP";
 import FUSION from "../../fusion";
 import LIB from "../../utils/chartingCommons";
 import {
-  between,
   isPointInCircle,
-  pointsDistance,
-  getLinePointNearestMouse,
-  roundAndTranslate,
 } from "../../utils/objects-lib";
 import imageCandleChartWhite from "../../img/icons/candle_chart_white.svg";
-import { Series } from "../../objectRuntimeBases";
 import { getScriptTitle } from "./_sharedTypes";
 import type { SeriesRuntime, PatternStrategyRuntime } from "./_sharedTypes";
 
