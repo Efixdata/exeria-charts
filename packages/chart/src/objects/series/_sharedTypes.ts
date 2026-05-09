@@ -1,5 +1,6 @@
 import WEBRCP from "../../WebRCP";
 import { Series } from "../../objectRuntimeBases";
+import type { LegacySeriesObject } from "../../objectRuntimeBases";
 
 declare const $: any;
 
@@ -20,6 +21,94 @@ type BaseSeriesRuntime = Omit<
 > &
   Record<string, any>;
 type LegacyAnyMethod = (...args: any[]) => any;
+export type SeriesContext = Record<string, any>;
+
+export type SeriesRenderMode =
+  | "OHLC"
+  | "Line"
+  | "Line and Histogram"
+  | "Histogram"
+  | "Bars"
+  | "Band"
+  | "Volume Histogram"
+  | "ChartShape";
+
+export type SeriesMenuSelectableRenderMode = Exclude<
+  SeriesRenderMode,
+  "Band" | "Volume Histogram" | "ChartShape"
+>;
+
+export type SeriesMenuObject = LegacySeriesObject & {
+  renderAs?: SeriesRenderMode;
+  priceTag?: boolean;
+  priceLine?: boolean;
+};
+
+export type SeriesMenuIconCallback = (
+  $element: unknown,
+  key: unknown,
+  item: unknown
+) => string;
+
+export type SeriesMenuCallback = (key: unknown, options: unknown) => boolean;
+
+export type SeriesMenuItem = {
+  name: string;
+  icon: SeriesMenuIconCallback;
+  callback: SeriesMenuCallback;
+};
+
+export type SeriesMenuItems = Record<string, SeriesMenuItem | string>;
+
+export type SeriesMenuOption = {
+  key: string;
+  mode: SeriesMenuSelectableRenderMode;
+  labelKey: string;
+  fallback?: string;
+};
+
+export type SeriesMenuToggle<TObject extends SeriesMenuObject = SeriesMenuObject> = {
+  key: string;
+  labelKey: string;
+  fallback?: string;
+  isChecked: (object: TObject) => boolean;
+  toggle: (object: TObject) => void;
+};
+
+export type SeriesMenuChart = {
+  options: {
+    locale: {
+      getMessage: (key: string, defaultMessage?: string) => string;
+    };
+  };
+  onDrawModeSelected?: (payload: {
+    type: SeriesMenuSelectableRenderMode;
+    object: SeriesMenuObject;
+    selected: boolean;
+  }) => void;
+};
+
+
+export type SeriesPriceTagConfig<TObject extends SeriesMenuObject = SeriesMenuObject> = {
+  getRenderMode: (object: TObject, model: SeriesContext) => string;
+  lineModes: readonly string[];
+  ohlcModes: readonly string[];
+  getBaseColor: (object: TObject) => string;
+  getTextColor: (object: TObject, color: string) => string;
+  getUpColor: (object: TObject) => string;
+  getDownColor: (object: TObject) => string;
+};
+
+export type SeriesMenuConfig<TObject extends SeriesMenuObject = SeriesMenuObject> = {
+  renderModes: readonly SeriesMenuOption[];
+  selectRenderMode: (
+    mode: SeriesMenuSelectableRenderMode,
+    object: TObject,
+    chart: SeriesMenuChart
+  ) => void;
+  toggles?: readonly SeriesMenuToggle<TObject>[];
+};
+
 type SeriesRuntime = BaseSeriesRuntime & {
   getMenuItems: LegacyAnyMethod;
   getRenderMode: LegacyAnyMethod;

@@ -20,6 +20,13 @@ import {
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeMouseDownDelegate,
+  createShapeMouseOutDelegate,
+  createShapeMouseUpExpandableDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 function BoxObject(this: ShapeRuntime) {
@@ -130,26 +137,7 @@ function BoxObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.mouseDownWithExpandableArrowSelection.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithExpandableArrowSelection");
 
   // this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	o._hitAnchor=null;
@@ -179,81 +167,13 @@ function BoxObject(this: ShapeRuntime) {
   // 	}
   // };
 
-  this.mouseUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    Shape.prototype.mouseUpWithExpandableAnchors.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager,
-      { popPanel: false }
-    );
-  };
+  this.mouseUp = createShapeMouseUpExpandableDelegate({ popPanel: false });
 
-  this.mouseOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    Shape.prototype.mouseOut.call(this, e, o, renderer, interactor, model, panel);
-  };
+  this.mouseOut = createShapeMouseOutDelegate();
 
-  this.stageUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.stageUp.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageUp = shapeStageUpDelegate;
 
-  this.stageOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.stageOut.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageOut = shapeStageOutDelegate;
 }
 
 const BoxObjectCtor: new (...args: any[]) => any = BoxObject as any;

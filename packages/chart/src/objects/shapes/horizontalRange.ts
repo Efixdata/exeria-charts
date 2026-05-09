@@ -20,6 +20,11 @@ import {
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeMouseDownDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 function HorizontalRangeObject(this: ShapeRuntime) {
@@ -168,26 +173,7 @@ function HorizontalRangeObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.mouseDownWithPanelPush.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
   this.mouseDrag = function (
     e: any,
     o: LegacyShapeObject,
@@ -295,47 +281,9 @@ function HorizontalRangeObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.stageUp.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageUp = shapeStageUpDelegate;
 
-  this.stageOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.stageOut.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageOut = shapeStageOutDelegate;
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	console.log("HRANGE stage move", interactor.currentAnchor);

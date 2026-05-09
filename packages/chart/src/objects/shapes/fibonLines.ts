@@ -18,8 +18,14 @@ import {
   drawIndicatorMarker,
 } from "../../utils/objects-lib";
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
-import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeAnchorOverlayDelegate,
+  createShapeMouseDownDelegate,
+  createShapeMouseOutDelegate,
+  createShapeMouseUpExpandableDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 var FibonLinesObject = function (this: ShapeRuntime) {
@@ -112,9 +118,7 @@ var FibonLinesObject = function (this: ShapeRuntime) {
     }
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-    Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager);
-  };
+  this.renderOverlay = createShapeAnchorOverlayDelegate();
 
   this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
     var self = this;
@@ -206,18 +210,7 @@ var FibonLinesObject = function (this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.mouseDownWithPanelPush.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
   // this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	var idx = interactor.currentAnchor.selected;
@@ -245,31 +238,9 @@ var FibonLinesObject = function (this: ShapeRuntime) {
   // 	}
   // };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseUpWithExpandableAnchors.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseUp = createShapeMouseUpExpandableDelegate();
 
-  this.mouseOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseOutKeepHits.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseOut = createShapeMouseOutDelegate("mouseOutKeepHits");
 
   /*
    * STAGE
@@ -307,18 +278,7 @@ var FibonLinesObject = function (this: ShapeRuntime) {
   // 	this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
   // };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.stageUp.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageUp = shapeStageUpDelegate;
 
   this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
     // console.log("stage out");

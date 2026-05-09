@@ -10,129 +10,66 @@ import {
 } from "../../utils/objects-lib";
 import imageCandleChartWhite from "../../img/icons/candle_chart_white.svg";
 import { Series } from "../../objectRuntimeBases";
+import { createSeriesMenu } from "./_menu";
+import { renderSeriesPriceTag } from "./_priceTag";
 import { getScriptTitle } from "./_sharedTypes";
-import type { SeriesRuntime, PatternStrategyRuntime } from "./_sharedTypes";
+import type {
+  PatternStrategyRuntime,
+  SeriesMenuOption,
+  SeriesRuntime,
+} from "./_sharedTypes";
+
+const SERIES_RENDER_MODE_OPTIONS: SeriesMenuOption[] = [
+  { key: "radio1", mode: "OHLC", labelKey: "candles" },
+  { key: "radio2", mode: "Line", labelKey: "line" },
+  {
+    key: "radio3",
+    mode: "Line and Histogram",
+    labelKey: "line_and_histogram",
+    fallback: "Line and Histogram",
+  },
+  { key: "radio4", mode: "Histogram", labelKey: "histogram", fallback: "Histogram" },
+  { key: "radio5", mode: "Bars", labelKey: "bars", fallback: "Bars" },
+];
+const SERIES_PRICE_TAG_LINE_MODES = ["Line", "Line and Histogram", "Histogram"];
+const SERIES_PRICE_TAG_OHLC_MODES = ["OHLC", "Bars"];
 
 var SeriesObject = function (this: SeriesRuntime) {
   this.getMenuItems = function (o, chart) {
-    var object = o;
-    if (o.renderAs == "Band") return null;
-
-    var menuItems: any = {
-      radio1: {
-        name: chart.options.locale.getMessage("candles"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "OHLC") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          chart.onDrawModeSelected({
-            type: "OHLC",
-            object: o,
-            selected: true,
-          });
-          return true;
-        },
+    return createSeriesMenu(chart, o, {
+      renderModes: SERIES_RENDER_MODE_OPTIONS,
+      selectRenderMode: function (mode, object) {
+        chart.onDrawModeSelected?.({
+          type: mode,
+          object,
+          selected: true,
+        });
       },
-      radio2: {
-        name: chart.options.locale.getMessage("line"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Line") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
+      toggles: [
+        {
+          key: "priceMarker",
+          labelKey: "show_price_marker",
+          fallback: "Show price marker",
+          isChecked: function (object) {
+            return object.priceTag === true;
+          },
+          toggle: function (object) {
+            object.priceTag = !object.priceTag;
+          },
         },
-        callback: function (key: any, options: any) {
-          chart.onDrawModeSelected({
-            type: "Line",
-            object: o,
-            selected: true,
-          });
-          return true;
+        {
+          key: "priceLine",
+          labelKey: "show_price_line",
+          fallback: "Show price line",
+          isChecked: function (object) {
+            return object.priceLine === true;
+          },
+          toggle: function (object) {
+            object.priceLine = !object.priceLine;
+          },
         },
-      },
-      radio3: {
-        name: chart.options.locale.getMessage("line_and_histogram", "Line and Histogram"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Line and Histogram") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          chart.onDrawModeSelected({
-            type: "Line and Histogram",
-            object: o,
-            selected: true,
-          });
-          return true;
-        },
-      },
-      radio4: {
-        name: chart.options.locale.getMessage("histogram", "Histogram"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Histogram") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          chart.onDrawModeSelected({
-            type: "Histogram",
-            object: o,
-            selected: true,
-          });
-          return true;
-        },
-      },
-      radio5: {
-        name: chart.options.locale.getMessage("bars", "Bars"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Bars") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          chart.onDrawModeSelected({
-            type: "Bars",
-            object: o,
-            selected: true,
-          });
-          return true;
-        },
-      },
-      sep1: "---------",
-      priceMarker: {
-        name: chart.options.locale.getMessage("show_price_marker", "Show price marker"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["priceTag"] == true) {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white";
-        },
-        callback: function (key: any, options: any) {
-          o["priceTag"] = !o["priceTag"];
-          return true;
-        },
-      },
-      priceLine: {
-        name: chart.options.locale.getMessage("show_price_line", "Show price line"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["priceLine"] == true) {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white";
-        },
-        callback: function (key: any, options: any) {
-          o["priceLine"] = !o["priceLine"];
-          return true;
-        },
-      },
-    };
-    return menuItems;
+      ],
+    });
   };
 
   this.getRenderMode = function (o, model) {
@@ -220,48 +157,23 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderPriceTag = function (o, ctx, renderer, model, panel, seriesManager) {
-    if (!seriesManager[o.dataLink]) return;
-
-    var value = 0;
-    var open = 0;
-    var valueY = 0;
-    var color = WEBRCP.utils.colorManager.getColor(o.color, o.color);
-    var textColor = WEBRCP.utils.getContrastColor(o.color);
-
-    var dfO = o.openDataField ? o.openDataField : o.dataField;
-    var dfC = o.closeDataField ? o.closeDataField : o.dataField;
-
-    if (
-      this.getRenderMode(o, model) == "Line" ||
-      this.getRenderMode(o, model) == "Line and Histogram" ||
-      this.getRenderMode(o, model) == "Histogram"
-    ) {
-      var data = seriesManager[o.dataLink].data;
-      value = data[data.length - 1][o.dataField];
-    }
-
-    if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars") {
-      value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
-      open = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO];
-
-      if (value - open > 0) {
-        color = WEBRCP.utils.colorManager.getColor("chartGreenBackground");
-      } else {
-        color = WEBRCP.utils.colorManager.getColor("chartRed");
-      }
-    }
-
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-
-    valueY =
-      renderer.getYCoordinateForPrice(value, {
-        panelHeight: panel._height,
-        minValue: panel.vMin,
-        maxValue: panel.vMax,
-        valueAxisMode: panel.valueAxisMode,
-        fV,
-      }) + panel._offset;
-    renderer.drawPriceTag(ctx, model, panel, valueY, color, textColor, value, "real");
+    return renderSeriesPriceTag(o, ctx, renderer, model, panel, seriesManager, {
+      getRenderMode: (object, nextModel) => this.getRenderMode(object, nextModel),
+      lineModes: SERIES_PRICE_TAG_LINE_MODES,
+      ohlcModes: SERIES_PRICE_TAG_OHLC_MODES,
+      getBaseColor: function (object) {
+        return WEBRCP.utils.colorManager.getColor(object.color, object.color);
+      },
+      getTextColor: function (object) {
+        return WEBRCP.utils.getContrastColor(object.color);
+      },
+      getUpColor: function () {
+        return WEBRCP.utils.colorManager.getColor("chartGreenBackground");
+      },
+      getDownColor: function () {
+        return WEBRCP.utils.colorManager.getColor("chartRed");
+      },
+    });
   };
 
   this.renderAsHistogram = function (o, ctx, renderer, model, panel, seriesManager) {

@@ -20,6 +20,13 @@ import {
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeAnchorOverlayDelegate,
+  createShapeMouseDownDelegate,
+  createShapeMouseOutDelegate,
+  createShapeMouseUpExpandableDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 var ParallelChannelObject = function (this: ShapeRuntime) {
@@ -75,18 +82,7 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     ctx.stroke();
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-    Shape.prototype.renderAnchorsOverlay.call(
-      this,
-      o,
-      octx,
-      renderer,
-      model,
-      panel,
-      seriesManager,
-      { redrawAnchorsWhenSelected: true }
-    );
-  };
+  this.renderOverlay = createShapeAnchorOverlayDelegate({ redrawAnchorsWhenSelected: true });
 
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
     var pts = ParallelChannelObject.prototype.getPoints.call(
@@ -183,18 +179,7 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.mouseDownWithPanelPush.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
   this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
     var self = this;
@@ -258,31 +243,9 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     // }
   };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseUpWithExpandableAnchors.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseUp = createShapeMouseUpExpandableDelegate();
 
-  this.mouseOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseOutKeepHits.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseOut = createShapeMouseOutDelegate("mouseOutKeepHits");
 
   /*
    * STAGE
@@ -344,18 +307,7 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.stageUp.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageUp = shapeStageUpDelegate;
 
   this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
     // console.log("stage out");

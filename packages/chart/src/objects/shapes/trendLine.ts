@@ -18,8 +18,15 @@ import {
   drawIndicatorMarker,
 } from "../../utils/objects-lib";
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
-import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeAnchorOverlayDelegate,
+  createShapeMouseDownDelegate,
+  createShapeMouseOutDelegate,
+  createShapeMouseUpExpandableDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 function TrendLineObject(this: ShapeRuntime) {
@@ -107,9 +114,7 @@ function TrendLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
-    Shape.prototype.renderAnchorsOverlay.call(this, o, octx, renderer, model, panel, seriesManager);
-  };
+  this.renderOverlay = createShapeAnchorOverlayDelegate();
 
   this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
     var self = this;
@@ -220,18 +225,7 @@ function TrendLineObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.mouseDown.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate();
 
   // this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	o._hitAnchor=null;
@@ -261,23 +255,9 @@ function TrendLineObject(this: ShapeRuntime) {
   // 	}
   // };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseUpWithExpandableAnchors.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager,
-      { requireHitArrow: true }
-    );
-  };
+  this.mouseUp = createShapeMouseUpExpandableDelegate({ requireHitArrow: true });
 
-  this.mouseOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    Shape.prototype.mouseOut.call(this, e, o, renderer, interactor, model, panel, seriesManager);
-  };
+  this.mouseOut = createShapeMouseOutDelegate();
 
   /*
    * STAGE
@@ -323,31 +303,9 @@ function TrendLineObject(this: ShapeRuntime) {
   // 	interactor.renderOverlayedObject (this, o, panel);
   // };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.stageUp.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageUp = shapeStageUpDelegate;
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    return Shape.prototype.stageOut.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.stageOut = shapeStageOutDelegate;
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	console.log("TRENDLINE stage move", interactor.currentAnchor);

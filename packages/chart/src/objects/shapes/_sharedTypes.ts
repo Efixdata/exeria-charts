@@ -1,4 +1,5 @@
 import { Shape } from "../../objectRuntimeBases";
+import type { LegacyShapeObject } from "../../objectRuntimeBases";
 
 type BaseShapeRuntime = Omit<
   InstanceType<typeof Shape>,
@@ -22,6 +23,44 @@ type BaseShapeRuntime = Omit<
 > &
   Record<string, any>;
 export type LegacyAnyMethod = (...args: any[]) => any;
+type LegacyShapeContext = Record<string, any>;
+
+export type ShapeAnchorOverlayOptions = {
+  drawArrowHandles?: boolean;
+  redrawAnchorsWhenSelected?: boolean;
+};
+
+export type ShapeMouseUpOptions = {
+  popPanel?: boolean;
+  requireHitArrow?: boolean;
+};
+
+export type ShapeRenderOverlayArgs = [
+  object: LegacyShapeObject,
+  overlayContext: CanvasRenderingContext2D,
+  renderer: LegacyShapeContext,
+  model: LegacyShapeContext,
+  panel: LegacyShapeContext,
+  seriesManager: LegacyShapeContext,
+];
+
+export type ShapeInteractionArgs = [
+  event: LegacyShapeContext,
+  object: LegacyShapeObject,
+  renderer: LegacyShapeContext,
+  interactor: LegacyShapeContext,
+  model: LegacyShapeContext,
+  panel: LegacyShapeContext,
+  seriesManager: LegacyShapeContext,
+];
+
+export type ShapeBaseMouseDownDelegate =
+  | "mouseDown"
+  | "mouseDownWithPanelPush"
+  | "mouseDownWithExpandableArrowSelection";
+
+export type ShapeBaseMouseOutDelegate = "mouseOut" | "mouseOutKeepHits";
+
 export type ShapeRuntime = BaseShapeRuntime & {
   getPoints: LegacyAnyMethod;
   push: LegacyAnyMethod;

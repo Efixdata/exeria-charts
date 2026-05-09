@@ -10,72 +10,49 @@ import {
 } from "../../utils/objects-lib";
 import imageCandleChartWhite from "../../img/icons/candle_chart_white.svg";
 import { Series } from "../../objectRuntimeBases";
+import { createSeriesMenu } from "./_menu";
+import { renderSeriesPriceTag } from "./_priceTag";
 import { getScriptTitle } from "./_sharedTypes";
-import type { SeriesRuntime, PatternStrategyRuntime } from "./_sharedTypes";
+import type {
+  PatternStrategyRuntime,
+  SeriesMenuOption,
+  SeriesRuntime,
+} from "./_sharedTypes";
+
+const INDICATOR_RENDER_MODE_OPTIONS: SeriesMenuOption[] = [
+  { key: "radio1", mode: "Line", labelKey: "line" },
+  {
+    key: "radio2",
+    mode: "Line and Histogram",
+    labelKey: "line_and_histogram",
+    fallback: "Line and Histogram",
+  },
+  { key: "radio3", mode: "Histogram", labelKey: "histogram", fallback: "Histogram" },
+];
+const INDICATOR_PRICE_TAG_LINE_MODES = ["Line"];
+const INDICATOR_PRICE_TAG_OHLC_MODES = ["OHLC", "Bars"];
 
 var IndicatorObject = function (this: SeriesRuntime) {
   this.getMenuItems = function (o, chart) {
-    var object = o;
-    if (o.renderAs == "Band") return null;
-
-    var menuItems: any = {
-      radio1: {
-        name: chart.options.locale.getMessage("line"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Line") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          o["renderAs"] = "Line";
-          return true;
-        },
+    return createSeriesMenu(chart, o, {
+      renderModes: INDICATOR_RENDER_MODE_OPTIONS,
+      selectRenderMode: function (mode, object) {
+        object.renderAs = mode;
       },
-      radio2: {
-        name: chart.options.locale.getMessage("line_and_histogram", "Line and Histogram"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Line and Histogram") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
+      toggles: [
+        {
+          key: "priceMarker",
+          labelKey: "show_price_marker",
+          isChecked: function (object) {
+            return object.priceTag === true;
+          },
+          toggle: function (object) {
+            object.priceTag = !object.priceTag;
+            object.priceLine = object.priceTag;
+          },
         },
-        callback: function (key: any, options: any) {
-          o["renderAs"] = "Line and Histogram";
-          return true;
-        },
-      },
-      radio3: {
-        name: chart.options.locale.getMessage("histogram", "Histogram"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["renderAs"] == "Histogram") {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon";
-        },
-        callback: function (key: any, options: any) {
-          o["renderAs"] = "Histogram";
-          return true;
-        },
-      },
-      sep1: "---------",
-
-      priceMarker: {
-        name: chart.options.locale.getMessage("show_price_marker"),
-        icon: function ($element: any, key: any, item: any) {
-          if (o["priceTag"] == true) {
-            return "context-menu-icon webrcp-icon-checked webrcp-dark-white webrcp-light-white";
-          }
-          return "context-menu-icon webrcp-icon-unchecked webrcp-dark-white webrcp-light-white";
-        },
-        callback: function (key: any, options: any) {
-          o["priceTag"] = !o["priceTag"];
-          o["priceLine"] = o["priceTag"];
-          return true;
-        },
-      },
-    };
-    return menuItems;
+      ],
+    });
   };
 
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -123,46 +100,25 @@ var IndicatorObject = function (this: SeriesRuntime) {
   };
 
   this.renderPriceTag = function (o, ctx, renderer, model, panel, seriesManager) {
-    if (!seriesManager[o.dataLink]) return;
-
-    var value = 0;
-    var open = 0;
-    var valueY = 0;
-    var color = o.color;
-    var textColor = "#ffffff";
-    var red = WEBRCP.utils.colorManager.getColor("chartRed");
-    var green = WEBRCP.utils.colorManager.getColor("chartGreen");
-
-    var dfO = o.openDataField ? o.openDataField : o.dataField;
-    var dfC = o.closeDataField ? o.closeDataField : o.dataField;
-
-    if (o.renderAs == "Line") {
-      var data = seriesManager[o.dataLink].data;
-      value = data[data.length - 1][o.dataField];
-    }
-
-    if (o.renderAs == "OHLC" || o.renderAs == "Bars") {
-      value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
-      open = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO];
-
-      if (value - open > 0) {
-        color = green;
-      } else {
-        color = red;
-      }
-    }
-
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-
-    valueY =
-      renderer.getYCoordinateForPrice(value, {
-        panelHeight: panel._height,
-        minValue: panel.vMin,
-        maxValue: panel.vMax,
-        valueAxisMode: panel.valueAxisMode,
-        fV,
-      }) + panel._offset;
-    renderer.drawPriceTag(ctx, model, panel, valueY, color, textColor, value, "real");
+    return renderSeriesPriceTag(o, ctx, renderer, model, panel, seriesManager, {
+      getRenderMode: function (object) {
+        return object.renderAs ?? "";
+      },
+      lineModes: INDICATOR_PRICE_TAG_LINE_MODES,
+      ohlcModes: INDICATOR_PRICE_TAG_OHLC_MODES,
+      getBaseColor: function (object) {
+        return object.color;
+      },
+      getTextColor: function () {
+        return "#ffffff";
+      },
+      getUpColor: function () {
+        return WEBRCP.utils.colorManager.getColor("chartGreen");
+      },
+      getDownColor: function () {
+        return WEBRCP.utils.colorManager.getColor("chartRed");
+      },
+    });
   };
 
   this.renderAsHistogram = function (o, ctx, renderer, model, panel, seriesManager) {

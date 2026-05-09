@@ -18,8 +18,11 @@ import {
   drawIndicatorMarker,
 } from "../../utils/objects-lib";
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
-import { Shape } from "../../objectRuntimeBases";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import {
+  createShapeAnchorOverlayDelegate,
+  createShapeMouseDownDelegate,
+} from "./_delegates";
 import type { ShapeRuntime, ShapeTagRuntime } from "./_sharedTypes";
 
 function PriceTagObject(this: ShapeTagRuntime) {
@@ -107,25 +110,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
     }
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    Shape.prototype.renderAnchorsOverlay.call(
-      this,
-      o,
-      octx,
-      renderer,
-      model,
-      panel,
-      seriesManager,
-      { drawArrowHandles: false }
-    );
-  };
+  this.renderOverlay = createShapeAnchorOverlayDelegate({ drawArrowHandles: false });
 
   this.hit = function (
     x: number,
@@ -171,26 +156,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    return Shape.prototype.mouseDownWithPanelPush.call(
-      this,
-      e,
-      o,
-      renderer,
-      interactor,
-      model,
-      panel,
-      seriesManager
-    );
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
   this.mouseDrag = function (
     e: any,
     o: LegacyShapeObject,
