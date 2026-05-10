@@ -1,14 +1,22 @@
 import WEBRCP from "./WebRCP";
-import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { Shape } from "./Objects2";
 import { Series } from "./Objects";
+import {
+  createFusionUniqueId,
+  hideFusionScriptDialog,
+  showFusionScriptDialog,
+} from "./adapters/fusionUi";
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
-import Hammer from "./lib/hammer.min.js";
+import { createGestureManager, HAMMER_DIRECTIONS } from "./adapters/hammer";
+import {
+  createPropertiesDialogContent,
+  showPropertiesDialog,
+} from "./adapters/propertiesDialog";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
 import type { ChartConfig } from "./types";
 import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
-import type { CoreFusionRuntime, CoreFusionStatic } from "./internal-types/fusion";
+import type { CoreFusionRuntime } from "./internal-types/fusion";
 import type {
   CoreInteractor,
   CoreInteractorConstructor,
@@ -19,35 +27,7 @@ import type {
 import type { ChartRuntimeObject } from "./internal-types/objects";
 import type { CoreRenderer } from "./internal-types/renderer";
 import type { RuntimeScriptConfig } from "./internal-types/scripts";
-
-interface DialogActionHandle {
-  dismiss(keepMounted?: boolean): void;
-}
-
-interface DialogAction {
-  myClass?: string;
-  title: string;
-  callback(this: DialogActionHandle): void;
-}
-
-interface PropertiesDialogWidget {
-  addClass(className: string): PropertiesDialogWidget;
-  empty(): PropertiesDialogWidget;
-  simplePropertiesEditor(options: {
-    properties: Record<string, string>;
-    locale?: Record<string, string>;
-    inputClass?: string;
-  }): PropertiesDialogWidget;
-  simplePropertiesEditor(command: "getValues"): Record<string, string>;
-  simplePropertiesEditor(command: "focus"): PropertiesDialogWidget;
-  rcpDialog(options: {
-    content: PropertiesDialogWidget;
-    title: string;
-    actions: DialogAction[];
-    onShown?: () => void;
-  }): PropertiesDialogWidget;
-  rcpDialog(command: "showDialog", modal: boolean): PropertiesDialogWidget;
-}
+import type { DialogAction, DialogActionHandle } from "./adapters/propertiesDialog";
 
 type TooltipRenderValue = {
   label: string;
@@ -107,27 +87,6 @@ type StageModeConstructor = new (
   tool: ChartRuntimeObject,
   onFinished?: () => void
 ) => CoreInteractionMode;
-
-type FusionUiApi = CoreFusionStatic & {
-  dialogs: {
-    script: {
-      show: (
-        config: { key: string; config: RuntimeScriptConfig | null },
-        onApply: (config: RuntimeScriptConfig) => void,
-        onCancel: () => void,
-        fusion: CoreFusionRuntime,
-        panels: boolean,
-        objects: unknown,
-        locale: unknown
-      ) => void;
-      hide: () => void;
-    };
-  };
-};
-
-declare const $: (markup: string) => PropertiesDialogWidget;
-
-const FUSION_UI = FUSION as unknown as FusionUiApi;
 
 var InteractionsController: CoreInteractorConstructor = function (
   this: CoreInteractor,
@@ -215,14 +174,14 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.topLayer.addEventListener("touchend", self.onTouchEvent);
       self.topLayer.addEventListener("touchcancel", self.onTouchEvent);
 
-      self.hammer = new Hammer(self.topLayer, {});
+      self.hammer = createGestureManager(self.topLayer);
 
       self.hammer.get("press").set({ time: 500 });
       self.hammer.on("press", self.onHammerPress);
 
       self.hammer.on("touch", self.onTouchEvent);
 
-      self.hammer.get("pan").set({ direction: Hammer.DIRECTION_ALL });
+      self.hammer.get("pan").set({ direction: HAMMER_DIRECTIONS.all });
       self.hammer.on("pan", self.onTouchEvent);
 
       self.hammer.get("pinch").set({ enable: true });
@@ -241,7 +200,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
       self.topLayer.addEventListener("contextmenu", self.preventContextMenu);
 
-      self.hammer = new Hammer(self.topLayer, {});
+      self.hammer = createGestureManager(self.topLayer);
       self.hammer.on("swipe", self.onHammerSwipe);
     }
 
@@ -332,10 +291,11 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.registerObjectAsIdicator = function (o) {
+    void o;
     var scriptKey = "OBJECT";
     var os = this.chart.getObjectsForIndicator();
     var panels = false;
-    FUSION_UI.dialogs.script.show(
+    showFusionScriptDialog(
       { key: scriptKey, config: null },
       onApply,
       onCancel,
@@ -345,11 +305,11 @@ var InteractionsController: CoreInteractorConstructor = function (
       WEBRCP.locale.fusion
     );
     function onCancel() {
-      FUSION_UI.dialogs.script.hide();
+      hideFusionScriptDialog();
     }
     function onApply(scriptConfig: RuntimeScriptConfig) {
       chart.onScriptEditorApply(scriptConfig);
-      FUSION_UI.dialogs.script.hide();
+      hideFusionScriptDialog();
     }
   };
 
@@ -489,7 +449,6 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     var initialX = pointer.pageX;
     var velocityX = event.velocityX;
-    var preCurrentX = initialX;
     var currentX = calculateOffset(initialX, velocityX);
 
     self.swipe.hook = setInterval(frame, 50);
@@ -524,7 +483,6 @@ var InteractionsController: CoreInteractorConstructor = function (
         }
 
         recalculateVelocity();
-        preCurrentX = currentX;
         currentX = calculateOffset(currentX, velocityX);
 
         self.controller.fitAndRepaint();
@@ -816,7 +774,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.requestChartTitleAndShareChart = function (chart) {
     var self = this;
-    var content = $("<div></div>").simplePropertiesEditor({
+    var content = createPropertiesDialogContent({
       properties: { Title: "", Description: "" },
       locale: {
         Title: self.chart.options.locale.getMessage("title"),
@@ -824,7 +782,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       },
       inputClass: "webrcp-input-big webrcp-input-darkblue",
     });
-    var actions = [
+    var actions: DialogAction[] = [
       {
         myClass: isSmallScreen()
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
@@ -850,22 +808,20 @@ var InteractionsController: CoreInteractorConstructor = function (
         },
       },
     ];
-    $("<div></div>")
-      .addClass("webrcp-simple-edit-dialog")
-      .rcpDialog({
-        content: content,
-        title: self.chart.options.locale.getMessage("menu_share_chart"),
-        actions: actions,
-        onShown: () => {
-          content.simplePropertiesEditor("focus");
-        },
-      })
-      .rcpDialog("showDialog", false);
+    showPropertiesDialog({
+      content,
+      title: self.chart.options.locale.getMessage("menu_share_chart"),
+      actions,
+      dialogClass: "webrcp-simple-edit-dialog",
+      onShown: () => {
+        content.simplePropertiesEditor("focus");
+      },
+    });
   };
 
   this.requestChartTitleAndExportChart = function (chart) {
     var self = this;
-    var content = $("<div></div>").simplePropertiesEditor({
+    var content = createPropertiesDialogContent({
       properties: { Title: "", Description: "" },
       locale: {
         Title: self.chart.options.locale.getMessage("title"),
@@ -873,7 +829,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       },
       inputClass: "webrcp-input-big webrcp-input-darkblue",
     });
-    var actions = [
+    var actions: DialogAction[] = [
       {
         myClass: isSmallScreen()
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
@@ -901,24 +857,22 @@ var InteractionsController: CoreInteractorConstructor = function (
         },
       },
     ];
-    var dialog = $("<div></div>")
-      .addClass("webrcp-simple-edit-dialog")
-      .rcpDialog({
-        content: content,
-        title: self.chart.options.locale.getMessage("menu_exportChart"),
-        actions: actions,
-        onShown: () => {
-          content.simplePropertiesEditor("focus");
-        },
-      })
-      .rcpDialog("showDialog", false);
+    showPropertiesDialog({
+      content,
+      title: self.chart.options.locale.getMessage("menu_exportChart"),
+      actions,
+      dialogClass: "webrcp-simple-edit-dialog",
+      onShown: () => {
+        content.simplePropertiesEditor("focus");
+      },
+    });
   };
 
   this.requestTitleAndDescription = function (callback, quickHide) {
     quickHide === true ? (quickHide = true) : (quickHide = false);
 
     var self = this;
-    var content = $("<div></div>").simplePropertiesEditor({
+    var content = createPropertiesDialogContent({
       properties: { Title: "", Description: "" },
       inputClass: "webrcp-input-big webrcp-input-darkblue",
       locale: {
@@ -926,7 +880,7 @@ var InteractionsController: CoreInteractorConstructor = function (
         Description: self.chart.options.locale.getMessage("description"),
       },
     });
-    var actions = [
+    var actions: DialogAction[] = [
       {
         myClass: isSmallScreen()
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
@@ -948,17 +902,15 @@ var InteractionsController: CoreInteractorConstructor = function (
         },
       },
     ];
-    var dialog = $("<div></div>")
-      .addClass("webrcp-simple-edit-dialog")
-      .rcpDialog({
-        content: content,
-        title: self.chart.options.locale.getMessage("menu_export_strategy"),
-        actions: actions,
-        onShown: () => {
-          content.simplePropertiesEditor("focus");
-        },
-      });
-    dialog.rcpDialog("showDialog", false);
+    showPropertiesDialog({
+      content,
+      title: self.chart.options.locale.getMessage("menu_export_strategy"),
+      actions,
+      dialogClass: "webrcp-simple-edit-dialog",
+      onShown: () => {
+        content.simplePropertiesEditor("focus");
+      },
+    });
   };
 
   this.requestStrategyTitleAndExportStrategy = function (strategy) {
@@ -1091,8 +1043,6 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     e._offset = self.getEventOffset(e);
-
-    var ctxMenu = self.isRightButton;
 
     self.initialMouseEvent = null;
     self.isRightButton = false;
@@ -1613,7 +1563,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.getOffsets = function () {
-    var offsets = new Array();
+    var offsets = [];
 
     for (var i = 0; i < this.model.panels.length; i++) {
       offsets.push({ height: this.model.panels[i]._height, offset: this.model.panels[i]._offset });
@@ -1863,22 +1813,15 @@ var InteractionsController: CoreInteractorConstructor = function (
       }
     }
 
-    function isInstrumentPlotter(o: ChartRuntimeObject, chart: { model: CoreChartModel }) {
-      var series = chart.model.instrumentsSeries;
-      for (var i in series) {
-        if (series[i].seriesId == o.dataLink) {
-          return true;
-        }
-      }
-      return false;
-    }
   };
 
   this.pushPanel = function (r, o, panel) {
+    void panel;
     this.controller.render(o);
   };
 
   this.popPanel = function (r, o, panel) {
+    void panel;
     if (o.canBeIndicator == true) {
       this.controller.calculateAll();
       this.controller.fit();
@@ -2063,7 +2006,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (o.arrow == "up") panel.sortNb = panel.sortNb - 2;
     if (o.arrow == "dn") panel.sortNb = panel.sortNb + 2;
     panels.sort(function (p1, p2) {
-      return p1.sortNb - p2.sortNb;
+      return Number(p1.sortNb) - Number(p2.sortNb);
     });
     // this.chart.fit();
     // this.controller.render();
@@ -2279,7 +2222,9 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     return false;
   };
 
-  this.render = function (ctx) {};
+  this.render = function (ctx) {
+    void ctx;
+  };
 
   this.renderOverlay = function (octx) {
     var self = this;
@@ -2683,9 +2628,13 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
   };
 
-  this.keyDown = function (key) {};
+  this.keyDown = function (key) {
+    void key;
+  };
 
-  this.render = function (ctx) {};
+  this.render = function (ctx) {
+    void ctx;
+  };
 
   this.renderOverlay = function (octx) {
     if (
@@ -2857,6 +2806,7 @@ function ZoomBoxTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseUp = function (e) {
+    void e;
     this.interactor.clearOverlay();
 
     var startEventO = this.interactor.getEventOffset(this.startEvent);
@@ -2886,12 +2836,7 @@ function ZoomBoxTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseMove = function (e) {
-    var eo = this.interactor.getEventOffset(e);
-
-    var index = this.interactor.controller.renderer.getPointIndex(
-      eo.offsetX,
-      this.interactor.model
-    );
+    void e;
     if (this.interactor.chart.style.cursor != this.cursor) {
       this.interactor.chart.style.cursor = this.cursor;
     }
@@ -2907,11 +2852,17 @@ function ZoomBoxTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.interactor.currentMode.render(this.interactor.octx, this.interactor.initialMouseEvent, e);
   };
 
-  this.onMouseOut = function (e) {};
+  this.onMouseOut = function (e) {
+    void e;
+  };
 
-  this.keyDown = function (key) {};
+  this.keyDown = function (key) {
+    void key;
+  };
 
-  this.render = function (ctx) {};
+  this.render = function (ctx) {
+    void ctx;
+  };
 
   this.renderOverlay = function (ctx) {
     var self = this;
@@ -2962,7 +2913,7 @@ function StageTool(
   this.currentStep = 0;
 
   this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
-  this.interactor.currentStagingObject.id = FUSION_UI.uniqueId();
+  this.interactor.currentStagingObject.id = createFusionUniqueId();
   this.interactor.currentAnchor = null;
   this.interactor.select(this.interactor.currentStagingObject);
 
@@ -3090,9 +3041,15 @@ function StageTool(
     );
   };
 
-  this.keyDown = function (key) {};
-  this.onRightMouseDrag = function (e) {};
-  this.render = function (ctx) {};
+  this.keyDown = function (key) {
+    void key;
+  };
+  this.onRightMouseDrag = function (e) {
+    void e;
+  };
+  this.render = function (ctx) {
+    void ctx;
+  };
 }
 
 // ****************************************************** //
@@ -3207,11 +3164,24 @@ function EraserTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
   };
 
-  this.keyDown = function (key) {};
-  this.render = function (ctx) {};
-  this.renderOverlay = function (octx) {};
-  this.renderUp = function (ctx, e) {};
-  this.renderDn = function (ctx, i, e) {};
+  this.keyDown = function (key) {
+    void key;
+  };
+  this.render = function (ctx) {
+    void ctx;
+  };
+  this.renderOverlay = function (octx) {
+    void octx;
+  };
+  this.renderUp = function (ctx, e) {
+    void ctx;
+    void e;
+  };
+  this.renderDn = function (ctx, i, e) {
+    void ctx;
+    void i;
+    void e;
+  };
 }
 
 export default InteractionsController;

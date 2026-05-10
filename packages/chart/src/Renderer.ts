@@ -36,7 +36,12 @@ import {
 } from "./Objects2";
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
 import type { CoreChartController } from "./internal-types/chart";
-import type { ChartRuntimeObject, RendererObjectsRegistry } from "./internal-types/objects";
+import type {
+  ChartRuntimeObject,
+  CoreRendererObject,
+  KnownRendererObjectsRegistry,
+  RendererObjectsRegistry,
+} from "./internal-types/objects";
 import type {
   CoreRenderer,
   CoreRendererConstructor,
@@ -79,43 +84,12 @@ const Renderer: CoreRendererConstructor = function (
     zerosToReduce: 0,
   };
   this.volumePrecision = 2;
-
-  this.objects = {} as RendererObjectsRegistry;
   this.timeTicks = [];
 
   var series = new Series(); //instancja bazowa
   SeriesObject.prototype = series;
   StrategyObject.prototype = series;
   IndicatorObject.prototype = series;
-
-  this.objects["SeriesObject"] = new SeriesObject();
-  this.objects["StrategyObject"] = new StrategyObject();
-  this.objects["CandlestickPatternStrategyObject"] = new CandlestickPatternStrategyObject();
-  this.objects["FractalsObject"] = new FractalsObject();
-  this.objects["IndicatorObject"] = new StrategyObject();
-
-  this.objects["TradeObject"] = new TradeObject(this.settings.positions);
-  this.objects["StopLimitObject"] = new StopLimitObject(this.settings.positions);
-  this.objects["POSITION"] = new TradeObject(this.settings.positions);
-  this.objects["TP"] = new TradeObject(this.settings.orders);
-  this.objects["SL"] = new TradeObject(this.settings.orders);
-  this.objects["BUY LIMIT"] = new TradeObject(this.settings.orders);
-  this.objects["BUY STOP"] = new TradeObject(this.settings.orders);
-  this.objects["BUY STOP_LIMIT"] = new StopLimitObject(this.settings.orders);
-  this.objects["SELL LIMIT"] = new TradeObject(this.settings.orders);
-  this.objects["SELL STOP"] = new TradeObject(this.settings.orders);
-  this.objects["SELL STOP_LIMIT"] = new StopLimitObject(this.settings.orders);
-
-  this.objects["SELL TRAILING_STOP"] = new TradeObject(this.settings.orders);
-  this.objects["BUY TRAILING_STOP"] = new TradeObject(this.settings.orders);
-  this.objects["SELL TAKE_PROFIT"] = new TradeObject(this.settings.orders);
-  this.objects["BUY TAKE_PROFIT"] = new TradeObject(this.settings.orders);
-  this.objects["SELL TAKE_PROFIT_MARKET"] = new TradeObject(this.settings.orders);
-  this.objects["BUY TAKE_PROFIT_MARKET"] = new TradeObject(this.settings.orders);
-  this.objects["SELL TAKE_PROFIT_LIMIT"] = new StopLimitObject(this.settings.orders);
-  this.objects["BUY TAKE_PROFIT_LIMIT"] = new StopLimitObject(this.settings.orders);
-
-  this.objects["MovePaneArrows"] = new MovePaneArrows();
 
   var shape = new Shape(); //instancja bazowa
   TrendLineObject.prototype = shape;
@@ -140,28 +114,60 @@ const Renderer: CoreRendererConstructor = function (
   DiNapoliLevels.prototype = shape;
   DiNapoliAbcObject.prototype = shape;
 
-  this.objects["trendLine"] = new TrendLineObject();
-  this.objects["arrow"] = new ArrowObject();
-  this.objects["parallelChannel"] = new ParallelChannelObject();
-  this.objects["fibonLines"] = new FibonLinesObject();
-  this.objects["hLine"] = new HorizontalLineObject();
-  this.objects["vLine"] = new VerticalLineObject();
-  this.objects["mLine"] = new MultiLineObject();
-  this.objects["abcd"] = new AbcdObject();
-  this.objects["ellipse"] = new EllipseObject();
-  this.objects["box"] = new BoxObject();
-  this.objects["hRange"] = new HorizontalRangeObject();
-  this.objects["vRange"] = new VerticalRangeObject();
-  this.objects["timeRange"] = new TimeRangeObject();
-  this.objects["timeBet"] = new TimeBetObject();
-  this.objects["cycle"] = new CycleObject();
-  this.objects["textAnnotation"] = new TextObject();
-  this.objects["triangle"] = new TriangleObject();
-  this.objects["priceTag"] = new PriceTagObject();
+  const rendererObjects: KnownRendererObjectsRegistry = {
+    SeriesObject: new SeriesObject(),
+    StrategyObject: new StrategyObject(),
+    CandlestickPatternStrategyObject: new CandlestickPatternStrategyObject(),
+    FractalsObject: new FractalsObject(),
+    IndicatorObject: new StrategyObject(),
+    TradeObject: new TradeObject(this.settings.positions),
+    StopLimitObject: new StopLimitObject(this.settings.positions),
+    POSITION: new TradeObject(this.settings.positions),
+    TP: new TradeObject(this.settings.orders),
+    SL: new TradeObject(this.settings.orders),
+    "BUY LIMIT": new TradeObject(this.settings.orders),
+    "BUY STOP": new TradeObject(this.settings.orders),
+    "BUY STOP_LIMIT": new StopLimitObject(this.settings.orders),
+    "SELL LIMIT": new TradeObject(this.settings.orders),
+    "SELL STOP": new TradeObject(this.settings.orders),
+    "SELL STOP_LIMIT": new StopLimitObject(this.settings.orders),
+    "SELL TRAILING_STOP": new TradeObject(this.settings.orders),
+    "BUY TRAILING_STOP": new TradeObject(this.settings.orders),
+    "SELL TAKE_PROFIT": new TradeObject(this.settings.orders),
+    "BUY TAKE_PROFIT": new TradeObject(this.settings.orders),
+    "SELL TAKE_PROFIT_MARKET": new TradeObject(this.settings.orders),
+    "BUY TAKE_PROFIT_MARKET": new TradeObject(this.settings.orders),
+    "SELL TAKE_PROFIT_LIMIT": new StopLimitObject(this.settings.orders),
+    "BUY TAKE_PROFIT_LIMIT": new StopLimitObject(this.settings.orders),
+    MovePaneArrows: new MovePaneArrows(),
+    trendLine: new TrendLineObject(),
+    arrow: new ArrowObject(),
+    parallelChannel: new ParallelChannelObject(),
+    fibonLines: new FibonLinesObject(),
+    hLine: new HorizontalLineObject(),
+    vLine: new VerticalLineObject(),
+    mLine: new MultiLineObject(),
+    abcd: new AbcdObject(),
+    ellipse: new EllipseObject(),
+    box: new BoxObject(),
+    hRange: new HorizontalRangeObject(),
+    vRange: new VerticalRangeObject(),
+    timeRange: new TimeRangeObject(),
+    timeBet: new TimeBetObject(),
+    cycle: new CycleObject(),
+    textAnnotation: new TextObject(),
+    triangle: new TriangleObject(),
+    priceTag: new PriceTagObject(),
+    diNapoliLevels: new DiNapoliLevels(),
+    diNapoliAbcd: new DiNapoliAbcObject(),
+  };
 
-  //DiNapoli tools
-  this.objects["diNapoliLevels"] = new DiNapoliLevels();
-  this.objects["diNapoliAbcd"] = new DiNapoliAbcObject();
+  this.objects = rendererObjects as RendererObjectsRegistry;
+
+  const getRendererObject = (type: string | undefined): CoreRendererObject | undefined => {
+    if (!type || !Object.prototype.hasOwnProperty.call(this.objects, type)) return undefined;
+    return this.objects[type];
+  };
 
   this.validateSeriesBeforeRender = function (series) {
     try {
@@ -289,9 +295,10 @@ const Renderer: CoreRendererConstructor = function (
       if (object.hidden && object.hidden === true) continue;
       if (object.isBeingDragged) continue;
 
-      if (this.objects[object.type] != null && object.id != omitObjectId) {
+      const objectRenderer = getRendererObject(object.type);
+      if (objectRenderer && object.id != omitObjectId) {
         try {
-          this.objects[object.type].render(object, ctx, this, model, panel, seriesManager);
+          objectRenderer.render(object, ctx, this, model, panel, seriesManager);
         } catch (e) {
           this.onErrorWhileRendering(e);
         }
@@ -303,14 +310,8 @@ const Renderer: CoreRendererConstructor = function (
         for (var i = 0; i < model.orders.list.length; i++) {
           if (model.orders.list[i] != omitObject && !model.orders.list[i].drag)
             try {
-              this.objects[model.orders.list[i].type].render(
-                model.orders.list[i],
-                ctx,
-                this,
-                model,
-                panel,
-                seriesManager
-              );
+              const orderRenderer = getRendererObject(model.orders.list[i].type);
+              orderRenderer?.render(model.orders.list[i], ctx, this, model, panel, seriesManager);
             } catch (e) {
               this.onErrorWhileRendering(e);
             }
@@ -328,13 +329,14 @@ const Renderer: CoreRendererConstructor = function (
         for (var i = 0; i < model.positions.list.length; i++) {
           if (model.positions.list[i] != omitObject)
             try {
-              this.objects[model.positions.list[i].type].render(
+              const positionRenderer = getRendererObject(model.positions.list[i].type);
+              positionRenderer?.render(
                 model.positions.list[i],
                 ctx,
                 this,
                 model,
                 panel,
-                seriesManager
+                seriesManager,
               );
             } catch (e) {
               this.onErrorWhileRendering(e);
@@ -371,13 +373,14 @@ const Renderer: CoreRendererConstructor = function (
         for (var i = 0; i < model.orders.list.length; i++) {
           if (model.orders.list[i] != omitObject && !model.orders.list[i].drag)
             try {
-              this.objects[model.orders.list[i].type].postRender(
+              const orderRenderer = getRendererObject(model.orders.list[i].type);
+              orderRenderer?.postRender(
                 model.orders.list[i],
                 ctx,
                 this,
                 model,
                 panel,
-                seriesManager
+                seriesManager,
               );
             } catch (e) {
               this.onErrorWhileRendering(e);
@@ -396,13 +399,14 @@ const Renderer: CoreRendererConstructor = function (
         for (var i = 0; i < model.positions.list.length; i++) {
           if (model.positions.list[i] != omitObject)
             try {
-              this.objects[model.positions.list[i].type].postRender(
+              const positionRenderer = getRendererObject(model.positions.list[i].type);
+              positionRenderer?.postRender(
                 model.positions.list[i],
                 ctx,
                 this,
                 model,
                 panel,
-                seriesManager
+                seriesManager,
               );
             } catch (e) {
               this.onErrorWhileRendering(e);
@@ -414,9 +418,10 @@ const Renderer: CoreRendererConstructor = function (
     for (var i = 0; i < panel.objects.length; i++) {
       if (panel.objects[i]["hidden"] && panel.objects[i]["hidden"] == true) continue;
 
-      if (this.objects[panel.objects[i].type] != null)
+      const panelRenderer = getRendererObject(panel.objects[i].type);
+      if (panelRenderer)
         try {
-          this.objects[panel.objects[i].type].postRender(
+          panelRenderer.postRender(
             panel.objects[i],
             ctx,
             this,
@@ -461,7 +466,7 @@ const Renderer: CoreRendererConstructor = function (
           var o = panel.objects[oi];
           if (o.hidden && o.hidden === true) continue;
 
-          const overlayRenderer = this.objects[o.type];
+          const overlayRenderer = getRendererObject(o.type);
           if (overlayRenderer?.renderOverlay) {
             overlayRenderer.renderOverlay(o, octx, this, model, panel, seriesManager);
           }
@@ -475,7 +480,7 @@ const Renderer: CoreRendererConstructor = function (
             model.orders.list.length > 0
           ) {
             for (var i = 0; i < model.orders.list.length; i++) {
-              const orderRenderer = this.objects[model.orders.list[i].type];
+              const orderRenderer = getRendererObject(model.orders.list[i].type);
               if (orderRenderer?.renderOverlay) {
                 orderRenderer.renderOverlay(
                   model.orders.list[i],
@@ -498,7 +503,7 @@ const Renderer: CoreRendererConstructor = function (
             model.positions.list.length > 0
           ) {
             for (var i = 0; i < model.positions.list.length; i++) {
-              const positionRenderer = this.objects[model.positions.list[i].type];
+              const positionRenderer = getRendererObject(model.positions.list[i].type);
               if (positionRenderer?.renderOverlay) {
                 positionRenderer.renderOverlay(
                   model.positions.list[i],
@@ -539,7 +544,7 @@ const Renderer: CoreRendererConstructor = function (
           var o = panel.objects[oi];
           if (o["hidden"] && o["hidden"] == true) continue;
 
-          const postOverlayRenderer = this.objects[o.type];
+          const postOverlayRenderer = getRendererObject(o.type);
           if (postOverlayRenderer?.postRenderOverlay) {
             postOverlayRenderer.postRenderOverlay(o, octx, this, model, panel, seriesManager);
           }
@@ -553,7 +558,7 @@ const Renderer: CoreRendererConstructor = function (
             model.orders.list.length > 0
           ) {
             for (var i = 0; i < model.orders.list.length; i++) {
-              const orderRenderer = this.objects[model.orders.list[i].type];
+              const orderRenderer = getRendererObject(model.orders.list[i].type);
               if (orderRenderer?.postRenderOverlay) {
                 orderRenderer.postRenderOverlay(
                   model.orders.list[i],
@@ -576,7 +581,7 @@ const Renderer: CoreRendererConstructor = function (
             model.positions.list.length > 0
           ) {
             for (var i = 0; i < model.positions.list.length; i++) {
-              const positionRenderer = this.objects[model.positions.list[i].type];
+              const positionRenderer = getRendererObject(model.positions.list[i].type);
               if (positionRenderer?.postRenderOverlay) {
                 positionRenderer.postRenderOverlay(
                   model.positions.list[i],
@@ -939,13 +944,13 @@ const Renderer: CoreRendererConstructor = function (
       };
       let precision = 2;
       let zerosToReduce = this.priceRenderingOptions.zerosToReduce;
+      const seriesPrecisions =
+        Array.isArray((series as unknown as { precisions?: unknown }).precisions)
+          ? ((series as unknown as { precisions: Array<number | null | undefined> }).precisions ?? [])
+          : [];
 
-      if (
-        series.precisions &&
-        series.precisions[i] !== null &&
-        series.precisions[i] !== undefined
-      ) {
-        precision = series.precisions[i];
+      if (seriesPrecisions[i] !== null && seriesPrecisions[i] !== undefined) {
+        precision = seriesPrecisions[i] as number;
         zerosToReduce = 0;
       } else if (object.renderAs == "OHLC" && label == "V") {
         precision = this.volumePrecision;

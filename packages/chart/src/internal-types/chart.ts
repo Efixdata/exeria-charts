@@ -61,7 +61,7 @@ export interface CoreChartPanel extends ChartPanel {
   precision?: number;
   zeroLine?: ChartZeroLine;
   objects: ChartRuntimeObject[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CoreChartModel extends ChartModelFragment {
@@ -90,7 +90,7 @@ export interface CoreChartModel extends ChartModelFragment {
   _midOffset: number;
   _leftIndex: number;
   _rightIndex: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CoreChartController {
@@ -135,7 +135,7 @@ export interface CoreChartController {
   getSeriesManager(): SeriesManager;
   getScriptsManager(): Record<string, FusionScriptControllerRuntime>;
   removePanelFromModel(panel: CoreChartPanel): void;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ChartRecalculateOptions {

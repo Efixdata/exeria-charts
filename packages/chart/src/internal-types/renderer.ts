@@ -63,14 +63,14 @@ export interface PriceCoordinateOptions {
   maxValue: number;
   valueAxisMode?: ValueAxisMode | string;
   fV?: unknown;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PriceRenderingOptions {
   valueAxisWidth: number;
   magnitude: number;
   zerosToReduce: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ValueAxisTick {
@@ -79,7 +79,7 @@ export interface ValueAxisTick {
   tickSpacing: number;
   niceMin: number;
   niceMax: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ValueConverterLike {
@@ -321,7 +321,7 @@ export interface CoreRenderer {
   calculatePriceRenderingOptions: RendererPriceRenderingOptionsMethod;
   getPriceRenderingOptions: RendererGetPriceRenderingOptionsMethod;
   months: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export type CoreRendererConstructor = new (

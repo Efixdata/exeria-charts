@@ -44,7 +44,7 @@ export interface InstrumentSeriesRef {
 export interface InstrumentSeriesRuntime extends InstrumentSeriesRef {
   seriesId: string;
   instrument?: Instrument;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface FusionSeriesRuntime {
@@ -56,7 +56,7 @@ export interface FusionSeriesRuntime {
   title?: string;
   userName?: string;
   instrument?: Instrument;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export type FusionSeriesManager = Record<string, FusionSeriesRuntime>;

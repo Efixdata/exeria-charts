@@ -1,9 +1,14 @@
 import WEBRCP from "./WebRCP";
+import {
+  getFusionServices,
+  requireFusionServices,
+} from "./adapters/fusionServices";
 import { createFusionIndicatorScripts } from "./fusion-scripts/indicators";
 import { createFusionStrategyScripts } from "./fusion-scripts/strategies";
 import { createFusionFunctionScripts } from "./fusion-scripts/functions";
 import { createFusionHiddenScripts } from "./fusion-scripts/hidden";
-import type { Interval } from "./types";
+import type { Instrument, Interval } from "./types";
+import type { FusionServicesAdapter } from "./adapters/fusionServices";
 import type {
   CoreFusionBuilder,
   CoreFusionLoader,
@@ -16,10 +21,12 @@ import type {
   FusionLoaderError,
   FusionLoaderSuccess,
   FusionModelRuntime,
+  FusionPanelRuntime,
   FusionRawSeriesWrapper,
   FusionRecord,
   FusionSeriesData,
   FusionSeriesWrapper,
+  FusionTooltipStore,
   FusionTooltipSeriesWrapper,
 } from "./internal-types/fusion";
 import type {
@@ -43,118 +50,165 @@ type FusionInstrument = FusionInstrumentRuntime & {
 
 type MainFusionSeries = ReturnType<CoreFusionRuntime["getMainSeries"]>;
 
-interface FusionServices {
-  payments: {
-    isSubscriptionPackEnabled(subscriptionPack: string): boolean;
-  };
-  datasource: {
-    loadInstrumentCandles(
-      instrument: FusionInstrument,
-      intervalSymbol: string,
-      from: unknown,
-      to: unknown,
-      onSuccess: (data: FusionLoadResponse) => void,
-      onError: (error: unknown) => void
-    ): void;
-    loadCandlesHistory(
-      limit: number,
-      intervalSymbol: string,
-      from: unknown,
-      to: number,
-      instruments: Array<FusionInstrument | undefined>,
-      onSuccess: (data: Record<string, FusionLoadResponse> | FusionLoadResponse) => void,
-      onError: (error: unknown) => void
-    ): void;
+type LoadedFusionResponse = Omit<FusionLoadResponse, "candles" | "instrument" | "interval"> & {
+  candles: FusionSeriesData;
+  instrument: FusionInstrument;
+  interval: FusionInterval;
+};
+
+type FusionHistoryResponseMap = Record<string, LoadedFusionResponse>;
+
+type IntervalDelta = {
+  index: number;
+  value: number;
+};
+
+type FusionServices = FusionServicesAdapter<FusionInstrument, LoadedFusionResponse>;
+
+type FusionStaticConstants = {
+  DEBUG: boolean;
+  MIN_VALUE: number;
+  MAX_VALUE: number;
+  BUY: number;
+  SELL: number;
+  EXIT_LONG: number;
+  EXIT_SHORT: number;
+  EXIT_ALL: number;
+  DO_NOTHING: number;
+};
+
+type FusionBootstrapStatic = Pick<CoreFusionStatic, "lib" | "scripts" | "signals"> &
+  FusionStaticConstants;
+
+type MutableFusionStatic = CoreFusionStatic & FusionStaticConstants;
+
+const FUSION_SIGNAL_VALUES = {
+  BUY: 1,
+  SELL: -1,
+  EXIT_LONG: 2,
+  EXIT_SHORT: -2,
+  EXIT_ALL: -3,
+  DO_NOTHING: 0,
+} as const;
+
+function getServices(): FusionServices | null {
+  return getFusionServices<FusionInstrument, LoadedFusionResponse>();
+}
+
+function requireServices(): FusionServices {
+  return requireFusionServices<FusionInstrument, LoadedFusionResponse>();
+}
+
+function toChartInstrument(instrument: FusionInstrument | undefined): Instrument | undefined {
+  if (!instrument) return undefined;
+  return {
+    ...instrument,
+    id: instrument.id != null ? String(instrument.id) : undefined,
   };
 }
 
-declare const SERVICES: FusionServices;
+function toChartInterval(interval: FusionInterval): Interval {
+  return {
+    ...interval,
+    symbol: interval.symbol,
+    milis: interval.milis ?? 0,
+  };
+}
 
-const FUSION: CoreFusionStatic = {} as CoreFusionStatic;
+function getTooltipMap(tooltips: FusionTooltipStore | undefined): Record<string, unknown> {
+  if (!tooltips || Array.isArray(tooltips)) return {};
+  return tooltips;
+}
 
-FUSION.scripts = {};
+function isLoadedFusionResponse(
+  data: LoadedFusionResponse | FusionHistoryResponseMap,
+): data is LoadedFusionResponse {
+  return "candles" in data && "instrument" in data && "interval" in data;
+}
 
-FUSION.DEBUG = false;
-FUSION.MIN_VALUE = -Number.MAX_VALUE;
-FUSION.MAX_VALUE = Number.MAX_VALUE;
-
-FUSION.BUY = 1;
-FUSION.SELL = -1;
-FUSION.EXIT_LONG = 2;
-FUSION.EXIT_SHORT = -2;
-FUSION.EXIT_ALL = -3;
-FUSION.DO_NOTHING = 0;
-
-/**
- * @memberOf FUSION
- */
-FUSION.signals = {
-  Buy: FUSION.BUY,
-  Sell: FUSION.SELL,
-  "Exit long": FUSION.EXIT_LONG,
-  "Exit short": FUSION.EXIT_SHORT,
-  "Exit all": FUSION.EXIT_ALL,
-  "Do nothing": FUSION.DO_NOTHING,
+const fusionBootstrap: FusionBootstrapStatic = {
+  scripts: {},
+  lib: {},
+  DEBUG: false,
+  MIN_VALUE: -Number.MAX_VALUE,
+  MAX_VALUE: Number.MAX_VALUE,
+  ...FUSION_SIGNAL_VALUES,
+  signals: {
+    Buy: FUSION_SIGNAL_VALUES.BUY,
+    Sell: FUSION_SIGNAL_VALUES.SELL,
+    "Exit long": FUSION_SIGNAL_VALUES.EXIT_LONG,
+    "Exit short": FUSION_SIGNAL_VALUES.EXIT_SHORT,
+    "Exit all": FUSION_SIGNAL_VALUES.EXIT_ALL,
+    "Do nothing": FUSION_SIGNAL_VALUES.DO_NOTHING,
+  },
 };
 
+const FUSION: MutableFusionStatic = fusionBootstrap as unknown as MutableFusionStatic;
+
 /**
  * @memberOf FUSION
  */
-FUSION.Matrix = function (this: FusionSignalMatrix) {
-  this["Buy"] = {
-    Buy: "Buy",
-    Sell: "Do nothing",
-    "Exit long": "Exit long",
-    "Exit short": "Exit short",
-    "Exit all": "Exit all",
-    "Do nothing": "Buy",
-  };
+class FusionMatrix implements FusionSignalMatrix {
+  [key: string]: Record<string, string>;
 
-  this["Sell"] = {
-    Buy: "Do nothing",
-    Sell: "Sell",
-    "Exit long": "Exit long",
-    "Exit short": "Exit short",
-    "Exit all": "Exit all",
-    "Do nothing": "Sell",
-  };
+  constructor() {
+    this["Buy"] = {
+      Buy: "Buy",
+      Sell: "Do nothing",
+      "Exit long": "Exit long",
+      "Exit short": "Exit short",
+      "Exit all": "Exit all",
+      "Do nothing": "Buy",
+    };
 
-  this["Exit long"] = {
-    Buy: "Exit long",
-    Sell: "Exit long",
-    "Exit long": "Exit long",
-    "Exit short": "Exit all",
-    "Exit all": "Exit all",
-    "Do nothing": "Exit long",
-  };
+    this["Sell"] = {
+      Buy: "Do nothing",
+      Sell: "Sell",
+      "Exit long": "Exit long",
+      "Exit short": "Exit short",
+      "Exit all": "Exit all",
+      "Do nothing": "Sell",
+    };
 
-  this["Exit short"] = {
-    Buy: "Exit short",
-    Sell: "Exit short",
-    "Exit long": "Exit all",
-    "Exit short": "Exit short",
-    "Exit all": "Exit all",
-    "Do nothing": "Exit short",
-  };
+    this["Exit long"] = {
+      Buy: "Exit long",
+      Sell: "Exit long",
+      "Exit long": "Exit long",
+      "Exit short": "Exit all",
+      "Exit all": "Exit all",
+      "Do nothing": "Exit long",
+    };
 
-  this["Exit all"] = {
-    Buy: "Exit all",
-    Sell: "Exit all",
-    "Exit long": "Exit all",
-    "Exit short": "Exit all",
-    "Exit all": "Exit all",
-    "Do nothing": "Exit all",
-  };
+    this["Exit short"] = {
+      Buy: "Exit short",
+      Sell: "Exit short",
+      "Exit long": "Exit all",
+      "Exit short": "Exit short",
+      "Exit all": "Exit all",
+      "Do nothing": "Exit short",
+    };
 
-  this["Do nothing"] = {
-    Buy: "Buy",
-    Sell: "Sell",
-    "Exit long": "Exit long",
-    "Exit short": "Exit short",
-    "Exit all": "Exit all",
-    "Do nothing": "Do nothing",
-  };
-} as unknown as CoreFusionStatic["Matrix"];
+    this["Exit all"] = {
+      Buy: "Exit all",
+      Sell: "Exit all",
+      "Exit long": "Exit all",
+      "Exit short": "Exit all",
+      "Exit all": "Exit all",
+      "Do nothing": "Exit all",
+    };
+
+    this["Do nothing"] = {
+      Buy: "Buy",
+      Sell: "Sell",
+      "Exit long": "Exit long",
+      "Exit short": "Exit short",
+      "Exit all": "Exit all",
+      "Do nothing": "Do nothing",
+    };
+  }
+}
+
+FUSION.Matrix = FusionMatrix;
 
 FUSION.signalValueToName = function (value) {
   for (var property in FUSION.signals) {
@@ -225,9 +279,10 @@ FUSION.uniqueId = function () {
 };
 
 FUSION.getAvailableScript = function (key) {
-  if (typeof SERVICES === "undefined") return FUSION.scripts[key];
+  const services = getServices();
+  if (!services) return FUSION.scripts[key];
   else if (!FUSION.scripts[key].subscriptionPack) return FUSION.scripts[key];
-  else if (SERVICES.payments.isSubscriptionPackEnabled(FUSION.scripts[key].subscriptionPack))
+  else if (services.payments.isSubscriptionPackEnabled(FUSION.scripts[key].subscriptionPack))
     return FUSION.scripts[key];
   else return null;
 };
@@ -237,6 +292,7 @@ FUSION.getScript = function (key) {
 };
 
 FUSION.getAvailableScripts = function () {
+  const services = getServices();
   const availableScripts =
     FUSION.availableScripts ??
     (FUSION.availableScripts = JSON.parse(JSON.stringify(FUSION.scripts)));
@@ -247,9 +303,8 @@ FUSION.getAvailableScripts = function () {
     const script = availableScripts[key];
 
     if (
-      typeof SERVICES === "undefined" ||
-      (script.subscriptionPack &&
-        !SERVICES.payments.isSubscriptionPackEnabled(script.subscriptionPack))
+      !services ||
+      (script.subscriptionPack && !services.payments.isSubscriptionPackEnabled(script.subscriptionPack))
     ) {
       delete availableScripts[key];
     }
@@ -291,8 +346,6 @@ Object.assign(FUSION.scripts, indicatorScripts, functionScripts, strategyScripts
 /*
  * FUSION LIB - basic fusion functions
  */
-FUSION.lib = {};
-
 FUSION.lib.getConditionalInputValue = function (input, index) {
   if (input["type"] && input["type"] == "double") {
     //double
@@ -374,14 +427,14 @@ FUSION.lib.getBestMatchingInterval = function (originalInterval, availableInterv
   if (!originalInterval) return availableIntervals[0];
 
   const bestDelta = availableIntervals
-    .filter((interval: FusionRecord) => interval.milis > 0)
-    .map((interval: FusionRecord, index: number) => {
+    .filter((interval: FusionIntervalRuntime) => typeof interval.milis === "number" && interval.milis > 0)
+    .map((interval: FusionIntervalRuntime, index: number): IntervalDelta => {
       return {
         index: index,
-        value: Math.abs(originalInterval.milis - interval.milis),
+        value: Math.abs((originalInterval.milis || 0) - (interval.milis || 0)),
       };
     })
-    .sort((deltaA: FusionRecord, deltaB: FusionRecord) => deltaA.value - deltaB.value)
+    .sort((deltaA: IntervalDelta, deltaB: IntervalDelta) => deltaA.value - deltaB.value)
     .slice(0, 1);
   return availableIntervals[bestDelta[0].index];
 };
@@ -453,7 +506,7 @@ FUSION.lib.inverseNormalDistribution = function (p, mean, std) {
     x = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t);
     for (; j < 2; j++) {
       err = erfc(x) - pp;
-      x += err / (1.12837916709551257 * Math.exp(-x * x) - x * err);
+      x += err / ((2 / Math.sqrt(Math.PI)) * Math.exp(-x * x) - x * err);
     }
     return p < 1 ? x : -x;
   }
@@ -464,7 +517,7 @@ FUSION.lib.inverseNormalDistribution = function (p, mean, std) {
 
   function erf(x: number) {
     var cof = [
-      -1.3026537197817094, 6.4196979235649026e-1, 1.9476473204185836e-2, -9.561514786808631e-3,
+      -1.3026537197817094, 6.419697923564903e-1, 1.9476473204185836e-2, -9.561514786808631e-3,
       -9.46595344482036e-4, 3.66839497852761e-4, 4.2523324806907e-5, -2.0278578112534e-5,
       -1.624290004647e-6, 1.30365583558e-6, 1.5626441722e-8, -8.5238095915e-8, 6.529054439e-9,
       5.059343495e-9, -9.91364156e-10, -2.27365122e-10, 9.6467911e-11, 2.394038e-12, -6.886027e-12,
@@ -495,7 +548,7 @@ FUSION.lib.inverseNormalDistribution = function (p, mean, std) {
     return isneg ? res - 1 : 1 - res;
   }
 
-  return -1.41421356237309505 * std * erfcinv(2 * p) + mean;
+  return -Math.SQRT2 * std * erfcinv(2 * p) + mean;
 };
 
 FUSION.lib.isHighBar = function (series, idx, prd) {
@@ -750,23 +803,23 @@ FUSION.lib.getSmall = function (series, index, period, n) {
  * ENGINE
  */
 
-FUSION.engine = function (this: CoreFusionRuntime) {
-  this.model = {
+class FusionEngine implements CoreFusionRuntime {
+  [key: string]: any;
+
+  model = {
     id: FUSION.uniqueId(),
     instrumentsSeries: [],
     scripts: [],
   } as FusionModelRuntime;
-  var positionsSeriesId = "POSITIONS";
+  seriesManager = {} as Record<string, FusionSeriesRuntime>;
+  scriptsManager = {} as Record<string, FusionScriptControllerRuntime>;
 
-  this.seriesManager = {} as Record<string, FusionSeriesRuntime>;
-  this.scriptsManager = {} as Record<string, FusionScriptControllerRuntime>;
+  private readonly positionsSeriesId = "POSITIONS";
 
-  this.createSeries = function (this: CoreFusionRuntime, fields: string[]) {
+  createSeries(fields: string[]) {
     var series: FusionSeriesData = [];
     const mainSeries = this.getMainSeries();
-    const mainSeriesData = (
-      mainSeries && mainSeries.data ? mainSeries.data : []
-    ) as FusionSeriesData;
+    const mainSeriesData = (mainSeries && mainSeries.data ? mainSeries.data : []) as FusionSeriesData;
     if (mainSeriesData) {
       for (var i = 0; i < mainSeriesData.length; i++) {
         series[i] = {};
@@ -778,32 +831,29 @@ FUSION.engine = function (this: CoreFusionRuntime) {
       }
     }
     return series;
-  };
-  this.createTooltipSeries = function (this: CoreFusionRuntime, fields: string[]) {
+  }
+
+  createTooltipSeries(fields: string[]) {
     var series = this.createSeries(fields);
     for (var i = 0; i < series.length; i++) {
       series[i].tooltips = {};
     }
     return series;
-  };
+  }
 
-  this.configureScripts = function (this: CoreFusionRuntime) {
+  configureScripts() {
     for (var i = 0; i < this.model.scripts.length; i++) {
       this.configureScript(this.model.scripts[i] as RuntimeScriptConfig);
     }
-  };
+  }
 
-  this.configureScript = function (this: CoreFusionRuntime, scriptModel: RuntimeScriptConfig) {
+  configureScript(scriptModel: RuntimeScriptConfig) {
     var self = this;
     var scriptProto = FUSION.scripts[scriptModel.key] as RuntimeScriptDefinition | undefined;
     if (scriptProto == null || !scriptProto.controller) return;
 
     scriptModel.scriptType = scriptProto.type;
-    //Get Script ID
 
-    var id = scriptModel.id;
-
-    //create input wrappers
     var wrappers: Record<string, unknown> = {};
 
     for (var key in scriptModel.inputs) {
@@ -826,16 +876,16 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         }
       }
     }
-    function initializeSeries(series: FusionRecord) {
-      const runtimeSeries = series as FusionSeriesRuntime;
+
+    function initializeSeries(series: FusionSeriesRuntime) {
       series.userName = scriptModel.userName;
       if (scriptModel.inputs["OBJECT"] && scriptModel.inputs["OBJECT"].userName) {
         series.userName = scriptModel.inputs["OBJECT"].userName;
       }
       series.seriesId = scriptModel.outputs[key];
-      self.seriesManager[runtimeSeries.seriesId] = runtimeSeries;
+      self.seriesManager[series.seriesId] = series;
     }
-    //create outputs
+
     for (var key in scriptModel.outputs) {
       var type = scriptProto.outputs[key].type;
       if (type === "series") {
@@ -844,9 +894,7 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         initializeSeries(series);
 
         for (var i = 0; i < series.fields.length; i++) {
-          wrappers[series.fields[i]] = this.getSeriesWrapper(
-            series.seriesId + ":" + series.fields[i]
-          );
+          wrappers[series.fields[i]] = this.getSeriesWrapper(series.seriesId + ":" + series.fields[i]);
         }
       } else if (type === "tooltipSeries") {
         var series: FusionSeriesRuntime = JSON.parse(JSON.stringify(scriptProto.outputs[key].series));
@@ -854,24 +902,22 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         initializeSeries(series);
         for (var i = 0; i < series.fields.length; i++) {
           wrappers[series.fields[i]] = this.getTooltipSeriesWrapper(
-            series.seriesId + ":" + series.fields[i]
+            series.seriesId + ":" + series.fields[i],
           );
         }
       }
     }
 
-    //Create Script Instance
     var scriptController = scriptProto.controller(this, scriptModel.inputs, scriptModel.outputs);
     scriptController.id = scriptModel.id;
     for (var key in wrappers) {
       scriptController[key] = wrappers[key];
     }
     this.scriptsManager[String(scriptModel.id)] = scriptController;
-  };
+  }
 
-  this.getSeriesWrapper = function (this: CoreFusionRuntime, seriesLink: string) {
+  getSeriesWrapper(seriesLink: string) {
     var spl = seriesLink.split(":");
-
     var self = this;
 
     var wrapper: FusionSeriesWrapper = {
@@ -892,8 +938,9 @@ FUSION.engine = function (this: CoreFusionRuntime) {
             mainSeries.interval &&
             mainSeries.interval.milis &&
             mainSeries.interval.milis > 0
-          )
+          ) {
             milis = mainSeries.interval.milis;
+          }
 
           for (let i = 0; i < number; ++i) {
             const value = {
@@ -934,9 +981,9 @@ FUSION.engine = function (this: CoreFusionRuntime) {
     };
 
     return wrapper;
-  };
+  }
 
-  this.getTooltipSeriesWrapper = function (this: CoreFusionRuntime, seriesLink: string) {
+  getTooltipSeriesWrapper(seriesLink: string) {
     var self = this;
     var spl = seriesLink.split(":");
     var wrapper = this.getSeriesWrapper(seriesLink) as FusionTooltipSeriesWrapper;
@@ -951,8 +998,9 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         mainSeries.interval &&
         mainSeries.interval.milis &&
         mainSeries.interval.milis > 0
-      )
+      ) {
         milis = mainSeries.interval.milis;
+      }
 
       for (let i = 0; i < number; ++i) {
         const value = {
@@ -973,24 +1021,22 @@ FUSION.engine = function (this: CoreFusionRuntime) {
     wrapper.setTooltip = function (index: number, key: string, value: unknown) {
       const lastIndex = series.length - 1;
       if (index > lastIndex) pushEmptyValues(index - lastIndex);
-      const tooltips = (series[index].tooltips || {}) as Record<string, unknown>;
+      const tooltips = getTooltipMap(series[index].tooltips);
       tooltips[key] = value;
       series[index].tooltips = tooltips;
     };
+
     wrapper.getTooltip = function (index: number, key: string) {
       if (index < 0) return null;
       if (index > series.length - 1) return null;
-      const tooltips = (series[index].tooltips || {}) as Record<string, unknown>;
+      const tooltips = getTooltipMap(series[index].tooltips);
       return tooltips[key];
     };
-    return wrapper;
-  };
 
-  this.getRawSeriesWrapper = function (
-    this: CoreFusionRuntime,
-    series: FusionSeriesData,
-    field: string
-  ) {
+    return wrapper;
+  }
+
+  getRawSeriesWrapper(series: FusionSeriesData, field: string) {
     var self = this;
 
     var wrapper: FusionRawSeriesWrapper = {
@@ -1009,8 +1055,9 @@ FUSION.engine = function (this: CoreFusionRuntime) {
             mainSeries.interval &&
             mainSeries.interval.milis &&
             mainSeries.interval.milis > 0
-          )
+          ) {
             milis = mainSeries.interval.milis;
+          }
 
           for (let i = 0; i < number; ++i) {
             const value = {
@@ -1029,55 +1076,47 @@ FUSION.engine = function (this: CoreFusionRuntime) {
       getStamp: function (index: number) {
         return series[index].stamp;
       },
-
       getSeriesLength: function () {
         return series.length;
       },
       getSeriesId: function () {
-        return (series as unknown as { seriesId?: string | number }).seriesId;
+        return series.seriesId;
       },
     };
 
     return wrapper;
-  };
+  }
 
-  this.getId = function (this: CoreFusionRuntime) {
+  getId() {
     return this.model.id;
-  };
+  }
 
-  this.getModel = function (this: CoreFusionRuntime) {
+  getModel() {
     return this.model;
-  };
+  }
 
-  this.getValue = function (this: CoreFusionRuntime, series: string, i: number, field?: string) {
+  getValue(series: string, i: number, field?: string) {
     if (field) return this.seriesManager[series].data[i][field];
 
     var spl = series.split(":");
     return this.seriesManager[spl[0]].data[i][spl[1]];
-  };
+  }
 
-  this.setValue = function (
-    this: CoreFusionRuntime,
-    series: string,
-    i: number,
-    value: unknown,
-    field?: string
-  ) {
+  setValue(series: string, i: number, value: unknown, field?: string) {
     if (field) this.seriesManager[series].data[i][field] = value;
 
     var spl = series.split(":");
     this.seriesManager[spl[0]].data[i][spl[1]] = value;
-  };
+  }
 
-  this.initAll = function (this: CoreFusionRuntime) {
+  initAll() {
     for (var key in this.model.scripts) {
-      //w modelu skrypty są w kolejności!!! wrappery już nie koniecznie
       const scriptConfig = this.model.scripts[key] as RuntimeScriptConfig;
       this.scriptsManager[String(scriptConfig.id)].init();
     }
-  };
+  }
 
-  this.shortSynchronization = function (this: CoreFusionRuntime) {
+  shortSynchronization() {
     var seriesManager = this.getSeriesManager();
     var longest = null;
     for (var key in seriesManager) {
@@ -1110,13 +1149,13 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         }
       }
     }
-  };
+  }
 
-  this.fullSynchronization = function (this: CoreFusionRuntime) {
+  fullSynchronization() {
     var model = this.model;
     var seriesManager = this.getSeriesManager();
 
-    if (model.instrumentsSeries.length < 1) return; //synchronization not needed
+    if (model.instrumentsSeries.length < 1) return;
     if (!this.isLoaded()) {
       throw "Can't synchronize unloaded series! Load it first!";
     }
@@ -1163,7 +1202,7 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         if (seriesData.length === 0) continue;
 
         const value = seriesData[index];
-  const isValueMissing = !value || !value.stamp || value.stamp != numericStamp;
+        const isValueMissing = !value || !value.stamp || value.stamp != numericStamp;
         const isValueEmpty = value && !value.o;
 
         if (!isValueMissing && !isValueEmpty) {
@@ -1195,24 +1234,24 @@ FUSION.engine = function (this: CoreFusionRuntime) {
         else seriesData.splice(index, 0, candle);
       }
     }
-  };
+  }
 
-  this.setPositions = function (this: CoreFusionRuntime, positionsSeries: FusionSeriesData) {
+  setPositions(positionsSeries: FusionSeriesData) {
     var self = this;
     var mainSeriesId = this.getMainSeries().seriesId;
-    var series: FusionRecord = {
-      seriesId: positionsSeriesId,
+    var series: FusionSeriesRuntime = {
+      seriesId: this.positionsSeriesId,
       data: [],
       fields: ["position"],
       interval: this.getMainSeries().interval,
       title: "Market positions",
       labels: ["Market position"],
     };
-    series.data = (this.seriesManager[mainSeriesId].data as FusionSeriesData).map(function (
-      e: FusionRecord
-    ) {
-      return { stamp: e.stamp, position: null, instrumentId: self.getMainSeries().instrument.id };
-    });
+    const seriesData = ((series.data = (this.seriesManager[mainSeriesId].data as FusionSeriesData).map(
+      function (e: FusionRecord) {
+        return { stamp: e.stamp, position: null, instrumentId: self.getMainSeries().instrument.id };
+      },
+    )) || []) as FusionSeriesData;
 
     positionsSeries.sort(function (a: FusionRecord, b: FusionRecord) {
       if (Number(a.stamp) < Number(b.stamp)) return -1;
@@ -1221,69 +1260,52 @@ FUSION.engine = function (this: CoreFusionRuntime) {
     });
 
     var lastDataIdx = 0;
-    //synch
-    positionsSeries.forEach(function (p: FusionRecord, _i: number) {
+    positionsSeries.forEach(function (p: FusionRecord) {
       const positionStamp = Number(p.stamp);
-      for (var i = lastDataIdx; i < series.data.length; i++) {
-        if (series.data[i].stamp <= positionStamp) lastDataIdx = i;
+      for (var i = lastDataIdx; i < seriesData.length; i++) {
+        const seriesPoint = seriesData[i];
+        if (!seriesPoint) continue;
+        if (typeof seriesPoint.stamp === "number" && seriesPoint.stamp <= positionStamp)
+          lastDataIdx = i;
         else {
-          series.data[lastDataIdx].position = p.positionSize;
+          seriesData[lastDataIdx].position = p.positionSize;
           lastDataIdx = i;
           break;
         }
       }
     });
 
-    //fill nulls
-    for (var i = 0; i < series.data.length; i++) {
-      if (series.data[i].position == null) {
-        if (i == 0) series.data[i].position = 0;
-        else series.data[i].position = series.data[i - 1].position;
+    for (var i = 0; i < seriesData.length; i++) {
+      if (seriesData[i].position == null) {
+        if (i == 0) seriesData[i].position = 0;
+        else seriesData[i].position = seriesData[i - 1].position;
       }
     }
 
-    this.seriesManager[series.seriesId] = series as FusionSeriesRuntime;
-  };
+    this.seriesManager[series.seriesId] = series;
+  }
 
-  this.isPositionsSeries = function (this: CoreFusionRuntime) {
+  isPositionsSeries() {
     return (
-      this.seriesManager[positionsSeriesId] != null &&
-      this.seriesManager[positionsSeriesId].data != null &&
-      this.seriesManager[positionsSeriesId].data.length > 0
+      this.seriesManager[this.positionsSeriesId] != null &&
+      this.seriesManager[this.positionsSeriesId].data != null &&
+      this.seriesManager[this.positionsSeriesId].data.length > 0
     );
-  };
+  }
 
-  this.getPositions = function (this: CoreFusionRuntime) {
-    return this.seriesManager[positionsSeriesId];
-  };
+  getPositions() {
+    return this.seriesManager[this.positionsSeriesId];
+  }
 
-  this.calculateAll = function (this: CoreFusionRuntime) {
-    // console.log('##################################FUSION CALCULATE ALL#####################################');
+  calculateAll() {
     for (var key in this.model.scripts) {
-      //w modelu skrypty są w kolejności!!! wrappery już nie koniecznie
       const scriptConfig = this.model.scripts[key] as RuntimeScriptConfig;
       var script = this.scriptsManager[String(scriptConfig.id)];
       this.calculate(script, this.getMainSeries());
-
-      for (var output in script.outputs) {
-        var series = this.seriesManager[script.outputs[output]];
-        const fields = (series.fields || []) as string[];
-        for (var f in fields) {
-          var outWrap = script[fields[f]];
-          var lastIdx = outWrap.getSeriesLength() - 1;
-          var secondLastIdx = outWrap.getSeriesLength() - 2;
-          // console.log("FUSION: " + this.getMainSeries().title + ":" + series.data[lastIdx].stamp + ":" +series.fields[f]+ " "
-          //     + "...," + outWrap.getValue(secondLastIdx) + "," + outWrap.getValue(lastIdx));
-        }
-      }
     }
-  };
+  }
 
-  this.calculate = function (
-    this: CoreFusionRuntime,
-    script: FusionScriptControllerRuntime,
-    mainSeries: FusionSeriesRuntime
-  ) {
+  calculate(script: FusionScriptControllerRuntime, mainSeries: FusionSeriesRuntime) {
     const mainSeriesData = (mainSeries.data || []) as FusionSeriesData;
     var maxLength = mainSeriesData.length;
     for (var key in script.inputs) {
@@ -1306,15 +1328,14 @@ FUSION.engine = function (this: CoreFusionRuntime) {
     for (let i = 0; i < maxLength; i++) {
       script.calculate(i);
     }
-  };
+  }
 
-  this.modifyScript = function (this: CoreFusionRuntime, s: RuntimeScriptConfig) {
+  modifyScript(s: RuntimeScriptConfig) {
     var scriptProto = FUSION.scripts[s.key] as RuntimeScriptDefinition | undefined;
     if (scriptProto == null) return;
 
     if (s.permHide) s.visible = false;
 
-    //modify inputs values
     var wrappers: Record<string, unknown> = {};
     for (var key in s.inputs) {
       if (scriptProto.inputs[key].type == "series") {
@@ -1346,13 +1367,11 @@ FUSION.engine = function (this: CoreFusionRuntime) {
     for (var key in wrappers) {
       scriptInstance[key] = wrappers[key];
     }
-  };
+  }
 
-  this.addScript = function (this: CoreFusionRuntime, config: RuntimeScriptConfig) {
-    //Create script id
+  addScript(config: RuntimeScriptConfig) {
     config.id = FUSION.uniqueId();
 
-    //Create output ids
     config["outputs"] = {};
     var proto = JSON.parse(JSON.stringify(FUSION.scripts[config.key]));
     for (var key in proto.outputs) {
@@ -1364,17 +1383,17 @@ FUSION.engine = function (this: CoreFusionRuntime) {
 
     this.model.scripts.push(config);
     this.scriptsManager[String(config.id)].init();
-  };
+  }
 
-  this.clearSeriesData = function (this: CoreFusionRuntime) {
+  clearSeriesData() {
     if (this.seriesManager) {
       for (var k in this.seriesManager) {
         if (this.seriesManager[k].data) this.seriesManager[k].data = null;
       }
     }
-  };
+  }
 
-  this.getMainSeries = function (this: CoreFusionRuntime) {
+  getMainSeries() {
     if (this.model && this.model.instrumentsSeries && this.model.instrumentsSeries.length > 0) {
       var id = this.model.instrumentsSeries[0].seriesId;
       return this.seriesManager[id] as MainFusionSeries;
@@ -1384,17 +1403,17 @@ FUSION.engine = function (this: CoreFusionRuntime) {
       return this.seriesManager[this.model.mainSeries] as MainFusionSeries;
 
     return null as unknown as MainFusionSeries;
-  };
+  }
 
-  this.getScriptsManager = function (this: CoreFusionRuntime) {
+  getScriptsManager() {
     return this.scriptsManager;
-  };
+  }
 
-  this.getSeriesManager = function (this: CoreFusionRuntime) {
+  getSeriesManager() {
     return this.seriesManager;
-  };
+  }
 
-  this.getSeriesManagerSnapshot = function (this: CoreFusionRuntime) {
+  getSeriesManagerSnapshot() {
     var snapshot: Record<string, FusionSeriesRuntime> = {};
     var index = this.getMainSeriesLastIndex();
     for (var id in this.seriesManager) {
@@ -1413,40 +1432,42 @@ FUSION.engine = function (this: CoreFusionRuntime) {
       if (series.interval) snapshot[id].interval = series.interval;
     }
     return snapshot;
-  };
+  }
 
-  this.getMainSeriesLastIndex = function (this: CoreFusionRuntime) {
+  getMainSeriesLastIndex() {
     return this.getMainSeries().data.length - 1;
-  };
+  }
 
-  this.getSeriesById = function (this: CoreFusionRuntime, seriesId: string) {
+  getSeriesById(seriesId: string) {
     return this.seriesManager[seriesId];
-  };
+  }
 
-  this.isLoaded = function (this: CoreFusionRuntime) {
+  isLoaded() {
     for (var k in this.seriesManager) {
       if (
         this.seriesManager[k].instrument &&
         (!this.seriesManager[k].data || !Array.isArray(this.seriesManager[k].data))
-      )
+      ) {
         return false;
+      }
     }
     return true;
-  };
+  }
 
-  this.areAllSeriesEmpty = function (this: CoreFusionRuntime) {
+  areAllSeriesEmpty() {
     for (var k in this.seriesManager) {
       if (
         this.seriesManager[k].data &&
         Array.isArray(this.seriesManager[k].data) &&
         this.seriesManager[k].data.length !== 0
-      )
+      ) {
         return false;
+      }
     }
     return true;
-  };
+  }
 
-  this.getEmptyInstrumentSeries = function (this: CoreFusionRuntime) {
+  getEmptyInstrumentSeries() {
     const emptySeries: Record<string, FusionSeriesRuntime> = {};
 
     for (const k in this.seriesManager) {
@@ -1454,138 +1475,189 @@ FUSION.engine = function (this: CoreFusionRuntime) {
       if (
         series.instrument &&
         (!series.data || !Array.isArray(series.data) || series.data.length === 0)
-      )
+      ) {
         emptySeries[k] = this.seriesManager[k];
+      }
     }
     return emptySeries;
-  };
-} as unknown as CoreFusionStatic["engine"];
+  }
+}
 
-FUSION.loader = function (this: CoreFusionLoader) {
-  var self = this;
-  this.loaded = {} as FusionLoadCache;
+FUSION.engine = FusionEngine;
 
-  this.loadFusionData = function (
-    this: CoreFusionLoader,
+class FusionLoader implements CoreFusionLoader {
+  [key: string]: unknown;
+
+  loaded = {} as FusionLoadCache;
+
+  loadFusionData(
     engine: CoreFusionRuntime,
     onSuccess: FusionLoaderSuccess,
-    onError: FusionLoaderError
+    onError: FusionLoaderError,
   ) {
     engine.clearSeriesData();
 
     var interval = (engine.model.interval || engine.model.instrumentsSeries[0].interval) as FusionInterval;
 
-    for (var k in engine.model.instrumentsSeries) {
-      var is = engine.model.instrumentsSeries[k];
-      load(
-        is.instrument as FusionInstrument,
+    for (var key in engine.model.instrumentsSeries) {
+      var instrumentSeries = engine.model.instrumentsSeries[key];
+      this.load(
+        instrumentSeries.instrument as FusionInstrument,
         interval,
-        this,
-        function (data: FusionRecord) {
-          setData(engine, data);
+        function (data: LoadedFusionResponse) {
+          FusionLoader.setData(engine, data);
           onSuccess(engine, data);
         },
         (error: unknown) => {
           if (typeof error === "object" && error !== null) {
-            (error as FusionRecord).instrument = is.instrument as FusionInstrument;
+            (error as FusionRecord).instrument = instrumentSeries.instrument as FusionInstrument;
           }
           onError(error);
-        }
-      );
-    }
-  };
-
-  function setData(engine: CoreFusionRuntime, data: FusionRecord) {
-    var sm = engine.getSeriesManager();
-    const modelInterval = engine.model.interval as FusionRecord | null;
-
-    if (modelInterval && modelInterval.symbol == data.interval.symbol) {
-      for (var k in sm) {
-        const seriesInstrument = sm[k].instrument;
-        if (seriesInstrument && seriesInstrument.id == data.instrument.id) {
-          sm[k].data = JSON.parse(JSON.stringify(data.candles));
-          sm[k].title = data.instrument.symbol;
-          sm[k].instrument = data.instrument;
-          sm[k].interval = data.interval;
-        }
-      }
-    }
-  }
-
-  function load(
-    instrument: FusionInstrument,
-    interval: FusionInterval,
-    loader: CoreFusionLoader,
-    onSuccess: (data: FusionRecord) => void,
-    onError: FusionLoaderError
-  ) {
-    loader.loaded[interval.symbol] = loader.loaded[interval.symbol] || {};
-
-    if (loader.loaded[interval.symbol][instrument.id]) {
-      onSuccess(loader.loaded[interval.symbol][instrument.id]);
-    } else {
-      SERVICES.datasource.loadInstrumentCandles(
-        instrument,
-        interval.symbol,
-        null,
-        null,
-        function (data: FusionRecord) {
-          loader.loaded[interval.symbol][instrument.id] = data;
-          onSuccess(loader.loaded[interval.symbol][instrument.id]);
         },
-        function (errorMessage: unknown) {
-          onError(errorMessage);
-        }
       );
     }
   }
 
-  this.loadFusionDataHistoric = function (
-    this: CoreFusionLoader,
+  loadFusionDataHistoric(
     engine: CoreFusionRuntime,
     onSuccess: FusionLoaderSuccess,
-    onError: FusionLoaderError
+    onError: FusionLoaderError,
   ) {
     var interval = (engine.model.interval || engine.model.instrumentsSeries[0].interval) as FusionInterval;
     var toStamp =
       engine.getSeriesManager()[engine.model.instrumentsSeries[0].seriesId].data[0].stamp - 1;
     var instrumentsToLoad = [];
 
-    for (var k in engine.model.instrumentsSeries) {
-      instrumentsToLoad.push(engine.model.instrumentsSeries[k].instrument as FusionInstrument);
+    for (var key in engine.model.instrumentsSeries) {
+      instrumentsToLoad.push(engine.model.instrumentsSeries[key].instrument as FusionInstrument);
     }
 
-    loadHistoric(
+    this.loadHistoric(
       instrumentsToLoad,
       interval,
       toStamp,
-      this,
-      function (data: FusionRecord) {
-        setDataHistoric(engine, data, toStamp);
+      function (data: FusionHistoryResponseMap) {
+        FusionLoader.setDataHistoric(engine, data, toStamp);
         onSuccess(engine, data);
       },
-      onError
+      onError,
     );
-  };
+  }
 
-  function setDataHistoric(
-    engine: CoreFusionRuntime,
-    _data: Record<string, FusionRecord>,
-    toStamp: number
+  //metoda KUBY dla charta
+  loadHistory(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn) {
+    var model = engine.model;
+    var instruments: Array<FusionInstrument | undefined> = [];
+    for (var series in model.instrumentsSeries) {
+      instruments.push(model.instrumentsSeries[series].instrument as FusionInstrument | undefined);
+    }
+    var toStamp = engine.getSeriesManager()[model.instrumentsSeries[0].seriesId].data[0].stamp - 1;
+    requireServices().datasource.loadCandlesHistory(
+      2000,
+      (model.interval as FusionInterval).symbol,
+      null,
+      toStamp,
+      instruments,
+      onSuccess,
+      onError,
+    );
+  }
+
+  private load(
+    instrument: FusionInstrument,
+    interval: FusionInterval,
+    onSuccess: (data: LoadedFusionResponse) => void,
+    onError: FusionLoaderError,
   ) {
-    const sm = engine.getSeriesManager();
-    const modelInterval = engine.model.interval as FusionRecord | null;
+    this.loaded[interval.symbol] = this.loaded[interval.symbol] || {};
 
-    for (const id in _data) {
-      if (modelInterval && modelInterval.symbol === _data[id].interval.symbol) {
-        const data = _data[id];
-        for (const k in sm) {
-          const seriesInstrument = sm[k].instrument;
-          if (seriesInstrument && seriesInstrument.id === data.instrument.id) {
+    if (this.loaded[interval.symbol][instrument.id]) {
+      onSuccess(this.loaded[interval.symbol][instrument.id] as LoadedFusionResponse);
+    } else {
+      const services = requireServices();
+
+      services.datasource.loadInstrumentCandles(
+        instrument,
+        interval.symbol,
+        null,
+        null,
+        (data: LoadedFusionResponse) => {
+          this.loaded[interval.symbol][instrument.id] = data;
+          onSuccess(this.loaded[interval.symbol][instrument.id] as LoadedFusionResponse);
+        },
+        function (errorMessage: unknown) {
+          onError(errorMessage);
+        },
+      );
+    }
+  }
+
+  private loadHistoric(
+    instruments: FusionInstrument[],
+    interval: FusionInterval,
+    toStamp: number,
+    onSuccess: (data: FusionHistoryResponseMap) => void,
+    onError: FusionLoaderError,
+  ) {
+    const services = requireServices();
+
+    services.datasource.loadCandlesHistory(
+      2000,
+      interval.symbol,
+      null,
+      toStamp,
+      instruments,
+      function (data: LoadedFusionResponse | FusionHistoryResponseMap) {
+        if (isLoadedFusionResponse(data)) {
+          const dataKey = data.instrument.id != null ? String(data.instrument.id) : String(FUSION.uniqueId());
+          onSuccess({ [dataKey]: data });
+          return;
+        }
+        onSuccess(data);
+      },
+      function (errorMessage: unknown) {
+        onError(errorMessage);
+      },
+    );
+  }
+
+  private static setData(engine: CoreFusionRuntime, data: LoadedFusionResponse) {
+    var seriesManager = engine.getSeriesManager();
+    const modelInterval = engine.model.interval as FusionIntervalRuntime | null;
+    const chartInstrument = toChartInstrument(data.instrument);
+
+    if (modelInterval && modelInterval.symbol == data.interval.symbol && chartInstrument) {
+      for (var key in seriesManager) {
+        const seriesInstrument = seriesManager[key].instrument;
+        if (seriesInstrument && seriesInstrument.id == chartInstrument.id) {
+          seriesManager[key].data = JSON.parse(JSON.stringify(data.candles));
+          seriesManager[key].title = chartInstrument.symbol;
+          seriesManager[key].instrument = chartInstrument;
+          seriesManager[key].interval = toChartInterval(data.interval);
+        }
+      }
+    }
+  }
+
+  private static setDataHistoric(
+    engine: CoreFusionRuntime,
+    dataById: FusionHistoryResponseMap,
+    toStamp: number,
+  ) {
+    const seriesManager = engine.getSeriesManager();
+    const modelInterval = engine.model.interval as FusionIntervalRuntime | null;
+
+    for (const id in dataById) {
+      if (modelInterval && modelInterval.symbol === dataById[id].interval.symbol) {
+        const data = dataById[id];
+        const chartInstrument = toChartInstrument(data.instrument);
+        for (const key in seriesManager) {
+          const seriesInstrument = seriesManager[key].instrument;
+          if (seriesInstrument && chartInstrument && seriesInstrument.id === chartInstrument.id) {
             const history = data.candles.filter(
-              (c: FusionRecord) => typeof c.stamp === "number" && c.stamp <= toStamp
+              (c: FusionRecord) => typeof c.stamp === "number" && c.stamp <= toStamp,
             );
-            const joined = history.concat((sm[k].data || []) as FusionSeriesData);
+            const joined = history.concat((seriesManager[key].data || []) as FusionSeriesData);
             const map = new Map<number, FusionRecord>();
 
             joined.forEach((c: FusionRecord) => {
@@ -1593,345 +1665,271 @@ FUSION.loader = function (this: CoreFusionLoader) {
                 map.set(c.stamp, c);
               }
             });
-            sm[k].data = Array.from(map.values());
+            seriesManager[key].data = Array.from(map.values());
           }
         }
       }
     }
   }
+}
 
-  function loadHistoric(
-    instruments: FusionInstrument[],
-    interval: FusionInterval,
-    toStamp: number,
-    loader: CoreFusionLoader,
-    onSuccess: (data: Record<string, FusionRecord>) => void,
-    onError: FusionLoaderError
-  ) {
-    SERVICES.datasource.loadCandlesHistory(
-      2000,
-      interval.symbol,
-      null,
-      toStamp,
-      instruments,
-      //some cache ???
-      function (data: Record<string, FusionRecord>) {
-        onSuccess(data);
-      },
-      function (errorMessage: unknown) {
-        onError(errorMessage);
-      }
-    );
-  }
-
-  //metoda KUBY dla charta
-  this.loadHistory = function (
-    this: CoreFusionLoader,
-    engine: CoreFusionRuntime,
-    onSuccess: UnknownFn,
-    onError: UnknownFn
-  ) {
-    var model = engine.model;
-    var instruments: Array<FusionInstrument | undefined> = [];
-    for (var series in model.instrumentsSeries) {
-      instruments.push(model.instrumentsSeries[series].instrument as FusionInstrument | undefined);
-    }
-    var toStamp = engine.getSeriesManager()[model.instrumentsSeries[0].seriesId].data[0].stamp - 1;
-    SERVICES.datasource.loadCandlesHistory(
-      2000,
-      (model.interval as FusionInterval).symbol,
-      null,
-      toStamp,
-      instruments,
-      onSuccess,
-      onError
-    );
-  };
-} as unknown as CoreFusionStatic["loader"];
+FUSION.loader = FusionLoader;
 
 /*
  * ENGINE BUILDER
  */
-FUSION.builder = function (this: CoreFusionBuilder, engine: CoreFusionRuntime | null) {
-  var self = this;
+class FusionBuilder implements CoreFusionBuilder {
+  [key: string]: unknown;
 
-  this._engine = engine ? engine : null;
-  this._instrumentsToAdd = [];
-  this._instrumentsToReplace = [];
-
-  this._interval = null;
-  this._scripts = [];
-  this._series = [];
-
-  this._model = {
+  _engine?: CoreFusionRuntime | null;
+  _model: FusionModelRuntime = {
     interval: null,
     instrumentsSeries: [],
     scripts: [],
   };
+  _interval?: Interval | null = null;
+  _scripts: RuntimeScriptConfig[] = [];
+  _series: FusionSeriesRuntime[] = [];
+  _instrumentsToAdd: CoreFusionBuilder["_instrumentsToAdd"] = [];
+  _instrumentsToReplace: CoreFusionBuilder["_instrumentsToReplace"] = [];
 
-  this.setModel = function (this: CoreFusionBuilder, model: FusionModelRuntime) {
+  constructor(engine: CoreFusionRuntime | null = null) {
+    this._engine = engine ? engine : null;
+  }
+
+  setModel(model: FusionModelRuntime) {
     this._model = model;
     return this;
-  };
+  }
 
-  this.addInstrument = function (
-    this: CoreFusionBuilder,
-    instrument: FusionInstrument,
-    seriesId?: string
-  ) {
-    this._instrumentsToAdd.push({ instrument: instrument, seriesId: seriesId });
+  addInstrument(instrument: FusionInstrument, seriesId?: string) {
+    this._instrumentsToAdd.push({ instrument, seriesId });
     return this;
-  };
+  }
 
-  this.replaceInstrumentByOther = function (
-    this: CoreFusionBuilder,
+  replaceInstrumentByOther(
     oldInstrument: FusionInstrument,
     newInstrument: FusionInstrument,
-    withRelated?: boolean
+    withRelated?: boolean,
   ) {
     this._instrumentsToReplace.push({
       old: oldInstrument,
       new: newInstrument,
-      withRelated: withRelated,
+      withRelated,
     });
     return this;
-  };
+  }
 
-  this.setInterval = function (this: CoreFusionBuilder, interval: Interval) {
+  setInterval(interval: Interval) {
     this._interval = interval;
     return this;
-  };
+  }
 
-  this.addScript = function (this: CoreFusionBuilder, script: RuntimeScriptConfig, pos?: number) {
-    if (pos == null || pos == undefined) this._scripts.push(script);
+  addScript(script: RuntimeScriptConfig, pos?: number) {
+    if (pos == null) this._scripts.push(script);
     else this._scripts.splice(pos, 0, script);
     return this;
-  };
+  }
 
-  this.addSeries = function (this: CoreFusionBuilder, series: FusionSeriesRuntime) {
+  addSeries(series: FusionSeriesRuntime) {
     this._series.push(series);
     return this;
-  };
+  }
 
-  this.build = function (this: CoreFusionBuilder): CoreFusionRuntime {
-    var self = this;
-    var engine: CoreFusionRuntime;
-    var model: FusionModelRuntime;
+  build(): CoreFusionRuntime {
+    let engine: CoreFusionRuntime;
+    let model: FusionModelRuntime;
 
-    if (!self._model && !self._engine)
+    if (!this._model && !this._engine) {
       throw new FusionBuilderException(
         "Give me some model or primal engine by builder param ",
-        null
+        null,
       );
+    }
 
-    if (self._engine) {
-      engine = self._engine as CoreFusionRuntime;
+    if (this._engine) {
+      engine = this._engine;
       model = engine.model;
     } else {
-      engine = new (FUSION.engine as CoreFusionStatic["engine"])();
-      model = self._model;
+      engine = new FUSION.engine();
+      model = this._model;
     }
 
-    prepareModel(engine);
+    this.prepareModel(engine, model);
 
     return engine;
+  }
 
-    function prepareModel(engine: CoreFusionRuntime) {
-      //set interval - default if none
-      if (self._interval) model.interval = self._interval;
+  private prepareModel(engine: CoreFusionRuntime, model: FusionModelRuntime) {
+    if (this._interval) model.interval = this._interval;
 
-      //add instruments
-      for (var k in self._instrumentsToAdd) {
-        if (!containsInstrument(self._instrumentsToAdd[k].instrument, model)) {
-          var id = self._instrumentsToAdd[k].seriesId || FUSION.uniqueId();
-          var newSeries = createOhlcvModel(
-            String(id),
-            self._instrumentsToAdd[k].instrument,
-            model.interval
-          );
-          model.instrumentsSeries.push(newSeries);
-        }
+    for (var key in this._instrumentsToAdd) {
+      if (!containsInstrument(this._instrumentsToAdd[key].instrument, model)) {
+        var id = this._instrumentsToAdd[key].seriesId || FUSION.uniqueId();
+        var newSeries = createOhlcvModel(String(id), this._instrumentsToAdd[key].instrument, model.interval);
+        model.instrumentsSeries.push(newSeries);
       }
+    }
 
-      //replace instrument
-      for (var k in self._instrumentsToReplace) {
-        var oldInstrumentSeries = containsInstrument(self._instrumentsToReplace[k].old, model);
-        if (oldInstrumentSeries) {
-          const relatedInstrument = oldInstrumentSeries.instrument;
-          //first find related instruments - some fundametals?
-          if (self._instrumentsToReplace[k].withRelated === true && relatedInstrument) {
-            var related = findInstrumentSeriesRelatedTo(relatedInstrument, model);
-            //find coresponding related from new instrument
-            for (var r in related) {
-              var newRelated = getInstrumentsRelatedFromBaseInstrumentByRelatedKey(
-                self._instrumentsToReplace[k]["new"],
-                related[r].instrument.relatedKey
-              );
-              if (newRelated) {
-                related[r].instrument = newRelated;
-                related[r].title = newRelated.symbol + "." + newRelated.name;
-              }
+    for (var key in this._instrumentsToReplace) {
+      var oldInstrumentSeries = containsInstrument(this._instrumentsToReplace[key].old, model);
+      if (oldInstrumentSeries) {
+        const relatedInstrument = oldInstrumentSeries.instrument;
+        if (this._instrumentsToReplace[key].withRelated === true && relatedInstrument) {
+          var related = findInstrumentSeriesRelatedTo(relatedInstrument, model);
+          for (var relatedIndex in related) {
+            const relatedSeries = related[relatedIndex];
+            const relatedKey = relatedSeries.instrument?.relatedKey;
+            if (!relatedKey) continue;
+            var newRelated = getInstrumentsRelatedFromBaseInstrumentByRelatedKey(
+              this._instrumentsToReplace[key].new,
+              relatedKey,
+            );
+            if (newRelated) {
+              relatedSeries.instrument = newRelated;
+              relatedSeries.title = newRelated.symbol + "." + newRelated.name;
             }
           }
-
-          oldInstrumentSeries.instrument = self._instrumentsToReplace[k]["new"];
-          oldInstrumentSeries.title = self._instrumentsToReplace[k]["new"].symbol;
-          delete oldInstrumentSeries.data;
         }
-      }
 
-      model.scripts = model.scripts.concat(self._scripts);
-      model.id = model.id || FUSION.uniqueId();
-      engine.model = model;
-
-      mergeScriptInputObjectsWithObjects(engine.model);
-
-      //seriesId
-      //register instrument series to manager
-      var _tmp = null;
-      if (self._engine) {
-        _tmp = engine.seriesManager;
-      }
-
-      engine.seriesManager = {};
-
-      for (var k in engine.model.instrumentsSeries) {
-        const series = engine.model.instrumentsSeries[k];
-
-        engine.seriesManager[series.seriesId] = JSON.parse(JSON.stringify(series));
-        delete series.data; //no data in model!
-
-        if (_tmp && _tmp[engine.model.instrumentsSeries[k].seriesId]) {
-          const previousSeries = _tmp[engine.model.instrumentsSeries[k].seriesId];
-          const currentInstrument = engine.model.instrumentsSeries[k].instrument;
-          if (
-            previousSeries &&
-            previousSeries.instrument &&
-            currentInstrument &&
-            previousSeries.instrument.id == currentInstrument.id
-          ) {
-            engine.seriesManager[engine.model.instrumentsSeries[k].seriesId].data =
-              previousSeries.data;
-          }
-        }
-      }
-
-      engine.model.mainSeries = engine.getMainSeries() ? engine.getMainSeries().seriesId : null;
-
-      for (var i in self._series) {
-        engine.seriesManager[self._series[i].seriesId] = JSON.parse(
-          JSON.stringify(self._series[i])
-        );
+        oldInstrumentSeries.instrument = this._instrumentsToReplace[key].new;
+        oldInstrumentSeries.title = this._instrumentsToReplace[key].new.symbol;
+        delete oldInstrumentSeries.data;
       }
     }
+
+    model.scripts = model.scripts.concat(this._scripts);
+    model.id = model.id || FUSION.uniqueId();
+    engine.model = model;
+
+    mergeScriptInputObjectsWithObjects(engine.model);
+
+    let previousSeriesManager: CoreFusionRuntime["seriesManager"] | null = null;
+    if (this._engine) {
+      previousSeriesManager = engine.seriesManager;
+    }
+
+    engine.seriesManager = {};
+
+    for (var key in engine.model.instrumentsSeries) {
+      const series = engine.model.instrumentsSeries[key];
+
+      engine.seriesManager[series.seriesId] = JSON.parse(JSON.stringify(series));
+      delete series.data;
+
+      if (previousSeriesManager && previousSeriesManager[engine.model.instrumentsSeries[key].seriesId]) {
+        const previousSeries = previousSeriesManager[engine.model.instrumentsSeries[key].seriesId];
+        const currentInstrument = engine.model.instrumentsSeries[key].instrument;
+        if (
+          previousSeries &&
+          previousSeries.instrument &&
+          currentInstrument &&
+          previousSeries.instrument.id == currentInstrument.id
+        ) {
+          engine.seriesManager[engine.model.instrumentsSeries[key].seriesId].data = previousSeries.data;
+        }
+      }
+    }
+
+    engine.model.mainSeries = engine.getMainSeries() ? engine.getMainSeries().seriesId : null;
+
+    for (var i in this._series) {
+      engine.seriesManager[this._series[i].seriesId] = JSON.parse(JSON.stringify(this._series[i]));
+    }
+  }
+}
+
+class FusionBuilderException {
+  model: FusionModelRuntime | null;
+  message: string;
+
+  constructor(message: string, model: FusionModelRuntime | null) {
+    this.model = model;
+    this.message = message;
+  }
+}
+
+function mergeScriptInputObjectsWithObjects(model: FusionModelRuntime) {
+  model.scripts.forEach((s) => {
+    if (s.key === "OBJECT") {
+      const script = s as RuntimeScriptConfig;
+      const objectInput = script.inputs["OBJECT"] as FusionRecord | undefined;
+      const id = objectInput?.id;
+      if (id == null) return;
+      const o = findObjectById(model, id);
+      if (o) script.inputs["OBJECT"] = o;
+    }
+  });
+}
+
+function findObjectById(model: FusionModelRuntime, id: string | number) {
+  var obj: FusionRecord | null = null;
+  if (!model.panels) return null;
+  model.panels.forEach((panel: FusionPanelRuntime) => {
+    panel.objects.forEach((o: FusionRecord) => {
+      if (o.id === id) obj = o;
+    });
+  });
+  return obj;
+}
+
+function createOhlcvModel(
+  id: string,
+  instrument: FusionInstrumentRuntime,
+  interval: FusionIntervalRuntime | null | undefined,
+) {
+  var res = {
+    seriesId: id,
+    title: instrument.relatedKey ? instrument.symbol + "." + instrument.name : instrument.symbol,
+    labels: ["O", "H", "L", "C", "V", "I"],
+    fields: ["o", "h", "l", "c", "v", "i"],
+    data: null,
+    instrument: instrument,
+    interval: interval,
   };
+  return JSON.parse(JSON.stringify(res));
+}
 
-  class FusionBuilderException {
-    model: FusionModelRuntime | null;
-    message: string;
-
-    constructor(message: string, model: FusionModelRuntime | null) {
-      this.model = model;
-      this.message = message;
-    }
+function containsInstrument(instrument: FusionInstrumentRuntime, model: FusionModelRuntime) {
+  for (var i in model.instrumentsSeries) {
+    const seriesInstrument = model.instrumentsSeries[i].instrument;
+    if (model.instrumentsSeries[i] && seriesInstrument && seriesInstrument.id == instrument.id)
+      return model.instrumentsSeries[i];
   }
+  return false;
+}
 
-  function mergeScriptInputObjectsWithObjects(model: FusionModelRuntime) {
-    model.scripts.forEach((s: FusionRecord) => {
-      if (s.key === "OBJECT") {
-        const id = s.inputs["OBJECT"].id;
-        const o = findObjectById(model, id);
-        if (o) s.inputs["OBJECT"] = o;
-      }
-    });
-  }
-
-  function findObjectById(model: FusionModelRuntime, id: string | number) {
-    var obj: FusionRecord | null = null;
-    if (!model.panels) return null;
-    model.panels.forEach((panel: FusionRecord) => {
-      panel.objects.forEach((o: FusionRecord) => {
-        if (o.id === id) obj = o;
-      });
-    });
-    return obj;
-  }
-
-  function createOhlcvModel(
-    id: string,
-    instrument: FusionInstrumentRuntime,
-    interval: FusionIntervalRuntime | null | undefined
-  ) {
-    var res = {
-      seriesId: id,
-      title: instrument.relatedKey ? instrument.symbol + "." + instrument.name : instrument.symbol,
-      labels: ["O", "H", "L", "C", "V", "I"],
-      fields: ["o", "h", "l", "c", "v", "i"],
-      data: null,
-      instrument: instrument,
-      interval: interval,
-    };
-    //deep clone
-    return JSON.parse(JSON.stringify(res));
-  }
-
-  function containsInstrument(instrument: FusionInstrumentRuntime, model: FusionModelRuntime) {
-    for (var i in model.instrumentsSeries) {
-      const seriesInstrument = model.instrumentsSeries[i].instrument;
-      if (model.instrumentsSeries[i] && seriesInstrument && seriesInstrument.id == instrument.id)
-        return model.instrumentsSeries[i];
-    }
-    return false;
-  }
-
-  function findInstrumentSeriesRelatedTo(
-    instrument: FusionInstrumentRuntime,
-    model: FusionModelRuntime
-  ) {
-    var related: FusionRecord[] = [];
-    const relatedInstruments = instrument.related || [];
-    for (var i in model.instrumentsSeries) {
-      for (const relatedInstrument of relatedInstruments) {
-        const seriesInstrument = model.instrumentsSeries[i].instrument;
-        if (seriesInstrument && relatedInstrument.id == seriesInstrument.id) {
-          related.push(model.instrumentsSeries[i]);
-          break;
-        }
-      }
-    }
-    return related;
-  }
-
-  function getInstrumentsRelatedFromBaseInstrumentByRelatedKey(
-    instrument: FusionInstrumentRuntime,
-    key: string
-  ) {
-    const relatedInstruments = instrument.related || [];
+function findInstrumentSeriesRelatedTo(
+  instrument: FusionInstrumentRuntime,
+  model: FusionModelRuntime,
+) {
+  var related: FusionRecord[] = [];
+  const relatedInstruments = instrument.related || [];
+  for (var i in model.instrumentsSeries) {
     for (const relatedInstrument of relatedInstruments) {
-      if (relatedInstrument.relatedKey == key) {
-        return relatedInstrument;
+      const seriesInstrument = model.instrumentsSeries[i].instrument;
+      if (seriesInstrument && relatedInstrument.id == seriesInstrument.id) {
+        related.push(model.instrumentsSeries[i]);
+        break;
       }
     }
-    return null;
   }
+  return related;
+}
 
-  function containsSeries(seriesId: string, model: FusionModelRuntime) {
-    for (var i in model.instrumentsSeries) {
-      if (model.instrumentsSeries[i] && model.instrumentsSeries[i].seriesId == seriesId)
-        return model.instrumentsSeries[i];
+function getInstrumentsRelatedFromBaseInstrumentByRelatedKey(
+  instrument: FusionInstrumentRuntime,
+  key: string,
+) {
+  const relatedInstruments = instrument.related || [];
+  for (const relatedInstrument of relatedInstruments) {
+    if (relatedInstrument.relatedKey == key) {
+      return relatedInstrument;
     }
-    return false;
   }
+  return null;
+}
 
-  function deleteInstrumentSeriesById(seriesId: string, model: FusionModelRuntime) {
-    for (var c = 0; c < model.instrumentsSeries.length; c++) {
-      if (model.instrumentsSeries[c].seriesId == seriesId) {
-        model.instrumentsSeries.splice(c, 1);
-        return true;
-      }
-    }
-    return false;
-  }
-} as unknown as CoreFusionStatic["builder"];
+FUSION.builder = FusionBuilder;
 
 export default FUSION;

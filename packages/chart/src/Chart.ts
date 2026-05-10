@@ -17,7 +17,6 @@ import type {
   Instrument,
   Interval,
   ScriptDefinition,
-  Tick,
   ValueAxisMode,
 } from "./types";
 import type {
@@ -28,7 +27,7 @@ import type {
   CoreChartModel,
   CoreChartPanel,
 } from "./internal-types/chart";
-import type { CoreFusionRuntime, CoreFusionStatic } from "./internal-types/fusion";
+import type { CoreFusionRuntime } from "./internal-types/fusion";
 import type { CoreInteractor, CoreInteractorConstructor } from "./internal-types/interactor";
 import type { ChartRuntimeObject } from "./internal-types/objects";
 import type {
@@ -124,7 +123,7 @@ export default class Chart implements CoreChartController {
     this.objectsManager = new ObjectsManager(this);
     this.subscriptionManager = new SubscriptionManager(this);
 
-    const FusionBuilder = (FUSION as unknown as CoreFusionStatic).builder;
+    const FusionBuilder = FUSION.builder;
     this.fusion = new FusionBuilder().setModel(this.model).build();
 
     this.interactor = new (InteractionsController as unknown as CoreInteractorConstructor)(
@@ -263,6 +262,7 @@ export default class Chart implements CoreChartController {
   }
 
   isChartEmpty(_chart?: unknown) {
+    void _chart;
     // TODO: check if chart is not empty
     if (this.model.mainSeries) return false;
 
@@ -349,8 +349,6 @@ export default class Chart implements CoreChartController {
     if (!this.valueConverter || this.valueConverter.mode !== panel.valueAxisMode)
       this.valueConverter = new LIB.ValueConverter(panel.valueAxisMode);
 
-    var _minValueHeight = 20;
-    var panelsHeight = this.canvasHeight - this.model.timeAxisHeight;
     var extremesOffset = 0;
     var extremesMargin = 0;
 
@@ -433,13 +431,16 @@ export default class Chart implements CoreChartController {
   }
 
   chartStructureChanged(mode?: unknown) {
+    void mode;
     // if(mode == 'empty')
     // 	WEBRCP.triggerQueueEvent('WEBRCP_ACTIVE_CHART_CHANGED', null);
     // else
     // 	WEBRCP.triggerQueueEvent('WEBRCP_ACTIVE_CHART_CHANGED', this.inspector);
   }
 
-  updateToolsOptions(config: Record<string, unknown>) {}
+  updateToolsOptions(config: Record<string, unknown>) {
+    void config;
+  }
 
   renderOverlay() {
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
@@ -598,6 +599,7 @@ export default class Chart implements CoreChartController {
   }
 
   prependMainSeriesData(_data: OhlcvCandle[]) {
+    void _data;
     // this.model.instrumentsSeries[0].data = data.append(this.model.instrumentsSeries[0].data);
     // this.calculateAll();
     // this.rerender();
@@ -641,7 +643,7 @@ export default class Chart implements CoreChartController {
   createScriptConfig(scriptKey: string, proto?: ScriptDefinition) {
     const resolvedProto =
       (proto as RuntimeScriptDefinition | undefined) ??
-      (FUSION as unknown as CoreFusionStatic).getScript(scriptKey);
+      FUSION.getScript(scriptKey);
     const scriptCfg: RuntimeScriptConfig = {
       id: undefined,
       inputs: {},
@@ -682,7 +684,7 @@ export default class Chart implements CoreChartController {
   }
 
   async onScriptEditorApply(config: RuntimeScriptConfig) {
-    const proto = (FUSION as unknown as CoreFusionStatic).getScript(config.key);
+    const proto = FUSION.getScript(config.key);
 
     if (config.id) {
       await this.fusion.modifyScript(config);
@@ -710,7 +712,7 @@ export default class Chart implements CoreChartController {
 
       for (var i = 0; i < plotters.length; i++) {
         const plotter = JSON.parse(JSON.stringify(plotters[i])) as ChartRuntimeObject;
-        plotter["id"] = (FUSION as unknown as CoreFusionStatic).uniqueId();
+        plotter["id"] = FUSION.uniqueId();
         var link = plotter.dataLink;
         plotter.dataLink = config.outputs[link as string];
         plotter.reference = config.reference;
@@ -1018,7 +1020,7 @@ export default class Chart implements CoreChartController {
   }
 
   getScripts() {
-    const scripts = (FUSION as unknown as CoreFusionStatic).getFreeScripts();
+    const scripts = FUSION.getFreeScripts();
     const translator = WEBRCP.utils.getMessages(englishLocale);
 
     for (let key in scripts) {

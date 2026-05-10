@@ -33,7 +33,7 @@ export interface ChartObjectCollection {
   visible: boolean;
   selected?: boolean;
   list: ChartRuntimeObject[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export type KnownRendererObjectType =
@@ -212,6 +212,8 @@ export interface CoreRendererObject {
   isDraggable?: boolean;
   [key: string]: any;
 }
+
+export type KnownRendererObjectsRegistry = Record<KnownRendererObjectType, CoreRendererObject>;
 
 export interface RendererObjectsRegistry extends Record<string, CoreRendererObject> {
   SeriesObject: CoreRendererObject;
