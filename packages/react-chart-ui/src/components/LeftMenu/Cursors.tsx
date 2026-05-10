@@ -19,7 +19,9 @@ export const Cursors = (props: CursorsProps) => {
     });
 
     return () => {
-      subscription?.unsubscribe();
+      if (subscription && "unsubscribe" in subscription) {
+        subscription.unsubscribe();
+      }
     };
   });
 

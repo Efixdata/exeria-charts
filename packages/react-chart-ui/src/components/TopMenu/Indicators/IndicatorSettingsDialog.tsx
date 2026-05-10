@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import {
   DialogHeader,
@@ -15,14 +14,36 @@ import {
 import { X } from "phosphor-react";
 import type { NullableChartInstance } from "../../../chartTypes";
 
-interface IndicatorSettingsDialogProps {
-  onClick: any;
-  indicator: any;
-  chart: NullableChartInstance;
+interface IndicatorInput {
+  type: string;
+  name: string;
+  properties?: {
+    def?: any;
+    max?: number;
+    min?: number;
+    step?: number;
+  };
+  value?: any;
+  [key: string]: any;
 }
 
-const initializeConfig = (indicator, seriesManager) => {
-  const config = { ...indicator };
+interface IndicatorConfig {
+  key: string;
+  title: string;
+  inputs?: Record<string, IndicatorInput>;
+  [key: string]: any;
+}
+
+interface IndicatorSettingsDialogProps {
+  onClose: () => void;
+  onBack: () => void;
+  indicator: IndicatorConfig;
+  chart: NullableChartInstance;
+  style?: React.CSSProperties;
+}
+
+const initializeConfig = (indicator: IndicatorConfig, seriesManager: any): IndicatorConfig => {
+  const config = { ...indicator, inputs: { ...(indicator.inputs || {}) } };
 
   for (let i in config.inputs) {
     const input = config.inputs[i];
@@ -51,30 +72,36 @@ const initializeConfig = (indicator, seriesManager) => {
 };
 
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
-  const [config, setConfig] = useState(
-    initializeConfig(props.indicator, props.chart.getSeriesManager())
+  const [config, setConfig] = useState<IndicatorConfig>(
+    props.chart
+      ? initializeConfig(props.indicator, props.chart.getSeriesManager())
+      : { ...props.indicator, inputs: props.indicator.inputs || {} }
   );
 
   const renderInputs = () => {
-    const inputs = [];
+    const inputs: (JSX.Element | null)[] = [];
 
-    for (let i in config.inputs) {
-      inputs.push(renderInput(config.inputs[i], i));
+    const inputConfig = config.inputs || {};
+    for (let i in inputConfig) {
+      inputs.push(renderInput(inputConfig[i], i));
     }
 
-    return inputs;
+    return inputs.filter((input): input is JSX.Element => input !== null);
   };
 
-  const onInputChange = (key, value) => {
+  const onInputChange = (key: string, value: any) => {
+    if (!config.inputs) return;
     const newConfig = { ...config };
-    newConfig.inputs[key].value = value;
+    const inputs = newConfig.inputs;
+    if (!inputs || !inputs[key]) return;
+    inputs[key].value = value;
 
-    setConfig((config) => ({
+    setConfig(() => ({
       ...newConfig,
     }));
   };
 
-  const renderInput = (input: any, key: string) => {
+  const renderInput = (input: IndicatorInput, key: string): JSX.Element | null => {
     // input props: type, name, properties { def, max, min }, value
     // input types: integer, double, series, list, boolean, matrix (join, doublecheck, mix), conditional, booleanList, timezone, object
     if (input.type === "integer") {
@@ -88,8 +115,8 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
             max={input?.properties?.max}
             step={1}
             allowEmpty={false}
-            value={config.inputs[key].value}
-            onChange={(event) => {
+            value={config.inputs?.[key]?.value}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               onInputChange(key, event.target.value);
             }}
           ></TextInput>
@@ -106,35 +133,46 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
             max={input?.properties?.max}
             step={input?.properties?.step}
             allowEmpty={false}
-            value={config.inputs[key].value}
-            onChange={(event) => {
+            value={config.inputs?.[key]?.value}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               onInputChange(key, event.target.value);
             }}
           ></TextInput>
         </Label>
       );
     } else if (input.type === "series") {
+      if (!props.chart) return null;
       const seriesManager = props.chart.getSeriesManager();
 
       if (!seriesManager) {
         console.error("No series manager available");
-        return;
+        return null;
       }
 
-      const translate = (text) => {
-        return props.chart.translate(text);
+      const translate = (text: string): string => {
+        if (props.chart) {
+          return props.chart.translate(text);
+        }
+        return text;
       };
 
-      const renderOptions = () => {
-        const options = [];
+      const renderOptions = (): JSX.Element[] => {
+        const options: JSX.Element[] = [];
 
         for (let key in seriesManager) {
-          const series = seriesManager[key];
-          for (let i in series.labels) {
-            const value = series.seriesId + ":" + series.fields[i];
+          const series = seriesManager[key] as any;
+          const labels = Array.isArray(series.labels)
+            ? series.labels
+            : Object.values(series.labels || {});
+          const fields = Array.isArray(series.fields)
+            ? series.fields
+            : Object.values(series.fields || {});
+
+          for (let i = 0; i < labels.length; i++) {
+            const value = `${series.seriesId}:${String(fields[i])}`;
             options.push(
               <option key={value} value={value}>
-                {translate(series.title)}.{translate(series.labels[i])}
+                {translate(String(series.title || ""))}.{translate(String(labels[i] || ""))}
               </option>
             );
           }
@@ -147,7 +185,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
           <Select
             value={input.value}
             key={key}
-            onChange={(event) => {
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
               onInputChange(key, event.target.value);
             }}
           >
@@ -176,7 +214,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
           <select
             key={key}
             value={input.value}
-            onChange={(event) => {
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
               onInputChange(key, event.target.value);
             }}
           >
@@ -189,14 +227,16 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         <Label name={input.name} key={key + "label"}>
           <CheckboxInput
             key={key}
-            value={config.inputs[key].value}
-            onChange={(event) => {
+            value={config.inputs?.[key]?.value}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               onInputChange(key, event.target.checked);
             }}
           ></CheckboxInput>
         </Label>
       );
     }
+
+    return null;
   };
 
   const renderDialogBody = () => {
@@ -213,8 +253,9 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   };
 
   const validateForm = () => {
-    for (let i in config.inputs) {
-      const input = config.inputs[i];
+    const inputConfig = config.inputs || {};
+    for (let i in inputConfig) {
+      const input = inputConfig[i];
       if (input === null || input === undefined) return false;
     }
     // TODO: add better form validation, indicate to the user what to do to make
@@ -229,7 +270,8 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       return;
     }
 
-    props.chart.addScript(config.key, config);
+    if (!props.chart) return;
+    props.chart.addScript(config.key, config as any);
     props.onClose();
   };
 
@@ -237,14 +279,14 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     <>
       <DialogContainer style={props.style}>
         <DialogHeader>
-          {`${props.indicator.title}`}
+          <span>{`${props.indicator.title}`}</span>
           <TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}>
             <X size={24} />
           </TextButton>
         </DialogHeader>
 
         <DialogBody style={{ padding: "20px" }}>{renderDialogBody()}</DialogBody>
-        <DialogFooter style={{ margin: "10px" }}>
+        <DialogFooter>
           <TextButton style={{ marginLeft: "auto", padding: "24px" }} onClick={onIndicatorAdd}>
             OK
           </TextButton>

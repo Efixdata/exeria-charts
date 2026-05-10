@@ -17,10 +17,10 @@ const Subtitle = styled.div`
 `;
 
 interface HeadlineProps {
-  children?: JSX.Element | JSX.Element[];
-  style?: React.CSSProperties;
+  children?: React.ReactNode;
+  style?: React.CSSProperties | undefined;
   title: string;
-  subtitle?: string;
+  subtitle?: string | undefined;
 }
 
 export const Headline = (props: HeadlineProps) => {

@@ -429,7 +429,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
   const lines = renderSplitButton(["channel", "hLine", "vLine", "mLine", "trend"], "trend");
   const shapes = renderSplitButton(["arrow", "ellipse", "triangle", "box"], "box");
   const analyticalTools = renderSplitButton(["abcd", "cycle", "fibon"], "fibon");
-  const textAnnotation = renderDrawingTool(drawingTools.textAnnotation);
+  // const textAnnotation = renderDrawingTool(drawingTools.textAnnotation);
   const priceTag = renderDrawingTool(drawingTools.priceTag);
   const ranges = renderSplitButton(["hRange", "vRange"], "vRange");
 

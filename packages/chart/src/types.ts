@@ -237,7 +237,7 @@ export interface ChartInstance {
   init(): void;
   setInstrument(instrument: Instrument): void;
   getInstrument(): Instrument | undefined;
-  setMainSeriesData(data: Candle[], interval: Interval, moveToEnd?: boolean): Promise<void>;
+  setMainSeriesData(data: Candle[], interval?: Interval, moveToEnd?: boolean): Promise<void>;
   appendMainSeriesData(data: Candle[]): void;
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;

@@ -1,12 +1,15 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChartUI } from "@dexer-io/react-chart-ui";
 import Chart from "@dexer-io/chart";
+import type { Candle, ChartInstance } from "@dexer-io/chart";
 import {
   AVAILABLE_DRAW_MODES,
   buildInstrument,
   getIntervalFixture,
   getPresetById,
   reviewPresets,
+  type ReviewPreset,
+  type IntervalFixture,
 } from "./chartReviewPresets";
 import { chartReviewThemes, reviewUiThemes } from "./chartReviewThemes";
 
@@ -16,11 +19,21 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function formatDate(stamp) {
+interface ViewState {
+  presetId: string;
+  intervalSymbol: string;
+}
+
+function formatDate(stamp: number): string {
   return dateFormatter.format(new Date(stamp));
 }
 
-function drawReviewOverlays(chart, candles, intervalMs, accentColor) {
+function drawReviewOverlays(
+  chart: ChartInstance,
+  candles: Candle[],
+  intervalMs: number,
+  accentColor: string
+): void {
   if (!candles?.length || candles.length < 12) {
     return;
   }
@@ -29,6 +42,11 @@ function drawReviewOverlays(chart, candles, intervalMs, accentColor) {
   const trendEnd = candles[Math.max(6, Math.floor(candles.length * 0.34))];
   const rangeStart = candles[Math.max(10, Math.floor(candles.length * 0.56))];
   const rangeEnd = candles[Math.min(candles.length - 2, Math.floor(candles.length * 0.82))];
+
+  if (!trendStart || !trendEnd || !rangeStart || !rangeEnd) {
+    return;
+  }
+
   const timeRange = Math.max(rangeEnd.stamp - rangeStart.stamp, intervalMs * 4);
   const directionIsUp = rangeEnd.c >= rangeStart.c;
 
@@ -77,20 +95,25 @@ function drawReviewOverlays(chart, candles, intervalMs, accentColor) {
 }
 
 export function WebChartComponent() {
-  const containerRef = useRef(null);
-  const [chart, setChart] = useState(null);
-  const [viewState, setViewState] = useState({
-    presetId: reviewPresets[0].id,
-    intervalSymbol: reviewPresets[0].defaultIntervalSymbol,
+  const initialPreset = reviewPresets[0];
+  if (!initialPreset) {
+    throw new Error("No review presets configured");
+  }
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [chart, setChart] = useState<ChartInstance | null>(null);
+  const [viewState, setViewState] = useState<ViewState>({
+    presetId: initialPreset.id,
+    intervalSymbol: initialPreset.defaultIntervalSymbol,
   });
 
-  const activePreset = useMemo(() => getPresetById(viewState.presetId), [viewState.presetId]);
-  const activeInterval = useMemo(
+  const activePreset = useMemo<ReviewPreset>(() => getPresetById(viewState.presetId), [viewState.presetId]);
+  const activeInterval = useMemo<IntervalFixture>(
     () => getIntervalFixture(activePreset, viewState.intervalSymbol),
     [activePreset, viewState.intervalSymbol]
   );
-  const activeRuntimeTheme = chartReviewThemes[activePreset.runtimeThemeId];
-  const activeUiTheme = reviewUiThemes[activePreset.uiThemeId];
+  const activeRuntimeTheme = chartReviewThemes[activePreset.runtimeThemeId as keyof typeof chartReviewThemes];
+  const activeUiTheme = reviewUiThemes[activePreset.uiThemeId as keyof typeof reviewUiThemes];
   const chartUiKey = `${activePreset.id}:${activeInterval.interval.symbol}`;
 
   const rangeLabel = useMemo(() => {
@@ -116,7 +139,7 @@ export function WebChartComponent() {
       instrument: buildInstrument(activePreset, activeInterval.interval.symbol),
       theme: activeRuntimeTheme,
       themeVariant: activePreset.themeVariant,
-    });
+    }) as unknown as ChartInstance;
 
     containerElement.style.width = "100%";
     containerElement.style.height = "100%";
@@ -126,7 +149,7 @@ export function WebChartComponent() {
 
     setChart(null);
 
-    const setupChart = async () => {
+    const setupChart = async (): Promise<void> => {
       chartInstance.init();
       await chartInstance.setMainSeriesData(activeInterval.candles, activeInterval.interval);
 
@@ -145,7 +168,7 @@ export function WebChartComponent() {
       setChart(chartInstance);
     };
 
-    setupChart().catch((error) => {
+    setupChart().catch((error: unknown) => {
       console.error("Failed to initialize review chart", error);
       if (!disposed) {
         setChart(null);
@@ -154,12 +177,14 @@ export function WebChartComponent() {
 
     return () => {
       disposed = true;
-      setChart((currentChart) => (currentChart === chartInstance ? null : currentChart));
+      setChart((currentChart: ChartInstance | null) =>
+        currentChart === chartInstance ? null : currentChart
+      );
       chartInstance.destroy();
     };
   }, [activeInterval, activePreset, activeRuntimeTheme]);
 
-  const handlePresetSelect = (presetId) => {
+  const handlePresetSelect = (presetId: string): void => {
     const nextPreset = getPresetById(presetId);
     setViewState({
       presetId: nextPreset.id,
@@ -167,12 +192,12 @@ export function WebChartComponent() {
     });
   };
 
-  const handleIntervalChange = (symbol) => {
+  const handleIntervalChange = (symbol: string): void => {
     if (!activePreset.intervalFixtures[symbol]) {
       return;
     }
 
-    setViewState((currentViewState) => {
+    setViewState((currentViewState: ViewState) => {
       if (currentViewState.intervalSymbol === symbol) {
         return currentViewState;
       }
@@ -223,7 +248,7 @@ export function WebChartComponent() {
                   <span className="presetSummary">{preset.summary}</span>
                   <span className="presetMeta">
                     {Object.values(preset.intervalFixtures)
-                      .map((fixture) => fixture.interval.symbol)
+                      .map((fixture: IntervalFixture) => fixture.interval.symbol)
                       .join(" / ")}
                   </span>
                 </button>

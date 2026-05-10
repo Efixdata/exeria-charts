@@ -5,6 +5,7 @@
     "lib": ["ESNext", "dom"],
     "jsx": "react",
     "noEmit": true,
+    "allowJs": true,
     "sourceMap": true,
     /* Strict Type-Checking Options */
     "strict": true,
@@ -15,6 +16,8 @@
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
+    "types": ["react", "react-dom"],
+    "skipLibCheck": true
   },
   "include": ["src"],
 }

@@ -1,10 +1,14 @@
-// @ts-nocheck
 import * as React from "react";
 import { IconButton } from "ui";
 import { Lock, LockOpen } from "../../img/icons";
 import { useState, useEffect } from "react";
+import type { NullableChartInstance } from "../../chartTypes";
 
-export const LockButton = (props) => {
+interface LockButtonProps {
+  chart: NullableChartInstance;
+}
+
+export const LockButton = (props: LockButtonProps) => {
   const [isObjectSelectionAllowed, setObjectSelectionAllowed] = useState(false);
   const icon = isObjectSelectionAllowed ? <LockOpen /> : <Lock />;
 
@@ -17,11 +21,15 @@ export const LockButton = (props) => {
     );
 
     return () => {
-      subscription?.unsubscribe();
+      if (subscription && "unsubscribe" in subscription) {
+        subscription.unsubscribe();
+      }
     };
   });
 
   const onClick = () => {
+    if (!props.chart) return;
+
     if (isObjectSelectionAllowed) {
       props.chart.setObjectSelectionAllowed(false);
       setObjectSelectionAllowed(false);

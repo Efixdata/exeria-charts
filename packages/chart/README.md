@@ -8,9 +8,9 @@ For contributors and maintainers, start with:
 Example:
 
 ```js
-import Chart from "path-to-chart.js";
+import { createChart } from "path-to-chart.js";
 
-const chart = new Chart({
+const chart = createChart({
   container: DOMElement,
 });
 
@@ -37,6 +37,14 @@ chart.setMainSeriesData([
 // Should be called only once
 chart.init();
 ```
+
+Stable public API surface
+
+- Constructor/factory: `new Chart(options)` and `createChart(options)`
+- Lifecycle: `init()`, `destroy()`
+- Data: `setMainSeriesData(data, interval?, moveToEnd?)`, `appendMainSeriesData(data)`, `appendTick(tick)`, `appendTicks(ticks)`
+- View controls: `setMainDrawMode(mode)`, `setValueAxisMode(mode)`, `setAutoScale(isEnabled)`
+- Integrations: `subscribe(topic, callback)`, `onDownload(watermark?, width?, height?)`
 
 Appending candles to the main series
 

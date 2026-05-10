@@ -28,8 +28,8 @@ const Body = styled.div`
 `;
 
 interface DialogBodyProps {
-  children?: JSX.Element | JSX.Element[] | string;
-  style?: React.CSSProperties;
+  children?: React.ReactNode;
+  style?: React.CSSProperties | undefined;
 }
 
 export const DialogBody = (props: DialogBodyProps) => {

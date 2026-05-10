@@ -51,15 +51,15 @@ const IconContainer = styled.div<{ themeContext: string }>`
 `;
 
 interface IconProps {
-  children?: JSX.Element | JSX.Element[];
-  image?: string;
-  imageAlt?: string;
-  imageType?: string;
-  style?: React.CSSProperties;
-  iconStyle?: React.CSSProperties;
-  active?: boolean;
-  id?: string;
-  themeContext?: string;
+  children?: React.ReactNode;
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+  imageType?: string | undefined;
+  style?: React.CSSProperties | undefined;
+  iconStyle?: React.CSSProperties | undefined;
+  active?: boolean | undefined;
+  id?: string | undefined;
+  themeContext?: string | undefined;
 }
 
 export const Icon = (props: IconProps) => {

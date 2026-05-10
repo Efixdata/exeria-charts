@@ -1,12 +1,16 @@
-// @ts-nocheck
 import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { selectButton } from "ui/theme";
-import useGenerateWatermark from "../hooks/useGenerateWatermark";
-import useShareChartImage, { ActionEnum } from "../hooks/useShareChartImage";
+import useGenerateWatermark from "../../hooks/useGenerateWatermark";
+import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
+import type { NullableChartInstance } from "../../chartTypes";
 
-import { Camera, Download, Copy } from "../img/icons";
+import { Camera, Download, Copy } from "../../img/icons";
+
+interface SaveChartImageButtonProps {
+  chart: NullableChartInstance;
+}
 
 const SaveImageButtonWrapper = styled.div`
   position: relative;
@@ -45,18 +49,20 @@ const OptionValue = styled.span`
   }
 `;
 
-export const SaveChartImageButton = (props) => {
+export const SaveChartImageButton = (props: SaveChartImageButtonProps) => {
   const { waterMark64 } = useGenerateWatermark();
   const { shareImage, actionLoading } = useShareChartImage(props.chart);
 
-  const dropDownRef = React.useRef(null);
+  const dropDownRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
-    props.chart.onDownload(waterMark64, 240, 66);
+    if (props.chart) {
+      props.chart.onDownload(waterMark64, 240, 66);
+    }
   };
 
-  const handleClickOutside = (e: SyntheticEvent) => {
-    if (!dropDownRef.current?.contains(e.target)) {
+  const handleClickOutside = (e: MouseEvent) => {
+    if (dropDownRef.current && !dropDownRef.current.contains(e.target as Node)) {
       setIsOpen(false);
     }
   };
@@ -67,7 +73,7 @@ export const SaveChartImageButton = (props) => {
   });
 
   return (
-    <SaveImageButtonWrapper ref={dropDownRef} className={isOpen ? "active" : null}>
+    <SaveImageButtonWrapper ref={dropDownRef} className={isOpen ? "active" : undefined}>
       <IconButton onClick={() => setIsOpen((prev) => !prev)}>
         <Camera />
       </IconButton>

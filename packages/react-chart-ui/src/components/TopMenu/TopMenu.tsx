@@ -1,23 +1,22 @@
-// @ts-nocheck
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
-// @ts-ignore
 import { FullScreenButton } from "./FullScreenButton";
 import { CurrencySwitch } from "./CurrencySwitch";
 import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./Indicators/IndicatorsButton";
-import type { NullableChartInstance } from "../../chartTypes";
+import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
 
 interface TopMenuProps {
   chart: NullableChartInstance;
   style?: React.CSSProperties;
-  mainContainer: React.RefObject<unknown>;
+  mainContainer: React.RefObject<HTMLElement>;
   onIntervalChange?: (symbol: string) => void;
   className?: string;
+  shareConfig?: ShareConfig;
 }
 
 const RightSection = styled.div`
@@ -66,18 +65,13 @@ const Icons = styled.div`
 `;
 
 export const TopMenu = (props: TopMenuProps) => {
-  const instrument = props?.chart?.getInstrument();
+  // @ts-ignore - styled-components ThemeContext type mismatch with React.useContext
   const tc = useContext(ThemeContext);
 
-  const getAvailableIntervalsSymbols = () => {
-    if (!instrument) return [];
-    return (instrument.availableIntervals || []).map((interval) => {
-      return interval.symbol;
-    });
-  };
-
   const renderShareChartButton = () => {
-    if (tc?.toolbar?.showShareChartButton) return <ShareChartButton chart={props.chart} />;
+    if (tc?.toolbar?.showShareChartButton) {
+      return <ShareChartButton chart={props.chart} shareConfig={props.shareConfig} />;
+    }
   };
 
   const renderChartScaleSwitch = () => {
@@ -109,7 +103,7 @@ export const TopMenu = (props: TopMenuProps) => {
           <AutoScaleSwitch chart={props.chart} />
           {renderChartScaleSwitch()}
           <Icons>
-            <FullScreenButton chart={props.chart} mainContainer={props.mainContainer} />
+            <FullScreenButton mainContainer={props.mainContainer} />
             {renderShareChartButton()}
           </Icons>
         </RightSection>

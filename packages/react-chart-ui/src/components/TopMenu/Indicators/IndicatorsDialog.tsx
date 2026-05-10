@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useContext } from "react";
 import {
   DialogHeader,
@@ -16,15 +15,28 @@ import { IndicatorSettingsDialog } from "./IndicatorSettingsDialog";
 import { ThemeContext } from "styled-components";
 import type { NullableChartInstance } from "../../../chartTypes";
 
+export interface IndicatorDefinition {
+  key: string;
+  title: string;
+  description: string;
+  type?: string;
+  inputs?: Record<string, any>;
+  [key: string]: any;
+}
+
 interface IndicatorsDialogProps {
-  onClick: any;
-  indicators: any;
+  onClose: () => void;
+  indicators: IndicatorDefinition[];
   chart: NullableChartInstance;
+  style?: React.CSSProperties;
 }
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
-  const [filteredIndicators, setFilteredIndicators] = useState(props.indicators);
-  const [chosenIndicator, setChosenIndicator] = useState(null);
+  const [filteredIndicators, setFilteredIndicators] = useState<IndicatorDefinition[]>(props.indicators);
+  const [chosenIndicator, setChosenIndicator] = useState<IndicatorDefinition | null>(null);
+  // styled-components in this workspace pulls a mismatched React context type
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const themeContext = useContext(ThemeContext);
 
   const allIndicators = new Fuse(props.indicators, {
@@ -68,11 +80,11 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     );
   };
 
-  const onIndicatorPick = (indicator) => {
+  const onIndicatorPick = (indicator: IndicatorDefinition) => {
     setChosenIndicator(indicator);
   };
 
-  const onQueryChange = (e) => {
+  const onQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (!value) {
       setFilteredIndicators(props.indicators);
@@ -84,7 +96,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     setFilteredIndicators(queryResult);
   };
 
-  const onSubmit = (event: React.FormEventHandler<HTMLFormElement>) => {
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };
 
@@ -122,7 +134,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const renderDialogHeader = () => {
     return (
       <DialogHeader>
-        ADD INDICATOR TO CHART
+        <span>ADD INDICATOR TO CHART</span>
         <TextButton onClick={props.onClose} style={{ marginLeft: "auto" }}>
           <X size={24} />
         </TextButton>
@@ -144,7 +156,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     return (
       <IndicatorSettingsDialog
         chart={props.chart}
-        indicator={chosenIndicator}
+        indicator={chosenIndicator as any}
         onClose={() => {
           props.onClose();
         }}

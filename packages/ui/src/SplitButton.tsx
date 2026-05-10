@@ -1,9 +1,7 @@
-import React, { useState, ReactElement, useEffect, useRef, SyntheticEvent, RefObject } from "react";
+import React, { useState, ReactElement, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { splitButton, buttonOption as buttonOption } from "../theme";
-
-// @ts-ignore-next-line: Unreachable code error
-import { ChevronRight } from "./img/icons/index.js";
+import { ChevronRight } from "./img/icons";
 
 const Container = styled.div`
   position: relative;
@@ -131,19 +129,24 @@ interface SplitButtonOptions {
 interface SplitButtonProps {
   defaultOption: string;
   options: SplitButtonOptions;
-  setCurrentOption?: boolean;
+  setCurrentOption?: boolean | undefined;
   activeOption: string;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
 }
 
 export const SplitButton = (props: SplitButtonProps) => {
   const myRef = useRef<HTMLDivElement>(null);
-  const buttonRef: RefObject<HTMLDivElement> = React.createRef();
+  const buttonRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(-buttonOption.basePadding);
 
-  const activeOptionProps: SplitButtonOption =
+  const activeOptionProps: SplitButtonOption | undefined =
     props.options[props.activeOption || props.defaultOption];
+
+  if (!activeOptionProps) {
+    return null;
+  }
+
   const currentButton = React.cloneElement(activeOptionProps.icon, {
     style: { borderRadius: 0 },
     onClick: () => onActiveOptionClick(activeOptionProps.callback),
@@ -153,9 +156,7 @@ export const SplitButton = (props: SplitButtonProps) => {
 
   useEffect(() => {
     setMenuPosition(calculateMenuPosition());
-    // @ts-ignore
     document.addEventListener("mousedown", handleClickOutside);
-    // @ts-ignore
     return () => document.removeEventListener("mousedown", handleClickOutside);
   });
 
@@ -199,15 +200,15 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function renderOptions() {
-    const options = [];
+    const options: JSX.Element[] = [];
 
     for (const o in props.options) {
       const option = props.options[o];
+      if (!option) continue;
       options.push(
         <Option
-          // @ts-ignore
           onClick={() => {
-            onOptionClick(option.callback, o);
+            onOptionClick(option.callback);
           }}
           key={o}
           className={props.activeOption === o ? "active" : undefined}
@@ -221,9 +222,8 @@ export const SplitButton = (props: SplitButtonProps) => {
     return options;
   }
 
-  function handleClickOutside(e: SyntheticEvent) {
-    // @ts-ignore
-    if (!myRef.current?.contains(e.target)) {
+  function handleClickOutside(e: MouseEvent) {
+    if (!myRef.current?.contains(e.target as Node)) {
       setOpen(false);
     }
   }

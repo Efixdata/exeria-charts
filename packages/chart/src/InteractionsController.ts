@@ -1015,7 +1015,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       var eventElement = evt.toElement || evt.target || evt.target;
 
       // TODO: check if following code works properly
-      if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .exeria-watermark")) return;
+      if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
       self.onMouseUp(evt);
     }
   };
@@ -1063,7 +1063,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     var eventElement = evt.toElement || evt.target;
 
     // TODO: check if following code works properly
-    if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .exeria-watermark")) return;
+    if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
     self.onMouseOut(evt);
   };
 
@@ -1089,7 +1089,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onBodyMouseMove = function (evt) {
     var eventElement = evt.toElement || evt.target;
     // TODO: check if following code works properly
-    if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .exeria-watermark")) return;
+    if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
     self.onMouseMove(evt);
   };
 

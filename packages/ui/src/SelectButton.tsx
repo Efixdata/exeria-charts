@@ -1,8 +1,6 @@
-import React, { useState, useRef, ReactElement, useEffect, SyntheticEvent } from "react";
+import React, { useState, useRef, ReactElement, useEffect } from "react";
 import { selectButton, buttonOption } from "../theme";
-import { IconButton } from "./IconButton";
 import styled from "styled-components";
-import { Icon } from "./Icon";
 
 const Container = styled.div`
   position: relative;
@@ -85,7 +83,7 @@ interface SelectButtonProps {
   options: SelectButtonOptions;
   onSelect: (option: string | undefined) => void;
   selectedOption: string;
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
 }
 
 export const SelectButton = (props: SelectButtonProps) => {
@@ -95,9 +93,7 @@ export const SelectButton = (props: SelectButtonProps) => {
 
   useEffect(() => {
     setSelectedOption(props.selectedOption);
-    // @ts-ignore
     document.addEventListener("mousedown", handleClickOutside);
-    // @ts-ignore
     return () => document.removeEventListener("mousedown", handleClickOutside);
   });
 
@@ -121,10 +117,12 @@ export const SelectButton = (props: SelectButtonProps) => {
   }
 
   function renderOptions() {
-    const options = [];
+    const options: JSX.Element[] = [];
 
     for (const o in props.options) {
-      options.push(renderOption(props.options[o]));
+      const option = props.options[o];
+      if (!option) continue;
+      options.push(renderOption(option));
     }
 
     return options;
@@ -158,9 +156,8 @@ export const SelectButton = (props: SelectButtonProps) => {
     }
   }
 
-  function handleClickOutside(e: SyntheticEvent) {
-    // @ts-ignore
-    if (!myRef.current?.contains(e.target)) {
+  function handleClickOutside(e: MouseEvent) {
+    if (!myRef.current?.contains(e.target as Node)) {
       setOpen(false);
     }
   }

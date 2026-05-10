@@ -1,10 +1,13 @@
-// @ts-nocheck
 import * as React from "react";
 import { IconButton } from "ui";
 import { Fullscreen, ExitFullscreen } from "../../img/icons";
 import { useState } from "react";
 
-export const FullScreenButton = (props) => {
+interface FullScreenButtonProps {
+  mainContainer: React.RefObject<HTMLElement>;
+}
+
+export const FullScreenButton = (props: FullScreenButtonProps) => {
   const [isInFullScreen, setFullScreen] = useState(false);
   const icon = isInFullScreen ? <ExitFullscreen /> : <Fullscreen />;
 
@@ -16,36 +19,57 @@ export const FullScreenButton = (props) => {
   ];
 
   React.useEffect(() => {
-    if (!props?.mainContainer?.current) return;
+    const container = props?.mainContainer?.current;
+    if (!container) return;
     eventTypes.forEach((eventType) =>
-      props.mainContainer.current.addEventListener(eventType, (_event) => {
+      container.addEventListener(eventType, () => {
         setFullScreen(checkFullScreen());
       })
     );
   }, []);
 
   const checkFullScreen = () => {
-    if (!document) return false;
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      mozFullScreenElement?: Element | null;
+      msFullscreenElement?: Element | null;
+    };
 
-    return (
-      (document.fullscreenElement && document.fullscreenElement !== null) ||
-      (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
-      (document.mozFullScreenElement && document.mozFullScreenElement !== null) ||
-      (document.msFullscreenElement && document.msFullscreenElement !== null)
+    return !!(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
     );
   };
 
   const isFullScreenAvailable = () => {
+    const doc = document as Document & {
+      webkitFullscreenEnabled?: boolean;
+      msFullscreenEnabled?: boolean;
+    };
+
     return (
-      document.fullscreenEnabled /* Standard syntax */ ||
-      document.webkitFullscreenEnabled /* Safari */ ||
-      document.msFullscreenEnabled /* IE11 */
+      doc.fullscreenEnabled /* Standard syntax */ ||
+      !!doc.webkitFullscreenEnabled /* Safari */ ||
+      !!doc.msFullscreenEnabled /* IE11 */
     );
   };
 
   const onClick = () => {
     if (!document) return;
-    const mainContainerElement = props.mainContainer.current;
+    const mainContainerElement = props.mainContainer.current as (HTMLElement & {
+      mozRequestFullScreen?: () => void;
+      webkitRequestFullScreen?: () => void;
+      msRequestFullscreen?: () => void;
+    }) | null;
+    if (!mainContainerElement) return;
+
+    const doc = document as Document & {
+      webkitExitFullscreen?: () => Promise<void> | void;
+      mozCancelFullScreen?: () => void;
+      msExitFullscreen?: () => Promise<void> | void;
+    };
 
     if (!isInFullScreen) {
       // setIcon(exitFullScreenImage.src);
@@ -60,14 +84,14 @@ export const FullScreenButton = (props) => {
       }
     } else {
       // setIcon(fullScreenImage.src);
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.mozCancelFullScreen) {
+        doc.mozCancelFullScreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
       }
     }
   };

@@ -35,17 +35,17 @@ const Button = styled.button<{ themeContext: string }>`
 `;
 
 interface IconButtonProps {
-  children?: JSX.Element | JSX.Element[];
-  image?: string;
-  imageAlt?: string;
-  imageType?: string;
-  callback?: () => void;
-  style?: React.CSSProperties;
-  iconStyle?: React.CSSProperties;
-  onClick?: () => void;
-  active?: boolean;
-  id?: string;
-  themeContext?: string;
+  children?: React.ReactNode;
+  image?: string | undefined;
+  imageAlt?: string | undefined;
+  imageType?: string | undefined;
+  callback?: (() => void) | undefined;
+  style?: React.CSSProperties | undefined;
+  iconStyle?: React.CSSProperties | undefined;
+  onClick?: (() => void) | undefined;
+  active?: boolean | undefined;
+  id?: string | undefined;
+  themeContext?: string | undefined;
 }
 
 export const IconButton = (props: IconButtonProps) => {

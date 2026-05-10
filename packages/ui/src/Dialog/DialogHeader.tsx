@@ -12,7 +12,7 @@ const Header = styled.div`
 `;
 
 interface DialogHeaderProps {
-  children?: JSX.Element | JSX.Element[] | string;
+  children?: React.ReactNode;
 }
 
 export const DialogHeader = (props: DialogHeaderProps) => {

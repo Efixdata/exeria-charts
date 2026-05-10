@@ -1,0 +1,10 @@
+{
+  "packages/ui/src/SelectButton.tsx": 3,
+  "packages/ui/src/SplitButton.tsx": 5,
+  "packages/react-chart-ui/src/components/TopMenu/IntervalSwitch.tsx": 1,
+  "packages/react-chart-ui/src/components/TopMenu/AutoScaleSwitch.tsx": 1,
+  "packages/react-chart-ui/src/components/LeftMenu/LeftMenu.tsx": 1,
+  "packages/react-chart-ui/src/components/LeftMenu/DrawingTools.tsx": 4,
+  "packages/react-chart-ui/src/components/TopMenu/Indicators/IndicatorsDialog.tsx": 1,
+  "packages/react-chart-ui/src/components/TopMenu/TopMenu.tsx": 1
+}

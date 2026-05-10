@@ -13,11 +13,11 @@ const Item = styled.div`
 `;
 
 interface ListItemProps {
-  children?: JSX.Element | JSX.Element[];
-  style?: React.CSSProperties;
-  onClick?: () => void;
+  children?: React.ReactNode;
+  style?: React.CSSProperties | undefined;
+  onClick?: (() => void) | undefined;
   title: string;
-  subtitle?: string;
+  subtitle?: string | undefined;
 }
 
 export const ListItem = (props: ListItemProps) => {

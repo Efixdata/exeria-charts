@@ -4,6 +4,8 @@
   "exclude": ["dist", "build", "node_modules"],
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["dom"],
-  },
+    "lib": ["ESNext", "DOM"],
+    "types": ["react", "react-dom"],
+    "skipLibCheck": true
+  }
 }

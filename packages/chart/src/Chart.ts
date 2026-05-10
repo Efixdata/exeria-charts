@@ -862,8 +862,8 @@ export default class Chart implements CoreChartController {
     return this.instrument?.currency;
   }
 
-  getValueAxisMode() {
-    return this.model.panels[0].valueAxisMode;
+  getValueAxisMode(): ValueAxisMode {
+    return this.model.panels[0].valueAxisMode as ValueAxisMode;
   }
 
   setValueAxisMode(mode: ValueAxisMode) {

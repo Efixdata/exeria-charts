@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import WaterMark from "../img/icons/WaterMark.svg";
+import { useState } from "react";
 import useGenerateWatermark from "./useGenerateWatermark";
-import type { NullableChartInstance } from "../chartTypes";
+import type { NullableChartInstance, ShareConfig } from "../chartTypes";
 
 export enum ActionEnum {
   copy,
   share,
 }
 
-export default function useShareChartImage(chart: NullableChartInstance) {
-  const { waterMark64 } = useGenerateWatermark();
-  const API_URI = "https://dexer-images.netlify.app/.netlify/functions/api";
-  const TEMPLATE_TEXT = `Chart by Dexer.io`;
-  const STARTING_POINT = window.location.href;
+export default function useShareChartImage(chart: NullableChartInstance, shareConfig?: ShareConfig) {
+  const { waterMark64 } = useGenerateWatermark(shareConfig?.watermarkSvg);
+  const apiUri = shareConfig?.apiUri || "/api/share-image";
+  const templateText = shareConfig?.templateText || "Chart snapshot";
+  const sourceUrl = shareConfig?.sourceUrl || window.location.href;
+  const watermark = shareConfig?.watermarkDataUrl || waterMark64;
   const [actionLoading, setActionLoading] = useState({
     twitter: false,
     telegram: false,
@@ -35,7 +35,7 @@ export default function useShareChartImage(chart: NullableChartInstance) {
 
       const image = new Image();
       image.onload = setUpWaterMark;
-      image.src = waterMark64;
+      image.src = watermark;
 
       function setUpWaterMark() {
         ctx?.drawImage(image, positionX, positionY, watermarkWidth, watermarkHeight);
@@ -45,7 +45,7 @@ export default function useShareChartImage(chart: NullableChartInstance) {
   };
 
   const startSession = async (imageData: string | unknown) => {
-    const response = await fetch(`${API_URI}/session/start`, {
+    const response = await fetch(`${apiUri}/session/start`, {
       method: "POST",
       body: JSON.stringify({
         binary: imageData,
@@ -62,14 +62,14 @@ export default function useShareChartImage(chart: NullableChartInstance) {
   ) => {
     setActionLoading((prev) => ({ ...prev, [socialName]: true }));
     const shareModeIsActive = action === ActionEnum.share;
-    text = text || TEMPLATE_TEXT;
+    text = text || templateText;
 
     try {
       const imageData = await createWaterMark();
       const callback = await startSession(imageData);
       const redirectURI = callback.redirect_url;
-      const intentURI = `${socialURI}?text=${text}&url=${redirectURI}?t=${Date.now()}?point=${STARTING_POINT}`;
-      const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${STARTING_POINT}`;
+      const intentURI = `${socialURI}?text=${text}&url=${redirectURI}?t=${Date.now()}?point=${sourceUrl}`;
+      const navigatorURI = `${callback.redirect_url}?t=${Date.now()}?point=${sourceUrl}`;
       const generatedURI = shareModeIsActive ? intentURI : navigatorURI;
       if (redirectURI && shareModeIsActive) {
         const windowReference = shareModeIsActive ? window.open("", "_blank") : null;

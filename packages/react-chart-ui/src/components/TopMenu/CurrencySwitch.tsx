@@ -22,7 +22,9 @@ export const CurrencySwitch = (props: CurrencySwitchProps) => {
     });
 
     return () => {
-      subscription?.unsubscribe();
+      if (subscription && "unsubscribe" in subscription) {
+        subscription.unsubscribe();
+      }
     };
   });
 

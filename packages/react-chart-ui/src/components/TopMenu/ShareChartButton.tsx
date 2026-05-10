@@ -1,11 +1,16 @@
-// @ts-nocheck
 import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
-import { buttonOption, selectButton } from "ui/theme";
+import { selectButton } from "ui/theme";
 import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
 import { Share, Twitter, Telegram, Copy, Download } from "../../img/icons";
 import useGenerateWatermark from "../../hooks/useGenerateWatermark";
+import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
+
+interface ShareChartButtonProps {
+  chart: NullableChartInstance;
+  shareConfig?: ShareConfig;
+}
 
 const ShareButtonWrapper = styled.div`
   position: relative;
@@ -53,17 +58,23 @@ const OptionsHeader = styled.div`
   font-size: 14px;
 `;
 
-export const ShareChartButton = (props) => {
-  const { waterMark64 } = useGenerateWatermark();
-  const { shareImage, actionLoading } = useShareChartImage(props.chart);
-  const dropDownRef = React.useRef(null);
+export const ShareChartButton = (props: ShareChartButtonProps) => {
+  const { waterMark64 } = useGenerateWatermark(props.shareConfig?.watermarkSvg);
+  const { shareImage, actionLoading } = useShareChartImage(props.chart, props.shareConfig);
+  const dropDownRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const instrumentSymbol = props.chart?.getInstrument()?.symbol || "";
+  const twitterText =
+    props.shareConfig?.twitterTextTemplate ||
+    (instrumentSymbol ? `$${instrumentSymbol} chart snapshot` : "Chart snapshot");
+  const telegramText =
+    props.shareConfig?.telegramTextTemplate ||
+    (instrumentSymbol ? `${instrumentSymbol} chart snapshot` : "Chart snapshot");
 
   const renderOptions = () => {
     return options.map((option, i) => {
       if (option.type === "divider") {
-        return <OptionsHeader style={{ padding: 0, margin: "8px 8px" }} />;
+        return <OptionsHeader key={i} style={{ padding: 0, margin: "8px 8px" }} />;
       }
       return (
         <OptionValue key={i} onClick={option.action}>
@@ -74,16 +85,16 @@ export const ShareChartButton = (props) => {
     });
   };
 
-  React.useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  });
-
-  const handleClickOutside = (e: SyntheticEvent) => {
-    if (!dropDownRef.current?.contains(e.target)) {
+  const handleClickOutside = (e: MouseEvent) => {
+    if (dropDownRef.current && !dropDownRef.current.contains(e.target as Node)) {
       setIsOpen(false);
     }
   };
+
+  React.useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const options = [
     {
@@ -94,7 +105,7 @@ export const ShareChartButton = (props) => {
           "twitter",
           ActionEnum.share,
           "https://twitter.com/intent/tweet",
-          `$${instrumentSymbol} chart from @Dexer_io`
+          twitterText
         ),
       loading: actionLoading.twitter,
     },
@@ -106,7 +117,7 @@ export const ShareChartButton = (props) => {
           "telegram",
           ActionEnum.share,
           "https://t.me/share/url",
-          `${instrumentSymbol} chart from Dexer.io`
+          telegramText
         ),
       loading: actionLoading.telegram,
     },
@@ -116,18 +127,18 @@ export const ShareChartButton = (props) => {
     {
       social: "Copy image link",
       logo: <Copy height={24} width={24} fill="#fff" />,
-      action: () => shareImage("copyImage", ActionEnum.copy, "", ActionEnum.copy),
+      action: () => shareImage("copyImage", ActionEnum.copy, "", "Copy to clipboard"),
       loading: actionLoading.copyImage,
     },
     {
       social: "Download image",
       logo: <Download height={24} width={24} fill="#fff" />,
-      action: () => props.chart.onDownload(waterMark64, 240, 66),
+      action: () => props.chart?.onDownload(props.shareConfig?.watermarkDataUrl || waterMark64, 240, 66),
     },
   ];
 
   return (
-    <ShareButtonWrapper ref={dropDownRef} className={isOpen && "active"}>
+    <ShareButtonWrapper ref={dropDownRef} className={isOpen ? "active" : undefined}>
       <IconButton onClick={() => setIsOpen((prev) => !prev)}>
         <Share />
       </IconButton>

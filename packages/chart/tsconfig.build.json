@@ -1,10 +1,12 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../tsconfig/library-build.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "declarationMap": true
-  }
+    "allowJs": false,
+    "lib": ["ES2019", "DOM"],
+    "isolatedModules": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["dist", "node_modules"]
 }

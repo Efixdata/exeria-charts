@@ -5,6 +5,7 @@
   "main": "index.js",
   "files": [
     "base.json",
+    "library-build.json",
     "nextjs.json",
     "react-library.json"
   ]

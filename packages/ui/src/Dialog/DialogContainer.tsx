@@ -23,8 +23,8 @@ const Container = styled.div`
 `;
 
 interface DialogContainerProps {
-  children?: JSX.Element | JSX.Element[] | string;
-  style?: React.CSSProperties;
+  children?: React.ReactNode;
+  style?: React.CSSProperties | undefined;
 }
 
 export const DialogContainer = (props: DialogContainerProps) => {

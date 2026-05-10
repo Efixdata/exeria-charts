@@ -20,7 +20,7 @@ const locale: Record<string, unknown> = {
   OK: "OK",
   Cancel: "Cancel",
   list_options: "List management",
-  network_share: "Share in Exeria Network",
+  network_share: "Share in Network",
   export_to_library: "Export to the library",
   remove: "Remove",
   tabs_or_grid: "Tabs / grid",
@@ -486,77 +486,6 @@ const locale: Record<string, unknown> = {
   instrument_not_tradable_error: "Instrument is not tradable",
   add_order: "Add order",
 
-  brokers: {
-    bitmex: "BitMEX",
-    "bitmex-testnet": "BitMEX Testnet",
-    bitmexTestnet: "BitMEX Testnet",
-    binance: "Binance",
-    "okex-spot": "Okex Spot",
-    "okex-perpetual": "Okex Perpetual",
-    dragon: "Exeria",
-    tradier: "Tradier",
-    CI: "City Index",
-    TTR: "Trade Tech Alpha",
-  },
-
-  subscriptionPacks: {
-    diNapoliTools: {
-      name: "DiNapoli Tools",
-      accountNumberRequired: false,
-      features: [
-        "Full set of the tools used by their creator - Joe DiNapoli",
-        "Extremely useful in trading on any liquid financial markets",
-      ],
-      detailed_features: [
-        "Full set of the tools used by their creator - Joe DiNapoli",
-        "Extremely useful in trading on any liquid financial markets.",
-        "Graphic tools: DiNapoli Levels (DiNapoli Retracements), DiNapoli Expansion (DiNapoli Expansion Analysis)",
-        "Indicators: DiNapoli MACD Predictor, DiNapoli 3x3 (Shifted Moving Average), DiNapoli MACD, DiNapoli Preferred Stochastic, DiNapoli Oscillator Predictor, DiNapoli Detrend Oscillator",
-        "<a class='webrcp-link' href='https://exeria.com/dinapoli-tools/' target='_blank'>Learn more<a/>",
-      ],
-      infoLink: "https://exeria.com/dinapoli-tools/",
-    },
-    importerExporterTools: {
-      name: "FX Predictor",
-      accountNumberRequired: false,
-      features: [
-        "A decision model that makes it easier to choose when to buy or sell a currency",
-        "A forecast model for the range of future price changes",
-        "Calculator of current and historical forward rates",
-        "Access to current prices of currencies, commodities and indices",
-      ],
-      detailed_features: [
-        "A decision model that makes it easier to choose when to buy or sell a currency. Thanks to the model, it is possible to conclude transactions with a price 0.6% - 1% better than the average market price. For currency transactions worth EUR 10 million a year, this means savings of EUR 60,000",
-        "A forecast model for the range of future price changes that will allow you to determine your future price in the budget, pricing policy, tender or company forecasts.",
-        "Calculator of current and historical forward rates",
-        "Access to ongoing analyzes, assessments and forecasts of experts in the field of currencies and commodities",
-        "<a class='webrcp-link' href='https://exeria.com/fx-predictor/' target='_blank'>Learn more</a>",
-        "<a class='webrcp-link' href='https://landing.exeria.com/en-fx-predictor' target='_blank'>Fill out the order form for companies if you want to use another payment method</a>",
-        "<a class='webrcp-link' href='https://about.exeria.com/en/importers_exporters_terms.html' target='_blank'>Terms of Service</a>",
-      ],
-      infoLink: "https://exeria.com/fx-predictor/",
-    },
-    tradierStocks: {
-      name: "Tradier Pro Stock",
-      accountNumberRequired: true,
-      features: ["$0 instead of&nbsp;$3.49 per order"],
-      detailed_features: [
-        "$0 instead of&nbsp;$3.49 per order",
-        "The offer is valid for any account with Tradier broker, that supports stock, or stock and options transactions, created through <a target='_blank' class='webrcp-link' href='https://exeria.com/en/open_account.html'>exeria.com</a> service",
-      ],
-    },
-    tradierStocksAndOptions: {
-      name: "Tradier Pro Stock and Options",
-      accountNumberRequired: true,
-      features: ["$0 instead of&nbsp;$3.49 per order", "$0 instead of&nbsp;$0.35 per contract"],
-      detailed_features: [
-        "$0 instead of&nbsp;$3.49 per order",
-        "$0 instead of&nbsp;$0.35 per contract",
-        "The offer is valid for any account with Tradier broker, that supports stock and options transactions, created through <a target='_blank' class='webrcp-link' href='https://exeria.com/en/open_account.html'>exeria.com</a> service",
-      ],
-    },
-  },
-
   new_features: "Check out our new features!",
   dont_show: "Don't show this message again",
   read_more: "Read more",
@@ -840,41 +769,8 @@ const locale: Record<string, unknown> = {
   interval: "Interval",
   change_interval: "Change interval",
   subscribe: "Subscribe",
-
-  logo_subtitle: "Powerful trading space for investors",
   light: "Light",
   dark: "Dark",
-
-  layouts_launch: "Launch",
-  layouts_charts_title: "Charts",
-  layouts_charts_description: "Check your quotes, charts and make analysis with one click.",
-  layouts_sn_title: "Social Network",
-  layouts_sn_description:
-    "Recommendations, news, interesting facts. Follow your friends and experts.",
-  layouts_front_title: "Trading Platform",
-  layouts_front_description:
-    "Trade from any device with multiple brokers using algorythmic trading and cloud computing.",
-  layouts_title: "Start exploring Exeria with predefined layouts",
-  layouts_mobile_title: "Trading Platform",
-  layouts_mobile_description:
-    "Trade with many brokers, view and analyse charts, read recommendations and run automated strategies in one place.",
-
-  pages_open: "Open",
-  pages_strategies_url: "https://about.exeria.com/en/strategies.html",
-  pages_strategies_title: "Automatic Strategies",
-  pages_strategies_description:
-    "Browse and use ready-made algorithms to control the markets and execute trades.",
-  pages_about_url: "https://exeria.com/en/home/",
-  pages_about_title: "About Exeria",
-  pages_about_description: "Take a closer look at Exeria and our services.",
-  pages_blog_url: "https://exeria.com/en/blog-en/",
-  pages_blog_title: "Investment Blog",
-  pages_blog_description:
-    "Read analysis created by experts and learn to trade in financial markets.",
-  pages_title: "Find more resources and information",
-
-  have_account: "Already have an account?",
-  sign_in: "Sign in.",
 };
 
 export default locale;

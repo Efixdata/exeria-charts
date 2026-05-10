@@ -1,4 +1,3 @@
-import { AlignRightSimple } from "phosphor-react";
 import React from "react";
 import { RefObject } from "react";
 import styled from "styled-components";
@@ -6,7 +5,7 @@ import { LeftMenu } from "./components/LeftMenu/LeftMenu";
 import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 import { Theme, ThemeInterface } from "ui";
-import type { NullableChartInstance } from "./chartTypes";
+import type { NullableChartInstance, ShareConfig } from "./chartTypes";
 
 interface ChartUIProps {
   chart: NullableChartInstance;
@@ -16,6 +15,7 @@ interface ChartUIProps {
   loading?: boolean;
   onIntervalChange?: (symbol: string) => void;
   theme?: ThemeInterface;
+  shareConfig?: ShareConfig;
 }
 
 const Container = styled.div`
@@ -52,14 +52,12 @@ const WrapperInner = styled.div<{ height: string }>`
   }
 `;
 
-class ChartUI extends React.Component {
+class ChartUI extends React.Component<ChartUIProps> {
   containerRef: RefObject<HTMLDivElement>;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
-  props: ChartUIProps;
 
   constructor(props: ChartUIProps) {
     super(props);
-    this.props = props;
     this.containerRef = React.createRef();
     this.containerOffset = {};
   }
@@ -105,6 +103,7 @@ class ChartUI extends React.Component {
                 style={topMenuStyles}
                 mainContainer={this.containerRef}
                 onIntervalChange={this.props.onIntervalChange}
+                shareConfig={this.props.shareConfig}
               />
               <WrapperInner
                 className="wrapperInner"
