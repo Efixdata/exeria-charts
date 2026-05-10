@@ -1,8 +1,27 @@
 const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const nodeExternals = require("webpack-node-externals");
+ 
+const externals = {
+  react: {
+    root: "React",
+    commonjs2: "react",
+    commonjs: "react",
+    amd: "react",
+  },
+  "react-dom": {
+    root: "ReactDOM",
+    commonjs2: "react-dom",
+    commonjs: "react-dom",
+    amd: "react-dom",
+  },
+};
 
-module.exports = {
+const esmExternals = {
+  react: "react",
+  "react-dom": "react-dom",
+};
+
+const baseConfig = {
   entry: "./index.tsx",
   module: {
     rules: [
@@ -20,11 +39,6 @@ module.exports = {
           },
         },
       },
-      // {
-      //   test: /\.tsx?$/,
-      //   use: "ts-loader",
-      //   exclude: /node_modules/,
-      // },
       {
         test: /\.(svg|png|jpe?g|gif)$/i,
         use: [
@@ -35,36 +49,53 @@ module.exports = {
       },
     ],
   },
-  plugins: [new CleanWebpackPlugin()],
   resolve: {
     extensions: [".tsx", ".jsx", ".ts", ".js"],
   },
-  output: {
-    filename: "index.js",
-    path: path.resolve(__dirname, "dist"),
-    library: {
-      name: "ReactChartUI",
-      type: "umd",
-    },
-  },
-  optimization: {
-    minimize: true,
-  },
-  externals: [
-    // nodeExternals(),
+  externals: [externals],
+};
+
+module.exports = (_env, argv = {}) => {
+  const isProd = argv.mode === "production";
+
+  return [
     {
-      react: {
-        root: "React",
-        commonjs2: "react",
-        commonjs: "react",
-        amd: "react",
+      ...baseConfig,
+      name: "umd",
+      mode: isProd ? "production" : "development",
+      plugins: [new CleanWebpackPlugin()],
+      output: {
+        filename: "index.js",
+        path: path.resolve(__dirname, "dist"),
+        library: {
+          name: "ReactChartUI",
+          type: "umd",
+        },
       },
-      "react-dom": {
-        root: "ReactDOM",
-        commonjs2: "react-dom",
-        commonjs: "react-dom",
-        amd: "react-dom",
+      optimization: {
+        minimize: isProd,
       },
     },
-  ],
+    {
+      ...baseConfig,
+      name: "esm",
+      mode: isProd ? "production" : "development",
+      externalsType: "module",
+      externals: [esmExternals],
+      experiments: {
+        outputModule: true,
+      },
+      output: {
+        filename: "index.esm.js",
+        path: path.resolve(__dirname, "dist"),
+        module: true,
+        library: {
+          type: "module",
+        },
+      },
+      optimization: {
+        minimize: isProd,
+      },
+    },
+  ];
 };

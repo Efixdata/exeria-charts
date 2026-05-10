@@ -32,9 +32,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack && npm run build:types",
+    "build": "webpack --mode production && npm run build:types",
     "build:types": "tsc -p tsconfig.build.json",
-    "dev": "webpack --watch",
+    "dev": "webpack --mode development --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint --ext .ts src",
     "lint:fix": "npm run lint -- --fix"

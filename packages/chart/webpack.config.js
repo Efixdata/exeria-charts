@@ -26,37 +26,49 @@ const baseConfig = {
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
   },
-  optimization: {
-    minimize: false,
-  },
 };
 
-module.exports = [
-  {
-    ...baseConfig,
-    entry: "./src/Chart.ts",
-    output: {
-      filename: "index.js",
-      path: distPath,
-      library: {
-        type: "umd",
+module.exports = (_env, argv = {}) => {
+  const isProd = argv.mode === "production";
+
+  return [
+    {
+      ...baseConfig,
+      name: "umd",
+      mode: isProd ? "production" : "development",
+      entry: "./src/Chart.ts",
+      output: {
+        filename: "index.js",
+        path: distPath,
+        clean: true,
+        library: {
+          type: "umd",
+        },
+        globalObject: "this",
       },
-      globalObject: "this",
-    },
-  },
-  {
-    ...baseConfig,
-    entry: "./src/index.ts",
-    experiments: {
-      outputModule: true,
-    },
-    output: {
-      filename: "index.mjs",
-      path: distPath,
-      module: true,
-      library: {
-        type: "module",
+      optimization: {
+        minimize: isProd,
       },
     },
-  },
-];
+    {
+      ...baseConfig,
+      name: "esm",
+      mode: isProd ? "production" : "development",
+      entry: "./src/index.ts",
+      experiments: {
+        outputModule: true,
+      },
+      output: {
+        filename: "index.mjs",
+        path: distPath,
+        module: true,
+        library: {
+          type: "module",
+        },
+      },
+      optimization: {
+        minimize: isProd,
+      },
+    },
+  ];
+};
