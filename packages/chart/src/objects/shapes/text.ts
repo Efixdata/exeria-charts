@@ -6,8 +6,13 @@ import {
   drawAnchor,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type {
+  ShapeHitArgs,
+  ShapeInteractionArgs,
+  ShapeLifecycleArgs,
+  ShapeRenderArgs,
+  ShapeRuntime,
+} from "./_sharedTypes";
 
 function TextObject(this: ShapeRuntime) {
   this.cfg = {
@@ -27,13 +32,8 @@ function TextObject(this: ShapeRuntime) {
     fontSize: 12,
   };
 
-  this.getPoints = function (
-    o: LegacyShapeObject,
-    renderer: any,
-    panel: any,
-    model: any,
-    seriesManager: any
-  ) {
+  this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    if (!panel) return [];
     if (!o.anchors[1].dragged) {
       var fV = LIB.getReferenceValue(o, model, seriesManager);
       var p0 = renderer.getYCoordinateForPrice(o.anchors[0].value, {
@@ -44,89 +44,95 @@ function TextObject(this: ShapeRuntime) {
         fV,
       });
       var p1 = p0 + o._height;
-      var v = parseFloat(
-        renderer.getPriceForYCoordinate(p1, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        })
-      );
+      var v = renderer.getPriceForYCoordinate(p1, {
+        panelHeight: panel._height,
+        minValue: panel.vMin,
+        maxValue: panel.vMax,
+        valueAxisMode: panel.valueAxisMode,
+        fV,
+      });
       o.anchors[1].value = v;
     }
     var pts = TextObject.prototype.getPoints.call(this, o, renderer, panel, model, seriesManager);
     return pts;
   };
 
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    o._width = this.cfg.widthMin;
-    o._height = this.cfg.heightMin;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    const cfg =
+      this.cfg ||
+      {
+        offsetX: 0,
+        offsetY: 0,
+        widthMin: 100,
+        widthMax: 240,
+        heightMin: 24,
+        margin: 10,
+        lineSpacing: 5,
+        lineHeight: 14,
+        lineMultiplier: 1.3,
+        fontSize: 12,
+      };
+
+    o._width = cfg.widthMin;
+    o._height = cfg.heightMin;
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     const text = o.text ?? "";
 
     var x = pts[0].x;
     var y = pts[0].y;
 
-    this.font =
-      (o.fontSize || this.cfg.fontSize) + "px" + WEBRCP.utils.colorManager.getFont("fontName");
-    this.lineHeight = o.fontSize ? o.fontSize * this.cfg.lineMultiplier : this.cfg.lineHeight;
+    this.font = (o.fontSize || cfg.fontSize) + "px" + WEBRCP.utils.colorManager.getFont("fontName");
+    const lineHeight = o.fontSize ? o.fontSize * cfg.lineMultiplier : cfg.lineHeight;
+    this.lineHeight = lineHeight;
 
     ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.font = this.font;
 
-    var wrapped = wrap(text, this.cfg.widthMax - 2 * this.cfg.margin, ctx);
-    o._width = wrapped.width + 2 * this.cfg.margin;
-    o._height = wrapped.text.length * this.lineHeight + this.cfg.margin * 1.5;
+    var wrapped = wrap(text, cfg.widthMax - 2 * cfg.margin, ctx);
+    o._width = wrapped.width + 2 * cfg.margin;
+    o._height = wrapped.text.length * lineHeight + cfg.margin * 1.5;
 
     if (o.fillBg) {
       ctx.beginPath();
       if (o.anchors[1].dragged) {
-        ctx.moveTo(x - this.cfg.offsetX, y - this.cfg.offsetY);
+        ctx.moveTo(x - cfg.offsetX, y - cfg.offsetY);
 
         if (pts[1].y < pts[0].y) {
-          ctx.lineTo(x - this.cfg.offsetX + o._width / 2 - 10, y - this.cfg.offsetY);
+          ctx.lineTo(x - cfg.offsetX + o._width / 2 - 10, y - cfg.offsetY);
           ctx.lineTo(pts[1].x, pts[1].y);
-          ctx.lineTo(x - this.cfg.offsetX + o._width / 2 + 10, y - this.cfg.offsetY);
-          ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY);
-          ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height);
-          ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX + o._width / 2 + 10, y - cfg.offsetY);
+          ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY);
+          ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height);
         } else if (pts[1].y > pts[0].y + o._height) {
-          ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY);
-          ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height);
-          ctx.lineTo(x - this.cfg.offsetX + o._width / 2 + 10, y - this.cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY);
+          ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX + o._width / 2 + 10, y - cfg.offsetY + o._height);
           ctx.lineTo(pts[1].x, pts[1].y);
-          ctx.lineTo(x - this.cfg.offsetX + o._width / 2 - 10, y - this.cfg.offsetY + o._height);
-          ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX + o._width / 2 - 10, y - cfg.offsetY + o._height);
+          ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height);
         } else {
           if (pts[1].x > pts[0].x + o._width) {
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY);
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height / 2 - 10);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height / 2 - 10);
             ctx.lineTo(pts[1].x, pts[1].y);
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height / 2 + 10);
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height);
-            ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height / 2 + 10);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height);
+            ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height);
           } else if (pts[1].x < pts[0].x) {
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY);
-            ctx.lineTo(x - this.cfg.offsetX + o._width, y - this.cfg.offsetY + o._height);
-            ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height);
-            ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height / 2 + 10);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY);
+            ctx.lineTo(x - cfg.offsetX + o._width, y - cfg.offsetY + o._height);
+            ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height);
+            ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height / 2 + 10);
             ctx.lineTo(pts[1].x, pts[1].y);
-            ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY + o._height / 2 - 10);
+            ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY + o._height / 2 - 10);
           } else {
-            ctx.rect(x - this.cfg.offsetX, y - this.cfg.offsetY, o._width, o._height);
+            ctx.rect(x - cfg.offsetX, y - cfg.offsetY, o._width, o._height);
           }
         }
-        ctx.lineTo(x - this.cfg.offsetX, y - this.cfg.offsetY);
+        ctx.lineTo(x - cfg.offsetX, y - cfg.offsetY);
       } else {
-        ctx.rect(x - this.cfg.offsetX, y - this.cfg.offsetY, o._width, o._height);
+        ctx.rect(x - cfg.offsetX, y - cfg.offsetY, o._width, o._height);
       }
       ctx.fill();
     }
@@ -142,11 +148,11 @@ function TextObject(this: ShapeRuntime) {
     for (let index = 0; index < wrapped.text.length; index += 1) {
       ctx.fillText(
         wrapped.text[index],
-        x + this.cfg.offsetX + this.cfg.margin,
+        x + cfg.offsetX + cfg.margin,
         y +
-          this.cfg.offsetY +
-          this.cfg.margin +
-          ((index + 1) * this.lineHeight - (o.fontSize || this.cfg.fontSize) / 2)
+          cfg.offsetY +
+          cfg.margin +
+          ((index + 1) * lineHeight - (o.fontSize || cfg.fontSize) / 2)
       );
     }
     ctx.closePath();
@@ -165,7 +171,6 @@ function TextObject(this: ShapeRuntime) {
           var lw = ctx.measureText(line).width;
           width = lw > width ? lw : width;
           line = "";
-          var newParagraph = true;
         }
         var testLine = line + words[n] + " ";
         var testWidth = ctx.measureText(testLine).width;
@@ -186,24 +191,11 @@ function TextObject(this: ShapeRuntime) {
       return { text: wrapped, width: width };
     }
 
-    function newSize(w: number, min: number, max: number) {
-      if (w < min) return min;
-      if (w < max) return w;
-      return max;
-    }
-
-    this.postRender(o, ctx);
+    this.postRender(o, ctx, renderer, model, panel, seriesManager);
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.renderOverlay = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hitAnchor) {
       for (var i = 0; i < pts.length; i++) {
@@ -225,18 +217,9 @@ function TextObject(this: ShapeRuntime) {
     }
   };
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
 
     if (
@@ -263,17 +246,10 @@ function TextObject(this: ShapeRuntime) {
   };
 
   this.lastClickStamp = 0;
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     const now = Date.now();
-    if (now < this.lastClickStamp + 600) {
+    const lastClickStamp = this.lastClickStamp ?? 0;
+    if (now < lastClickStamp + 600) {
       this.lastClickStamp = 0;
       interactor.chart.requestObjectText(o, "text", o.text);
     } else this.lastClickStamp = now;
@@ -290,15 +266,7 @@ function TextObject(this: ShapeRuntime) {
     );
   };
 
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var idx = interactor.currentAnchor.selected;
     var baseAnchors = interactor.currentAnchor.anchors;
     var xOffset =
@@ -360,15 +328,7 @@ function TextObject(this: ShapeRuntime) {
    * STAGE
    */
 
-  this.stageDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var v = renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
       panelHeight: panel._height,
@@ -386,36 +346,15 @@ function TextObject(this: ShapeRuntime) {
       o.anchors[1].value = v;
       o.anchors[1]._index = idx;
       o.anchors[1].stamp = renderer.getIndexStamp(o.anchors[1]._index, model, seriesManager);
-      //panel.objects.push(o);
-      var ca = { selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-      return ca;
+      return this.createAnchorSelection(o, 1);
     }
     interactor.pushPanel(this, o, panel);
-    return {
-      selected: interactor.currentAnchor.selected + 1,
-      anchors: JSON.parse(JSON.stringify(o.anchors)),
-    };
+    return this.createAnchorSelection(o, (interactor.currentAnchor.selected ?? 0) + 1);
   };
 
-  this.stageDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {};
+  this.stageDrag = function () {};
 
-  this.stageUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageUp = function (...[e, o, renderer, interactor, model, panel]: ShapeLifecycleArgs) {
     return Shape.prototype.stageUpWithSelectionLimit.call(
       this,
       e,
@@ -428,15 +367,7 @@ function TextObject(this: ShapeRuntime) {
     );
   };
 
-  this.stageOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageOut = function (...[e, o, renderer, interactor, model, panel]: ShapeLifecycleArgs) {
     return Shape.prototype.stageUpWithSelectionLimit.call(
       this,
       e,
@@ -464,5 +395,6 @@ function TextObject(this: ShapeRuntime) {
   // };
 }
 
-const TextObjectCtor: new (...args: any[]) => any = TextObject as any;
+const TextObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  TextObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { TextObjectCtor as TextObject };

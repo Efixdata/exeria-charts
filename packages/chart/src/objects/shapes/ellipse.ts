@@ -7,10 +7,16 @@ import {
   drawAnchor,
   drawAnchors,
 } from "../../utils/objects-lib";
-import type { ShapeRuntime } from "./_sharedTypes";
+import {
+  createShapeMouseDownDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
+import type { LegacyShapeObject, LegacyShapePoint } from "../../objectRuntimeBases";
+import type { ShapeHitArgs, ShapeRenderArgs, ShapeRuntime } from "./_sharedTypes";
 
 function EllipseObject(this: ShapeRuntime) {
-  this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     ctx.save();
@@ -46,7 +52,7 @@ function EllipseObject(this: ShapeRuntime) {
     ctx.restore();
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hitAnchor) {
@@ -62,19 +68,24 @@ function EllipseObject(this: ShapeRuntime) {
       drawAnchors(octx, panel, pts, this.anchorPointSize, this.anchorColor, 1);
     }
 
-    function drawDiagonal(o: any, ctx: any, pts: any) {
-      ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
+    function drawDiagonal(
+      object: LegacyShapeObject,
+      ctx: CanvasRenderingContext2D,
+      points: LegacyShapePoint[]
+    ) {
+      ctx.strokeStyle =
+        object.color ? object.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.moveTo(points[0].x, points[0].y);
       ctx.setLineDash([2, 5]);
-      ctx.lineTo(pts[1].x, pts[1].y);
+      ctx.lineTo(points[1].x, points[1].y);
       ctx.stroke();
       ctx.setLineDash([1]);
       ctx.closePath();
     }
   };
 
-  this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
@@ -121,33 +132,7 @@ function EllipseObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-
-    interactor.pushPanel(this, o, panel);
-
-    for (var i = 0; i < pts.length; i++) {
-      if (
-        interactor.isOver(
-          e._offset.offsetX,
-          e._offset.offsetY,
-          pts[i].x,
-          pts[i].y,
-          this.hitTolerance
-        )
-      ) {
-        return {
-          selected: i,
-          anchors: JSON.parse(JSON.stringify(o.anchors)),
-        };
-      }
-    }
-
-    return {
-      selected: null,
-      anchors: JSON.parse(JSON.stringify(o.anchors)),
-    };
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
   /*
    * STAGE
@@ -192,26 +177,9 @@ function EllipseObject(this: ShapeRuntime) {
   // 	}
   // };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    interactor.popPanel(this, o, panel);
+  this.stageUp = shapeStageUpDelegate;
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag) {
-      interactor.currentAnchor.selected++;
-    }
-
-    const isDrawingDone =
-      interactor.currentAnchor !== null &&
-      interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length;
-
-    if (isDrawingDone) {
-      interactor.currentAnchor = null;
-      return true;
-    }
-  };
-
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
-  };
+  this.stageOut = shapeStageOutDelegate;
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	console.log("ELLIPSE stage move", interactor.currentAnchor);
@@ -229,5 +197,6 @@ function EllipseObject(this: ShapeRuntime) {
   // };
 }
 
-const EllipseObjectCtor: new (...args: any[]) => any = EllipseObject as any;
+const EllipseObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  EllipseObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { EllipseObjectCtor as EllipseObject };

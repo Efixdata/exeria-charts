@@ -5,24 +5,16 @@ import {
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
 import {
   createShapeMouseDownDelegate,
   shapeStageOutDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { ShapeHitArgs, ShapeInteractionArgs, ShapeRenderArgs, ShapeRuntime } from "./_sharedTypes";
 
 function VerticalRangeObject(this: ShapeRuntime) {
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -64,15 +56,8 @@ function VerticalRangeObject(this: ShapeRuntime) {
     }
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var x = pts[0].x;
     var y1 = pts[0].y;
     var y2 = pts[1].y;
@@ -113,18 +98,9 @@ function VerticalRangeObject(this: ShapeRuntime) {
     );
   };
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
 
     this.clearHits(o);
@@ -147,15 +123,7 @@ function VerticalRangeObject(this: ShapeRuntime) {
 
   this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var idx = interactor.currentAnchor.selected;
     var baseAnchors = interactor.currentAnchor.anchors;
     var xOffset =
@@ -202,40 +170,8 @@ function VerticalRangeObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        )
-      ).toFixed(panel.precision)
-    );
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -251,7 +187,6 @@ function VerticalRangeObject(this: ShapeRuntime) {
         valueAxisMode: panel.valueAxisMode,
         fV,
       });
-      var idx = renderer.getPointIndex(e._offset.offsetX, model);
       if (i != null && i < o.anchors.length) {
         //o.anchors[i]._index = idx;
         o.anchors[i].value = v;
@@ -279,5 +214,6 @@ function VerticalRangeObject(this: ShapeRuntime) {
   // };
 }
 
-const VerticalRangeObjectCtor: new (...args: any[]) => any = VerticalRangeObject as any;
+const VerticalRangeObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  VerticalRangeObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { VerticalRangeObjectCtor as VerticalRangeObject };

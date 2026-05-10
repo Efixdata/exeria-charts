@@ -6,34 +6,144 @@ import { Series } from "./Objects";
 import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
 import Hammer from "./lib/hammer.min.js";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
-import type { CoreChartController, CoreChartModel, CoreChartPanel } from "./internal-types/chart";
-import type { CoreFusionRuntime } from "./internal-types/fusion";
+import type { ChartConfig } from "./types";
+import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
+import type { CoreFusionRuntime, CoreFusionStatic } from "./internal-types/fusion";
 import type {
   CoreInteractor,
   CoreInteractorConstructor,
   CoreInteractionMode,
+  InteractorChartHost,
   PointerEventLike,
 } from "./internal-types/interactor";
 import type { ChartRuntimeObject } from "./internal-types/objects";
 import type { CoreRenderer } from "./internal-types/renderer";
+import type { RuntimeScriptConfig } from "./internal-types/scripts";
 
-declare const $: any;
+interface DialogActionHandle {
+  dismiss(keepMounted?: boolean): void;
+}
+
+interface DialogAction {
+  myClass?: string;
+  title: string;
+  callback(this: DialogActionHandle): void;
+}
+
+interface PropertiesDialogWidget {
+  addClass(className: string): PropertiesDialogWidget;
+  empty(): PropertiesDialogWidget;
+  simplePropertiesEditor(options: {
+    properties: Record<string, string>;
+    locale?: Record<string, string>;
+    inputClass?: string;
+  }): PropertiesDialogWidget;
+  simplePropertiesEditor(command: "getValues"): Record<string, string>;
+  simplePropertiesEditor(command: "focus"): PropertiesDialogWidget;
+  rcpDialog(options: {
+    content: PropertiesDialogWidget;
+    title: string;
+    actions: DialogAction[];
+    onShown?: () => void;
+  }): PropertiesDialogWidget;
+  rcpDialog(command: "showDialog", modal: boolean): PropertiesDialogWidget;
+}
+
+type TooltipRenderValue = {
+  label: string;
+  value: unknown;
+  precision?: number | null;
+};
+
+type TooltipRenderData = {
+  title: string;
+  date: string;
+  values: TooltipRenderValue[];
+  precision?: number;
+};
+
+type TooltipLayout = {
+  offsetX: number;
+  offsetY: number;
+  offsetBottomMargin: number;
+  width: number;
+  widthMin: number;
+  widthMax: number;
+  height: number;
+  lineSpacing: number;
+  lineHeight: number;
+  margin: number;
+  valueOffset: number;
+};
+
+type TitleDescriptionPayload = {
+  title?: string;
+  description?: string;
+  data?: string;
+  thumbnail?: string;
+  model?: CoreChartModel;
+};
+
+type RelatedOrderRequest = {
+  price: number;
+  parent: unknown;
+  type?: "SL" | "TP";
+  title?: "SL" | "TP";
+};
+
+type ScrollAccumulatorCallback = (
+  this: CoreInteractor,
+  index: number,
+  dataLength: number,
+  xPosition: number,
+  canvasWidth: number,
+  visibleIndexes: number,
+  eventOffset: { offsetX: number; offsetY: number }
+) => void;
+
+type InteractionModeConstructor = new (interactor: CoreInteractor) => CoreInteractionMode;
+type StageModeConstructor = new (
+  interactor: CoreInteractor,
+  tool: ChartRuntimeObject,
+  onFinished?: () => void
+) => CoreInteractionMode;
+
+type FusionUiApi = CoreFusionStatic & {
+  dialogs: {
+    script: {
+      show: (
+        config: { key: string; config: RuntimeScriptConfig | null },
+        onApply: (config: RuntimeScriptConfig) => void,
+        onCancel: () => void,
+        fusion: CoreFusionRuntime,
+        panels: boolean,
+        objects: unknown,
+        locale: unknown
+      ) => void;
+      hide: () => void;
+    };
+  };
+};
+
+declare const $: (markup: string) => PropertiesDialogWidget;
+
+const FUSION_UI = FUSION as unknown as FusionUiApi;
 
 var InteractionsController: CoreInteractorConstructor = function (
   this: CoreInteractor,
-  chart: any,
+  chart: InteractorChartHost,
   canvas: HTMLCanvasElement,
   overlay: HTMLCanvasElement,
   model: CoreChartModel,
   renderer: CoreRenderer,
   topLayer: HTMLDivElement,
-  config: Record<string, unknown>,
+  config: ChartConfig,
   fusion: CoreFusionRuntime,
   controller: CoreChartController
 ) {
   var self = this;
   this.chart = chart;
-  this.currentMode = new (DefaultTool as any)(this);
+  this.currentMode = new (DefaultTool as unknown as InteractionModeConstructor)(this);
   this.topLayer = topLayer;
   this.config = config;
   this.fusion = fusion;
@@ -71,7 +181,7 @@ var InteractionsController: CoreInteractorConstructor = function (
         dampingFactor: 0.03,
       },
     },
-    hook: {},
+    hook: null,
   };
 
   this.doFrame = function (callback) {
@@ -223,10 +333,9 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.registerObjectAsIdicator = function (o) {
     var scriptKey = "OBJECT";
-    var script = (FUSION as any).getScript("OBJECT");
     var os = this.chart.getObjectsForIndicator();
     var panels = false;
-    (FUSION as any).dialogs.script.show(
+    FUSION_UI.dialogs.script.show(
       { key: scriptKey, config: null },
       onApply,
       onCancel,
@@ -236,11 +345,11 @@ var InteractionsController: CoreInteractorConstructor = function (
       WEBRCP.locale.fusion
     );
     function onCancel() {
-      (FUSION as any).dialogs.script.hide();
+      FUSION_UI.dialogs.script.hide();
     }
-    function onApply(scriptConfig: any) {
+    function onApply(scriptConfig: RuntimeScriptConfig) {
       chart.onScriptEditorApply(scriptConfig);
-      (FUSION as any).dialogs.script.hide();
+      FUSION_UI.dialogs.script.hide();
     }
   };
 
@@ -274,7 +383,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.initialMouseEvent = null;
     self.startEvent = null;
 
-    clearInterval(self.swipe.hook);
+    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
 
     var rect = event.target.getBoundingClientRect();
     event.center["offsetX"] = event.center.x - rect.left;
@@ -321,7 +430,17 @@ var InteractionsController: CoreInteractorConstructor = function (
             rightGrabbed.offsetX,
             self.model
           );
-        const grabbedCandlesCount = self.pinch.rightGrabbedIndex - self.pinch.leftGrabbedIndex;
+        const leftGrabbedIndex = self.pinch.leftGrabbedIndex;
+        const rightGrabbedIndex = self.pinch.rightGrabbedIndex;
+        const trackedIndex = self.pinch.trackedIndex;
+        if (
+          leftGrabbedIndex == null ||
+          rightGrabbedIndex == null ||
+          trackedIndex == null
+        )
+          return;
+
+        const grabbedCandlesCount = rightGrabbedIndex - leftGrabbedIndex;
 
         const grabbedWidth = rightGrabbed.pageX - leftGrabbed.pageX;
         const newPeriodWidth = grabbedWidth / grabbedCandlesCount;
@@ -331,7 +450,7 @@ var InteractionsController: CoreInteractorConstructor = function (
         if (newPeriodWidth < minPeriodWidth) self.model.periodWidth = minPeriodWidth;
         if (newPeriodWidth > maxPeriodWidth) self.model.periodWidth = maxPeriodWidth;
 
-        self.moveIndexToPoint(self.pinch.trackedIndex, trackedPoint);
+        self.moveIndexToPoint(trackedIndex, trackedPoint);
 
         self.controller.rerender();
         // this.fit();
@@ -354,7 +473,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onSwipe = function (event) {
     self.body.click();
-    clearInterval(self.swipe.hook);
+    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
 
     if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
     self.isMouseDown = false;
@@ -711,15 +830,15 @@ var InteractionsController: CoreInteractorConstructor = function (
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
           : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
         title: "",
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           this.dismiss();
         },
       },
       {
         title: self.chart.options.locale.getMessage("OK"),
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           var props = content.simplePropertiesEditor("getValues");
-          var data: any = { model: chart.model };
+          var data: TitleDescriptionPayload = { model: chart.model };
           data.thumbnail = chart.canvas.toDataURL();
           if (props["Title"]) data.title = props["Title"];
           if (props["Description"]) data.description = props["Description"];
@@ -760,15 +879,15 @@ var InteractionsController: CoreInteractorConstructor = function (
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
           : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
         title: "",
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           this.dismiss();
         },
       },
       {
         title: self.chart.options.locale.getMessage("OK"),
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           var props = content.simplePropertiesEditor("getValues");
-          var data: any = { data: JSON.stringify(chart.model) };
+          var data: TitleDescriptionPayload = { data: JSON.stringify(chart.model) };
           data.thumbnail = chart.canvas.toDataURL();
           if (props["Title"]) data.title = props["Title"];
           if (props["Description"]) data.description = props["Description"];
@@ -813,15 +932,15 @@ var InteractionsController: CoreInteractorConstructor = function (
           ? "webrcp-icon-arrow_back webrcp-dark-white webrcp-light-white"
           : "webrcp-dark-white webrcp-light-white webrcp-icon-close",
         title: "",
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           this.dismiss();
         },
       },
       {
         title: self.chart.options.locale.getMessage("OK"),
-        callback: function (this: any) {
+        callback: function (this: DialogActionHandle) {
           var props = content.simplePropertiesEditor("getValues");
-          var data: any = {};
+          var data: TitleDescriptionPayload = {};
           if (props["Title"]) data.title = props["Title"];
           if (props["Description"]) data.description = props["Description"];
           this.dismiss(quickHide);
@@ -843,7 +962,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.requestStrategyTitleAndExportStrategy = function (strategy) {
-    var sendStrategy = function (titleAndDescObject: any) {
+    var sendStrategy = function (titleAndDescObject: TitleDescriptionPayload) {
       titleAndDescObject.data = JSON.stringify(strategy);
       // SERVICES.strategies.sendStrategy(SERVICES.token, titleAndDescObject,
       // 	function (data) {
@@ -885,7 +1004,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     e._offset = self.getEventOffset(e);
 
-    clearInterval(self.swipe.hook);
+    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
 
     WEBRCP.newChartLastFocus = self.chart;
     if (isTouchDevice()) {
@@ -1098,7 +1217,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (event.isPrimary === false) return;
     if (!this.initialMouseEvent) return;
     if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
-      this.chart.style.cursor = this.currentMode.cursorOnDrag;
+      this.chart.style.cursor = this.currentMode.cursorOnDrag ?? "default";
     }
 
     const io = this.getEventOffset(initialEvent || this.initialMouseEvent);
@@ -1277,7 +1396,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       if (self.controller.isChartEmpty(self.chart)) return;
 
       event.preventDefault?.();
-      clearInterval(self.swipe.hook);
+      if (self.swipe.hook != null) clearInterval(self.swipe.hook);
 
       const deltaY = event.deltaY ?? 0;
       const deltaX = event.deltaX ?? 0;
@@ -1320,7 +1439,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       this: CoreInteractor,
       currentDelta: { v: number },
       event: WheelEvent | PointerEventLike,
-      callback: (...args: any[]) => void
+      callback: ScrollAccumulatorCallback
     ) {
       currentDelta.v += event.deltaY ?? 0;
 
@@ -1539,7 +1658,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     var arrow = this.renderer.objects["MovePaneArrows"].hit(
       x,
       y,
-      null,
+      null as unknown as ChartRuntimeObject,
       this.renderer,
       this,
       this.model,
@@ -1547,15 +1666,13 @@ var InteractionsController: CoreInteractorConstructor = function (
       this.fusion.getSeriesManager()
     );
     if (arrow) {
-      return arrow;
+      return arrow as ChartRuntimeObject;
     }
 
     //clear all previous hits
     for (var i = 0; i < this.currentPanel.objects.length; i++) {
-      if (this.renderer.objects[this.currentPanel.objects[i].type].clearHits)
-        this.renderer.objects[this.currentPanel.objects[i].type].clearHits(
-          this.currentPanel.objects[i]
-        );
+      const objectRenderer = this.renderer.objects[this.currentPanel.objects[i].type];
+      if (objectRenderer.clearHits) objectRenderer.clearHits(this.currentPanel.objects[i]);
     }
 
     if (this.currentPanel.main == true) {
@@ -1646,6 +1763,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.getMainInstrumentPlotter = function () {
     var panel = this.getMainPanel();
+    if (!panel) return null;
     if (this.model.instrumentsSeries && this.model.instrumentsSeries.length > 0) {
       for (var i = 0; i < panel.objects.length; i++) {
         if (panel.objects[i].id == this.model.instrumentsSeries[0].seriesId)
@@ -1885,7 +2003,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.doAddTradeObject = function (o) {
     var mode = "silent"; //ask, dialog
-    var orderRequest: any = { price: o.related.price, parent: o.object };
+    var orderRequest: RelatedOrderRequest = { price: o.related.price, parent: o.object };
     if (o.operation == "SELL" && o.related.price > o.price) orderRequest.type = "SL";
     if (o.operation == "SELL" && o.related.price < o.price) orderRequest.type = "TP";
     if (o.operation == "BUY" && o.related.price > o.price) orderRequest.type = "TP";
@@ -1909,19 +2027,23 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     switch (symbol) {
       case "CROSSHAIR":
-        this.currentMode = new (CrosshairTool as any)(this);
+        this.currentMode = new (CrosshairTool as unknown as InteractionModeConstructor)(this);
         break;
       case "ZOOMBOX":
-        this.currentMode = new (ZoomBoxTool as any)(this);
+        this.currentMode = new (ZoomBoxTool as unknown as InteractionModeConstructor)(this);
         break;
       case "STAGE":
-        this.currentMode = new (StageTool as any)(this, o, onFinished);
+        if (!o) {
+          this.currentMode = new (DefaultTool as unknown as InteractionModeConstructor)(this);
+          break;
+        }
+        this.currentMode = new (StageTool as unknown as StageModeConstructor)(this, o, onFinished);
         break;
       case "ERASER":
-        this.currentMode = new (EraserTool as any)(this);
+        this.currentMode = new (EraserTool as unknown as InteractionModeConstructor)(this);
         break;
       default:
-        this.currentMode = new (DefaultTool as any)(this);
+        this.currentMode = new (DefaultTool as unknown as InteractionModeConstructor)(this);
     }
 
     this.controller.emitEvent({
@@ -1950,9 +2072,11 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.getEventOffset = function (e) {
+    if (!e) return { offsetX: 0, offsetY: 0 };
+
     var targetRect = this.topLayer.getBoundingClientRect();
-    var clientX = e.clientX || e.deltaX;
-    var clientY = e.clientY || e.deltaY;
+    var clientX = e.clientX ?? e.deltaX ?? 0;
+    var clientY = e.clientY ?? e.deltaY ?? 0;
     var x = clientX - targetRect.left;
     var y = clientY - targetRect.top;
 
@@ -2004,7 +2128,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.copyMode = false;
 
     if (this.interactor.currentHitObject != null) {
-      if (e.ctrlKey && this.canBeCloned(this.interactor.currentHitObject)) {
+      if (e.ctrlKey && this.canBeCloned?.(this.interactor.currentHitObject)) {
         this.copyMode = true;
         var clone = this.interactor.chart.objectsManager.cloneObject(
           this.interactor.currentHitObject
@@ -2030,7 +2154,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
         this.interactor.model,
         this.interactor.currentPanel,
         this.interactor.fusion.getSeriesManager()
-      );
+      ) as CoreInteractor["currentAnchor"];
     } else {
       this.interactor.deselectAll();
     }
@@ -2069,7 +2193,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
       this.interactor.currentHitObject = null;
       this.interactor.chart.style.cursor = "ns-resize";
     } else if (this.interactor.currentHitObject != null && this.interactor.currentHitObject._hit) {
-      if (e.ctrlKey && this.canBeCloned(this.interactor.currentHitObject)) {
+      if (e.ctrlKey && this.canBeCloned?.(this.interactor.currentHitObject)) {
         if (this.interactor.chart.style.cursor != this.cursorOnCopyMode) {
           this.interactor.chart.style.cursor = this.cursorOnCopyMode;
         }
@@ -2140,7 +2264,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.keyDown = function (key) {
-    if (key == "Control" && this.canBeCloned(this.interactor.currentHitObject)) {
+    if (key == "Control" && this.canBeCloned?.(this.interactor.currentHitObject)) {
       if (this.interactor.currentHitObject != null && this.interactor.currentHitObject._hit) {
         if (this.interactor.chart.style.cursor != this.cursorOnCopyMode) {
           this.interactor.chart.style.cursor = this.cursorOnCopyMode;
@@ -2243,6 +2367,8 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           if (index > self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length - 1)
             return;
 
+          if (!object.getToolTip) return;
+
           var tip = object.getToolTip(
             self.interactor.currentHitObject,
             index,
@@ -2281,26 +2407,26 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   function drawTip(
-    tip: any,
+    tip: TooltipRenderData,
     x: number,
     y: number,
     ctx: CanvasRenderingContext2D,
     model: CoreChartModel,
     controller: CoreChartController
   ) {
-    const getValue = (value: any, precision?: number) => {
+    const getValue = (value: unknown, precision?: number | null): string => {
       if (value !== undefined && value !== null) {
-        let newValue = value;
-        if (value.toFixed) {
-          newValue = formatNumber(newValue, precision);
+        let newValue: string | number = String(value);
+        if (typeof value === "number") {
+          newValue = formatNumber(value, precision);
         }
-        return newValue;
+        return String(newValue);
       } else {
         return "-";
       }
     };
 
-    var cfg = {
+    var cfg: TooltipLayout = {
       offsetX: 10,
       offsetY: 10,
       offsetBottomMargin: 50,
@@ -2414,7 +2540,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
 
     ctx.closePath();
 
-    function calculateOffset(x: number, y: number, cfg: any, model: CoreChartModel) {
+    function calculateOffset(x: number, y: number, cfg: TooltipLayout, model: CoreChartModel) {
       var dY = model._height - cfg.offsetBottomMargin - (y + cfg.offsetY + cfg.height);
       if (dY < 0) cfg.offsetY += dY;
 
@@ -2428,13 +2554,13 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
       return max;
     }
 
-    function formatNumber(n: number, precision?: number) {
+    function formatNumber(n: number, precision?: number | null) {
       if (precision == null || precision === undefined) {
         precision = tip.precision;
       }
       if (n == 0) return "0";
 
-      if (n > 999999) return LIB.nFormatter(tip.values[i].value, precision ?? tip.precision ?? 0);
+      if (n > 999999) return LIB.nFormatter(n, precision ?? tip.precision ?? 0);
       else return n.toFixed(precision ?? tip.precision ?? 0);
     }
   }
@@ -2562,9 +2688,14 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   this.render = function (ctx) {};
 
   this.renderOverlay = function (octx) {
-    if (this.interactor.isMouseDown == true || this.interactor.isRightButtonDrag == true)
+    if (
+      (this.interactor.isMouseDown == true || this.interactor.isRightButtonDrag == true) &&
+      this.renderDn &&
+      this.startEvent &&
+      this.finishEvent
+    )
       this.renderDn(octx, this.startEvent, this.finishEvent);
-    else this.renderUp(octx, this.finishEvent);
+    else if (this.renderUp && this.finishEvent) this.renderUp(octx, this.finishEvent);
   };
 
   this.renderUp = function (ctx, e) {
@@ -2792,7 +2923,7 @@ function ZoomBoxTool(this: CoreInteractionMode, interactor: CoreInteractor) {
 
         self.interactor.clearOverlay();
         ctx.beginPath();
-        ctx.lineWidth = "1";
+        ctx.lineWidth = 1;
         ctx.strokeStyle = self.color;
         ctx.rect(
           startEventO.offsetX,
@@ -2831,7 +2962,7 @@ function StageTool(
   this.currentStep = 0;
 
   this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
-  this.interactor.currentStagingObject.id = (FUSION as any).uniqueId();
+  this.interactor.currentStagingObject.id = FUSION_UI.uniqueId();
   this.interactor.currentAnchor = null;
   this.interactor.select(this.interactor.currentStagingObject);
 
@@ -2866,7 +2997,7 @@ function StageTool(
         this.model,
         this.interactor.currentPanel,
         this.interactor.fusion.getSeriesManager()
-      );
+      ) as CoreInteractor["currentAnchor"];
     }
   };
 
@@ -2884,7 +3015,7 @@ function StageTool(
         this.model,
         this.interactor.currentPanel,
         this.interactor.fusion.getSeriesManager()
-      );
+      ) as boolean | void;
 
       if (isStageCompleted) {
         this.interactor.currentPanel.objects.push(this.interactor.currentStagingObject);

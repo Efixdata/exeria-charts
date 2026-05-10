@@ -1,21 +1,106 @@
 import type { Interval, Instrument } from "../types";
+import type { ChartPanel } from "./chart";
 import type {
   FusionMatrixConstructor,
   FusionScriptControllerRuntime,
   FusionSignalMatrix,
+  ScriptModelConfig,
   RuntimeScriptConfig,
   RuntimeScriptDefinition,
 } from "./scripts";
 import type { FusionSeriesManager, FusionSeriesRuntime } from "./series";
 import type { UnknownFn } from "./shared";
 
+export interface FusionRecord {
+  stamp?: number;
+  strength?: unknown;
+  tooltips?: Record<string, unknown> | unknown[];
+  [key: string]: any;
+}
+
+export type FusionSeriesData = FusionRecord[];
+
+export interface FusionIntervalRuntime extends Partial<Interval> {
+  symbol?: string;
+  milis?: number;
+  [key: string]: any;
+}
+
+export interface FusionInstrumentRuntime extends Omit<Partial<Instrument>, "id" | "related"> {
+  id?: string | number;
+  symbol?: string;
+  related?: FusionInstrumentRuntime[];
+  relatedKey?: string;
+  [key: string]: any;
+}
+
+export interface FusionInstrumentSeriesRuntime {
+  seriesId: string;
+  instrument?: FusionInstrumentRuntime;
+  interval?: FusionIntervalRuntime | null;
+  title?: string;
+  data?: FusionSeriesData | null;
+  [key: string]: any;
+}
+
+export interface FusionPanelRuntime extends ChartPanel {
+  objects: FusionRecord[];
+  [key: string]: any;
+}
+
+export interface FusionSeriesWrapper {
+  getValue(index: number): any;
+  setValue(index: number, value: any): void;
+  getStrength(index: number): any;
+  setStrength(index: number, value: any): void;
+  getSeriesLength(): number;
+  getStamp(index: number): number | undefined;
+  getSeriesId(): string;
+}
+
+export interface FusionTooltipSeriesWrapper extends FusionSeriesWrapper {
+  clearTooltips(index: number): void;
+  setTooltip(index: number, key: string, value: any): void;
+  getTooltip(index: number, key: string): any;
+}
+
+export interface FusionRawSeriesWrapper {
+  getValue(index: number): any;
+  setValue(index: number, value: any): void;
+  getStamp(index: number): number | undefined;
+  getSeriesLength(): number;
+  getSeriesId(): string | number | undefined;
+}
+
+export interface FusionLoadResponse extends FusionRecord {
+  instrument: FusionInstrumentRuntime;
+  interval: FusionIntervalRuntime;
+  candles: FusionSeriesData;
+}
+
+export type FusionLoaderPayload = FusionRecord | Record<string, FusionRecord>;
+export type FusionLoaderSuccess = (engine: CoreFusionRuntime, data: FusionLoaderPayload) => void;
+export type FusionLoaderError = (error: unknown) => void;
+export type FusionLoadCache = Record<string, Record<string | number, FusionRecord>>;
+
+export interface FusionBuilderAddInstrumentRequest {
+  instrument: FusionInstrumentRuntime;
+  seriesId?: string;
+}
+
+export interface FusionBuilderReplaceInstrumentRequest {
+  old: FusionInstrumentRuntime;
+  new: FusionInstrumentRuntime;
+  withRelated?: boolean;
+}
+
 export interface FusionModelRuntime {
   id?: string | number;
   mainSeries?: string | null;
   interval?: Interval | null;
-  instrumentsSeries: Array<Record<string, any>>;
-  scripts: Array<Record<string, any>>;
-  panels?: Array<Record<string, any>>;
+  instrumentsSeries: FusionInstrumentSeriesRuntime[];
+  scripts: ScriptModelConfig[];
+  panels?: FusionPanelRuntime[];
   [key: string]: any;
 }
 
@@ -23,25 +108,25 @@ export interface CoreFusionRuntime {
   model: FusionModelRuntime;
   seriesManager: FusionSeriesManager;
   scriptsManager: Record<string, FusionScriptControllerRuntime>;
-  createSeries(fields: string[]): Array<Record<string, any>>;
-  createTooltipSeries(fields: string[]): Array<Record<string, any>>;
-  getSeriesWrapper(seriesLink: string): Record<string, UnknownFn>;
-  getTooltipSeriesWrapper(seriesLink: string): Record<string, UnknownFn>;
-  getRawSeriesWrapper(series: Array<Record<string, any>>, field: string): Record<string, UnknownFn>;
+  createSeries(fields: string[]): FusionSeriesData;
+  createTooltipSeries(fields: string[]): FusionSeriesData;
+  getSeriesWrapper(seriesLink: string): FusionSeriesWrapper;
+  getTooltipSeriesWrapper(seriesLink: string): FusionTooltipSeriesWrapper;
+  getRawSeriesWrapper(series: FusionSeriesData, field: string): FusionRawSeriesWrapper;
   getId(): string | number | undefined;
   getModel(): FusionModelRuntime;
-  getValue(series: string, index: number, field?: string): any;
-  setValue(series: string, index: number, value: any, field?: string): void;
+  getValue(series: string, index: number, field?: string): unknown;
+  setValue(series: string, index: number, value: unknown, field?: string): void;
   getSeriesManager(): FusionSeriesManager;
   getMainSeries(): FusionSeriesRuntime & {
     instrument: Instrument;
     interval: Interval;
     title?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   getMainSeriesLastIndex(): number;
   getScriptsManager(): Record<string, FusionScriptControllerRuntime>;
-  getSeriesManagerSnapshot(): Record<string, any>;
+  getSeriesManagerSnapshot(): Record<string, FusionSeriesRuntime>;
   getSeriesById(seriesId: string): FusionSeriesRuntime | undefined;
   fullSynchronization(): void;
   shortSynchronization(): void;
@@ -52,7 +137,7 @@ export interface CoreFusionRuntime {
   calculate(script: FusionScriptControllerRuntime, mainSeries: FusionSeriesRuntime): void;
   addScript(config: RuntimeScriptConfig): Promise<void> | void;
   modifyScript(config: RuntimeScriptConfig): Promise<void> | void;
-  setPositions(positionsSeries: Array<Record<string, any>>): void;
+  setPositions(positionsSeries: FusionSeriesData): void;
   isPositionsSeries(): boolean;
   getPositions(): FusionSeriesRuntime | undefined;
   clearSeriesData(): void;
@@ -63,9 +148,17 @@ export interface CoreFusionRuntime {
 }
 
 export interface CoreFusionLoader {
-  loaded: Record<string, any>;
-  loadFusionData(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
-  loadFusionDataHistoric(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
+  loaded: FusionLoadCache;
+  loadFusionData(
+    engine: CoreFusionRuntime,
+    onSuccess: FusionLoaderSuccess,
+    onError: FusionLoaderError,
+  ): void;
+  loadFusionDataHistoric(
+    engine: CoreFusionRuntime,
+    onSuccess: FusionLoaderSuccess,
+    onError: FusionLoaderError,
+  ): void;
   loadHistory(engine: CoreFusionRuntime, onSuccess: UnknownFn, onError: UnknownFn): void;
   [key: string]: any;
 }
@@ -76,20 +169,20 @@ export interface CoreFusionBuilder {
   _engine?: CoreFusionRuntime | null;
   _model: FusionModelRuntime;
   _interval?: Interval | null;
-  _scripts: Array<Record<string, any>>;
-  _series: Array<Record<string, any>>;
-  _instrumentsToAdd: Array<Record<string, any>>;
-  _instrumentsToReplace: Array<Record<string, any>>;
+  _scripts: RuntimeScriptConfig[];
+  _series: FusionSeriesRuntime[];
+  _instrumentsToAdd: FusionBuilderAddInstrumentRequest[];
+  _instrumentsToReplace: FusionBuilderReplaceInstrumentRequest[];
   setModel(model: FusionModelRuntime): CoreFusionBuilder;
-  addInstrument(instrument: any, seriesId?: string): CoreFusionBuilder;
+  addInstrument(instrument: FusionInstrumentRuntime, seriesId?: string): CoreFusionBuilder;
   replaceInstrumentByOther(
-    oldInstrument: any,
-    newInstrument: any,
+    oldInstrument: FusionInstrumentRuntime,
+    newInstrument: FusionInstrumentRuntime,
     withRelated?: boolean
   ): CoreFusionBuilder;
   setInterval(interval: Interval): CoreFusionBuilder;
-  addScript(script: Record<string, any>, pos?: number): CoreFusionBuilder;
-  addSeries(series: Record<string, any>): CoreFusionBuilder;
+  addScript(script: RuntimeScriptConfig, pos?: number): CoreFusionBuilder;
+  addSeries(series: FusionSeriesRuntime): CoreFusionBuilder;
   build(): CoreFusionRuntime;
   [key: string]: any;
 }

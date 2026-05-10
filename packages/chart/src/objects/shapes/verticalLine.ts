@@ -7,21 +7,31 @@ import {
   drawAnchors,
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
-import type { ShapeRuntime } from "./_sharedTypes";
+import {
+  createShapeMouseDownDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
+import type { LegacyShapePoint } from "../../objectRuntimeBases";
+import type {
+  ShapeHitArgs,
+  ShapeLifecycleArgs,
+  ShapeRenderArgs,
+  ShapeRuntime,
+} from "./_sharedTypes";
 
 function VerticalLineObject(this: ShapeRuntime) {
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
-    if (!panel) return;
+    if (!panel) return [];
     var index = renderer.getStampIndex(o.anchors[0].stamp, model, seriesManager);
     var x = renderer.getIndexPoint(index, model) + model._midOffset;
-    //var x = renderer.getIndexPoint(o.anchors[0]._index, model)+ model._midOffset;
     return [
-      { x: x, y: panel._offset + this.anchorPointSize },
-      { x: x, y: panel._height + panel._offset },
-    ];
+      { x, y: panel._offset + this.anchorPointSize, index, value: o.anchors[0].value },
+      { x, y: panel._height + panel._offset, index, value: o.anchors[0].value },
+    ] as LegacyShapePoint[];
   };
 
-  this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -37,7 +47,7 @@ function VerticalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hitAnchor) {
@@ -65,7 +75,7 @@ function VerticalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
@@ -83,25 +93,7 @@ function VerticalLineObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var self = this;
-    var pts = self.getPoints(o, renderer, panel, model, seriesManager);
-    interactor.pushPanel(this, o, panel);
-    for (var i = 0; i < pts.length; i++) {
-      if (
-        interactor.isOver(
-          e._offset.offsetX,
-          e._offset.offsetY,
-          pts[i].x,
-          pts[i].y,
-          self.hitTolerance
-        )
-      ) {
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-      }
-    }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
   // this.mouseDrag	=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	var idx = interactor.currentAnchor.selected;
@@ -117,7 +109,7 @@ function VerticalLineObject(this: ShapeRuntime) {
    * STAGE
    */
 
-  this.stageDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var v = renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
       panelHeight: panel._height,
@@ -132,37 +124,13 @@ function VerticalLineObject(this: ShapeRuntime) {
       o.anchors[0].value = v;
       o.anchors[0]._index = idx;
       o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
-      //panel.objects.push(o);
-      var ca = { selected: 1, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-      return ca;
+      return this.createAnchorSelection(o, 1);
     }
     interactor.pushPanel(this, o, panel);
-    return {
-      selected: interactor.currentAnchor.selected + 1,
-      anchors: JSON.parse(JSON.stringify(o.anchors)),
-    };
+    return this.createAnchorSelection(o, (interactor.currentAnchor.selected ?? 0) + 1);
   };
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(
-          e._offset.offsetY - panel._offset,
-          panel._height,
-          panel.vMin,
-          panel.vMax
-        ) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          panel._height,
-          panel.vMin,
-          panel.vMax
-        )
-      ).toFixed(panel.precision)
-    );
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: import("./_sharedTypes").ShapeInteractionArgs) {
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -170,12 +138,14 @@ function VerticalLineObject(this: ShapeRuntime) {
       Math.abs(yPointsOffset) > this.hitTolerance
     ) {
       interactor.currentAnchor.drag = true;
-      var i = interactor.currentAnchor.selected;
       var v = renderer.getPriceForYCoordinate(
         e._offset.offsetY - panel._offset,
-        panel._height,
-        panel.vMin,
-        panel.vMax
+        {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+        }
       );
       var idx = renderer.getPointIndex(e._offset.offsetX, model);
       o.anchors[0]._index = idx;
@@ -184,24 +154,9 @@ function VerticalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    interactor.popPanel(this, o, panel);
+  this.stageUp = shapeStageUpDelegate;
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
-      interactor.currentAnchor.selected++;
-
-    if (
-      interactor.currentAnchor !== null &&
-      interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
-    ) {
-      interactor.currentAnchor = null;
-      return true;
-    }
-  };
-
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
-  };
+  this.stageOut = shapeStageOutDelegate;
 
   this.stageMove = function (e, o, renderer, interactor, model, panel, seriesManager) {
     if (interactor.currentAnchor !== null) {
@@ -224,5 +179,6 @@ function VerticalLineObject(this: ShapeRuntime) {
   };
 }
 
-const VerticalLineObjectCtor: new (...args: any[]) => any = VerticalLineObject as any;
+const VerticalLineObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  VerticalLineObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { VerticalLineObjectCtor as VerticalLineObject };

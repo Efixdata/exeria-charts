@@ -45,7 +45,10 @@ export function createShapeMouseDownDelegate(
     panel,
     seriesManager
   ) {
-    const method = Shape.prototype[methodName] as (...args: any[]) => any;
+    const method = Shape.prototype[methodName] as (
+      this: ShapeRuntime,
+      ...args: ShapeInteractionArgs
+    ) => unknown;
     return method.call(this, event, object, renderer, interactor, model, panel, seriesManager);
   } as (this: ShapeRuntime, ...args: ShapeInteractionArgs) => unknown;
 }
@@ -86,7 +89,10 @@ export function createShapeMouseOutDelegate(methodName: ShapeBaseMouseOutDelegat
     panel,
     seriesManager
   ) {
-    const method = Shape.prototype[methodName] as (...args: any[]) => any;
+    const method = Shape.prototype[methodName] as (
+      this: ShapeRuntime,
+      ...args: ShapeInteractionArgs
+    ) => unknown;
     return method.call(this, event, object, renderer, interactor, model, panel, seriesManager);
   } as (this: ShapeRuntime, ...args: ShapeInteractionArgs) => unknown;
 }

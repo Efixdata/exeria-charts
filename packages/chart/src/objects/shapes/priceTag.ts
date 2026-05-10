@@ -5,26 +5,18 @@ import {
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
 import {
   createShapeAnchorOverlayDelegate,
   createShapeMouseDownDelegate,
 } from "./_delegates";
-import type { ShapeTagRuntime } from "./_sharedTypes";
+import type { ShapeHitArgs, ShapeInteractionArgs, ShapeRenderArgs, ShapeTagRuntime } from "./_sharedTypes";
 
 function PriceTagObject(this: ShapeTagRuntime) {
   this.defaultTagLen = 100;
   this.defaultLineLen = 50;
 
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     var x = pts[0].x;
     var y = pts[0].y;
@@ -99,19 +91,10 @@ function PriceTagObject(this: ShapeTagRuntime) {
 
   this.renderOverlay = createShapeAnchorOverlayDelegate({ drawArrowHandles: false });
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
 
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
     this.clearHits(o);
 
@@ -144,16 +127,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
   };
 
   this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var idx = interactor.currentAnchor.selected;
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var yValue = e._offset.offsetY - panel._offset;
     var baseAnchors = interactor.currentAnchor.anchors;
     var xOffset =
@@ -195,40 +169,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
     o.anchors[0].stamp = renderer.getIndexStamp(o.anchors[0]._index, model, seriesManager);
   };
 
-  this.stageDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        )
-      ).toFixed(panel.precision)
-    );
+  this.stageDrag = function (...[e, o, renderer, interactor, model, , seriesManager]: ShapeInteractionArgs) {
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -237,12 +178,6 @@ function PriceTagObject(this: ShapeTagRuntime) {
     ) {
       interactor.currentAnchor.drag = true;
       var i = interactor.currentAnchor.selected;
-      var v = renderer.getPriceForYCoordinate(
-        e._offset.offsetY - panel._offset,
-        panel._height,
-        panel.vMin,
-        panel.vMax
-      );
       var idx = renderer.getPointIndex(e._offset.offsetX, model);
       if (i != null && i < o.anchors.length) {
         o.anchors[i]._index = idx;
@@ -252,5 +187,6 @@ function PriceTagObject(this: ShapeTagRuntime) {
   };
 }
 
-const PriceTagObjectCtor: new (...args: any[]) => any = PriceTagObject as any;
+const PriceTagObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  PriceTagObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { PriceTagObjectCtor as PriceTagObject };

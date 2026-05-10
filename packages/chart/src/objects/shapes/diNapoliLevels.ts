@@ -9,7 +9,13 @@ import {
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyValueLevelsShapeObject } from "../../objectRuntimeBases";
+import type {
+  ShapeInteractionArgs,
+  ShapeLifecycleArgs,
+  ShapeRenderArgs,
+  ShapeRuntime,
+} from "./_sharedTypes";
 
 function DiNapoliLevels(this: ShapeRuntime) {
   this.subscriptionPack = "diNapoliTools";
@@ -17,7 +23,7 @@ function DiNapoliLevels(this: ShapeRuntime) {
   this.lineWidth = 100;
   this.margin = 20;
 
-  this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     ctx.lineWidth = o.width;
@@ -49,23 +55,25 @@ function DiNapoliLevels(this: ShapeRuntime) {
   };
 
   this.drawLevels = function (index, pts, o, ctx, renderer, model, panel, seriesManager) {
+    var valueLevelsObject = o as LegacyValueLevelsShapeObject;
+    const lineWidth = this.lineWidth ?? 100;
+    const margin = this.margin ?? 20;
     var distance = Math.abs(pts[0].y - pts[1].y);
     var valueDistance = Math.abs(pts[0].value - pts[1].value);
     //calc line values
     var valuesPoints = [];
-    for (var i = 0; i < o.values.length; i++) {
+    for (var i = 0; i < valueLevelsObject.values.length; i++) {
       var p = pts[0];
       var y = p.y;
       var v;
       if (p.y > pts[1].y) {
-        y = y - (distance * o.values[i]) / 100;
-        v = p.value + (valueDistance * o.values[i]) / 100;
+        y = y - (distance * valueLevelsObject.values[i]) / 100;
+        v = p.value + (valueDistance * valueLevelsObject.values[i]) / 100;
       } else {
-        y = y + (distance * o.values[i]) / 100;
-        v = p.value - (valueDistance * o.values[i]) / 100;
+        y = y + (distance * valueLevelsObject.values[i]) / 100;
+        v = p.value - (valueDistance * valueLevelsObject.values[i]) / 100;
       }
-      var fV = LIB.getReferenceValue(o, model, seriesManager);
-      valuesPoints.push({ y: y, v: v, p: o.values[i] });
+      valuesPoints.push({ y: y, v: v, p: valueLevelsObject.values[i] });
     }
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -83,11 +91,11 @@ function DiNapoliLevels(this: ShapeRuntime) {
       var lineTo;
 
       if (i == lastIndex) {
-        lineTo = lastCandlePoint + index * this.lineWidth + this.lineWidth - this.margin; //pts[0].x;
+        lineTo = lastCandlePoint + index * lineWidth + lineWidth - margin; //pts[0].x;
         lineFrom = pts[1].x;
       } else {
-        lineFrom = lastCandlePoint + index * this.lineWidth;
-        lineTo = lineFrom + this.lineWidth - this.margin;
+        lineFrom = lastCandlePoint + index * lineWidth;
+        lineTo = lineFrom + lineWidth - margin;
       }
       if (i == 0) {
         ctx.fillStyle = WEBRCP.utils.colorManager.getColor("fibonacciRetracement1");
@@ -99,7 +107,7 @@ function DiNapoliLevels(this: ShapeRuntime) {
         ctx.fillStyle = WEBRCP.utils.colorManager.getColor("primaryTextColor");
         ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("primaryTextColor");
         lineFrom = pts[1].x + 6;
-        lineTo = lastCandlePoint + index * this.lineWidth + this.lineWidth - this.margin;
+        lineTo = lastCandlePoint + index * lineWidth + lineWidth - margin;
       }
 
       ctx.beginPath();
@@ -108,13 +116,13 @@ function DiNapoliLevels(this: ShapeRuntime) {
       ctx.stroke();
       //draw label
       var vp = valuesPoints[i];
-      var x = lastCandlePoint + index * this.lineWidth;
+      var x = lastCandlePoint + index * lineWidth;
       ctx.fillText(vp.v.toFixed(panel.precision), x, vp.y - 4);
       ctx.fillText((vp.p / 100).toFixed(3), x, vp.y + 12);
 
       if (i > 0) {
         ctx.beginPath();
-        var x = lastCandlePoint + index * this.lineWidth + this.lineWidth - this.margin;
+        var x = lastCandlePoint + index * lineWidth + lineWidth - margin;
         //ctx.lineTo(x, valuesPoints[0].y);
         var radiusY = (valuesPoints[i].y - valuesPoints[i - 1].y) / 2;
         var yCenter = valuesPoints[i].y - radiusY;
@@ -144,7 +152,7 @@ function DiNapoliLevels(this: ShapeRuntime) {
     return true;
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hitAnchor) {
@@ -192,13 +200,15 @@ function DiNapoliLevels(this: ShapeRuntime) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
+    const lineWidth = this.lineWidth ?? 100;
+    const margin = this.margin ?? 20;
 
     this.clearHits(o);
     const lastCandlePoint = this.getLastCandlePoint(renderer, model, seriesManager);
     if (pts.length >= 2) {
       for (var i = 0; i < pts.length; i++) {
         var horizontalLineStart =
-          lastCandlePoint + i * (this.lineWidth - this.margin) + (i - 1) * this.margin;
+          lastCandlePoint + i * (lineWidth - margin) + (i - 1) * margin;
         if (between(horizontalLineStart, x, pts[i].x, self.hitTolerance)) {
           var distance = Math.abs(y - pts[i].y);
           if (distance < self.hitTolerance) {
@@ -219,7 +229,7 @@ function DiNapoliLevels(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
     interactor.pushPanel(this, o, panel);
@@ -239,15 +249,15 @@ function DiNapoliLevels(this: ShapeRuntime) {
     return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
   };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseUp = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
   };
 
-  this.mouseOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseOut = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
   };
 
-  this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     if (interactor.currentAnchor.selected === 0) {
       this.allowedStickyKeys = { h: true, l: true };
     } else {
@@ -261,15 +271,16 @@ function DiNapoliLevels(this: ShapeRuntime) {
     Shape.prototype.mouseDrag.call(this, e, o, renderer, interactor, model, panel, seriesManager);
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     // console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
     interactor.popPanel(this, o, panel);
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
+    if (interactor.currentAnchor && interactor.currentAnchor.drag && interactor.currentAnchor.selected != null)
       interactor.currentAnchor.selected++;
 
     if (
       interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
       if (e.button == 0) {
@@ -298,18 +309,19 @@ function DiNapoliLevels(this: ShapeRuntime) {
     }
   };
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var idx = renderer.getPointIndex(e._offset.offsetX, model);
     var yValue = e._offset.offsetY - panel._offset;
+    var v;
 
     if (o.sticky) {
       var candles = this.getCurrentCandles(idx, model, seriesManager);
-      var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
+      v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
     } else
-      var v = renderer.getPriceForYCoordinate(yValue, {
+      v = renderer.getPriceForYCoordinate(yValue, {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
@@ -317,16 +329,19 @@ function DiNapoliLevels(this: ShapeRuntime) {
         fV,
       });
 
+    if (interactor.currentAnchor.selected == null) return;
+
     var i = interactor.currentAnchor.selected - 1;
     o.anchors[i].value = LIB.round(v, renderer.getPrecision(model, panel));
     o.anchors[i]._index = idx;
     o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
   };
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageOut = function () {
     // this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
   };
 }
 
-const DiNapoliLevelsCtor: new (...args: any[]) => any = DiNapoliLevels as any;
+const DiNapoliLevelsCtor: import("./_sharedTypes").ShapeConstructor =
+  DiNapoliLevels as unknown as import("./_sharedTypes").ShapeConstructor;
 export { DiNapoliLevelsCtor as DiNapoliLevels };

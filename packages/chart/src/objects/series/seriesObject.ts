@@ -9,11 +9,36 @@ import {
 } from "../../utils/objects-lib";
 import { createSeriesMenu } from "./_menu";
 import { renderSeriesPriceTag } from "./_priceTag";
-import { getScriptTitle } from "./_sharedTypes";
+import { getScriptTitle, isSeriesHitPoint } from "./_sharedTypes";
+import type { LegacySeriesObject } from "../../objectRuntimeBases";
 import type {
+  RuntimeObjectConstructor,
+  SeriesDataPoint,
+  SeriesManagerContext,
   SeriesMenuOption,
   SeriesRuntime,
+  SeriesTooltipData,
 } from "./_sharedTypes";
+
+function getLinkedSeries(
+  object: LegacySeriesObject & { dataLink?: string },
+  seriesManager: SeriesManagerContext,
+) {
+  if (!object.dataLink) return null;
+  return seriesManager[object.dataLink] ?? null;
+}
+
+function getSeriesLabel(labels: string[] | Record<string, string>, index: number, field: string) {
+  return Array.isArray(labels) ? (labels[index] ?? field) : (labels[field] ?? field);
+}
+
+function getSeriesPrecision(precisions: unknown, index: number, field: string) {
+  if (Array.isArray(precisions)) return precisions[index];
+  if (precisions && typeof precisions === "object") {
+    return (precisions as Record<string, unknown>)[field];
+  }
+  return undefined;
+}
 
 const SERIES_RENDER_MODE_OPTIONS: SeriesMenuOption[] = [
   { key: "radio1", mode: "OHLC", labelKey: "candles" },
@@ -69,8 +94,10 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.getRenderMode = function (o, model) {
+    const renderAs = o.renderAs ?? "Line";
+
     if (model.periodWidth < 1) {
-      switch (o.renderAs.toLowerCase()) {
+      switch (renderAs.toLowerCase()) {
         case "histogram":
           return "Histogram";
           break;
@@ -86,13 +113,16 @@ var SeriesObject = function (this: SeriesRuntime) {
         default:
           return "Line";
       }
-    } else return o.renderAs;
+    } else return renderAs;
   };
 
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
-    renderer.validateSeriesBeforeRender(seriesManager[o.dataLink]);
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return;
 
-    if (model._leftIndex >= seriesManager[o.dataLink].data.length) return;
+    renderer.validateSeriesBeforeRender(linkedSeries);
+
+    if (model._leftIndex >= linkedSeries.data.length) return;
 
     o.strokeStyle = o.color;
     const renderMode = this.getRenderMode(o, model).toLowerCase();
@@ -144,11 +174,13 @@ var SeriesObject = function (this: SeriesRuntime) {
       }
     }
 
-    if (o._hit && o._hit.x && o._hit.y) this.drawHit(o, ctx, renderer, model, panel, seriesManager);
+    if (isSeriesHitPoint(o._hit)) this.drawHit(o, ctx, renderer, model, panel, seriesManager);
   };
 
   this.postRender = function (o, ctx, renderer, model, panel, seriesManager) {
-    if (o.priceTag && seriesManager[o.dataLink].data.length > 0)
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+
+    if (o.priceTag && linkedSeries && linkedSeries.data.length > 0)
       this.renderPriceTag(o, ctx, renderer, model, panel, seriesManager);
   };
 
@@ -158,10 +190,12 @@ var SeriesObject = function (this: SeriesRuntime) {
       lineModes: SERIES_PRICE_TAG_LINE_MODES,
       ohlcModes: SERIES_PRICE_TAG_OHLC_MODES,
       getBaseColor: function (object) {
-        return WEBRCP.utils.colorManager.getColor(object.color, object.color);
+        const color = object.color ?? "chartLine";
+        return WEBRCP.utils.colorManager.getColor(color, color);
       },
       getTextColor: function (object) {
-        return WEBRCP.utils.getContrastColor(object.color);
+        const color = object.color ?? WEBRCP.utils.colorManager.getColor("fontColor");
+        return WEBRCP.utils.getContrastColor(color);
       },
       getUpColor: function () {
         return WEBRCP.utils.colorManager.getColor("chartGreenBackground");
@@ -173,17 +207,19 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsHistogram = function (o, ctx, renderer, model, panel, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !o.dataField) return true;
+
     var indexX = 0;
     var valueY = 0;
     var midX = 0;
     var zeroY = 0;
 
-    var stroke = o.color;
+    const stroke = o.color ?? WEBRCP.utils.colorManager.getColor("chartLine");
 
     ctx.strokeStyle = stroke;
     ctx.lineWidth = o.width;
 
-    var field = o.dataField;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
     zeroY =
@@ -194,12 +230,12 @@ var SeriesObject = function (this: SeriesRuntime) {
       }) + panel._offset;
 
     for (var i = model._leftIndex; i <= model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
-      if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
+      if (i > linkedSeries.data.length - 1) continue;
+      if (linkedSeries.data[i][o.dataField] === null) continue;
 
       indexX = renderer.getIndexPoint(i, model);
       valueY =
-        renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.dataField], {
+        renderer.getYCoordinateForPrice(linkedSeries.data[i][o.dataField], {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -210,7 +246,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       ctx.beginPath();
@@ -221,8 +257,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     }
 
     if (o.priceLine) {
-      const value =
-        seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][o.dataField];
+      const value = linkedSeries.data[linkedSeries.data.length - 1][o.dataField];
 
       this.renderPriceLine({
         ctx,
@@ -244,10 +279,11 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsVolumeHistogram = function (o, ctx, renderer, model, panel, seriesManager) {
-    if (o.localExtremes.max == 0) return;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const max = typeof o.localExtremes?.max === "number" ? o.localExtremes.max : 0;
+    if (!linkedSeries || !o.dataField || max == 0) return;
 
     var indexX = 0;
-    var valueY = 0;
 
     const getColor = (i: number) => {
       const close = seriesManager[model.mainSeries].data[i]["c"];
@@ -260,25 +296,15 @@ var SeriesObject = function (this: SeriesRuntime) {
     ctx.globalAlpha = 0.2;
     const maxHeight = Math.round(panel._height * 0.25);
 
-    var field = o.dataField;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
     for (var i = model._leftIndex; i <= model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
+      if (i > linkedSeries.data.length - 1) continue;
 
-      let value = seriesManager[o.dataLink].data[i][o.dataField];
+      let value = linkedSeries.data[i][o.dataField];
       if (value === null) continue;
 
       indexX = renderer.getIndexPoint(i, model);
-      valueY =
-        renderer.getYCoordinateForPrice(value, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) + panel._offset;
-
       let width = 1;
 
       if (model.periodWidth > 2) {
@@ -289,14 +315,13 @@ var SeriesObject = function (this: SeriesRuntime) {
       ctx.fillStyle = getColor(i);
       ctx.beginPath();
 
-      ctx.rect(indexX, panel._height, width, (value / o.localExtremes.max) * maxHeight * -1);
+      ctx.rect(indexX, panel._height, width, (Number(value) / max) * maxHeight * -1);
       ctx.fill();
       ctx.closePath();
     }
 
     if (o.priceLine) {
-      const value =
-        seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][o.dataField];
+      const value = linkedSeries.data[linkedSeries.data.length - 1][o.dataField];
 
       this.renderPriceLine({
         ctx,
@@ -319,11 +344,14 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsBand = function (o, ctx, renderer, model, panel, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !o.upperField || !o.lowerField) return true;
+
     var indexX = 0;
     var valueY = 0;
     var midX = 0;
 
-    var fill = o.color;
+    const fill = o.color ?? WEBRCP.utils.colorManager.getColor("chartLine");
 
     ctx.fillStyle = fill;
     ctx.lineWidth = o.width;
@@ -336,21 +364,21 @@ var SeriesObject = function (this: SeriesRuntime) {
     var start = model._leftIndex;
     var end = model._rightIndex;
     if (start > 0) start -= 1;
-    if (end < seriesManager[o.dataLink].data.length - 1) end += 1;
+    if (end < linkedSeries.data.length - 1) end += 1;
     var firstRender = true;
 
     for (var i = start; i <= end; i++) {
       if (
-        i > seriesManager[o.dataLink].data.length - 1 ||
-        seriesManager[o.dataLink].data[i] === null ||
-        seriesManager[o.dataLink].data[i][o.upperField] === null
+        i > linkedSeries.data.length - 1 ||
+        linkedSeries.data[i] === null ||
+        linkedSeries.data[i][o.upperField] === null
       ) {
         continue;
       }
 
       indexX = renderer.getIndexPoint(i, model);
       valueY =
-        renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.upperField], {
+        renderer.getYCoordinateForPrice(linkedSeries.data[i][o.upperField], {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -361,7 +389,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       if (firstRender) {
@@ -374,17 +402,17 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     for (i = end; i >= start - 1; i--) {
       if (
-        i > seriesManager[o.dataLink].data.length - 1 ||
+        i > linkedSeries.data.length - 1 ||
         i < 0 ||
-        seriesManager[o.dataLink].data[i] === null ||
-        seriesManager[o.dataLink].data[i][o.lowerField] === null
+        linkedSeries.data[i] === null ||
+        linkedSeries.data[i][o.lowerField] === null
       ) {
         continue;
       }
 
       indexX = renderer.getIndexPoint(i, model);
       valueY =
-        renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][o.lowerField], {
+        renderer.getYCoordinateForPrice(linkedSeries.data[i][o.lowerField], {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -395,7 +423,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       ctx.lineTo(midX, valueY);
@@ -408,13 +436,16 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.drawSelectionLine = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = forceField || o.dataField;
+    if (!linkedSeries || !field) return;
+
     var indexX = 0;
     var valueY = 0;
     var midX = 0;
 
-    const field = forceField || o.dataField;
     const fV = LIB.getReferenceValue(o, model, seriesManager);
-    const data = seriesManager[o.dataLink].data;
+    const data = linkedSeries.data;
 
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
@@ -444,7 +475,7 @@ var SeriesObject = function (this: SeriesRuntime) {
         if (model.periodWidth == 1) {
           midX = indexX;
         } else {
-          midX = indexX + parseInt(model._midOffset);
+          midX = indexX + model._midOffset;
         }
 
         ctx.beginPath();
@@ -455,14 +486,19 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.drawHit = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !isSeriesHitPoint(o._hit)) return;
+
+    let index = -1;
     try {
       var fV = LIB.getReferenceValue(o, model, seriesManager);
-      var index = renderer.getPointIndex(o._hit.x, model);
+      index = renderer.getPointIndex(o._hit.x, model);
       var x = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
       var r = 5;
       var field = forceField || o.dataField;
+      const dataPoint = linkedSeries.data[index];
 
-      if (!seriesManager[o.dataLink].data[index]) return;
+      if (!dataPoint) return;
 
       if (
         this.getRenderMode(o, model) == "Line" ||
@@ -470,8 +506,11 @@ var SeriesObject = function (this: SeriesRuntime) {
         this.getRenderMode(o, model) == "Line and Histogram" ||
         this.getRenderMode(o, model) == "Histogram"
       ) {
+        if (!field) return;
+        const value = dataPoint[field];
+        if (typeof value !== "number") return;
         var y =
-          renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][field], {
+          renderer.getYCoordinateForPrice(value, {
             panelHeight: panel._height,
             minValue: panel.vMin,
             maxValue: panel.vMax,
@@ -480,8 +519,12 @@ var SeriesObject = function (this: SeriesRuntime) {
           }) + panel._offset;
         renderPoint(ctx, x, y, r);
       } else if (this.getRenderMode(o, model) == "Band") {
+        if (!o.upperField || !o.lowerField) return;
+        const upperValue = dataPoint[o.upperField];
+        const lowerValue = dataPoint[o.lowerField];
+        if (typeof upperValue !== "number" || typeof lowerValue !== "number") return;
         var yUp =
-          renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.upperField], {
+          renderer.getYCoordinateForPrice(upperValue, {
             panelHeight: panel._height,
             minValue: panel.vMin,
             maxValue: panel.vMax,
@@ -489,7 +532,7 @@ var SeriesObject = function (this: SeriesRuntime) {
             fV,
           }) + panel._offset;
         var yDn =
-          renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.lowerField], {
+          renderer.getYCoordinateForPrice(lowerValue, {
             panelHeight: panel._height,
             minValue: panel.vMin,
             maxValue: panel.vMax,
@@ -499,8 +542,14 @@ var SeriesObject = function (this: SeriesRuntime) {
         renderPoint(ctx, x, yUp, r);
         renderPoint(ctx, x, yDn, r);
       } else if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars") {
+        const closeField = o.closeDataField || o.dataField;
+        const openField = o.openDataField || o.dataField;
+        if (!closeField || !openField) return;
+        const closeValue = dataPoint[closeField];
+        const openValue = dataPoint[openField];
+        if (typeof closeValue !== "number" || typeof openValue !== "number") return;
         var yC =
-          renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.closeDataField], {
+          renderer.getYCoordinateForPrice(closeValue, {
             panelHeight: panel._height,
             minValue: panel.vMin,
             maxValue: panel.vMax,
@@ -508,7 +557,7 @@ var SeriesObject = function (this: SeriesRuntime) {
             fV,
           }) + panel._offset;
         var yO =
-          renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.openDataField], {
+          renderer.getYCoordinateForPrice(openValue, {
             panelHeight: panel._height,
             minValue: panel.vMin,
             maxValue: panel.vMax,
@@ -525,13 +574,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       console.log("Cant render series hit point", e, index);
     }
 
-    function renderPoint(
-      ctx: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      r: number,
-      color?: string
-    ) {
+    function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
       ctx.beginPath();
       ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
       ctx.arc(x, y, r, 0, 2 * Math.PI, false);
@@ -555,13 +598,15 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsLine = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = forceField || o.dataField;
+    if (!linkedSeries || !field) return true;
+
     var indexX = 0;
     var valueY = 0;
     var midX = 0;
 
-    var stroke = o.color;
-
-    if (!seriesManager[o.dataLink]) return true;
+    var stroke = o.color ?? WEBRCP.utils.colorManager.getColor("chartLine");
 
     if (this.getRenderMode(o, model) === "Line" && o.dash) {
       ctx.setLineDash(o.dash || []);
@@ -571,25 +616,21 @@ var SeriesObject = function (this: SeriesRuntime) {
     ctx.lineWidth = o.width;
     ctx.beginPath();
 
-    var link = o.dataLink;
-    var field = o.dataField;
-    if (forceField) field = forceField;
-
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var start = model._leftIndex;
     var end = model._rightIndex;
-    if (start > 0) start = this.getStartIndex(start, seriesManager[link].data, field);
-    if (end < seriesManager[link].data.length - 1)
-      end = this.getEndIndex(end, seriesManager[link].data, field);
+    if (start > 0) start = this.getStartIndex(start, linkedSeries.data, field);
+    if (end < linkedSeries.data.length - 1) end = this.getEndIndex(end, linkedSeries.data, field);
     var firstRender = true;
     for (var i = start; i <= end; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
-      if (seriesManager[link].data[i] === null || seriesManager[link].data[i][field] === null)
-        continue;
+      if (i > linkedSeries.data.length - 1) continue;
+
+      const value = linkedSeries.data[i]?.[field];
+      if (typeof value !== "number") continue;
 
       indexX = renderer.getIndexPoint(i, model);
       valueY =
-        renderer.getYCoordinateForPrice(seriesManager[link].data[i][field], {
+        renderer.getYCoordinateForPrice(value, {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -600,7 +641,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       if (firstRender) {
@@ -615,28 +656,32 @@ var SeriesObject = function (this: SeriesRuntime) {
     ctx.closePath();
 
     if (o.priceLine) {
-      const value = seriesManager[o.dataLink].data[seriesManager[link].data.length - 1][field];
-
-      this.renderPriceLine({
-        ctx,
-        panel,
-        model,
-        value,
-        y:
-          renderer.getYCoordinateForPrice(value, {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }) + panel._offset,
-      });
+      const value = linkedSeries.data[linkedSeries.data.length - 1]?.[field];
+      if (typeof value === "number") {
+        this.renderPriceLine({
+          ctx,
+          panel,
+          model,
+          value,
+          y:
+            renderer.getYCoordinateForPrice(value, {
+              panelHeight: panel._height,
+              minValue: panel.vMin,
+              maxValue: panel.vMax,
+              valueAxisMode: panel.valueAxisMode,
+              fV,
+            }) + panel._offset,
+        });
+      }
     }
 
     return true;
   };
 
   this.renderAsOHLC = function (o, ctx, renderer, model, panel, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return true;
+
     let startX = 0;
     var highY = 0;
     var lowY = 0;
@@ -661,9 +706,10 @@ var SeriesObject = function (this: SeriesRuntime) {
     let dfL = o.lowDataField ? o.lowDataField : o.dataField;
     let dfO = o.openDataField ? o.openDataField : o.dataField;
     let dfC = o.closeDataField ? o.closeDataField : o.dataField;
+    if (!dfH || !dfL || !dfO || !dfC) return true;
 
     const roundedPeriodWidth = Math.round(model.periodWidth);
-    const data = seriesManager[o.dataLink].data;
+    const data = linkedSeries.data;
     const panelOffset = panel._offset;
     const panelProps = {
       panelHeight: panel._height,
@@ -677,22 +723,31 @@ var SeriesObject = function (this: SeriesRuntime) {
       const dataPrice = data[i];
 
       if (i > data.length - 1) continue;
-      if (dataPrice[dfH] === null) continue;
+      if (!dataPrice) continue;
+
+      const highValue = dataPrice[dfH];
+      const lowValue = dataPrice[dfL];
+      const openValue = dataPrice[dfO];
+      const closeValue = dataPrice[dfC];
+      if (
+        typeof highValue !== "number" ||
+        typeof lowValue !== "number" ||
+        typeof openValue !== "number" ||
+        typeof closeValue !== "number"
+      ) {
+        continue;
+      }
 
       startX = roundAndTranslate(renderer.getIndexPoint(i, model));
-      highY = Math.round(renderer.getYCoordinateForPrice(dataPrice[dfH], panelProps) + panelOffset);
-      lowY = Math.round(renderer.getYCoordinateForPrice(dataPrice[dfL], panelProps) + panelOffset);
-      openY = roundAndTranslate(
-        renderer.getYCoordinateForPrice(dataPrice[dfO], panelProps) + panelOffset
-      );
-      closeY = Math.round(
-        renderer.getYCoordinateForPrice(dataPrice[dfC], panelProps) + panelOffset
-      );
+      highY = Math.round(renderer.getYCoordinateForPrice(highValue, panelProps) + panelOffset);
+      lowY = Math.round(renderer.getYCoordinateForPrice(lowValue, panelProps) + panelOffset);
+      openY = roundAndTranslate(renderer.getYCoordinateForPrice(openValue, panelProps) + panelOffset);
+      closeY = Math.round(renderer.getYCoordinateForPrice(closeValue, panelProps) + panelOffset);
 
       const rightX = startX + roundedPeriodWidth;
       const midX = roundAndTranslate(rightX - roundedPeriodWidth / 2);
 
-      const change = dataPrice[dfC] - dataPrice[dfO];
+      const change = closeValue - openValue;
 
       if (change > 0) {
         color = greenFillColor;
@@ -707,7 +762,6 @@ var SeriesObject = function (this: SeriesRuntime) {
 
       ctx.strokeStyle = stroke;
       ctx.fillStyle = color;
-      ctx.strokeWidth = 1;
 
       ctx.beginPath();
       ctx.moveTo(midX, highY);
@@ -726,6 +780,11 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     if (o.priceLine) {
       const value = data[data.length - 1][dfC];
+      const open = data[data.length - 1][dfO];
+      if (typeof value !== "number" || typeof open !== "number") {
+        ctx.restore();
+        return true;
+      }
 
       this.renderPriceLine({
         ctx,
@@ -734,7 +793,7 @@ var SeriesObject = function (this: SeriesRuntime) {
         value,
         green: greenFillColor,
         red: redFillColor,
-        open: data[data.length - 1][dfO],
+        open,
         y: renderer.getYCoordinateForPrice(value, panelProps) + panelOffset,
       });
     }
@@ -745,6 +804,9 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsBars = function (o, ctx, renderer, model, panel, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return true;
+
     var indexX = 0;
     var highY = 0;
     var lowY = 0;
@@ -753,10 +815,8 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     var red = WEBRCP.utils.colorManager.getColor("chartRed");
     var green = WEBRCP.utils.colorManager.getColor("chartGreen");
-    var gray = WEBRCP.utils.colorManager.getColor("chartGray");
     var redStroke = WEBRCP.utils.colorManager.getColor("chartRedStroke");
     var greenStroke = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
-    var color = red;
     var stroke = redStroke;
     var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
     var rightX = 0;
@@ -769,14 +829,27 @@ var SeriesObject = function (this: SeriesRuntime) {
     var dfL = o.lowDataField ? o.lowDataField : o.dataField;
     var dfO = o.openDataField ? o.openDataField : o.dataField;
     var dfC = o.closeDataField ? o.closeDataField : o.dataField;
+    if (!dfH || !dfL || !dfO || !dfC) return true;
 
-    var fV = LIB.getFirstAvailableValue(model, seriesManager[o.dataLink].data, dfC);
+    const data = linkedSeries.data;
+    var fV = LIB.getFirstAvailableValue(model, data, dfC);
 
     for (var i = model._leftIndex; i <= model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
-      if (seriesManager[o.dataLink].data[i][dfH] === null) continue;
+      if (i > data.length - 1) continue;
 
-      const dataPrice = seriesManager[o.dataLink].data[i];
+      const dataPrice = data[i];
+      const highValue = dataPrice?.[dfH];
+      const lowValue = dataPrice?.[dfL];
+      const openValue = dataPrice?.[dfO];
+      const closeValue = dataPrice?.[dfC];
+      if (
+        typeof highValue !== "number" ||
+        typeof lowValue !== "number" ||
+        typeof openValue !== "number" ||
+        typeof closeValue !== "number"
+      ) {
+        continue;
+      }
       const panelProps = {
         panelHeight: panel._height,
         minValue: panel.vMin,
@@ -786,10 +859,10 @@ var SeriesObject = function (this: SeriesRuntime) {
       };
 
       indexX = renderer.getIndexPoint(i, model);
-      highY = renderer.getYCoordinateForPrice(dataPrice[dfH], panelProps) + panel._offset;
-      lowY = renderer.getYCoordinateForPrice(dataPrice[dfL], panelProps) + panel._offset;
-      openY = renderer.getYCoordinateForPrice(dataPrice[dfO], panelProps) + panel._offset;
-      closeY = renderer.getYCoordinateForPrice(dataPrice[dfC], panelProps) + panel._offset;
+      highY = renderer.getYCoordinateForPrice(highValue, panelProps) + panel._offset;
+      lowY = renderer.getYCoordinateForPrice(lowValue, panelProps) + panel._offset;
+      openY = renderer.getYCoordinateForPrice(openValue, panelProps) + panel._offset;
+      closeY = renderer.getYCoordinateForPrice(closeValue, panelProps) + panel._offset;
 
       if (model.periodWidth == 1) {
         rightX = indexX;
@@ -811,25 +884,19 @@ var SeriesObject = function (this: SeriesRuntime) {
         rightX = indexX + 4;
         midX = indexX + 2;
       } else if (model.periodWidth > 6) {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
         rightX = indexX + model.periodWidth - 2;
         indexX = indexX + 1;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
         rightX = indexX + model.periodWidth - 1;
       }
 
-      if (seriesManager[o.dataLink].data[i][dfC] - seriesManager[o.dataLink].data[i][dfO] > 0) {
-        color = green;
+      if (closeValue - openValue > 0) {
         stroke = greenStroke;
-      } else if (
-        seriesManager[o.dataLink].data[i][dfC] - seriesManager[o.dataLink].data[i][dfO] <
-        0
-      ) {
-        color = red;
+      } else if (closeValue - openValue < 0) {
         stroke = redStroke;
       } else {
-        color = gray;
         stroke = grayStroke;
       }
 
@@ -856,7 +923,12 @@ var SeriesObject = function (this: SeriesRuntime) {
     }
 
     if (o.priceLine) {
-      const value = seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfC];
+      const value = data[data.length - 1]?.[dfC];
+      const open = data[data.length - 1]?.[dfO];
+      if (typeof value !== "number" || typeof open !== "number") {
+        ctx.restore();
+        return true;
+      }
 
       this.renderPriceLine({
         ctx,
@@ -865,7 +937,7 @@ var SeriesObject = function (this: SeriesRuntime) {
         value,
         green,
         red,
-        open: seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][dfO],
+        open,
         y:
           renderer.getYCoordinateForPrice(value, {
             panelHeight: panel._height,
@@ -881,14 +953,14 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderAsChartShape = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    let field = forceField || o.closeDataField || o.dataField;
+    if (!linkedSeries || !field) return;
+
     let indexX = 0;
     var valueY = 0;
     var midX = 0;
-    var lastX = 0;
-    let field = o.closeDataField ? o.closeDataField : o.dataField;
-    const data = seriesManager[o.dataLink].data;
-
-    if (forceField) field = forceField;
+    const data = linkedSeries.data;
 
     ctx.save();
 
@@ -904,7 +976,6 @@ var SeriesObject = function (this: SeriesRuntime) {
         maxValue: panel.vMax,
       }) + panel._offset;
     const fV = LIB.getFirstAvailableValue(model, data, field);
-    const start = getFirstValueBeforeStart(model._leftIndex, data, field);
     const end = getFirstValueAfterEnd(model._rightIndex, data, field);
 
     let firstRender = true;
@@ -928,7 +999,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       if (firstRender) {
@@ -951,44 +1022,29 @@ var SeriesObject = function (this: SeriesRuntime) {
         ctx.lineTo(midX, zeroY);
         ctx.lineTo(firstX, zeroY);
       }
-
-      lastX = indexX;
     }
     ctx.closePath();
     ctx.fill();
 
     if (o.priceLine) {
-      const value =
-        seriesManager[o.dataLink].data[seriesManager[o.dataLink].data.length - 1][field];
-
-      this.renderPriceLine({
-        ctx,
-        panel,
-        model,
-        value,
-        y:
-          renderer.getYCoordinateForPrice(value, {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-          }) + panel._offset,
-      });
-    }
-
-    function getFirstValueBeforeStart(leftIndex: number, data: any[], field: string) {
-      let start = leftIndex;
-
-      if (!data[leftIndex] || !data[leftIndex][field]) {
-        for (let i = leftIndex; i >= 0; i--) {
-          if (data[i] && data[i][field]) start = i;
-        }
+      const value = data[data.length - 1]?.[field];
+      if (typeof value === "number") {
+        this.renderPriceLine({
+          ctx,
+          panel,
+          model,
+          value,
+          y:
+            renderer.getYCoordinateForPrice(value, {
+              panelHeight: panel._height,
+              minValue: panel.vMin,
+              maxValue: panel.vMax,
+            }) + panel._offset,
+        });
       }
-
-      if (start > 0) start -= 1;
-      return start;
     }
 
-    function getFirstValueAfterEnd(rightIndex: number, data: any[], field: string) {
+    function getFirstValueAfterEnd(rightIndex: number, data: SeriesDataPoint[], field: string) {
       let end = rightIndex;
 
       if (!data[rightIndex] || !data[rightIndex][field]) {
@@ -1005,11 +1061,14 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.renderPriceLine = function (options) {
-    const { ctx, panel, model, y, value, green, red, open } = options;
+    const { ctx, panel, y, value, green, red, open } = options;
     const roundedY = roundAndTranslate(y);
 
-    if (open) {
-      ctx.strokeStyle = value - open > 0 ? green : red;
+    if (typeof open === "number") {
+      const priceLineColor = value - open > 0 ? green : red;
+      if (priceLineColor) {
+        ctx.strokeStyle = priceLineColor;
+      }
     }
 
     ctx.save();
@@ -1026,12 +1085,8 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.updateExtremes = function (o, extremes, model, seriesManager) {
-    if (
-      !seriesManager[o.dataLink] ||
-      !seriesManager[o.dataLink].data ||
-      seriesManager[o.dataLink].data.length == 0
-    )
-      return;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || linkedSeries.data.length == 0) return;
 
     if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars")
       return this.updateExtremesOHLC(o, extremes, model, seriesManager);
@@ -1039,11 +1094,15 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.updateExtremesOHLC = function (o, extremes, model, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return;
+
     // var dfH = o.highDataField ? o.highDataField : o.dataField;
     // var dfL = o.lowDataField ? o.lowDataField : o.dataField;
     var dfH, dfL;
     var dfO = o.openDataField ? o.openDataField : o.dataField;
     var dfC = o.closeDataField ? o.closeDataField : o.dataField;
+    if (!dfO || !dfC) return;
 
     if (dfO >= dfC) {
       dfH = dfO;
@@ -1054,84 +1113,81 @@ var SeriesObject = function (this: SeriesRuntime) {
     }
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) return;
+      if (i > linkedSeries.data.length - 1) return;
 
-      if (
-        seriesManager[o.dataLink].data[i][dfH] !== null &&
-        seriesManager[o.dataLink].data[i][dfH] > extremes.max
-      )
-        extremes.max = seriesManager[o.dataLink].data[i][dfH];
-      if (
-        seriesManager[o.dataLink].data[i][dfL] !== null &&
-        seriesManager[o.dataLink].data[i][dfL] < extremes.min
-      )
-        extremes.min = seriesManager[o.dataLink].data[i][dfL];
+      const highValue = linkedSeries.data[i]?.[dfH];
+      const lowValue = linkedSeries.data[i]?.[dfL];
+
+      if (typeof highValue === "number" && highValue > extremes.max) extremes.max = highValue;
+      if (typeof lowValue === "number" && lowValue < extremes.min) extremes.min = lowValue;
     }
   };
 
   this.updateExtremesLine = function (o, extremes, model, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !o.dataField) return;
+
     const renderMode = this.getRenderMode(o, model).toLowerCase();
 
     if (renderMode == "volume histogram") {
       const localExtremes = { min: Number.MAX_VALUE, max: -Number.MAX_VALUE };
 
       for (var i = model._leftIndex; i < model._rightIndex; i++) {
-        if (
-          seriesManager[o.dataLink] == undefined ||
-          i > seriesManager[o.dataLink].data.length - 1
-        ) {
+        if (i > linkedSeries.data.length - 1) {
           o.localExtremes = localExtremes;
           return;
         }
-        if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
+        const value = linkedSeries.data[i][o.dataField];
+        if (typeof value !== "number") continue;
 
-        if (seriesManager[o.dataLink].data[i][o.dataField] > localExtremes.max)
-          localExtremes.max = seriesManager[o.dataLink].data[i][o.dataField];
-        if (seriesManager[o.dataLink].data[i][o.dataField] < localExtremes.min)
-          localExtremes.min = seriesManager[o.dataLink].data[i][o.dataField];
+        if (value > localExtremes.max) localExtremes.max = value;
+        if (value < localExtremes.min) localExtremes.min = value;
       }
 
       o.localExtremes = localExtremes;
     } else {
       for (var i = model._leftIndex; i < model._rightIndex; i++) {
-        if (
-          seriesManager[o.dataLink] == undefined ||
-          i > seriesManager[o.dataLink].data.length - 1
-        ) {
+        if (i > linkedSeries.data.length - 1) {
           return;
         }
-        if (seriesManager[o.dataLink].data[i][o.dataField] === null) continue;
+        const value = linkedSeries.data[i][o.dataField];
+        if (typeof value !== "number") continue;
 
-        if (seriesManager[o.dataLink].data[i][o.dataField] > extremes.max)
-          extremes.max = seriesManager[o.dataLink].data[i][o.dataField];
-        if (seriesManager[o.dataLink].data[i][o.dataField] < extremes.min)
-          extremes.min = seriesManager[o.dataLink].data[i][o.dataField];
+        if (value > extremes.max) extremes.max = value;
+        if (value < extremes.min) extremes.min = value;
       }
     }
   };
 
   this.getToolTip = function (o, index, model, seriesManager, scriptManager) {
-    const values = [];
-    const fields = seriesManager[o.dataLink].fields;
-    const labels = seriesManager[o.dataLink].labels;
-    const precisions = seriesManager[o.dataLink].precisions;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return null;
 
-    for (var f in fields) {
-      const value: any = {
-        label: WEBRCP.locale.fusion.getMessage(labels[f], labels[f]),
-        value: seriesManager[o.dataLink].data[index][fields[f]],
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint) return null;
+
+    const values: SeriesTooltipData["values"] = [];
+    const { fields, labels } = linkedSeries;
+    const precisions = linkedSeries.precisions;
+
+    fields.forEach((field, fieldIndex) => {
+      const label = getSeriesLabel(labels, fieldIndex, field);
+      const value: SeriesTooltipData["values"][number] = {
+        label: WEBRCP.locale.fusion.getMessage(label, label),
+        value: dataPoint[field],
       };
 
-      if (precisions && precisions[f]) {
-        value.precision = precisions[f];
+      const precision = getSeriesPrecision(precisions, fieldIndex, field);
+      if (precision !== undefined) {
+        value.precision = precision;
       }
 
       values.push(value);
-    }
+    });
 
-    const data = {
+    const data: SeriesTooltipData = {
       title: getScriptTitle(o, model, seriesManager, scriptManager),
-      stamp: seriesManager[o.dataLink].data[index].stamp,
+      stamp: dataPoint.stamp,
       values: values,
     };
 
@@ -1180,16 +1236,16 @@ var SeriesObject = function (this: SeriesRuntime) {
     seriesManager
   ) {
     const index = renderer.getPointIndex(pointX, model);
-    const value = seriesManager[o.dataLink];
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !linkedSeries.data || index > linkedSeries.data.length - 1) return true;
 
-    if (!value || !value.data || index > value.data.length - 1) return true;
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint) return true;
 
     let allValuesEmpty = true;
-    let field = null;
 
-    for (field in value.fields) {
-      if (index == NaN || !value.data[index]) return true;
-      const fieldValue = value.data[index][value.fields[field]];
+    for (const field of linkedSeries.fields) {
+      const fieldValue = dataPoint[field];
       if (fieldValue !== null && fieldValue !== undefined) {
         allValuesEmpty = false;
       }
@@ -1199,16 +1255,20 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitOHLC = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-    if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
-
-    this.tmpIndex = renderer.getPointIndex(x, model);
-
-    var hitResult = false;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
     var dfH = o.highDataField ? o.highDataField : o.dataField;
     var dfL = o.lowDataField ? o.lowDataField : o.dataField;
+    if (!linkedSeries || !dfH || !dfL) return false;
+    if (this.isHitEmpty(x, y, o, renderer, interactor, model, panel, seriesManager)) return false;
 
-    var valueH = seriesManager[o.dataLink].data[this.tmpIndex][dfH];
-    var valueL = seriesManager[o.dataLink].data[this.tmpIndex][dfL];
+    this.tmpIndex = renderer.getPointIndex(x, model);
+    const dataPoint = linkedSeries.data[this.tmpIndex];
+    if (!dataPoint) return false;
+
+    var hitResult = false;
+    var valueH = dataPoint[dfH];
+    var valueL = dataPoint[dfL];
+    if (typeof valueH !== "number" || typeof valueL !== "number") return false;
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
@@ -1223,7 +1283,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       hitResult = true;
     } else {
       var pointH =
-        renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][dfH], {
+        renderer.getYCoordinateForPrice(valueH, {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -1231,7 +1291,7 @@ var SeriesObject = function (this: SeriesRuntime) {
           fV,
         }) + panel._offset;
       var pointL =
-        renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[this.tmpIndex][dfL], {
+        renderer.getYCoordinateForPrice(valueL, {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -1247,26 +1307,23 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitBars = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-    if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
-
-    var hitResult = false;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
     var dfH = o.highDataField ? o.highDataField : o.dataField;
     var dfL = o.lowDataField ? o.lowDataField : o.dataField;
+    if (!linkedSeries || !dfH || !dfL) return false;
+    if (this.isHitEmpty(x, y, o, renderer, interactor, model, panel, seriesManager)) return false;
 
+    var hitResult = false;
     var index = renderer.getPointIndex(x, model);
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint) return false;
 
-    var valueH = seriesManager[o.dataLink].data[index][dfH];
-    var valueL = seriesManager[o.dataLink].data[index][dfL];
+    var valueH = dataPoint[dfH];
+    var valueL = dataPoint[dfL];
+    if (typeof valueH !== "number" || typeof valueL !== "number") return false;
     var indexX = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var indexY = renderer.getPriceForYCoordinate(y - panel._offset, {
-      panelHeight: panel._height,
-      minValue: panel.vMin,
-      maxValue: panel.vMax,
-      valueAxisMode: panel.valueAxisMode,
-      fV,
-    });
     var indexH =
       renderer.getYCoordinateForPrice(valueH, {
         panelHeight: panel._height,
@@ -1306,19 +1363,25 @@ var SeriesObject = function (this: SeriesRuntime) {
     seriesManager,
     dataField
   ) {
-    if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries || !dataField) return false;
+    if (this.isHitEmpty(x, y, o, renderer, interactor, model, panel, seriesManager)) return false;
+
     var index = renderer.getPointIndex(x, model);
-    if (!seriesManager[o.dataLink]) return false;
-    if (index > seriesManager[o.dataLink].data.length - 1) return false;
-    var closestRightIndex = this.getEndIndex(index, seriesManager[o.dataLink].data, dataField);
-    var closestLeftIndex = this.getStartIndex(index, seriesManager[o.dataLink].data, dataField);
-    if (seriesManager[o.dataLink].data[index][dataField] === null) index = closestLeftIndex;
+    if (index > linkedSeries.data.length - 1) return false;
+    var closestRightIndex = this.getEndIndex(index, linkedSeries.data, dataField);
+    var closestLeftIndex = this.getStartIndex(index, linkedSeries.data, dataField);
+    if (linkedSeries.data[index]?.[dataField] === null) index = closestLeftIndex;
+
+    const dataPoint = linkedSeries.data[index];
+    const currentValue = dataPoint?.[dataField];
+    if (!dataPoint || typeof currentValue !== "number") return false;
 
     var hitResult = false;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
     var indexY =
-      renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][dataField], {
+      renderer.getYCoordinateForPrice(currentValue, {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
@@ -1328,18 +1391,18 @@ var SeriesObject = function (this: SeriesRuntime) {
     //var indexX = Math.round(renderer.getIndexPoint(index, model)+model.periodWidth/2);
     var indexX = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
 
-    if (x > Math.round(indexX) && closestRightIndex < seriesManager[o.dataLink].data.length) {
+    if (x > Math.round(indexX) && closestRightIndex < linkedSeries.data.length) {
+      const rightValue = linkedSeries.data[closestRightIndex]?.[dataField];
+      if (typeof rightValue !== "number") return false;
+
       var _y =
-        renderer.getYCoordinateForPrice(
-          seriesManager[o.dataLink].data[closestRightIndex][dataField],
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        ) + panel._offset;
+        renderer.getYCoordinateForPrice(rightValue, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+          fV,
+        }) + panel._offset;
       var _x = renderer.getIndexPoint(closestRightIndex, model) + model.periodWidth / 2;
       if (between(indexY, y, _y, this.hitTolerance)) {
         var nlp1 = getLinePointNearestMouse({ x0: indexX, y0: indexY, x1: _x, y1: _y }, x, y);
@@ -1349,17 +1412,17 @@ var SeriesObject = function (this: SeriesRuntime) {
         }
       }
     } else if (x < Math.round(indexX) && closestLeftIndex >= 0) {
+      const leftValue = linkedSeries.data[closestLeftIndex]?.[dataField];
+      if (typeof leftValue !== "number") return false;
+
       var _y =
-        renderer.getYCoordinateForPrice(
-          seriesManager[o.dataLink].data[closestLeftIndex][dataField],
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        ) + panel._offset;
+        renderer.getYCoordinateForPrice(leftValue, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+          fV,
+        }) + panel._offset;
       var _x = renderer.getIndexPoint(closestLeftIndex, model) + model.periodWidth / 2;
       if (between(indexY, y, _y, this.hitTolerance)) {
         var nlp1 = getLinePointNearestMouse({ x0: indexX, y0: indexY, x1: _x, y1: _y }, x, y);
@@ -1377,6 +1440,7 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitLine = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+    if (!o.dataField) return false;
     return this.getLineHitResult(
       x,
       y,
@@ -1391,15 +1455,21 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitHistogram = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-    if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = o.dataField;
+    if (!linkedSeries || !field) return false;
+    if (this.isHitEmpty(x, y, o, renderer, interactor, model, panel, seriesManager)) return false;
 
     var index = renderer.getPointIndex(x, model);
+    const dataPoint = linkedSeries.data[index];
+    const value = dataPoint?.[field];
+    if (!dataPoint || typeof value !== "number") return false;
 
     var hitResult = false;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
     var indexY =
-      renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.dataField], {
+      renderer.getYCoordinateForPrice(value, {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
@@ -1420,19 +1490,25 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitVolumeHistogram = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
-    if (this.isHitEmpty.apply(this, Array.from(arguments))) return false;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = o.dataField;
+    if (!linkedSeries || !field) return false;
+    if (this.isHitEmpty(x, y, o, renderer, interactor, model, panel, seriesManager)) return false;
 
     var index = renderer.getPointIndex(x, model);
+    const dataPoint = linkedSeries.data[index];
+    const value = dataPoint?.[field];
+    const maxValue = o.localExtremes?.max;
+    if (!dataPoint || typeof value !== "number" || typeof maxValue !== "number") return false;
 
     var hitResult = false;
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
 
     // var indexY = renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[index][o.dataField], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax, valueAxisMode: panel.valueAxisMode, fV})+panel._offset;
     const maxHeight = Math.round(panel._height * 0.25);
     var indexY =
       panel._height +
       panel._offset -
-      (seriesManager[o.dataLink].data[index][o.dataField] / o.localExtremes.max) * maxHeight;
+      (value / maxValue) * maxHeight;
     var indexX = renderer.getIndexPoint(index, model);
 
     if (
@@ -1447,6 +1523,8 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.hitBand = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+    if (!o.upperField || !o.lowerField) return false;
+
     const upperHitResult = this.getLineHitResult(
       x,
       y,
@@ -1477,27 +1555,35 @@ var SeriesObject = function (this: SeriesRuntime) {
   };
 
   this.getMin = function (index, o, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const dataPoint = linkedSeries?.data[index];
+    if (!linkedSeries || !dataPoint) return 0;
+
     var min = Number.MAX_VALUE;
-    var data = seriesManager[o["dataLink"]].data;
-    var fields = seriesManager[o["dataLink"]].fields;
+    var fields = linkedSeries.fields;
     for (var i = 0; i < fields.length; i++) {
       if (fields[i] != "v" && fields[i] != "i") {
-        if (data[index][fields[i]] < min) min = data[index][fields[i]];
+        const fieldValue = dataPoint[fields[i]];
+        if (typeof fieldValue === "number" && fieldValue < min) min = fieldValue;
       }
     }
-    return min;
+    return min === Number.MAX_VALUE ? 0 : min;
   };
 
   this.getMax = function (index, o, seriesManager) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const dataPoint = linkedSeries?.data[index];
+    if (!linkedSeries || !dataPoint) return 0;
+
     var max = -Number.MAX_VALUE;
-    var data = seriesManager[o["dataLink"]].data;
-    var fields = seriesManager[o["dataLink"]].fields;
+    var fields = linkedSeries.fields;
     for (var i = 0; i < fields.length; i++) {
       if (fields[i] != "v" && fields[i] != "i") {
-        if (data[index][fields[i]] > max) max = data[index][fields[i]];
+        const fieldValue = dataPoint[fields[i]];
+        if (typeof fieldValue === "number" && fieldValue > max) max = fieldValue;
       }
     }
-    return max;
+    return max === -Number.MAX_VALUE ? 0 : max;
   };
 };
 
@@ -1506,5 +1592,5 @@ var SeriesObject = function (this: SeriesRuntime) {
  * - sporo przeróbek w fusion - narazie ostawione na bok
  */
 
-const SeriesObjectCtor: new (...args: any[]) => any = SeriesObject as any;
+const SeriesObjectCtor = SeriesObject as unknown as RuntimeObjectConstructor<SeriesRuntime>;
 export { SeriesObjectCtor as SeriesObject };

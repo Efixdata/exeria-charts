@@ -1,11 +1,21 @@
 import WEBRCP from "../../WebRCP";
 import LIB from "../../utils/chartingCommons";
 import { TradeObjectClass } from "./tradeObject";
-
-declare const $: any;
+import type {
+  RuntimeObjectConstructor,
+  SeriesInteractorContext,
+  SeriesManagerContext,
+  SeriesModelContext,
+  SeriesPanelContext,
+  SeriesPointerEvent,
+  SeriesRendererContext,
+  SeriesRuntime,
+  SeriesStopLimitObject,
+  TradeObjectSettings,
+} from "./_sharedTypes";
 
 var StopLimitObject = class StopLimitObject extends TradeObjectClass {
-  constructor(settings: Record<string, any>) {
+  constructor(settings: TradeObjectSettings) {
     super(settings);
     this.settings = settings;
     this.hitTolerance = 2;
@@ -16,12 +26,12 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   render(
-    o: any,
+    o: SeriesStopLimitObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     this.drawFieldBetweenTrades(o, ctx, model, panel, seriesManager, renderer);
     let orderTypeText = " Limit";
@@ -36,12 +46,12 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   drawFieldBetweenTrades(
-    o: any,
+    o: SeriesStopLimitObject,
     ctx: CanvasRenderingContext2D,
-    model: any,
-    panel: any,
-    seriesManager: any,
-    renderer: any
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext,
+    renderer: SeriesRendererContext
   ) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var lineY =
@@ -66,8 +76,13 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
     else this.drawRect(lineStopY, lineY, ctx, color);
   }
 
-  makeStopObject(o: any) {
-    var stopObject = $.extend(true, {}, o);
+  makeStopObject(o: SeriesStopLimitObject) {
+    const stopObject: SeriesStopLimitObject = {
+      ...o,
+      object: {
+        ...o.object,
+      },
+    };
     let orderTypeText = " Stop";
     if (o.type.includes("TAKE_PROFIT")) orderTypeText = " TP" + orderTypeText;
     stopObject.title =
@@ -83,44 +98,44 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   hit(
     x: number,
     y: number,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    o: SeriesStopLimitObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     o.stop = false;
     if (super.hit(x, y, o, renderer, interactor, model, panel, seriesManager)) {
       o.hitStop = false;
-      return o._hit;
+      return true;
     } else {
       o.stop = true;
       super.hit(x, y, o, renderer, interactor, model, panel, seriesManager);
       o.stop = false;
-      return o._hit;
+      return o._hit === true;
     }
   }
 
   postRender(
-    o: any,
+    o: SeriesStopLimitObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     this.drawPriceTag(o, ctx, renderer, model, panel, seriesManager);
     this.drawPriceTag(this.makeStopObject(o), ctx, renderer, model, panel, seriesManager);
   }
 
   renderOverlay(
-    o: any,
+    o: SeriesStopLimitObject,
     octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     if (o._hit) {
       var fVLimit = LIB.getReferenceValue(o, model, seriesManager);
@@ -144,9 +159,9 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
       super.drawRelations(lineLimit, lineStop, null, octx, renderer, model, panel, seriesManager);
 
       if (o.priceConnections && o.priceConnections.length > 0) {
-        for (const i in o.priceConnections) {
+        for (const connectedPrice of o.priceConnections) {
           const connectedPriceLimitY =
-            renderer.getYCoordinateForPrice(o.priceConnections[i], {
+            renderer.getYCoordinateForPrice(connectedPrice, {
               panelHeight: panel._height,
               minValue: panel.vMin,
               maxValue: panel.vMax,
@@ -154,7 +169,7 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
               fV: fVLimit,
             }) + panel._offset;
           const connectedPriceStopY =
-            renderer.getYCoordinateForPrice(o.priceConnections[i], {
+            renderer.getYCoordinateForPrice(connectedPrice, {
               panelHeight: panel._height,
               minValue: panel.vMin,
               maxValue: panel.vMax,
@@ -187,31 +202,28 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   mouseUp(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    e: SeriesPointerEvent,
+    o: SeriesStopLimitObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     super.mouseUp(e, o, renderer, interactor, model, panel, seriesManager);
     o.drag = false;
   }
 
   mouseDrag(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    e: SeriesPointerEvent,
+    o: SeriesStopLimitObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     var dragPrice = this.getDragPrice(e, o, renderer, interactor, model, panel, seriesManager);
-
-    const candles = seriesManager[model.instrumentsSeries[0].seriesId].data;
-    const lastClose = candles[candles.length - 1].c;
     const isBuy = o.type === "BUY TAKE_PROFIT_LIMIT" || o.type === "BUY STOP_LIMIT";
     const isSell = o.type === "SELL TAKE_PROFIT_LIMIT" || o.type === "SELL STOP_LIMIT";
     //drag object
@@ -233,13 +245,13 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   getReferenceValue(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _event: SeriesPointerEvent,
+    o: SeriesStopLimitObject,
+    _renderer: SeriesRendererContext,
+    _interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     if (o.limitPrice && o.stopPrice && o.hitStop)
       return LIB.getReferenceValue(this.makeStopObject(o), model, seriesManager);
@@ -247,13 +259,13 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   mouseOut(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    e: SeriesPointerEvent,
+    o: SeriesStopLimitObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     super.mouseOut(e, o, renderer, interactor, model, panel, seriesManager);
     o.drag = false;
@@ -262,5 +274,6 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 };
 
-const StopLimitObjectCtor: new (...args: any[]) => any = StopLimitObject as any;
+const StopLimitObjectCtor =
+  StopLimitObject as unknown as RuntimeObjectConstructor<SeriesRuntime, [TradeObjectSettings]>;
 export { StopLimitObjectCtor as StopLimitObject };

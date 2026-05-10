@@ -1,13 +1,20 @@
 import LIB from "../../utils/chartingCommons";
-import type { SeriesContext, SeriesMenuObject, SeriesPriceTagConfig } from "./_sharedTypes";
+import type {
+  SeriesManagerContext,
+  SeriesMenuObject,
+  SeriesModelContext,
+  SeriesPanelContext,
+  SeriesPriceTagConfig,
+  SeriesRendererContext,
+} from "./_sharedTypes";
 
 export function renderSeriesPriceTag<TObject extends SeriesMenuObject>(
   object: TObject,
   context: CanvasRenderingContext2D,
-  renderer: SeriesContext,
-  model: SeriesContext,
-  panel: SeriesContext,
-  seriesManager: SeriesContext,
+  renderer: SeriesRendererContext,
+  model: SeriesModelContext,
+  panel: SeriesPanelContext,
+  seriesManager: SeriesManagerContext,
   config: SeriesPriceTagConfig<TObject>
 ) {
   const dataLink = object.dataLink;
@@ -30,16 +37,21 @@ export function renderSeriesPriceTag<TObject extends SeriesMenuObject>(
   const closeField = object.closeDataField ? object.closeDataField : dataField;
 
   if (config.lineModes.includes(renderMode)) {
-    value = lastPoint[dataField];
+    const lineValue = lastPoint[dataField];
+    if (typeof lineValue !== "number") return;
+    value = lineValue;
   }
 
   if (config.ohlcModes.includes(renderMode)) {
-    value = lastPoint[closeField];
-    open = lastPoint[openField];
+    const closeValue = lastPoint[closeField];
+    const openValue = lastPoint[openField];
+    if (typeof closeValue !== "number" || typeof openValue !== "number") return;
+    value = closeValue;
+    open = openValue;
     color = value - open > 0 ? config.getUpColor(object) : config.getDownColor(object);
   }
 
-  const fV = LIB.getReferenceValue(object, model as any, seriesManager as any);
+  const fV = LIB.getReferenceValue(object, model, seriesManager);
   const valueY =
     renderer.getYCoordinateForPrice(value, {
       panelHeight: panel._height,
@@ -49,5 +61,14 @@ export function renderSeriesPriceTag<TObject extends SeriesMenuObject>(
       fV,
     }) + panel._offset;
 
-  renderer.drawPriceTag(context, model, panel, valueY, color, textColor, value, "real");
+  renderer.drawPriceTag(
+    context,
+    model,
+    panel,
+    valueY,
+    color ?? config.getUpColor(object),
+    textColor,
+    value,
+    "real"
+  );
 }

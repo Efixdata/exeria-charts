@@ -10,7 +10,7 @@ import {
   drawAnchorArrow,
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { ShapeInteractionArgs, ShapeLifecycleArgs, ShapeRuntime } from "./_sharedTypes";
 
 function MultiLineObject(this: ShapeRuntime) {
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -106,7 +106,7 @@ function MultiLineObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
     interactor.pushPanel(this, o, panel);
@@ -120,10 +120,10 @@ function MultiLineObject(this: ShapeRuntime) {
           self.hitTolerance
         )
       ) {
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+        return this.createAnchorSelection(o, i);
       }
     }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+    return this.createAnchorSelection(o, null);
   };
 
   /*
@@ -171,18 +171,19 @@ function MultiLineObject(this: ShapeRuntime) {
   // 	}
   // };
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var idx = renderer.getPointIndex(e._offset.offsetX, model);
     var yValue = e._offset.offsetY - panel._offset;
+    var v;
 
     if (o.sticky) {
       var candles = this.getCurrentCandles(idx, model, seriesManager);
-      var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
+      v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
     } else
-      var v = renderer.getPriceForYCoordinate(yValue, {
+      v = renderer.getPriceForYCoordinate(yValue, {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
@@ -190,21 +191,27 @@ function MultiLineObject(this: ShapeRuntime) {
         fV,
       });
 
+    if (interactor.currentAnchor.selected == null) return;
+
     var i = interactor.currentAnchor.selected - 1;
     o.anchors[i].value = LIB.round(v, renderer.getPrecision(model, panel));
     o.anchors[i]._index = idx;
     o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    // console.log(" MULTILINE stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
+  this.stageUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
       interactor.currentAnchor.selected++;
 
     if (
       interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
       if (e.button == 0) {
@@ -233,7 +240,7 @@ function MultiLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {};
+  this.stageOut = function () {};
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	console.log("MULTILINE stage move", interactor.currentAnchor);
@@ -251,5 +258,6 @@ function MultiLineObject(this: ShapeRuntime) {
   // };
 }
 
-const MultiLineObjectCtor: new (...args: any[]) => any = MultiLineObject as any;
+const MultiLineObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  MultiLineObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { MultiLineObjectCtor as MultiLineObject };

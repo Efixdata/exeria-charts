@@ -2,10 +2,25 @@ import WEBRCP from "../../WebRCP";
 import {
   between,
 } from "../../utils/objects-lib";
-import type { SeriesRuntime } from "./_sharedTypes";
+import type {
+  RuntimeObjectConstructor,
+  SeriesRuntime,
+} from "./_sharedTypes";
+
+type MovePaneArrowOptions = {
+  color: string;
+  alpha: number;
+  width: number;
+  height: number;
+  offsetY: number;
+  offsetX: number;
+  spacing: number;
+};
+
+type MovePaneArrowsHitResult = false | { type: "MovePaneArrows"; arrow: "up" | "dn" };
 
 var MovePaneArrows = function (this: SeriesRuntime) {
-  this.opts = {
+  const opts: MovePaneArrowOptions = {
     color: WEBRCP.utils.colorManager.getColor("iconColor"),
     alpha: 0.54,
     width: 8,
@@ -14,97 +29,32 @@ var MovePaneArrows = function (this: SeriesRuntime) {
     offsetX: 8, //-w*2-spacing
     spacing: 8,
   };
+  this.opts = opts;
 
-  this.getMenuItems = function (o, chart) {
+  this.getMenuItems = function () {
     return null;
   };
 
   this.hitTolerance = 2;
 
-  this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.render = function (_o, ctx) {
     var color = WEBRCP.utils.colorManager.getColor("iconColor");
     ctx.save();
-    //ctx.fillStyle = this.opts.color;
-    //ctx.strokeStyle = this.opts.color;
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
     ctx.globalAlpha = this.opts.alpha;
-
-    // var arrowDn = createArrowDn(panel, renderer, this.opts);
-    // var arrowUp = createArrowUp(panel, renderer, this.opts);
-
-    // drawArrow(ctx,arrowUp);
-    // drawArrow(ctx,arrowDn);
     ctx.globalAlpha = 1;
     ctx.restore();
   };
 
-  function createArrowDn(panel: any, renderer: any, opts: any) {
-    const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
-
-    var arrowDn = {
-      x: [
-        panel._width - valueAxisWidth - opts.offsetX - opts.width,
-        panel._width - valueAxisWidth - opts.offsetX,
-        panel._width - valueAxisWidth - opts.offsetX - Math.floor(opts.width / 2),
-        panel._width - valueAxisWidth - opts.offsetX - Math.floor(opts.width / 2) - 1,
-      ],
-      y: [
-        panel._offset + opts.offsetY,
-        panel._offset + opts.offsetY,
-        panel._offset + opts.offsetY + opts.height,
-        panel._offset + opts.offsetY + opts.height,
-      ],
-    };
-    return arrowDn;
-  }
-
-  function createArrowUp(panel: any, renderer: any, opts: any) {
-    const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
-
-    var arrowUp = {
-      x: [
-        panel._width - valueAxisWidth - opts.offsetX - opts.width * 2 - opts.spacing,
-        panel._width -
-          valueAxisWidth -
-          opts.offsetX -
-          Math.floor(opts.width * 1.5) -
-          1 -
-          opts.spacing,
-        panel._width - valueAxisWidth - opts.offsetX - Math.floor(opts.width * 1.5) - opts.spacing,
-        panel._width - valueAxisWidth - opts.offsetX - opts.width - opts.spacing,
-      ],
-      y: [
-        panel._offset + opts.offsetY + opts.height,
-        panel._offset + opts.offsetY,
-        panel._offset + opts.offsetY,
-        panel._offset + opts.offsetY + opts.height,
-      ],
-    };
-    return arrowUp;
-  }
-
-  function drawArrow(ctx: CanvasRenderingContext2D, a: any) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(a.x[0], a.y[0]);
-    ctx.lineTo(a.x[1], a.y[1]);
-    ctx.lineTo(a.x[2], a.y[2]);
-    ctx.lineTo(a.x[3], a.y[3]);
-    ctx.lineTo(a.x[0], a.y[0]);
-    ctx.fill();
-    //ctx.stroke();
-    ctx.restore();
-  }
-
   this.init = function () {};
 
-  this.postRender = function (o, ctx, renderer, model, panel, seriesManager) {};
-  this.updateExtremes = function (o, extremes, model, seriesManager, panel, renderer) {};
+  this.postRender = function () {};
+  this.updateExtremes = function () {};
 
-  this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+  this.hit = function (x, y, _o, renderer, interactor, _model, panel) {
     var self = this;
-    var hitResult: any = false;
+    var hitResult: MovePaneArrowsHitResult = false;
     const valueAxisWidth = renderer.getPriceRenderingOptions().valueAxisWidth;
 
     var x1 =
@@ -137,20 +87,16 @@ var MovePaneArrows = function (this: SeriesRuntime) {
     return hitResult;
   };
 
-  function getHoveredArrow(o: any) {
-    return null;
-  }
+  this.mouseDown = function () {};
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {};
+  this.mouseDrag = function () {};
 
-  this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {};
-
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseUp = function (_event, o, _renderer, interactor, _model, panel) {
     interactor.movePanelUpDn(panel, o);
   };
 
-  this.mouseOut = function (e, o, renderer, interactor, model, panel, seriesManager) {};
+  this.mouseOut = function () {};
 };
 
-const MovePaneArrowsCtor: new (...args: any[]) => any = MovePaneArrows as any;
+const MovePaneArrowsCtor = MovePaneArrows as unknown as RuntimeObjectConstructor<SeriesRuntime>;
 export { MovePaneArrowsCtor as MovePaneArrows };

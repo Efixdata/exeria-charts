@@ -1,5 +1,4 @@
 import WEBRCP from "../../WebRCP";
-import LIB from "../../utils/chartingCommons";
 import {
   between,
   pointsDistance,
@@ -12,7 +11,8 @@ import {
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyValueLevelsShapeObject } from "../../objectRuntimeBases";
+import type { ShapeInteractionArgs, ShapeLifecycleArgs, ShapeRuntime } from "./_sharedTypes";
 
 function DiNapoliAbcObject(this: ShapeRuntime) {
   this.subscriptionPack = "diNapoliTools";
@@ -56,7 +56,6 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     ctx.beginPath();
 
     for (var i = 0; i < pts.length; i++) {
-      var fV = LIB.getReferenceValue(o, model, seriesManager);
       this.drawPoint(ctx, pts, i, pts[i].value.toFixed(this.getPrecision(model)));
     }
     ctx.stroke();
@@ -139,7 +138,8 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     return p;
   };
 
-  this.drawLevelPoints = function (pts, o, ctx, renderer, model, panel, seriesManager) {
+  this.drawLevelPoints = function (pts, o, ctx, renderer, model) {
+    var valueLevelsObject = o as LegacyValueLevelsShapeObject;
     var yLength = pts[0].y - pts[1].y;
     var valueDistance = pts[0].value - pts[1].value;
 
@@ -147,27 +147,17 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
 
     var expanded = o.anchors[2].expanded;
 
-    for (var i = 0; i < o.values.length; i++) {
-      var level = o.values[i];
-      var enabled = o.valuesState[i];
+    for (var i = 0; i < valueLevelsObject.values.length; i++) {
+      var level = valueLevelsObject.values[i];
+      var enabled = valueLevelsObject.valuesState[i];
       if (enabled == true) {
         var levelX = pts[2].x;
         var levelY = pts[2].y - (yLength * level) / 100;
 
-        var fV = LIB.getReferenceValue(o, model, seriesManager);
-        var y =
-          renderer.getPriceForYCoordinate(levelY, {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }) + panel._offset;
-
         var valueText = (pts[2].value - (valueDistance * level) / 100).toFixed(p);
         var levelText = (level / 100).toFixed(3);
 
-        if (i == o.values.length - 1) {
+        if (i == valueLevelsObject.values.length - 1) {
           ctx.moveTo(pts[2].x, pts[2].y);
           ctx.lineTo(levelX, levelY);
         }
@@ -183,9 +173,6 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
           ctx.lineTo(model._width, levelY);
         }
         ctx.stroke();
-
-        var textHeight = 12;
-        var textWidth = 100;
 
         ctx.fillText(this.getValueName(level), levelX, levelY + 3);
 
@@ -268,7 +255,7 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     this.wasDrag = false;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
@@ -283,19 +270,18 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
           self.hitTolerance
         )
       ) {
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+        return this.createAnchorSelection(o, i);
       }
     }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+    return this.createAnchorSelection(o, null);
   };
 
-  this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     if (interactor.currentAnchor.selected === 3) interactor.currentAnchor.selected = null;
-    // SUPER COULD BE CALLED HERE
     Shape.prototype.mouseDrag.call(this, e, o, renderer, interactor, model, panel, seriesManager);
   };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
     if (!this.wasDrag) {
@@ -314,32 +300,7 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     interactor.popPanel(this, o, panel);
   };
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        )
-      ).toFixed(panel.precision)
-    );
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -350,9 +311,12 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
       var i = interactor.currentAnchor.selected;
       var v = renderer.getPriceForYCoordinate(
         e._offset.offsetY - panel._offset,
-        panel._height,
-        panel.vMin,
-        panel.vMax
+        {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+        }
       );
       var idx = renderer.getPointIndex(e._offset.offsetX, model);
       if (i != null && i < o.anchors.length) {
@@ -369,15 +333,19 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    // console.log(" ABCD stage up","selected:", interactor.currentAnchor.selected, interactor.currentAnchor);
+  this.stageUp = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
       interactor.currentAnchor.selected++;
 
     if (
       interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
       o.hidden = false;
@@ -386,8 +354,25 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+  this.stageOut = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
+    interactor.popPanel(this, o, panel);
+
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
+      interactor.currentAnchor.selected++;
+
+    if (
+      interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
+      interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
+    ) {
+      o.hidden = false;
+      interactor.currentAnchor = null;
+      return true;
+    }
   };
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -406,5 +391,6 @@ function DiNapoliAbcObject(this: ShapeRuntime) {
   // };
 }
 
-const DiNapoliAbcObjectCtor: new (...args: any[]) => any = DiNapoliAbcObject as any;
+const DiNapoliAbcObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  DiNapoliAbcObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { DiNapoliAbcObjectCtor as DiNapoliAbcObject };

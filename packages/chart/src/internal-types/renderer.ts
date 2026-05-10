@@ -1,7 +1,8 @@
 import type { ValueAxisMode } from "../types";
-import type { CoreChartController } from "./chart";
-import type { RendererObjectsRegistry } from "./objects";
-import type { UnknownFn } from "./shared";
+import type { CoreChartController, CoreChartModel, CoreChartPanel } from "./chart";
+import type { CoreFusionRuntime } from "./fusion";
+import type { ChartRuntimeObject, RendererObjectExtremes, RendererObjectsRegistry } from "./objects";
+import type { OhlcvCandle, SeriesManager } from "./series";
 
 export interface RendererActionHandleSettings {
   x: number;
@@ -88,6 +89,194 @@ export interface ValueConverterLike {
   [key: string]: any;
 }
 
+export interface RendererHiddenDateParts {
+  day?: boolean;
+  month?: boolean;
+  year?: boolean;
+  hour?: boolean;
+}
+
+export type RendererOmitObject = ChartRuntimeObject | Pick<ChartRuntimeObject, "id"> | boolean | null | undefined;
+export type RendererTagStyle = "RECTANGLE" | "ARROW" | string;
+export type RendererValueType = "real" | string;
+
+export interface RendererSeriesLike {
+  data?: unknown[] | null;
+}
+
+export type RendererValidateSeriesMethod = (series: RendererSeriesLike | null | undefined) => void;
+export type RendererRenderMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  fusion: CoreFusionRuntime,
+  translate?: boolean,
+  omitObject?: RendererOmitObject,
+) => void;
+export type RendererRenderPanelMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  fusion: CoreFusionRuntime,
+  omitObject?: RendererOmitObject,
+) => void;
+export type RendererRenderPlotPaneMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  seriesManager: SeriesManager,
+  omitObject?: RendererOmitObject,
+) => void;
+export type RendererErrorHandler = (error: unknown) => void;
+export type RendererPostRenderPlotPaneMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  seriesManager: SeriesManager,
+  omitObject?: RendererOmitObject,
+) => void;
+export type RendererPanelVisibilityMethod = (panel: CoreChartPanel) => boolean;
+export type RendererOverlayMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  fusion: CoreFusionRuntime,
+) => void;
+export type RendererPostOverlayMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  seriesManager: SeriesManager,
+) => void;
+export type RendererValueAxisMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  tick: ValueAxisTick,
+) => void;
+export type RendererHGridMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  tick: ValueAxisTick,
+) => void;
+export type RendererVGridMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  ticks: number[],
+) => void;
+export type RendererTimeAxisMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  ticks: number[],
+  fusion: CoreFusionRuntime,
+) => void;
+export type RendererPanelMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+) => void;
+export type RendererLegendMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  fusion: CoreFusionRuntime,
+) => boolean | void;
+export type RendererLegendLineMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  object: ChartRuntimeObject,
+  count: number,
+  fusion: CoreFusionRuntime,
+  legendsRendered: string[],
+) => boolean | void;
+export type RendererPriceTagMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  y: number,
+  color: string,
+  textColor: string,
+  value: number | null | undefined,
+  valueType?: RendererValueType,
+  style?: RendererTagStyle,
+) => void;
+export type RendererDoublePriceTagMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+  y1: number,
+  y2: number,
+  color: string,
+  textColor: string,
+  innerColor: string,
+  innerTextColor: string,
+  value1: number,
+  value2: number,
+  valueType?: RendererValueType,
+) => void;
+export type RendererTimeTagMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  x: number,
+  color: string,
+  textColor: string,
+  fusion: CoreFusionRuntime,
+) => void;
+export type RendererDoubleTimeTagMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  x1: number,
+  x2: number,
+  color: string,
+  textColor: string,
+  fusion: CoreFusionRuntime,
+) => void;
+export type RendererIndexPointMethod = (index: number, model: CoreChartModel) => number;
+export type RendererPointIndexMethod = (x: number, model: CoreChartModel) => number;
+export type RendererStampPointMethod = (
+  stamp: number,
+  model: CoreChartModel,
+  seriesManager: SeriesManager,
+) => number;
+export type RendererStampIndexMethod = (
+  stamp: number,
+  model: CoreChartModel,
+  seriesManager: SeriesManager,
+) => number;
+export type RendererIndexStampMethod = (
+  index: number,
+  model: CoreChartModel,
+  seriesManager: SeriesManager,
+) => number;
+export type RendererPriceCoordinateMethod = (
+  price: number,
+  options: PriceCoordinateOptions,
+) => number;
+export type RendererTimeTicksMethod = (
+  model: CoreChartModel,
+  seriesManager?: SeriesManager,
+) => number[];
+export type RendererNiceTickMethod = (
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+) => ValueAxisTick;
+export type RendererNiceNumberMethod = (range: number, round: boolean) => number;
+export type RendererPrettyDateMethod = (
+  stamp: number,
+  hidden?: RendererHiddenDateParts,
+) => string;
+export type RendererZeroLeadMethod = (value: number) => string;
+export type RendererPrecisionMethod = (
+  model: CoreChartModel,
+  panel: CoreChartPanel,
+) => number;
+export type RendererPriceRenderingOptionsMethod = (
+  data: OhlcvCandle[],
+  model: CoreChartModel,
+  precision: number,
+) => void;
+export type RendererGetPriceRenderingOptionsMethod = () => PriceRenderingOptions;
+
 export interface CoreRenderer {
   context: CanvasRenderingContext2D | null;
   controller: CoreChartController;
@@ -96,41 +285,41 @@ export interface CoreRenderer {
   volumePrecision: number;
   objects: RendererObjectsRegistry;
   timeTicks: number[];
-  validateSeriesBeforeRender: UnknownFn;
-  render: UnknownFn;
-  renderPanel: UnknownFn;
-  renderPlotPane: UnknownFn;
-  onErrorWhileRendering: UnknownFn;
-  postRenderPlotPane: UnknownFn;
-  shouldBePanelVisible: UnknownFn;
-  renderOverlay: UnknownFn;
-  postRenderOverlay: UnknownFn;
-  renderValueAxis: UnknownFn;
-  renderHGrid: UnknownFn;
-  renderVGrid: UnknownFn;
-  renderTimeAxis: UnknownFn;
-  renderHandler: UnknownFn;
-  renderLegend: UnknownFn;
-  renderLegendLine: UnknownFn;
-  drawPriceTag: UnknownFn;
-  drawDoublePriceTag: UnknownFn;
-  drawTimeTag: UnknownFn;
-  drawDoubleTimeTag: UnknownFn;
-  getIndexPoint: UnknownFn;
-  getPointIndex: UnknownFn;
-  getStampPoint: UnknownFn;
-  getStampIndex: UnknownFn;
-  getIndexStamp: UnknownFn;
-  getYCoordinateForPrice: UnknownFn;
-  getPriceForYCoordinate: UnknownFn;
-  calculateTimeTicks: UnknownFn;
-  calculateNiceTick: UnknownFn;
-  niceNum: UnknownFn;
-  getPrettyDate: UnknownFn;
-  zeroLead: UnknownFn;
-  getPrecision: UnknownFn;
-  calculatePriceRenderingOptions: UnknownFn;
-  getPriceRenderingOptions: UnknownFn;
+  validateSeriesBeforeRender: RendererValidateSeriesMethod;
+  render: RendererRenderMethod;
+  renderPanel: RendererRenderPanelMethod;
+  renderPlotPane: RendererRenderPlotPaneMethod;
+  onErrorWhileRendering: RendererErrorHandler;
+  postRenderPlotPane: RendererPostRenderPlotPaneMethod;
+  shouldBePanelVisible: RendererPanelVisibilityMethod;
+  renderOverlay: RendererOverlayMethod;
+  postRenderOverlay: RendererPostOverlayMethod;
+  renderValueAxis: RendererValueAxisMethod;
+  renderHGrid: RendererHGridMethod;
+  renderVGrid: RendererVGridMethod;
+  renderTimeAxis: RendererTimeAxisMethod;
+  renderHandler: RendererPanelMethod;
+  renderLegend: RendererLegendMethod;
+  renderLegendLine: RendererLegendLineMethod;
+  drawPriceTag: RendererPriceTagMethod;
+  drawDoublePriceTag: RendererDoublePriceTagMethod;
+  drawTimeTag: RendererTimeTagMethod;
+  drawDoubleTimeTag: RendererDoubleTimeTagMethod;
+  getIndexPoint: RendererIndexPointMethod;
+  getPointIndex: RendererPointIndexMethod;
+  getStampPoint: RendererStampPointMethod;
+  getStampIndex: RendererStampIndexMethod;
+  getIndexStamp: RendererIndexStampMethod;
+  getYCoordinateForPrice: RendererPriceCoordinateMethod;
+  getPriceForYCoordinate: RendererPriceCoordinateMethod;
+  calculateTimeTicks: RendererTimeTicksMethod;
+  calculateNiceTick: RendererNiceTickMethod;
+  niceNum: RendererNiceNumberMethod;
+  getPrettyDate: RendererPrettyDateMethod;
+  zeroLead: RendererZeroLeadMethod;
+  getPrecision: RendererPrecisionMethod;
+  calculatePriceRenderingOptions: RendererPriceRenderingOptionsMethod;
+  getPriceRenderingOptions: RendererGetPriceRenderingOptionsMethod;
   months: string[];
   [key: string]: any;
 }

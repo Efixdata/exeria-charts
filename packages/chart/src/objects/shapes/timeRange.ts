@@ -5,19 +5,18 @@ import {
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyShapePoint } from "../../objectRuntimeBases";
+import type {
+  ShapeHitArgs,
+  ShapeInteractionArgs,
+  ShapeLifecycleArgs,
+  ShapeRenderArgs,
+  ShapeRuntime,
+} from "./_sharedTypes";
 
 function TimeRangeObject(this: ShapeRuntime) {
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     const text = o.text ?? "";
 
     ctx.save();
@@ -51,16 +50,9 @@ function TimeRangeObject(this: ShapeRuntime) {
     ctx.restore();
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     if (o.editable === false) return;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hit || o.selected) {
       octx.save();
@@ -89,20 +81,11 @@ function TimeRangeObject(this: ShapeRuntime) {
     );
   };
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     if (o.editable === false) return false;
     var self = this;
 
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
     this.clearHits(o);
 
@@ -120,17 +103,9 @@ function TimeRangeObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     if (o.editable === false) {
-      return Shape.prototype.createAnchorSelection.call(this, o, null);
+      return this.createAnchorSelection(o, null);
     }
     return Shape.prototype.mouseDownWithPanelPush.call(
       this,
@@ -143,15 +118,7 @@ function TimeRangeObject(this: ShapeRuntime) {
       seriesManager
     );
   };
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     if (o.editable === false) return;
 
     var idx = interactor.currentAnchor.selected;
@@ -196,15 +163,7 @@ function TimeRangeObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageDrag = function (...[e, o, renderer, interactor, model, , seriesManager]: ShapeInteractionArgs) {
     if (o.editable === false) return;
 
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
@@ -225,15 +184,7 @@ function TimeRangeObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     if (o.editable === false) return;
     return Shape.prototype.stageUp.call(
       this,
@@ -247,15 +198,7 @@ function TimeRangeObject(this: ShapeRuntime) {
     );
   };
 
-  this.stageOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageOut = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     if (o.editable === false) return;
     return Shape.prototype.stageOut.call(
       this,
@@ -269,23 +212,14 @@ function TimeRangeObject(this: ShapeRuntime) {
     );
   };
 
-  this.getPoints = function (
-    o: LegacyShapeObject,
-    renderer: any,
-    panel: any,
-    model: any,
-    seriesManager: any
-  ) {
+  this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    if (!panel) return [];
     const y = panel._offset + panel._height / 2 - this.anchorPointSize / 2;
-    let startStamp;
-    let endStamp;
-    let pts = [];
+    let startStamp: number;
+    let endStamp: number;
+    let pts: LegacyShapePoint[] = [];
 
     if (o.startTime === "now" && typeof o.timeRange === "number") {
-      var lastStamp =
-        seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length - 1][
-          "stamp"
-        ];
       var lastIndex = seriesManager[model.mainSeries].data.length - 1;
       const now = Date.now();
       startStamp = now;
@@ -296,6 +230,7 @@ function TimeRangeObject(this: ShapeRuntime) {
         y,
         index: lastIndex,
         stamp: startStamp,
+        value: 0,
       };
     } else if (typeof o.startTime === "number" && typeof o.timeRange === "number") {
       endStamp = o.startTime + o.timeRange;
@@ -307,6 +242,7 @@ function TimeRangeObject(this: ShapeRuntime) {
         y: y,
         index: renderer.getStampIndex(o.startTime, model, seriesManager),
         stamp: o.startTime,
+        value: 0,
       };
     } else {
       throw Error(
@@ -319,6 +255,7 @@ function TimeRangeObject(this: ShapeRuntime) {
       y: y,
       index: renderer.getStampIndex(endStamp, model, seriesManager),
       stamp: endStamp,
+      value: 0,
     };
 
     if (pts[1].x === pts[0].x) {
@@ -329,5 +266,6 @@ function TimeRangeObject(this: ShapeRuntime) {
   };
 }
 
-const TimeRangeObjectCtor: new (...args: any[]) => any = TimeRangeObject as any;
+const TimeRangeObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  TimeRangeObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { TimeRangeObjectCtor as TimeRangeObject };

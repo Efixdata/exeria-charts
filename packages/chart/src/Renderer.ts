@@ -35,10 +35,14 @@ import {
   PriceTagObject,
 } from "./Objects2";
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
+import type { CoreChartController } from "./internal-types/chart";
+import type { ChartRuntimeObject, RendererObjectsRegistry } from "./internal-types/objects";
 import type {
   CoreRenderer,
   CoreRendererConstructor,
+  RendererSettings,
   ValueAxisTick,
+  ValueConverterLike,
 } from "./internal-types/renderer";
 
 type LegendRenderValue = {
@@ -47,12 +51,25 @@ type LegendRenderValue = {
   separator: { text?: string; x?: number; y?: number };
 };
 
+type RendererRuntimeError = {
+  type?: string;
+  message?: string;
+  stack?: string;
+};
+
+function isRendererRuntimeError(error: unknown): error is RendererRuntimeError {
+  return typeof error === "object" && error !== null;
+}
+
 const Renderer: CoreRendererConstructor = function (
   this: CoreRenderer,
-  settings: any,
+  settings: RendererSettings,
   context: CanvasRenderingContext2D | null,
-  controller: any
+  controller: CoreChartController
 ) {
+  const logConverter = LIB._converterLog as ValueConverterLike;
+  const linConverter = LIB._converterLin as ValueConverterLike;
+
   this.context = context;
   this.controller = controller;
   this.settings = settings;
@@ -63,7 +80,7 @@ const Renderer: CoreRendererConstructor = function (
   };
   this.volumePrecision = 2;
 
-  this.objects = {};
+  this.objects = {} as RendererObjectsRegistry;
   this.timeTicks = [];
 
   var series = new Series(); //instancja bazowa
@@ -148,9 +165,9 @@ const Renderer: CoreRendererConstructor = function (
 
   this.validateSeriesBeforeRender = function (series) {
     try {
-      if (!series.data[0])
+      if (!series || !Array.isArray(series.data) || !series.data[0])
         throw { type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series" };
-    } catch (e: any) {
+    } catch (_error: unknown) {
       throw { type: "EMPTY_SERIES", message: "Can't render/push/pop on empty data series" };
     }
   };
@@ -188,9 +205,12 @@ const Renderer: CoreRendererConstructor = function (
         panel = model.panels[i];
         if (panel._visible) this.postRenderPlotPane(ctx, model, panel, seriesManager, omitObject);
       }
-    } catch (err: any) {
-      if (err.type && err.type === "EMPTY_SERIES") console.warn(err.message);
-      else console.warn(err);
+    } catch (error: unknown) {
+      if (isRendererRuntimeError(error) && error.type === "EMPTY_SERIES") {
+        console.warn(error.message);
+      } else {
+        console.warn(error);
+      }
     } finally {
       // ctx.translate (-0.5, -0.5);
     }
@@ -230,7 +250,8 @@ const Renderer: CoreRendererConstructor = function (
   };
 
   this.renderPlotPane = function (ctx, model, panel, seriesManager, omitObject) {
-    if (!omitObject) omitObject = { id: "none" };
+    if (!omitObject || typeof omitObject === "boolean") omitObject = { id: "none" };
+    const omitObjectId = typeof omitObject === "object" && omitObject ? omitObject.id : undefined;
 
     ctx.save();
     ctx.rect(
@@ -268,7 +289,7 @@ const Renderer: CoreRendererConstructor = function (
       if (object.hidden && object.hidden === true) continue;
       if (object.isBeingDragged) continue;
 
-      if (this.objects[object.type] != null && object.id != omitObject.id) {
+      if (this.objects[object.type] != null && object.id != omitObjectId) {
         try {
           this.objects[object.type].render(object, ctx, this, model, panel, seriesManager);
         } catch (e) {
@@ -323,7 +344,14 @@ const Renderer: CoreRendererConstructor = function (
     }
 
     try {
-      this.objects.MovePaneArrows.render(null, ctx, this, model, panel, seriesManager);
+      this.objects.MovePaneArrows.render(
+        null as unknown as ChartRuntimeObject,
+        ctx,
+        this,
+        model,
+        panel,
+        seriesManager
+      );
     } catch (e) {
       this.onErrorWhileRendering(e);
     }
@@ -332,7 +360,8 @@ const Renderer: CoreRendererConstructor = function (
   };
 
   this.onErrorWhileRendering = function (e) {
-    if (e.type && e.type === "EMPTY_SERIES") console.warn(e.message);
+    const renderError = e as { type?: unknown; message?: unknown };
+    if (renderError.type === "EMPTY_SERIES") console.warn(renderError.message);
     else console.warn(e);
   };
 
@@ -432,8 +461,9 @@ const Renderer: CoreRendererConstructor = function (
           var o = panel.objects[oi];
           if (o.hidden && o.hidden === true) continue;
 
-          if (this.objects[o.type] != null && this.objects[o.type].renderOverlay) {
-            this.objects[o.type].renderOverlay(o, octx, this, model, panel, seriesManager);
+          const overlayRenderer = this.objects[o.type];
+          if (overlayRenderer?.renderOverlay) {
+            overlayRenderer.renderOverlay(o, octx, this, model, panel, seriesManager);
           }
         }
 
@@ -445,14 +475,17 @@ const Renderer: CoreRendererConstructor = function (
             model.orders.list.length > 0
           ) {
             for (var i = 0; i < model.orders.list.length; i++) {
-              this.objects[model.orders.list[i].type].renderOverlay(
-                model.orders.list[i],
-                octx,
-                this,
-                model,
-                panel,
-                seriesManager
-              );
+              const orderRenderer = this.objects[model.orders.list[i].type];
+              if (orderRenderer?.renderOverlay) {
+                orderRenderer.renderOverlay(
+                  model.orders.list[i],
+                  octx,
+                  this,
+                  model,
+                  panel,
+                  seriesManager
+                );
+              }
             }
           }
         }
@@ -465,14 +498,17 @@ const Renderer: CoreRendererConstructor = function (
             model.positions.list.length > 0
           ) {
             for (var i = 0; i < model.positions.list.length; i++) {
-              this.objects[model.positions.list[i].type].renderOverlay(
-                model.positions.list[i],
-                octx,
-                this,
-                model,
-                panel,
-                seriesManager
-              );
+              const positionRenderer = this.objects[model.positions.list[i].type];
+              if (positionRenderer?.renderOverlay) {
+                positionRenderer.renderOverlay(
+                  model.positions.list[i],
+                  octx,
+                  this,
+                  model,
+                  panel,
+                  seriesManager
+                );
+              }
             }
           }
         }
@@ -503,8 +539,9 @@ const Renderer: CoreRendererConstructor = function (
           var o = panel.objects[oi];
           if (o["hidden"] && o["hidden"] == true) continue;
 
-          if (this.objects[o.type] != null && this.objects[o.type].postRenderOverlay) {
-            this.objects[o.type].postRenderOverlay(o, octx, this, model, panel, seriesManager);
+          const postOverlayRenderer = this.objects[o.type];
+          if (postOverlayRenderer?.postRenderOverlay) {
+            postOverlayRenderer.postRenderOverlay(o, octx, this, model, panel, seriesManager);
           }
         }
 
@@ -516,14 +553,17 @@ const Renderer: CoreRendererConstructor = function (
             model.orders.list.length > 0
           ) {
             for (var i = 0; i < model.orders.list.length; i++) {
-              this.objects[model.orders.list[i].type].postRenderOverlay(
-                model.orders.list[i],
-                octx,
-                this,
-                model,
-                panel,
-                seriesManager
-              );
+              const orderRenderer = this.objects[model.orders.list[i].type];
+              if (orderRenderer?.postRenderOverlay) {
+                orderRenderer.postRenderOverlay(
+                  model.orders.list[i],
+                  octx,
+                  this,
+                  model,
+                  panel,
+                  seriesManager
+                );
+              }
             }
           }
         }
@@ -536,14 +576,17 @@ const Renderer: CoreRendererConstructor = function (
             model.positions.list.length > 0
           ) {
             for (var i = 0; i < model.positions.list.length; i++) {
-              this.objects[model.positions.list[i].type].postRenderOverlay(
-                model.positions.list[i],
-                octx,
-                this,
-                model,
-                panel,
-                seriesManager
-              );
+              const positionRenderer = this.objects[model.positions.list[i].type];
+              if (positionRenderer?.postRenderOverlay) {
+                positionRenderer.postRenderOverlay(
+                  model.positions.list[i],
+                  octx,
+                  this,
+                  model,
+                  panel,
+                  seriesManager
+                );
+              }
             }
           }
         }
@@ -587,7 +630,7 @@ const Renderer: CoreRendererConstructor = function (
         let value = tickValue;
 
         if (mode == "log") {
-          value = (LIB._converterLog as any).axisToReal(tickValue, 1);
+          value = logConverter.axisToReal?.(tickValue, 1) ?? tickValue;
         }
 
         let text = value.toFixed(precision);
@@ -758,11 +801,8 @@ const Renderer: CoreRendererConstructor = function (
   };
 
   this.renderLegend = function (ctx, model, panel, fusion) {
-    var seriesManager = fusion.getSeriesManager();
-
     var legendCount = 0;
     const legendsRendered: string[] = [];
-    var idx = fusion.getMainSeriesLastIndex();
 
     for (var i = 0; i < panel.objects.length; i++) {
       if (panel.objects[i].hidden != true && panel.objects[i].dataLink) {
@@ -803,15 +843,18 @@ const Renderer: CoreRendererConstructor = function (
     }
     if (object.renderLegend === false) return false;
     const seriesManager = fusion.getSeriesManager();
-    const series = seriesManager[object.dataLink];
-    const script = isThisSeriesOutputOfScript(object.dataLink);
+    const dataLink = object.dataLink;
+    if (!dataLink) return false;
+    const series = seriesManager[dataLink];
+    if (!series) return false;
+    const script = isThisSeriesOutputOfScript(dataLink);
 
     this.validateSeriesBeforeRender(series);
 
     const index = fusion.getMainSeriesLastIndex();
 
-    if (legendsRendered.indexOf(object.dataLink) > -1) return false;
-    legendsRendered.push(object.dataLink);
+    if (legendsRendered.indexOf(dataLink) > -1) return false;
+    legendsRendered.push(dataLink);
 
     let name = series.userName || WEBRCP.locale.fusion.getMessage(series.title, series.title, true);
     if (series.instrument && series.instrument.relatedKey) {
@@ -827,11 +870,12 @@ const Renderer: CoreRendererConstructor = function (
         input = input && input.split ? input.split(":")[0] : input;
 
         if (seriesManager[input]) {
-          if (!formattedInputs.includes(seriesManager[input].title))
+          const inputTitle = seriesManager[input]?.title;
+          if (inputTitle && !formattedInputs.includes(inputTitle))
             formattedInputs.push(
               WEBRCP.locale.fusion.getMessage(
-                seriesManager[input].title,
-                seriesManager[input].title,
+                inputTitle,
+                inputTitle,
                 true
               )
             );
@@ -858,7 +902,8 @@ const Renderer: CoreRendererConstructor = function (
       series.data &&
       series.data[series.data.length - 1].o
     ) {
-      if (series.instrument) name += " (" + series.instrument.interval.symbol + ")";
+      const instrumentIntervalSymbol = series.instrument?.interval?.symbol;
+      if (instrumentIntervalSymbol) name += " (" + instrumentIntervalSymbol + ")";
       const o = series.data[series.data.length - 1].o;
       const c = series.data[series.data.length - 1].c;
       if (o > c) color = WEBRCP.utils.colorManager.getColor("chartRed");
@@ -869,7 +914,6 @@ const Renderer: CoreRendererConstructor = function (
 
     ctx.font = WEBRCP.utils.colorManager.getFont("legend");
 
-    let lineWidth = 0;
     const startX = 12;
     let x = startX;
     const y = panel._offset + 24 + count * 18;
@@ -877,10 +921,16 @@ const Renderer: CoreRendererConstructor = function (
     x += ctx.measureText(objectTitle).width;
 
     const valuesToRender: LegendRenderValue[] = [];
+    const seriesLabels = Array.isArray(series.labels)
+      ? series.labels
+      : series.fields.map(
+          (fieldName) => (series.labels as Record<string, string>)[fieldName] || fieldName
+        );
 
     for (var i = 0; i < series.fields.length; i++) {
       const field = series.data[index][series.fields[i]];
       if (!field) continue;
+      const label = seriesLabels[i] || series.fields[i];
 
       const valueToRender: LegendRenderValue = {
         label: {},
@@ -897,7 +947,7 @@ const Renderer: CoreRendererConstructor = function (
       ) {
         precision = series.precisions[i];
         zerosToReduce = 0;
-      } else if (object.renderAs == "OHLC" && series.labels[i] == "V") {
+      } else if (object.renderAs == "OHLC" && label == "V") {
         precision = this.volumePrecision;
         zerosToReduce = 0;
       } else {
@@ -906,9 +956,8 @@ const Renderer: CoreRendererConstructor = function (
 
       var v = LIB.nFormatter(field, precision);
 
-      valueToRender.label.text =
-        WEBRCP.locale.fusion.getMessage(series.labels[i], series.labels[i]) + ": ";
-      if (series.fields.length == 1 && series.labels[i] == "value") valueToRender.label.text = "";
+      valueToRender.label.text = WEBRCP.locale.fusion.getMessage(label, label) + ": ";
+      if (series.fields.length == 1 && label == "value") valueToRender.label.text = "";
       else {
         valueToRender.label.x = x;
         valueToRender.label.y = y;
@@ -951,21 +1000,34 @@ const Renderer: CoreRendererConstructor = function (
 
     ctx.beginPath();
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
-    if (ctx.roundRect) ctx.roundRect(startX - 4, y - 11, x - 4, 16, [4]);
-    else ctx.rect(startX - 4, y - 11, x - 4, 16, [4]);
+    const roundedContext = ctx as CanvasRenderingContext2D & {
+      roundRect?: (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radii?: number | number[]
+      ) => void;
+    };
+    if (roundedContext.roundRect) roundedContext.roundRect(startX - 4, y - 11, x - 4, 16, [4]);
+    else ctx.rect(startX - 4, y - 11, x - 4, 16);
     ctx.fill();
 
-    ctx.fillStyle = color;
+    ctx.fillStyle = color || WEBRCP.utils.colorManager.getColor("text");
     ctx.font = WEBRCP.utils.colorManager.getFont("legend");
     ctx.fillText(objectTitle, startX, y);
 
     for (const valueToRender of valuesToRender) {
-      if (valueToRender.label.text) {
+      if (
+        valueToRender.label.text &&
+        valueToRender.label.x != null &&
+        valueToRender.label.y != null
+      ) {
         ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
         ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
       }
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = color || WEBRCP.utils.colorManager.getColor("text");
       renderPriceText({
         text: valueToRender.value.text,
         ctx,
@@ -976,7 +1038,11 @@ const Renderer: CoreRendererConstructor = function (
         zerosToReduce: valueToRender.value.zerosToReduce,
       });
 
-      if (valueToRender.separator.text) {
+      if (
+        valueToRender.separator.text &&
+        valueToRender.separator.x != null &&
+        valueToRender.separator.y != null
+      ) {
         ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLabelColor");
         ctx.fillText(", ", valueToRender.separator.x, valueToRender.separator.y);
       }
@@ -1043,9 +1109,9 @@ const Renderer: CoreRendererConstructor = function (
       ctx.fillStyle = textColor;
 
       var v = value;
-      if (v) {
+      if (typeof v === "number") {
         if (panel.valueAxisMode == "log" && valueType != "real") {
-          v = (LIB._converterLog as any).axisToReal(value, 1);
+          v = logConverter.axisToReal?.(v, 1) ?? v;
         }
         var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
         renderPriceText({
@@ -1056,8 +1122,12 @@ const Renderer: CoreRendererConstructor = function (
           zerosToReduce: this.priceRenderingOptions.zerosToReduce,
         });
       }
-    } catch (e: any) {
-      console.error(e, e.stack);
+    } catch (error: unknown) {
+      if (isRendererRuntimeError(error)) {
+        console.error(error, error.stack);
+      } else {
+        console.error(error);
+      }
     } finally {
       ctx.restore();
     }
@@ -1123,7 +1193,7 @@ const Renderer: CoreRendererConstructor = function (
       ctx.fillStyle = textColor;
       let vp1 = v1;
       if (panel.valueAxisMode == "log" && valueType != "real")
-        vp1 = (LIB._converterLog as any).axisToReal(v1, 1);
+        vp1 = logConverter.axisToReal?.(v1, 1) ?? v1;
       var vs1 = LIB.nFormatter(vp1, this.getPrecision(model, panel));
       renderPriceText({
         text: vs1,
@@ -1181,8 +1251,8 @@ const Renderer: CoreRendererConstructor = function (
       var rv1 = v1;
       var rv2 = v2;
       if (panel.valueAxisMode == "log") {
-        rv1 = LIB._converterLog.axisToReal(v1);
-        rv2 = LIB._converterLog.axisToReal(v2);
+        rv1 = logConverter.axisToReal?.(v1) ?? v1;
+        rv2 = logConverter.axisToReal?.(v2) ?? v2;
       }
 
       // arrows
@@ -1227,7 +1297,7 @@ const Renderer: CoreRendererConstructor = function (
 
       let vp2 = v2;
       if (panel.valueAxisMode == "log" && valueType != "real")
-        vp2 = (LIB._converterLog as any).axisToReal(v2, 1);
+        vp2 = logConverter.axisToReal?.(v2, 1) ?? v2;
       var vs2 = LIB.nFormatter(vp2, this.getPrecision(model, panel));
 
       ctx.fillStyle = textColor;
@@ -1405,9 +1475,11 @@ const Renderer: CoreRendererConstructor = function (
 
   this.getStampIndex = function (s, model, seriesManager) {
     var lastIndex = seriesManager[model.mainSeries].data.length - 1;
+    var stamp = seriesManager[model.mainSeries].data[lastIndex]?.stamp ?? 0;
+    var intervalInMilis = seriesManager[model.mainSeries].interval.milis || 1;
 
     for (var i = 0; i < seriesManager[model.mainSeries].data.length; i++) {
-      var stamp = seriesManager[model.mainSeries].data[i].stamp;
+      stamp = seriesManager[model.mainSeries].data[i].stamp;
 
       if (stamp == s) return i;
 
@@ -1417,7 +1489,7 @@ const Renderer: CoreRendererConstructor = function (
       }
 
       if (i == lastIndex) {
-        var intervalInMilis = seriesManager[model.mainSeries].interval.milis;
+        intervalInMilis = seriesManager[model.mainSeries].interval.milis || 1;
         if (s > stamp && s < stamp + intervalInMilis) return i;
       }
     }
@@ -1444,18 +1516,15 @@ const Renderer: CoreRendererConstructor = function (
 
   this.getYCoordinateForPrice = function (price, options) {
     const { panelHeight, minValue, maxValue, valueAxisMode, fV } = options;
+    const referenceValue = typeof fV === "number" ? fV : undefined;
     var len = maxValue - minValue;
-    var max = maxValue;
-    var min = minValue;
 
     var nv = null;
-    if (valueAxisMode == "perc") nv = LIB._converterPerc.realToAxis(price, fV);
-    else if (valueAxisMode == "log") nv = (LIB._converterLog as any).realToAxis(price, fV);
-    else nv = (LIB._converterLin as any).realToAxis(price, fV);
+    if (valueAxisMode == "perc") nv = LIB._converterPerc.realToAxis(price, referenceValue);
+    else if (valueAxisMode == "log") nv = logConverter.realToAxis(price, referenceValue);
+    else nv = linConverter.realToAxis(price, referenceValue);
 
     if (minValue < 0) {
-      min = 0;
-      max += Math.abs(minValue);
       nv = Number(nv) + Math.abs(minValue);
     } else {
       nv -= Math.abs(minValue);
@@ -1468,6 +1537,7 @@ const Renderer: CoreRendererConstructor = function (
 
   this.getPriceForYCoordinate = function (p, options) {
     const { panelHeight, minValue, maxValue, valueAxisMode, fV } = options;
+    const referenceValue = typeof fV === "number" ? fV : undefined;
 
     var len = maxValue - minValue;
     var point = panelHeight - p;
@@ -1476,9 +1546,9 @@ const Renderer: CoreRendererConstructor = function (
     aV += minValue;
 
     var nv = null;
-    if (valueAxisMode == "perc") nv = LIB._converterPerc.axisToReal(aV, fV);
-    else if (valueAxisMode == "log") nv = (LIB._converterLog as any).axisToReal(aV, fV);
-    else nv = (LIB._converterLin as any).axisToReal(aV, fV);
+    if (valueAxisMode == "perc") nv = LIB._converterPerc.axisToReal(aV, referenceValue);
+    else if (valueAxisMode == "log") nv = logConverter.axisToReal?.(aV, referenceValue) ?? aV;
+    else nv = linConverter.axisToReal?.(aV, referenceValue) ?? aV;
 
     //return Math.floor(nv*100000)/100000;
     return nv;
@@ -1562,14 +1632,13 @@ const Renderer: CoreRendererConstructor = function (
     return "" + num;
   };
 
-  this.getPrecision = function (model, panel) {
+  this.getPrecision = function (model, _panel) {
     var p = 5;
+    void _panel;
+    const primaryInstrument = model.instrumentsSeries?.[0]?.instrument;
 
-    if (model.instrumentsSeries && model.instrumentsSeries.length > 0) {
-      p =
-        model.instrumentsSeries[0].instrument.precision > 4
-          ? model.instrumentsSeries[0].instrument.precision
-          : model.instrumentsSeries[0].instrument.precision;
+    if (primaryInstrument && typeof primaryInstrument.precision === "number") {
+      p = primaryInstrument.precision;
     }
 
     return p;

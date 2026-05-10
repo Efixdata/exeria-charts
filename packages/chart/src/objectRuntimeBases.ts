@@ -2,7 +2,11 @@ import WEBRCP from "./WebRCP";
 import LIB from "./utils/chartingCommons";
 import { hitTolerance, isTouchDevice } from "./utils/environment";
 import { drawAnchor, drawAnchors, drawAnchorArrow, drawAnchorsArrow } from "./utils/objects-lib";
+import type { CoreChartModel, CoreChartPanel } from "./internal-types/chart";
+import type { CoreInteractor, OffsetPointerEvent, PointerEventLike } from "./internal-types/interactor";
 import type { ChartRuntimeObject } from "./internal-types/objects";
+import type { CoreRenderer } from "./internal-types/renderer";
+import type { SeriesManager } from "./internal-types/series";
 
 type AnyRecord = Record<string, any>;
 
@@ -50,6 +54,11 @@ export interface LegacyShapeObject extends LegacySeriesObject {
   [key: string]: any;
 }
 
+export interface LegacyValueLevelsShapeObject extends LegacyShapeObject {
+  values: number[];
+  valuesState: boolean[];
+}
+
 export interface LegacyAnchorSelection {
   selected: number | null;
   anchors: LegacyAnchor[];
@@ -64,6 +73,60 @@ export interface LegacyShapePoint extends AnyRecord {
   expandable?: boolean;
   dir?: string;
   expanded?: boolean;
+}
+
+export interface ToolRenderContext {
+  renderer: CoreRenderer;
+  model: CoreChartModel;
+  panel: CoreChartPanel | null | undefined;
+  seriesManager: SeriesManager;
+}
+
+export interface ToolInteractionContext extends ToolRenderContext {
+  event: OffsetPointerEvent | PointerEventLike;
+  interactor: CoreInteractor;
+  object: ChartRuntimeObject;
+}
+
+function createToolRenderContext(
+  renderer: CoreRenderer,
+  model: CoreChartModel,
+  panel: CoreChartPanel | null | undefined,
+  seriesManager: SeriesManager
+): ToolRenderContext {
+  return {
+    renderer,
+    model,
+    panel,
+    seriesManager,
+  };
+}
+
+function createToolInteractionContext(
+  event: OffsetPointerEvent | PointerEventLike,
+  object: ChartRuntimeObject,
+  renderer: CoreRenderer,
+  interactor: CoreInteractor,
+  model: CoreChartModel,
+  panel: CoreChartPanel | null | undefined,
+  seriesManager: SeriesManager
+): ToolInteractionContext {
+  return {
+    event,
+    object,
+    interactor,
+    ...createToolRenderContext(renderer, model, panel, seriesManager),
+  };
+}
+
+function isToolRenderContext(value: unknown): value is ToolRenderContext {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "renderer" in value &&
+    "model" in value &&
+    "seriesManager" in value
+  );
 }
 
 export class Series {
@@ -140,31 +203,48 @@ export class Shape {
 
   getPoints(
     object: LegacyShapeObject,
-    renderer: AnyRecord,
-    panel: AnyRecord | null | undefined,
-    model: AnyRecord,
-    seriesManager: AnyRecord
-  ): LegacyShapePoint[] | undefined {
-    if (!panel) return undefined;
+    rendererOrContext: ToolRenderContext | AnyRecord,
+    panel?: AnyRecord | null | undefined,
+    model?: AnyRecord,
+    seriesManager?: AnyRecord
+  ): LegacyShapePoint[] {
+    const runtime = isToolRenderContext(rendererOrContext)
+      ? rendererOrContext
+      : createToolRenderContext(
+          rendererOrContext as CoreRenderer,
+          model as CoreChartModel,
+          panel as CoreChartPanel | null | undefined,
+          seriesManager as SeriesManager
+        );
+
+    if (!runtime.panel) return [];
 
     const points: LegacyShapePoint[] = [];
-    const referenceValue = LIB.getReferenceValue(object, model as any, seriesManager as any);
+    const referenceValue = LIB.getReferenceValue(
+      object,
+      runtime.model as any,
+      runtime.seriesManager as any
+    );
     let expandableCount = 0;
 
     for (let index = 0; index < object.anchors.length; index += 1) {
       const anchor = object.anchors[index];
-      const stampIndex = renderer.getStampIndex(anchor.stamp, model, seriesManager);
+      const stampIndex = runtime.renderer.getStampIndex(
+        anchor.stamp,
+        runtime.model,
+        runtime.seriesManager
+      );
       const value = anchor.value;
       const point: LegacyShapePoint = {
-        x: renderer.getIndexPoint(stampIndex, model) + model._midOffset,
+        x: runtime.renderer.getIndexPoint(stampIndex, runtime.model) + runtime.model._midOffset,
         y:
-          renderer.getYCoordinateForPrice(anchor.value, {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
+          runtime.renderer.getYCoordinateForPrice(anchor.value, {
+            panelHeight: runtime.panel._height,
+            minValue: runtime.panel.vMin,
+            maxValue: runtime.panel.vMax,
+            valueAxisMode: runtime.panel.valueAxisMode,
             fV: referenceValue,
-          }) + panel._offset,
+          }) + runtime.panel._offset,
         index: stampIndex,
         value,
       };
@@ -256,9 +336,16 @@ export class Shape {
       redrawAnchorsWhenSelected?: boolean;
     }
   ): void {
-    const points = this.getPoints(object, renderer, panel, model, seriesManager);
+    const runtime = createToolRenderContext(
+      renderer as CoreRenderer,
+      model as CoreChartModel,
+      panel as CoreChartPanel,
+      seriesManager as SeriesManager
+    );
+    const points = this.getPoints(object, runtime);
     if (!points) return;
-    const overlayPanel = panel as any;
+    if (!runtime.panel) return;
+    const overlayPanel = runtime.panel as any;
 
     if (object._hitAnchor) {
       for (let index = 0; index < points.length; index += 1) {
@@ -593,16 +680,27 @@ export class Shape {
   ): LegacyAnchorSelection {
     this.wasDrag = false;
 
-    const points = this.getPoints(object, renderer, panel, model, seriesManager);
+    const runtime = createToolInteractionContext(
+      event as OffsetPointerEvent,
+      object,
+      renderer as CoreRenderer,
+      interactor as CoreInteractor,
+      model as CoreChartModel,
+      panel as CoreChartPanel,
+      seriesManager as SeriesManager
+    );
+    const eventOffset = runtime.event._offset ?? { offsetX: 0, offsetY: 0 };
+
+    const points = this.getPoints(object, runtime);
     if (!points) {
       return this.createAnchorSelection(object, null);
     }
 
     for (let index = 0; index < points.length; index += 1) {
       if (
-        interactor.isOver(
-          event._offset.offsetX,
-          event._offset.offsetY,
+        runtime.interactor.isOver(
+          eventOffset.offsetX,
+          eventOffset.offsetY,
           points[index].x,
           points[index].y,
           this.hitTolerance
@@ -846,44 +944,71 @@ export class Shape {
     panel: AnyRecord,
     seriesManager: AnyRecord
   ): { selected: number; anchors: LegacyAnchor[] } {
-    const referenceValue = LIB.getReferenceValue(object, model as any, seriesManager as any);
-    const index = renderer.getPointIndex(event._offset.offsetX, model);
-    const yValue = event._offset.offsetY - panel._offset;
-    const currentAnchor = interactor.currentAnchor ? interactor.currentAnchor.selected : 0;
+    const runtime = createToolInteractionContext(
+      event as OffsetPointerEvent,
+      object,
+      renderer as CoreRenderer,
+      interactor as CoreInteractor,
+      model as CoreChartModel,
+      panel as CoreChartPanel,
+      seriesManager as SeriesManager
+    );
+    const eventOffset = runtime.event._offset ?? { offsetX: 0, offsetY: 0 };
+    const activePanel = runtime.panel;
+    if (!activePanel) {
+      return {
+        selected: 1,
+        anchors: this.cloneAnchors(object.anchors),
+      };
+    }
+    const referenceValue = LIB.getReferenceValue(
+      object,
+      runtime.model as any,
+      runtime.seriesManager as any
+    );
+    const index = runtime.renderer.getPointIndex(eventOffset.offsetX, runtime.model);
+    const yValue = eventOffset.offsetY - activePanel._offset;
+    const currentAnchor = runtime.interactor.currentAnchor?.selected ?? 0;
     const value = object.sticky
       ? this.stickToCandleValue(
           yValue,
-          this.getCurrentCandles(index, model, seriesManager),
-          panel,
-          renderer,
+          this.getCurrentCandles(index, runtime.model, runtime.seriesManager),
+          activePanel,
+          runtime.renderer,
           referenceValue
         )
-      : renderer.getPriceForYCoordinate(yValue, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
+      : runtime.renderer.getPriceForYCoordinate(yValue, {
+          panelHeight: activePanel._height,
+          minValue: activePanel.vMin,
+          maxValue: activePanel.vMax,
+          valueAxisMode: activePanel.valueAxisMode,
           fV: referenceValue,
         });
 
-    if (!interactor.currentAnchor) {
+    if (!runtime.interactor.currentAnchor) {
       for (const key in object.anchors) {
         object.anchors[key]._index = index;
-        object.anchors[key].value = LIB.round(value, renderer.getPrecision(model, panel));
-        object.anchors[key].stamp = renderer.getIndexStamp(
+        object.anchors[key].value = LIB.round(
+          value,
+          runtime.renderer.getPrecision(runtime.model, activePanel)
+        );
+        object.anchors[key].stamp = runtime.renderer.getIndexStamp(
           object.anchors[key]._index,
-          model,
-          seriesManager
+          runtime.model,
+          runtime.seriesManager
         );
       }
     } else {
-      interactor.pushPanel(this, object, panel);
+      runtime.interactor.pushPanel(this, object, activePanel);
       object.anchors[currentAnchor]._index = index;
-      object.anchors[currentAnchor].value = LIB.round(value, renderer.getPrecision(model, panel));
-      object.anchors[currentAnchor].stamp = renderer.getIndexStamp(
+      object.anchors[currentAnchor].value = LIB.round(
+        value,
+        runtime.renderer.getPrecision(runtime.model, activePanel)
+      );
+      object.anchors[currentAnchor].stamp = runtime.renderer.getIndexStamp(
         object.anchors[currentAnchor]._index,
-        model,
-        seriesManager
+        runtime.model,
+        runtime.seriesManager
       );
     }
 

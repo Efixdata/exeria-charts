@@ -26,7 +26,6 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     if (!pts || pts.length < 3) return;
     var mid = findMidPoint(pts[0], pts[1]);
-    var hh = pointsDistance(mid, pts[2]);
     var h = pts[2].y - mid.y;
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -34,27 +33,25 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     ctx.setLineDash(o.dash ? o.dash : []);
 
     var line1 = calcLine(pts[0], pts[1]);
-    var line2 = calcLine({ x: pts[0].x, y: pts[0].y + h }, { x: pts[1].x, y: pts[1].y + h });
-    var p1 = pts[0];
-    var p2 = pts[1];
-    var p3 = { x: pts[0].x, y: pts[0].y + h, expanded: pts[0].expanded };
-    var p4 = { x: pts[1].x, y: pts[1].y + h, expanded: pts[1].expanded };
+  let p1 = { x: pts[0].x, y: pts[0].y, expanded: pts[0].expanded };
+  let p2 = { x: pts[1].x, y: pts[1].y, expanded: pts[1].expanded };
+  let p3 = { x: pts[0].x, y: pts[0].y + h, expanded: pts[0].expanded };
+  let p4 = { x: pts[1].x, y: pts[1].y + h, expanded: pts[1].expanded };
 
     if (p1.expanded == true) {
       var d = p2.x > p1.x ? -panel._width : panel._width;
-      p1 = movePointByDistance(p1, d, line1);
+      p1 = { ...movePointByDistance(p1, d, line1), expanded: p1.expanded };
       p3 = { ...movePointByDistance(p3, d, line1), expanded: p3.expanded };
     }
 
     if (p2.expanded == true) {
       var d = p2.x > p1.x ? panel._width : -panel._width;
-      p2 = movePointByDistance(p2, d, line1);
+      p2 = { ...movePointByDistance(p2, d, line1), expanded: p2.expanded };
       p4 = { ...movePointByDistance(p4, d, line1), expanded: p4.expanded };
     }
 
     o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
 
-    // if(o.color){
     ctx.beginPath();
     ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.globalAlpha = 0.2;
@@ -174,13 +171,9 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
   this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
   this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var self = this;
     var i = interactor.currentAnchor.selected;
     if (i === 2) {
       var baseAnchors = interactor.currentAnchor.anchors;
-      var xOffset =
-        renderer.getPointIndex(e._offset.offsetX, model) -
-        renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
       var fV = LIB.getReferenceValue(o, model, seriesManager);
       var yOffset = parseFloat(
         (
@@ -263,31 +256,6 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
   // };
 
   this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        )
-      ).toFixed(panel.precision)
-    );
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -301,7 +269,7 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
 
   this.stageUp = shapeStageUpDelegate;
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageOut = function () {
     // console.log("stage out");
   };
 
@@ -361,5 +329,6 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
   };
 };
 
-const ParallelChannelObjectCtor: new (...args: any[]) => any = ParallelChannelObject as any;
+const ParallelChannelObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  ParallelChannelObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { ParallelChannelObjectCtor as ParallelChannelObject };

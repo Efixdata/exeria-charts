@@ -3,17 +3,17 @@ import {
   between,
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
+import type { LegacyShapePoint } from "../../objectRuntimeBases";
 import {
   createShapeAnchorOverlayDelegate,
   createShapeMouseDownDelegate,
   shapeStageOutDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { ShapeHitArgs, ShapeInteractionArgs, ShapeRenderArgs, ShapeRuntime } from "./_sharedTypes";
 
 function CycleObject(this: ShapeRuntime) {
-  function getCycleValues(x1: number, x2: number, panel: any) {
+  function getCycleValues(x1: number, x2: number, panel: { _width: number }) {
     var values = [];
     var delta = Math.abs(x1 - x2);
     if (delta < 1) {
@@ -32,13 +32,8 @@ function CycleObject(this: ShapeRuntime) {
     return values;
   }
 
-  this.getPoints = function (
-    o: LegacyShapeObject,
-    renderer: any,
-    panel: any,
-    model: any,
-    seriesManager: any
-  ) {
+  this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    if (!panel) return [];
     var pts = CycleObject.prototype.getPoints.call(
       this,
       o,
@@ -46,33 +41,31 @@ function CycleObject(this: ShapeRuntime) {
       panel,
       model,
       seriesManager
-    ) as any[];
+    );
     var x1 = pts[0].x;
     var x2 = pts[1].x;
     var vals = getCycleValues(x1, x2, panel);
-    var pts2 = [];
+    var pts2: LegacyShapePoint[] = [];
     for (var i in vals) {
-      pts2.push({ x: vals[i], y: this.anchorPointSize + 1 });
-      pts2.push({ x: vals[i], y: panel._height + panel._offset - this.anchorPointSize - 1 });
+      const x = vals[i];
+      const index = renderer.getPointIndex(x, model);
+      pts2.push({ x, y: this.anchorPointSize + 1, index, value: 0 });
+      pts2.push({
+        x,
+        y: panel._height + panel._offset - this.anchorPointSize - 1,
+        index,
+        value: 0,
+      });
     }
     return pts2;
   };
 
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     if (!pts || !pts[0] || !pts[1]) return;
 
     var x1 = pts[0].x;
     var x2 = pts[1].x;
-    var y1 = pts[0].y;
-    var y2 = pts[1].y;
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.lineWidth = o.width;
@@ -94,17 +87,8 @@ function CycleObject(this: ShapeRuntime) {
   };
   this.renderOverlay = createShapeAnchorOverlayDelegate({ drawArrowHandles: false });
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var self = this;
     var hitResult = false;
     this.clearHits(o);
@@ -125,15 +109,7 @@ function CycleObject(this: ShapeRuntime) {
 
   this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, , seriesManager]: ShapeInteractionArgs) {
     var idx = interactor.currentAnchor.selected;
     var baseAnchors = interactor.currentAnchor.anchors;
 
@@ -175,5 +151,6 @@ function CycleObject(this: ShapeRuntime) {
   this.stageOut = shapeStageOutDelegate;
 }
 
-const CycleObjectCtor: new (...args: any[]) => any = CycleObject as any;
+const CycleObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  CycleObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { CycleObjectCtor as CycleObject };

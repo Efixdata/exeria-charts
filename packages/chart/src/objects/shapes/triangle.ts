@@ -14,18 +14,12 @@ import {
   shapeStageOutDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyShapePoint } from "../../objectRuntimeBases";
+import type { ShapeHitArgs, ShapeRenderArgs, ShapeRuntime } from "./_sharedTypes";
 
 var TriangleObject = function (this: ShapeRuntime) {
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     ctx.beginPath();
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.lineWidth = o.width;
@@ -46,15 +40,8 @@ var TriangleObject = function (this: ShapeRuntime) {
     ctx.closePath();
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     Shape.prototype.renderAnchorsOverlay.call(
       this,
       o,
@@ -69,30 +56,26 @@ var TriangleObject = function (this: ShapeRuntime) {
       drawDiagonal(o, octx, pts);
     }
 
-    function drawDiagonal(o: LegacyShapeObject, ctx: CanvasRenderingContext2D, pts: any[]) {
-      ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
+    function drawDiagonal(
+      object: LegacyShapeObject,
+      ctx: CanvasRenderingContext2D,
+      points: LegacyShapePoint[]
+    ) {
+      ctx.strokeStyle =
+        object.color ? object.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.moveTo(points[0].x, points[0].y);
       ctx.setLineDash([2, 5]);
-      ctx.lineTo(pts[1].x, pts[1].y);
+      ctx.lineTo(points[1].x, points[1].y);
       ctx.stroke();
       ctx.setLineDash([1]);
       ctx.closePath();
     }
   };
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager) as any[];
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
 
     this.clearHits(o);
@@ -220,5 +203,6 @@ var TriangleObject = function (this: ShapeRuntime) {
   this.stageOut = shapeStageOutDelegate;
 };
 
-const TriangleObjectCtor: new (...args: any[]) => any = TriangleObject as any;
+const TriangleObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  TriangleObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { TriangleObjectCtor as TriangleObject };

@@ -10,7 +10,7 @@ import {
   drawAnchors,
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { ShapeLifecycleArgs, ShapeRuntime } from "./_sharedTypes";
 
 var ArrowObject = function (this: ShapeRuntime) {
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -99,7 +99,7 @@ var ArrowObject = function (this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     interactor.pushPanel(this, o, panel);
@@ -113,11 +113,10 @@ var ArrowObject = function (this: ShapeRuntime) {
           self.hitTolerance
         )
       ) {
-        console.log("Clicked point :", i, pts[i]);
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+        return this.createAnchorSelection(o, i);
       }
     }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+    return this.createAnchorSelection(o, null);
   };
 
   /*
@@ -156,14 +155,19 @@ var ArrowObject = function (this: ShapeRuntime) {
   // 	this.stageMove(e, o, renderer, interactor, model, panel, seriesManager);
   // };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageUp = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
       interactor.currentAnchor.selected++;
 
     if (
       interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
       interactor.currentAnchor = null;
@@ -171,7 +175,7 @@ var ArrowObject = function (this: ShapeRuntime) {
     }
   };
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {};
+  this.stageOut = function () {};
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
   // 	console.log("ARROW stage move", interactor.currentAnchor);
@@ -189,5 +193,6 @@ var ArrowObject = function (this: ShapeRuntime) {
   // };
 };
 
-const ArrowObjectCtor: new (...args: any[]) => any = ArrowObject as any;
+const ArrowObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  ArrowObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { ArrowObjectCtor as ArrowObject };

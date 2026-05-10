@@ -5,39 +5,77 @@ import {
   isPointInCircle,
 } from "../../utils/objects-lib";
 import imageCandleChartWhite from "../../img/icons/candle_chart_white.svg";
-import { getScriptTitle } from "./_sharedTypes";
-import type { SeriesRuntime, PatternStrategyRuntime } from "./_sharedTypes";
+import { getScriptTitle, isSeriesHitPoint } from "./_sharedTypes";
+import type { LegacySeriesObject } from "../../objectRuntimeBases";
+import type {
+  PatternStrategyRuntime,
+  RuntimeObjectConstructor,
+  SeriesManagerContext,
+  SeriesModelContext,
+  SeriesPanelContext,
+  SeriesRendererContext,
+  SeriesRuntime,
+  SeriesStrategyValueRange,
+  SeriesTooltipData,
+} from "./_sharedTypes";
+
+function getLinkedSeries(
+  object: LegacySeriesObject & { dataLink?: string },
+  seriesManager: SeriesManagerContext,
+) {
+  if (!object.dataLink) return null;
+  return seriesManager[object.dataLink] ?? null;
+}
+
+function getStrategyField(
+  object: LegacySeriesObject & { dataField?: string | null },
+  forceField?: string,
+) {
+  return forceField ?? object.dataField ?? null;
+}
+
+function getStrategyValue(value: unknown) {
+  return typeof value === "number" ? value : null;
+}
 
 var StrategyObject = function (this: SeriesRuntime) {
   this.downRenderedValues = [1, 2, -3];
   this.upperRenderedValues = [-1, -2, -3];
 
-  this.getMenuItems = function (o, chart) {
+  this.getMenuItems = function () {
     return null;
   };
 
-  this.render = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
-    renderer.validateSeriesBeforeRender(seriesManager[o.dataLink]);
+  this.render = function (
+    o: LegacySeriesObject,
+    ctx: CanvasRenderingContext2D,
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext,
+    forceField?: string,
+  ) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return false;
+
+    renderer.validateSeriesBeforeRender(linkedSeries);
 
     var indexX = 0;
-    var valueY = 0;
     var midX = 0;
-    var lastX = 0;
 
-    var stroke = o.color;
-    var field = o.dataField;
-    if (forceField) field = forceField;
+    const stroke = o.color ?? WEBRCP.utils.colorManager.getColor("fontColor");
+    const field = getStrategyField(o, forceField);
+    if (!field) return false;
 
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
     ctx.save();
     ctx.strokeStyle = stroke;
     ctx.lineWidth = o.width;
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
+      if (i > linkedSeries.data.length - 1) continue;
 
-      var strategyValue = seriesManager[o.dataLink].data[i][field];
-      if (strategyValue == FUSION.DO_NOTHING) continue;
+      const strategyValue = getStrategyValue(linkedSeries.data[i][field]);
+      if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) continue;
 
       indexX = renderer.getIndexPoint(i, model);
       //valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
@@ -54,7 +92,7 @@ var StrategyObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       if (strategyValue == FUSION.BUY) this.drawBuy(ctx, midX, valuesY.dn);
@@ -65,51 +103,56 @@ var StrategyObject = function (this: SeriesRuntime) {
         this.drawExitAll(ctx, midX, valuesY.up, "up");
         this.drawExitAll(ctx, midX, valuesY.dn, "down");
       }
-      lastX = indexX;
     }
     //ctx.globalAlpha = 1;
     ctx.restore();
     return true;
   };
 
-  this.postRender = function (o, ctx, renderer, model, panel, seriesManager) {};
+  this.postRender = function () {};
 
   this.renderOverlay = function (o, ctx, renderer, model, panel, seriesManager) {
     if (o.selected) {
       this.drawSelectionLine(o, ctx, renderer, model, panel, seriesManager);
     }
 
-    if (o._hit && o._hit.x && o._hit.y) this.drawHit(o, ctx, renderer, model, panel, seriesManager);
+    if (isSeriesHitPoint(o._hit)) this.drawHit(o, ctx, renderer, model, panel, seriesManager);
   };
 
-  this.renderPriceTag = function (o, ctx, renderer, model, panel, seriesManager) {};
+  this.renderPriceTag = function () {};
 
   this.getToolTip = function (o, index, model, seriesManager, scriptManager) {
-    const values = [];
-    const fields = seriesManager[o.dataLink].fields;
-    const labels = seriesManager[o.dataLink].labels;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return null;
 
-    for (var f in fields) {
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint) return null;
+
+    const values: SeriesTooltipData["values"] = [];
+    const { fields, labels } = linkedSeries;
+
+    fields.forEach((field, fieldIndex) => {
+      const label = Array.isArray(labels) ? (labels[fieldIndex] ?? field) : (labels[field] ?? field);
       var v =
-        valToString(seriesManager[o.dataLink].data[index][fields[f]]) +
+        valToString(dataPoint[field]) +
         " (" +
-        seriesManager[o.dataLink].data[index].strength +
+        dataPoint.strength +
         ")";
       values.push({
-        label: WEBRCP.locale.fusion.getMessage(labels[f], labels[f]),
+        label: WEBRCP.locale.fusion.getMessage(label, label),
         value: v,
       });
-    }
+    });
 
-    var data = {
+    const data: SeriesTooltipData = {
       title: getScriptTitle(o, model, seriesManager, scriptManager),
-      stamp: seriesManager[o.dataLink].data[index].stamp,
+      stamp: dataPoint.stamp,
       values: values,
     };
 
     return data;
 
-    function valToString(v: any) {
+    function valToString(v: unknown) {
       switch (v) {
         case 1:
           return "BUY";
@@ -128,21 +171,22 @@ var StrategyObject = function (this: SeriesRuntime) {
   };
 
   this.drawSelectionLine = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
-    var indexX = 0;
-    var valuesY: any = {};
-    var midX = 0;
-    var lastX = 0;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = getStrategyField(o, forceField);
+    if (!linkedSeries || !field) return;
 
-    var field = o.dataField;
-    if (forceField) field = forceField;
+    var indexX = 0;
+    var valuesY: SeriesStrategyValueRange = { up: 0, dn: 0 };
+    var midX = 0;
+
     ctx.save();
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
+      if (i > linkedSeries.data.length - 1) continue;
 
-      var strategyValue = seriesManager[o.dataLink].data[i][field];
-      if (strategyValue == FUSION.DO_NOTHING) continue;
+      const strategyValue = getStrategyValue(linkedSeries.data[i][field]);
+      if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) continue;
 
       indexX = renderer.getIndexPoint(i, model);
       //valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
@@ -159,7 +203,7 @@ var StrategyObject = function (this: SeriesRuntime) {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       ctx.beginPath();
@@ -174,7 +218,6 @@ var StrategyObject = function (this: SeriesRuntime) {
         ctx.arc(midX, valuesY.dn, 3, 0, 2 * Math.PI, false);
       }
       ctx.fill();
-      lastX = midX;
     }
 
     ctx.restore();
@@ -182,13 +225,17 @@ var StrategyObject = function (this: SeriesRuntime) {
 
   this.drawHit = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
     try {
-      var fV = LIB.getReferenceValue(o, model, seriesManager);
+      if (!isSeriesHitPoint(o._hit)) return;
+
+      const linkedSeries = getLinkedSeries(o, seriesManager);
+      const field = getStrategyField(o, forceField);
+      if (!linkedSeries || !field) return;
+
       var index = renderer.getPointIndex(o._hit.x, model);
       var x = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
       var r = 5;
-      var field = forceField || o.dataField;
-
-      var strategyValue = seriesManager[o.dataLink].data[index][field];
+      const strategyValue = getStrategyValue(linkedSeries.data[index]?.[field]);
+      if (strategyValue === null) return;
       var valuesY = this.getPointY4StrategyValue(
         o,
         index,
@@ -206,13 +253,7 @@ var StrategyObject = function (this: SeriesRuntime) {
       console.log("Cant render series hit point", e);
     }
 
-    function renderPoint(
-      ctx: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      r: number,
-      color?: string
-    ) {
+    function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
       ctx.save();
       ctx.beginPath();
       ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
@@ -224,7 +265,7 @@ var StrategyObject = function (this: SeriesRuntime) {
     }
   };
 
-  this.updateExtremes = function (o, extremes, model, seriesManager, panel, renderer) {
+  this.updateExtremes = function () {
     return null;
 
     //		var updateMax = extremes.max;
@@ -240,8 +281,6 @@ var StrategyObject = function (this: SeriesRuntime) {
     //
     //			var strategyValue = seriesManager[o.dataLink].data[i][o.dataField];
     //			if(strategyValue==FUSION.DO_NOTHING) continue;
-    //
-    //			var vs = getValuesY4StrategyValue(o, i, strategyValue, panel, renderer, model,seriesManager)
     //			if(updateMax < vs.up) updateMax = vs.up;
     //			if(updateMin > vs.dn) updateMin = vs.dn;
     //		}
@@ -272,26 +311,29 @@ var StrategyObject = function (this: SeriesRuntime) {
     seriesManager
   ) {
     var sv = { up: Number.MIN_VALUE, dn: Number.MAX_VALUE };
-    var o = null;
+    var seriesObjectTarget = null;
     if (panel) {
       for (var i = 0; i < panel.objects.length; i++) {
+        const panelObject = panel.objects[i];
+        const panelLink = panelObject["dataLink"];
         if (
-          panel.objects[i].type &&
-          panel.objects[i].type == "SeriesObject" &&
-          seriesManager[panel.objects[i]["dataLink"]].data[index]
+          panelObject.type &&
+          panelObject.type == "SeriesObject" &&
+          typeof panelLink === "string" &&
+          seriesManager[panelLink]?.data[index]
         ) {
-          o = panel.objects[i];
+          seriesObjectTarget = panelObject;
           break;
         }
       }
     }
 
-    if (o) {
+    if (seriesObjectTarget) {
       var seriesObject = renderer.objects["SeriesObject"];
-      var max = seriesObject.getMax(index, o, seriesManager);
-      var min = seriesObject.getMin(index, o, seriesManager);
+      var max = seriesObject.getMax(index, seriesObjectTarget, seriesManager);
+      var min = seriesObject.getMin(index, seriesObjectTarget, seriesManager);
 
-      var fV = LIB.getReferenceValue(o, model, seriesManager);
+      var fV = LIB.getReferenceValue(seriesObjectTarget, model, seriesManager);
       var vup =
         renderer.getYCoordinateForPrice(max, {
           panelHeight: panel._height,
@@ -381,7 +423,6 @@ var StrategyObject = function (this: SeriesRuntime) {
   };
 
   this.drawBuy = function (ctx, midX, valueY) {
-    var self = this;
     var offset = 0;
 
     ctx.save();
@@ -403,7 +444,6 @@ var StrategyObject = function (this: SeriesRuntime) {
   };
 
   this.drawSell = function (ctx, midX, valueY) {
-    var self = this;
     var offset = 0;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -458,7 +498,6 @@ var StrategyObject = function (this: SeriesRuntime) {
   }
 
   this.drawExitAll = function (ctx, midX, valueY) {
-    var self = this;
     ctx.save();
     ctx.globalAlpha = 1;
     ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("exitAllColor");
@@ -481,13 +520,16 @@ var StrategyObject = function (this: SeriesRuntime) {
     var self = this;
     var hitResult = false;
     var index = renderer.getPointIndex(x, model);
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = getStrategyField(o);
+    if (!linkedSeries || !field) return false;
 
-    if (index > seriesManager[o.dataLink].data.length - 1) return false;
+    if (index > linkedSeries.data.length - 1) return false;
 
-    var strategyValue = seriesManager[o.dataLink].data[index][o.dataField];
-    if (strategyValue == FUSION.DO_NOTHING) return false;
+    const strategyValue = getStrategyValue(linkedSeries.data[index][field]);
+    if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) return false;
 
-    var pointX = renderer.getIndexPoint(index, model) + parseInt(model._midOffset);
+    var pointX = renderer.getIndexPoint(index, model) + model._midOffset;
     var pointsY = this.getPointY4StrategyValue(
       o,
       index,
@@ -526,23 +568,30 @@ var CandlestickPatternStrategyObject = function () {
     seriesManager,
     scriptManager
   ) {
-    const values = [];
-    for (var tooltip in seriesManager[o.dataLink].data[index].tooltips) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return null;
+
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint || !dataPoint.tooltips || typeof dataPoint.tooltips !== "object") return null;
+
+    const values: SeriesTooltipData["values"] = [];
+    const tooltips = dataPoint.tooltips as Record<string, unknown>;
+    for (var tooltip in tooltips) {
       values.push({
         label: WEBRCP.locale.fusion.getMessage(tooltip, tooltip).toUpperCase(),
-        value: valToString(seriesManager[o.dataLink].data[index].tooltips[tooltip]),
+        value: valToString(tooltips[tooltip]),
       });
     }
 
-    var data = {
+    const data: SeriesTooltipData = {
       title: getScriptTitle(o, model, seriesManager, scriptManager),
-      stamp: seriesManager[o.dataLink].data[index].stamp,
+      stamp: dataPoint.stamp,
       values: values,
     };
 
     return data;
 
-    function valToString(v: any) {
+    function valToString(v: unknown) {
       switch (v) {
         case 1:
           return "BUY";
@@ -561,7 +610,6 @@ var CandlestickPatternStrategyObject = function () {
   };
 
   candleStickPatternStrategyObject.drawSell = function (ctx, midX, valueY) {
-    var self = this;
     var offset = 0;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -598,7 +646,6 @@ var CandlestickPatternStrategyObject = function () {
   };
 
   candleStickPatternStrategyObject.drawBuy = function (ctx, midX, valueY) {
-    var self = this;
     var offset = 0;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -650,13 +697,16 @@ var CandlestickPatternStrategyObject = function () {
     var self = this;
     var hitResult = false;
     var index = renderer.getPointIndex(x, model);
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = getStrategyField(o);
+    if (!linkedSeries || !field) return false;
 
-    if (index > seriesManager[o.dataLink].data.length - 1) return false;
+    if (index > linkedSeries.data.length - 1) return false;
 
-    var strategyValue = seriesManager[o.dataLink].data[index][o.dataField];
-    if (strategyValue == FUSION.DO_NOTHING) return false;
+    const strategyValue = getStrategyValue(linkedSeries.data[index][field]);
+    if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) return false;
 
-    var pointX = renderer.getIndexPoint(index, model) + parseInt(model._midOffset);
+    var pointX = renderer.getIndexPoint(index, model) + model._midOffset;
     var pointsY = this.getPointY4StrategyValue(
       o,
       index,
@@ -690,27 +740,33 @@ var FractalsObject = function () {
   var fractalsObject = new StrategyObjectCtor() as SeriesRuntime;
 
   fractalsObject.getToolTip = function (o, index, model, seriesManager, scriptManager) {
-    const values = [];
-    const fields = seriesManager[o.dataLink].fields;
-    const labels = seriesManager[o.dataLink].labels;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    if (!linkedSeries) return null;
 
-    for (var f in fields) {
-      var v = valToString(seriesManager[o.dataLink].data[index][fields[f]]);
+    const dataPoint = linkedSeries.data[index];
+    if (!dataPoint) return null;
+
+    const values: SeriesTooltipData["values"] = [];
+    const { fields, labels } = linkedSeries;
+
+    fields.forEach((field, fieldIndex) => {
+      const label = Array.isArray(labels) ? (labels[fieldIndex] ?? field) : (labels[field] ?? field);
+      var v = valToString(dataPoint[field]);
       values.push({
-        label: WEBRCP.locale.fusion.getMessage(labels[f], labels[f]),
+        label: WEBRCP.locale.fusion.getMessage(label, label),
         value: v,
       });
-    }
+    });
 
-    var data = {
+    const data: SeriesTooltipData = {
       title: getScriptTitle(o, model, seriesManager, scriptManager),
-      stamp: seriesManager[o.dataLink].data[index].stamp,
+      stamp: dataPoint.stamp,
       values: values,
     };
 
     return data;
 
-    function valToString(v: any) {
+    function valToString(v: unknown) {
       switch (v) {
         case 1:
           return "DOWN";
@@ -782,13 +838,16 @@ var FractalsObject = function () {
     var self = this;
     var hitResult = false;
     var index = renderer.getPointIndex(x, model);
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = getStrategyField(o);
+    if (!linkedSeries || !field) return false;
 
-    if (index > seriesManager[o.dataLink].data.length - 1) return false;
+    if (index > linkedSeries.data.length - 1) return false;
 
-    var strategyValue = seriesManager[o.dataLink].data[index][o.dataField];
-    if (strategyValue == FUSION.DO_NOTHING) return false;
+    const strategyValue = getStrategyValue(linkedSeries.data[index][field]);
+    if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) return false;
 
-    var pointX = renderer.getIndexPoint(index, model) + parseInt(model._midOffset);
+    var pointX = renderer.getIndexPoint(index, model) + model._midOffset;
     var pointsY = this.getPointY4StrategyValue(
       o,
       index,
@@ -827,21 +886,22 @@ var FractalsObject = function () {
     seriesManager,
     forceField
   ) {
-    var indexX = 0;
-    var valuesY: any = {};
-    var midX = 0;
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = getStrategyField(o, forceField);
+    if (!linkedSeries || !field) return;
 
-    var field = o.dataField;
-    if (forceField) field = forceField;
+    var indexX = 0;
+    var valuesY: SeriesStrategyValueRange = { up: 0, dn: 0 };
+    var midX = 0;
 
     ctx.save();
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
-      if (i > seriesManager[o.dataLink].data.length - 1) continue;
+      if (i > linkedSeries.data.length - 1) continue;
 
-      var strategyValue = seriesManager[o.dataLink].data[i][field];
-      if (strategyValue == FUSION.DO_NOTHING) continue;
+      const strategyValue = getStrategyValue(linkedSeries.data[i][field]);
+      if (strategyValue === null || strategyValue == FUSION.DO_NOTHING) continue;
 
       indexX = renderer.getIndexPoint(i, model);
       //valueY 	= renderer.getYCoordinateForPrice(seriesManager[o.dataLink].data[i][field], {panelHeight: panel._height, minValue: panel.vMin, maxValue: panel.vMax})+panel._offset;
@@ -865,7 +925,7 @@ var FractalsObject = function () {
       if (model.periodWidth == 1) {
         midX = indexX;
       } else {
-        midX = indexX + parseInt(model._midOffset);
+        midX = indexX + model._midOffset;
       }
 
       ctx.beginPath();
@@ -885,12 +945,17 @@ var FractalsObject = function () {
 
   fractalsObject.drawHit = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
     try {
+      if (!isSeriesHitPoint(o._hit)) return;
+
+      const linkedSeries = getLinkedSeries(o, seriesManager);
+      const field = getStrategyField(o, forceField);
+      if (!linkedSeries || !field) return;
+
       var index = renderer.getPointIndex(o._hit.x, model);
       var x = renderer.getIndexPoint(index, model) + model.periodWidth / 2;
       var r = 5;
-      var field = forceField || o.dataField;
-
-      var strategyValue = seriesManager[o.dataLink].data[index][field];
+      const strategyValue = getStrategyValue(linkedSeries.data[index]?.[field]);
+      if (strategyValue === null) return;
       var valuesY = this.getPointY4StrategyValue(
         o,
         index,
@@ -915,13 +980,7 @@ var FractalsObject = function () {
       console.log("Cant render series hit point", e);
     }
 
-    function renderPoint(
-      ctx: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      r: number,
-      color?: string
-    ) {
+    function renderPoint(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
       ctx.save();
       ctx.beginPath();
       ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("hitColor");
@@ -936,10 +995,10 @@ var FractalsObject = function () {
   return fractalsObject;
 };
 
-const StrategyObjectCtor: new (...args: any[]) => any = StrategyObject as any;
-const CandlestickPatternStrategyObjectCtor: new (...args: any[]) => any =
-  CandlestickPatternStrategyObject as any;
-const FractalsObjectCtor: new (...args: any[]) => any = FractalsObject as any;
+const StrategyObjectCtor = StrategyObject as unknown as RuntimeObjectConstructor<SeriesRuntime>;
+const CandlestickPatternStrategyObjectCtor =
+  CandlestickPatternStrategyObject as unknown as RuntimeObjectConstructor<PatternStrategyRuntime>;
+const FractalsObjectCtor = FractalsObject as unknown as RuntimeObjectConstructor<PatternStrategyRuntime>;
 export {
   StrategyObjectCtor as StrategyObject,
   CandlestickPatternStrategyObjectCtor as CandlestickPatternStrategyObject,

@@ -8,11 +8,22 @@ import {
   drawAnchorsArrow,
   drawIndicatorMarker,
 } from "../../utils/objects-lib";
-import type { ShapeRuntime } from "./_sharedTypes";
+import {
+  createShapeMouseDownDelegate,
+  shapeStageOutDelegate,
+  shapeStageUpDelegate,
+} from "./_delegates";
+import type { LegacyShapePoint } from "../../objectRuntimeBases";
+import type {
+  ShapeHitArgs,
+  ShapeInteractionArgs,
+  ShapeRenderArgs,
+  ShapeRuntime,
+} from "./_sharedTypes";
 
 function HorizontalLineObject(this: ShapeRuntime) {
   //override pop
-  this.pop = function (o, renderer, model, seriesManager, interactor) {
+  this.pop = function (o, renderer, model, seriesManager) {
     var lastStamp =
       seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length - 1][
         "stamp"
@@ -24,7 +35,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
     o.anchors[0]._index = lastIndex;
   };
   //override push
-  this.push = function (o, renderer, model, seriesManager, interactor) {
+  this.push = function (o, renderer, model, seriesManager) {
     var lastStamp =
       seriesManager[model.mainSeries].data[seriesManager[model.mainSeries].data.length - 1][
         "stamp"
@@ -37,6 +48,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
   };
   //override get points
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    if (!panel) return [];
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var y =
       renderer.getYCoordinateForPrice(o.anchors[0].value, {
@@ -47,12 +59,17 @@ function HorizontalLineObject(this: ShapeRuntime) {
         fV,
       }) + panel._offset;
     return [
-      { x: 0 + this.anchorPointSize, y: y },
-      { x: model._timeAxisWidth - this.anchorPointSize, y: y },
-    ];
+      { x: this.anchorPointSize, y, index: o.anchors[0]._index, value: o.anchors[0].value },
+      {
+        x: model._timeAxisWidth - this.anchorPointSize,
+        y,
+        index: o.anchors[0]._index,
+        value: o.anchors[0].value,
+      },
+    ] as LegacyShapePoint[];
   };
 
-  this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -80,7 +97,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.renderOverlay = function (o, octx, renderer, model, panel, seriesManager) {
+  this.renderOverlay = function (...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
 
     if (o._hitAnchor) {
@@ -108,7 +125,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.postRenderOverlay = function (o, ctx, renderer, model, panel, seriesManager) {
+  this.postRenderOverlay = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     if (o.priceTag) {
       var pts = this.getPoints(o, renderer, panel, model, seriesManager);
       const color = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -126,7 +143,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
     }
   };
 
-  this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
@@ -144,27 +161,9 @@ function HorizontalLineObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var self = this;
-    var pts = self.getPoints(o, renderer, panel, model, seriesManager);
-    interactor.pushPanel(this, o, panel);
-    for (var i = 0; i < pts.length; i++) {
-      if (
-        interactor.isOver(
-          e._offset.offsetX,
-          e._offset.offsetY,
-          pts[i].x,
-          pts[i].y,
-          self.hitTolerance
-        )
-      ) {
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-      }
-    }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
-  };
+  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
 
-  this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var idx = interactor.currentAnchor.selected;
     var baseAnchors = interactor.currentAnchor.anchors;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -189,14 +188,15 @@ function HorizontalLineObject(this: ShapeRuntime) {
       );
 
     for (var i = 0; i < o.anchors.length; i++) {
-      var index = renderer.getPointIndex(e.offsetX, model);
+      var index = renderer.getPointIndex(e._offset.offsetX, model);
+      var nextValue;
       if (o.sticky) {
         var candles = this.getCurrentCandles(index, model, seriesManager);
-        var v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
+        nextValue = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
       } else {
-        var v = baseAnchors[idx].value + yOffset;
+        nextValue = baseAnchors[idx ?? 0].value + yOffset;
       }
-      o.anchors[i].value = LIB.round(v, renderer.getPrecision(model, panel));
+      o.anchors[i].value = LIB.round(nextValue, renderer.getPrecision(model, panel));
     }
   };
 
@@ -204,7 +204,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
    * STAGE
    */
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -216,25 +216,11 @@ function HorizontalLineObject(this: ShapeRuntime) {
     this.mouseDrag(e, o, renderer, interactor, model, panel, seriesManager);
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    interactor.popPanel(this, o, panel);
+  this.stageUp = shapeStageUpDelegate;
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
-      interactor.currentAnchor.selected++;
-
-    if (
-      interactor.currentAnchor !== null &&
-      interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
-    ) {
-      interactor.currentAnchor = null;
-      return true;
-    }
-  };
-
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
-  };
+  this.stageOut = shapeStageOutDelegate;
 }
 
-const HorizontalLineObjectCtor: new (...args: any[]) => any = HorizontalLineObject as any;
+const HorizontalLineObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  HorizontalLineObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { HorizontalLineObjectCtor as HorizontalLineObject };

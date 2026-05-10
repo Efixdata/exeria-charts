@@ -3,29 +3,42 @@ import LIB from "../../utils/chartingCommons";
 import {
   between,
 } from "../../utils/objects-lib";
+import type {
+  RuntimeObjectConstructor,
+  SeriesInteractorContext,
+  SeriesManagerContext,
+  SeriesModelContext,
+  SeriesPanelContext,
+  SeriesPointerEvent,
+  SeriesRendererContext,
+  SeriesRuntime,
+  SeriesTradeObject,
+  TradeObjectSettings,
+  TradeRunnerMarker,
+} from "./_sharedTypes";
 
 var TradeObject = class TradeObject {
-  settings: Record<string, any>;
+  settings: TradeObjectSettings;
   hitTolerance: number;
   relativeOffset: { x: number; y: number } | null;
 
-  constructor(settings: Record<string, any>) {
+  constructor(settings: TradeObjectSettings) {
     this.settings = settings;
     this.hitTolerance = 2;
     this.relativeOffset = null;
   }
 
-  getMenuItems(o: any, chart: any) {
+  getMenuItems(_object: SeriesTradeObject, _chart: unknown) {
     return null;
   }
 
   render(
-    o: any,
+    o: SeriesTradeObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     this.drawTradeObject(o, ctx, renderer, model, panel, seriesManager);
     var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -45,12 +58,12 @@ var TradeObject = class TradeObject {
   }
 
   drawTradeObject(
-    o: any,
+    o: SeriesTradeObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var line_y =
@@ -80,8 +93,8 @@ var TradeObject = class TradeObject {
     ctx.restore();
   }
 
-  isDragHandlerAllowedForObject(o: any, model: any) {
-    if (o.object.instrument.type !== "OTC") return false;
+  isDragHandlerAllowedForObject(o: SeriesTradeObject, model: SeriesModelContext) {
+    if (o.object.instrument?.type !== "OTC") return false;
     if (o.relatedAllowed && !o.modified && !o.object.runner) {
       var tp = this.getTpForPosition(o, model);
       var sl = this.getSlForPosition(o, model);
@@ -90,19 +103,23 @@ var TradeObject = class TradeObject {
     return false;
   }
 
-  prepareRunnerMarker(o: any) {
-    if (o.object && o.object.runner) {
-      var marker = {
+  prepareRunnerMarker(o: SeriesTradeObject) {
+    const runnerName = o.object.runner?.name;
+    if (typeof runnerName === "string" && runnerName.length > 0) {
+      const marker = {
         bg: this.settings.runnerMarker.activeBg,
         color: this.settings.runnerMarker.color,
-        text: o.object.runner.name.substring(0, 1).toUpperCase(),
+        text: runnerName.substring(0, 1).toUpperCase(),
       };
       return marker;
-    } else if (o.object && o.object.portfolio) {
-      var marker = {
+    }
+
+    const portfolioName = o.object.portfolio?.name;
+    if (typeof portfolioName === "string" && portfolioName.length > 0) {
+      const marker = {
         bg: this.settings.runnerMarker.activeBg,
         color: this.settings.runnerMarker.color,
-        text: o.object.portfolio.name.substring(0, 1).toUpperCase(),
+        text: portfolioName.substring(0, 1).toUpperCase(),
       };
       return marker;
     }
@@ -111,23 +128,23 @@ var TradeObject = class TradeObject {
   }
 
   postRender(
-    o: any,
+    o: SeriesTradeObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     this.drawPriceTag(o, ctx, renderer, model, panel, seriesManager);
   }
 
   drawPriceTag(
-    o: any,
+    o: SeriesTradeObject,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     var valueY =
@@ -151,12 +168,12 @@ var TradeObject = class TradeObject {
   }
 
   renderOverlay(
-    o: any,
+    o: SeriesTradeObject,
     octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     if (o.related) {
       var fV = LIB.getReferenceValue(o.related, model, seriesManager);
@@ -180,15 +197,15 @@ var TradeObject = class TradeObject {
 
     if (o._hit) {
       var fV = LIB.getReferenceValue(o, model, seriesManager);
-      var line_y = null;
-      var tp_y = null;
-      var sl_y = null;
+      var hoverLineY: number | null = null;
+      var tp_y: number | null = null;
+      var sl_y: number | null = null;
 
       //"o" is related?
       if (o.parentId) {
         var parent = this.getTradeObjectById(o.parentId, model);
         if (parent) {
-          line_y =
+          hoverLineY =
             renderer.getYCoordinateForPrice(parent.price, {
               panelHeight: panel._height,
               minValue: panel.vMin,
@@ -221,7 +238,7 @@ var TradeObject = class TradeObject {
       }
       //or not ....
       else {
-        line_y =
+        hoverLineY =
           renderer.getYCoordinateForPrice(o.price, {
             panelHeight: panel._height,
             minValue: panel.vMin,
@@ -253,11 +270,11 @@ var TradeObject = class TradeObject {
             }) + panel._offset;
       }
 
-      if (tp_y || sl_y)
-        this.drawRelations(line_y, tp_y, sl_y, octx, renderer, model, panel, seriesManager);
+      if (hoverLineY !== null && (tp_y !== null || sl_y !== null))
+        this.drawRelations(hoverLineY, tp_y, sl_y, octx, renderer, model, panel, seriesManager);
 
       if (o.priceConnections && o.priceConnections.length > 0) {
-        line_y =
+        const priceConnectionsLineY =
           renderer.getYCoordinateForPrice(o.price, {
             panelHeight: panel._height,
             minValue: panel.vMin,
@@ -276,7 +293,7 @@ var TradeObject = class TradeObject {
               fV,
             }) + panel._offset;
           this.drawRelations(
-            line_y,
+            priceConnectionsLineY,
             connectedPriceY,
             null,
             octx,
@@ -291,12 +308,12 @@ var TradeObject = class TradeObject {
   }
 
   postRenderOverlay(
-    o: any,
+    o: SeriesTradeObject,
     octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    renderer: SeriesRendererContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     if (o.related) {
       var fV = LIB.getReferenceValue(o.related, model, seriesManager);
@@ -325,32 +342,35 @@ var TradeObject = class TradeObject {
   }
 
   updateExtremes(
-    o: any,
-    extremes: any,
-    model: any,
-    seriesManager: any,
-    panel: any,
-    renderer: any
+    _o: SeriesTradeObject,
+    _extremes: unknown,
+    _model: SeriesModelContext,
+    _seriesManager: SeriesManagerContext,
+    _panel: SeriesPanelContext,
+    _renderer: SeriesRendererContext
   ) {}
 
   hit(
     x: number,
     y: number,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    o: SeriesTradeObject,
+    renderer: SeriesRendererContext,
+    _interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     var self = this;
     var hitResult = false;
 
     if (o.hidden == true) return false;
     var fV = LIB.getReferenceValue(o, model, seriesManager);
+    const price = o.stop ? o.stopPrice : o.price;
+    if (typeof price !== "number") return false;
+
     if (o.stop) {
       var valueY =
-        renderer.getYCoordinateForPrice(o.stopPrice, {
+        renderer.getYCoordinateForPrice(price, {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -360,7 +380,7 @@ var TradeObject = class TradeObject {
       o.hitStop = true;
     } else {
       var valueY =
-        renderer.getYCoordinateForPrice(o.price, {
+        renderer.getYCoordinateForPrice(price, {
           panelHeight: panel._height,
           minValue: panel.vMin,
           maxValue: panel.vMax,
@@ -411,13 +431,13 @@ var TradeObject = class TradeObject {
   }
 
   mouseDown(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _event: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    _renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    _model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    _seriesManager: SeriesManagerContext
   ) {
     if (o._hitDragHandler) o.related = null;
 
@@ -430,23 +450,23 @@ var TradeObject = class TradeObject {
   }
 
   mouseUp(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _event: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    _renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    _seriesManager: SeriesManagerContext
   ) {
     if (o._hitCloseButton) {
       o.modified = true;
       interactor.doCloseTradeObject(o);
     } else if (o.modified) {
-      if (o.parentId) var p = this.getTradeObjectById(o.parentId, model);
-      interactor.doModifyTradeObject(o, p);
+      const parent = o.parentId ? this.getTradeObjectById(o.parentId, model) : undefined;
+      interactor.doModifyTradeObject(o, parent);
     } else if (o.relatedAllowed && o.related) {
       interactor.doAddTradeObject(o);
-      var orderCandidate = {
+      const orderCandidate = {
         //temporary add to chart model
         id: "empty",
         price: o.related.price,
@@ -462,13 +482,13 @@ var TradeObject = class TradeObject {
   }
 
   mouseDrag(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    e: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     var dragPrice = this.getDragPrice(e, o, renderer, interactor, model, panel, seriesManager);
     const stopTypes = [
@@ -497,28 +517,31 @@ var TradeObject = class TradeObject {
   }
 
   mouseOut(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _event: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    _renderer: SeriesRendererContext,
+    _interactor: SeriesInteractorContext,
+    _model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    _seriesManager: SeriesManagerContext
   ) {
     o.related = null;
     o.modified = false;
   }
 
   getDragPrice(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    e: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    renderer: SeriesRendererContext,
+    interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     const instrument = model.instrumentsSeries[0].instrument;
+    const precision = typeof instrument?.precision === "number" ? instrument.precision : 0;
+    const priceChangeStep =
+      typeof instrument?.priceChangeStep === "number" ? instrument.priceChangeStep : 0;
     const offset = getOffset(e).offsetY;
     const relativeOffset = this.relativeOffset;
 
@@ -532,14 +555,14 @@ var TradeObject = class TradeObject {
           valueAxisMode: panel.valueAxisMode,
           fV,
         })
-        .toFixed(instrument.precision)
+        .toFixed(precision)
     );
 
-    return WEBRCP.utils.roundPrice(dragPrice, instrument.priceChangeStep, instrument.precision);
+    return WEBRCP.utils.roundPrice(dragPrice, priceChangeStep, precision);
 
-    function getOffset(e: any) {
-      var x = e.pageX - (relativeOffset?.x ?? 0);
-      var y = e.pageY - (relativeOffset?.y ?? 0);
+    function getOffset(event: SeriesPointerEvent) {
+      var x = (event.pageX ?? 0) - (relativeOffset?.x ?? 0);
+      var y = (event.pageY ?? 0) - (relativeOffset?.y ?? 0);
       return {
         offsetX: x,
         offsetY: y,
@@ -548,13 +571,13 @@ var TradeObject = class TradeObject {
   }
 
   getReferenceValue(
-    e: any,
-    o: any,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _event: SeriesPointerEvent,
+    o: SeriesTradeObject,
+    _renderer: SeriesRendererContext,
+    _interactor: SeriesInteractorContext,
+    model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    seriesManager: SeriesManagerContext
   ) {
     return LIB.getReferenceValue(o, model, seriesManager);
   }
@@ -641,7 +664,7 @@ var TradeObject = class TradeObject {
     ctx.restore();
   }
 
-  drawRunnerMarker(y: number, ctx: CanvasRenderingContext2D, marker: any) {
+  drawRunnerMarker(y: number, ctx: CanvasRenderingContext2D, marker: TradeRunnerMarker) {
     ctx.save();
     ctx.fillStyle = marker.bg;
     ctx.strokeStyle = this.settings.bar.color;
@@ -672,10 +695,10 @@ var TradeObject = class TradeObject {
     y1: number | null,
     y2: number | null,
     ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
+    _renderer: SeriesRendererContext,
+    _model: SeriesModelContext,
+    _panel: SeriesPanelContext,
+    _seriesManager: SeriesManagerContext
   ) {
     var r = 9;
     ctx.save();
@@ -744,33 +767,34 @@ var TradeObject = class TradeObject {
     ctx.restore();
   }
 
-  getTpForPosition(p: any, model: any) {
+  getTpForPosition(p: SeriesTradeObject, model: SeriesModelContext) {
     for (var i in model.orders.list) {
       if (model.orders.list[i].parentId == p.id && model.orders.list[i].type == "TP")
-        return model.orders.list[i];
+        return model.orders.list[i] as SeriesTradeObject;
     }
     return null;
   }
 
-  getSlForPosition(p: any, model: any) {
+  getSlForPosition(p: SeriesTradeObject, model: SeriesModelContext) {
     for (var i in model.orders.list) {
       if (model.orders.list[i].parentId == p.id && model.orders.list[i].type == "SL")
-        return model.orders.list[i];
+        return model.orders.list[i] as SeriesTradeObject;
     }
     return null;
   }
 
-  getTradeObjectById(id: any, model: any) {
+  getTradeObjectById(id: string | number | null | undefined, model: SeriesModelContext) {
     for (var i in model.orders.list) {
-      if (model.orders.list[i].id == id) return model.orders.list[i];
+      if (model.orders.list[i].id == id) return model.orders.list[i] as SeriesTradeObject;
     }
     for (var i in model.positions.list) {
-      if (model.positions.list[i].id == id) return model.positions.list[i];
+      if (model.positions.list[i].id == id) return model.positions.list[i] as SeriesTradeObject;
     }
     return null;
   }
 };
 
 export { TradeObject as TradeObjectClass };
-const TradeObjectCtor: new (...args: any[]) => any = TradeObject as any;
+const TradeObjectCtor =
+  TradeObject as unknown as RuntimeObjectConstructor<SeriesRuntime, [TradeObjectSettings]>;
 export { TradeObjectCtor as TradeObject };

@@ -12,16 +12,18 @@ import {
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyValueLevelsShapeObject } from "../../objectRuntimeBases";
+import type { ShapeHitArgs, ShapeInteractionArgs, ShapeLifecycleArgs, ShapeRuntime } from "./_sharedTypes";
 
 function AbcdObject(this: ShapeRuntime) {
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    var valueLevelsObject = o as LegacyValueLevelsShapeObject;
     var pts = AbcdObject.prototype.getPoints.call(this, o, renderer, panel, model, seriesManager);
 
     var xLength = pts[0].x - pts[1].x;
     var yLength = pts[0].y - pts[1].y;
-    var x = pts[2].x - (xLength * o.values[o.values.length - 1]) / 100;
-    var y = pts[2].y - (yLength * o.values[o.values.length - 1]) / 100;
+    var x = pts[2].x - (xLength * valueLevelsObject.values[valueLevelsObject.values.length - 1]) / 100;
+    var y = pts[2].y - (yLength * valueLevelsObject.values[valueLevelsObject.values.length - 1]) / 100;
     var index = renderer.getPointIndex(x, model);
     pts.push({
       x: x,
@@ -98,6 +100,7 @@ function AbcdObject(this: ShapeRuntime) {
   };
 
   this.drawLevelPoints = function (pts, o, ctx, renderer, model, panel, seriesManager) {
+    var valueLevelsObject = o as LegacyValueLevelsShapeObject;
     var xLength = pts[0].x - pts[1].x;
     var yLength = pts[0].y - pts[1].y;
 
@@ -112,9 +115,9 @@ function AbcdObject(this: ShapeRuntime) {
 
     var expanded = o.anchors[2].expanded;
 
-    for (var i = 0; i < o.values.length; i++) {
-      var level = o.values[i];
-      var enabled = o.valuesState[i];
+    for (var i = 0; i < valueLevelsObject.values.length; i++) {
+      var level = valueLevelsObject.values[i];
+      var enabled = valueLevelsObject.valuesState[i];
       if (enabled == true) {
         var levelX = pts[2].x - (xLength * level) / 100;
         var levelY = pts[2].y - (yLength * level) / 100;
@@ -130,7 +133,7 @@ function AbcdObject(this: ShapeRuntime) {
           }) + panel._offset;
         var text = level + "% (" + y.toFixed(p) + ")";
 
-        if (i == o.values.length - 1) {
+        if (i == valueLevelsObject.values.length - 1) {
           ctx.moveTo(pts[2].x, pts[2].y);
           ctx.lineTo(levelX, levelY);
         }
@@ -145,15 +148,12 @@ function AbcdObject(this: ShapeRuntime) {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        var textHeight = 12;
-        var textWidth = 100;
-
         ctx.fillText(text, levelX + 7, levelY - 2);
       }
     }
   };
 
-  this.hit = function (x, y, o, renderer, interactor, model, panel, seriesManager) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     var self = this;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var hitResult = false;
@@ -204,7 +204,7 @@ function AbcdObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.mouseDown = function (e, o, renderer, interactor, model, panel, seriesManager) {
+      this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     this.wasDrag = false;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
@@ -219,19 +219,18 @@ function AbcdObject(this: ShapeRuntime) {
           self.hitTolerance
         )
       ) {
-        return { selected: i, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+        return this.createAnchorSelection(o, i);
       }
     }
-    return { selected: null, anchors: JSON.parse(JSON.stringify(o.anchors)) };
+    return this.createAnchorSelection(o, null);
   };
 
-  this.mouseDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     if (interactor.currentAnchor.selected === 3) interactor.currentAnchor.selected = null;
-    // SUPER COULD BE CALLED HERE
     Shape.prototype.mouseDrag.call(this, e, o, renderer, interactor, model, panel, seriesManager);
   };
 
-  this.mouseUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.mouseUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     var self = this;
     var pts = self.getPoints(o, renderer, panel, model, seriesManager);
     if (!this.wasDrag) {
@@ -250,32 +249,7 @@ function AbcdObject(this: ShapeRuntime) {
     interactor.popPanel(this, o, panel);
   };
 
-  this.stageDrag = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    var xOffset =
-      renderer.getPointIndex(e._offset.offsetX, model) -
-      renderer.getPointIndex(interactor.initialMouseEvent._offset.offsetX, model);
-    var fV = LIB.getReferenceValue(o, model, seriesManager);
-    var yOffset = parseFloat(
-      (
-        renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
-          panelHeight: panel._height,
-          minValue: panel.vMin,
-          maxValue: panel.vMax,
-          valueAxisMode: panel.valueAxisMode,
-          fV,
-        }) -
-        renderer.getPriceForYCoordinate(
-          interactor.initialMouseEvent._offset.offsetY - panel._offset,
-          {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV,
-          }
-        )
-      ).toFixed(panel.precision)
-    );
+  this.stageDrag = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeInteractionArgs) {
     var xPointsOffset = e._offset.offsetX - interactor.initialMouseEvent._offset.offsetX;
     var yPointsOffset = e._offset.offsetY - interactor.initialMouseEvent._offset.offsetY;
     if (
@@ -286,9 +260,12 @@ function AbcdObject(this: ShapeRuntime) {
       var i = interactor.currentAnchor.selected;
       var v = renderer.getPriceForYCoordinate(
         e._offset.offsetY - panel._offset,
-        panel._height,
-        panel.vMin,
-        panel.vMax
+        {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+        }
       );
       var idx = renderer.getPointIndex(e._offset.offsetX, model);
       if (i != null && i < o.anchors.length) {
@@ -305,14 +282,19 @@ function AbcdObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageUp = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageUp = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
 
-    if (interactor.currentAnchor && interactor.currentAnchor.drag)
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
       interactor.currentAnchor.selected++;
 
     if (
       interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
       o.hidden = false;
@@ -321,8 +303,25 @@ function AbcdObject(this: ShapeRuntime) {
     }
   };
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+  this.stageOut = function (...[, o, , interactor, , panel]: ShapeLifecycleArgs) {
+    interactor.popPanel(this, o, panel);
+
+    if (
+      interactor.currentAnchor &&
+      interactor.currentAnchor.drag &&
+      interactor.currentAnchor.selected != null
+    )
+      interactor.currentAnchor.selected++;
+
+    if (
+      interactor.currentAnchor !== null &&
+      interactor.currentAnchor.selected != null &&
+      interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
+    ) {
+      o.hidden = false;
+      interactor.currentAnchor = null;
+      return true;
+    }
   };
 
   // this.stageMove			=	function (e, o, renderer, interactor, model, panel, seriesManager) {
@@ -341,5 +340,6 @@ function AbcdObject(this: ShapeRuntime) {
   // };
 }
 
-const AbcdObjectCtor: new (...args: any[]) => any = AbcdObject as any;
+const AbcdObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  AbcdObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { AbcdObjectCtor as AbcdObject };

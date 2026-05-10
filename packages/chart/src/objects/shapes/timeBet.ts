@@ -1,7 +1,17 @@
 import WEBRCP from "../../WebRCP";
 import LIB from "../../utils/chartingCommons";
-import type { LegacyShapeObject } from "../../objectRuntimeBases";
-import type { ShapeRuntime } from "./_sharedTypes";
+import type { LegacyShapeObject, LegacyShapePoint } from "../../objectRuntimeBases";
+import type {
+  ShapeHitArgs,
+  ShapeModelContext,
+  ShapeRenderArgs,
+  ShapeRuntime,
+  ShapeSeriesManagerContext,
+} from "./_sharedTypes";
+
+type RoundedCanvasContext = CanvasRenderingContext2D & {
+  roundRect(x: number, y: number, width: number, height: number, radii: number[]): void;
+};
 
 function TimeBetObject(this: ShapeRuntime) {
   this.boxBeginningX = 0;
@@ -36,7 +46,11 @@ function TimeBetObject(this: ShapeRuntime) {
     return colors;
   };
 
-  this.isWinning = function (o: LegacyShapeObject, model: any, seriesManager: any) {
+  this.isWinning = function (
+    o: LegacyShapeObject,
+    model: ShapeModelContext,
+    seriesManager: ShapeSeriesManagerContext
+  ) {
     let isWinning = o.isWinning;
 
     if (o.status === "ACTIVE") {
@@ -54,16 +68,9 @@ function TimeBetObject(this: ShapeRuntime) {
     return isWinning;
   };
 
-  this.render = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.render = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-    if (!pts) return;
+    if (!pts.length) return;
     const status = o.status;
     let isWinning = this.isWinning(o, model, seriesManager);
 
@@ -73,21 +80,7 @@ function TimeBetObject(this: ShapeRuntime) {
     if (status === "PENDING_START" || status === "PENDING_FINISH") {
       globalAlpha = 0.5;
     }
-
-    const addShadow = () => {
-      ctx.shadowColor = "#0b1b28"; //"rgba(0, 0, 0, 0.7)";
-      ctx.shadowBlur = 2;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-    };
-
-    const removeShadow = () => {
-      ctx.shadowColor = "rgba(0, 0, 0, 0)";
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-    };
-    const roundedContext = ctx as any;
+    const roundedContext = ctx as RoundedCanvasContext;
 
     ctx.save();
     ctx.lineWidth = o.width;
@@ -277,105 +270,45 @@ function TimeBetObject(this: ShapeRuntime) {
     ctx.restore();
   };
 
-  this.renderOverlay = function (
-    o: LegacyShapeObject,
-    octx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.renderOverlay = function () {
     return;
   };
 
-  this.hit = function (
-    x: number,
-    y: number,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-    if (!pts) return;
+    if (!pts.length) return;
     const fromY = pts[0].y - 10;
     const toY = fromY + 20;
-    if (x > this.boxBeginningX && x < pts[1].x && y > fromY && y < toY) {
+    const boxBeginningX = this.boxBeginningX ?? 0;
+    if (x > boxBeginningX && x < pts[1].x && y > fromY && y < toY) {
       return true;
     }
     return false;
   };
 
-  this.mouseDown = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDown = function () {
     return;
   };
-  this.mouseDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.mouseDrag = function () {
     return;
   };
 
-  this.stageDrag = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageDrag = function () {
     return;
   };
 
-  this.stageUp = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.stageUp = function () {
     return;
   };
 
-  this.stageOut = function (
-    e: any,
-    o: LegacyShapeObject,
-    renderer: any,
-    interactor: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
-    this.stageUp(e, o, renderer, interactor, model, panel, seriesManager);
+  this.stageOut = function () {
+    return;
   };
 
-  this.getPoints = function (
-    o: LegacyShapeObject,
-    renderer: any,
-    panel: any,
-    model: any,
-    seriesManager: any
-  ) {
+  this.getPoints = function (o, renderer, panel, model, seriesManager) {
+    if (!panel) return [];
     var s0 = seriesManager[model.mainSeries].data[0]["stamp"];
-    if (typeof o.startTime === "number" && o.startTime < s0) return undefined;
+    if (typeof o.startTime === "number" && o.startTime < s0) return [];
     var fV = LIB.getReferenceValue(o, model, seriesManager);
     const y = renderer.getYCoordinateForPrice(o.price, {
       panelHeight: panel._height,
@@ -386,7 +319,7 @@ function TimeBetObject(this: ShapeRuntime) {
     });
     let startStamp;
     let endStamp;
-    let pts = [];
+    let pts: LegacyShapePoint[] = [];
 
     if (o.startTime === "now" && typeof o.timeRange === "number") {
       var lastIndex = seriesManager[model.mainSeries].data.length - 1;
@@ -399,6 +332,7 @@ function TimeBetObject(this: ShapeRuntime) {
         y,
         index: lastIndex,
         stamp: startStamp,
+        value: o.price,
       };
     } else if (typeof o.startTime === "number" && typeof o.timeRange === "number") {
       endStamp = o.startTime + o.timeRange;
@@ -410,6 +344,7 @@ function TimeBetObject(this: ShapeRuntime) {
         y: y,
         index: renderer.getStampIndex(o.startTime, model, seriesManager),
         stamp: o.startTime,
+        value: o.price,
       };
     } else {
       throw Error(
@@ -422,6 +357,7 @@ function TimeBetObject(this: ShapeRuntime) {
       y: y,
       index: renderer.getStampIndex(endStamp, model, seriesManager),
       stamp: endStamp,
+      value: o.price,
     };
 
     if (pts[1].x === pts[0].x) {
@@ -432,17 +368,10 @@ function TimeBetObject(this: ShapeRuntime) {
     return pts;
   };
 
-  this.postRenderOverlay = function (
-    o: LegacyShapeObject,
-    ctx: CanvasRenderingContext2D,
-    renderer: any,
-    model: any,
-    panel: any,
-    seriesManager: any
-  ) {
+  this.postRenderOverlay = function (...[o, ctx, renderer, model, panel, seriesManager]: ShapeRenderArgs) {
     if (o.priceTag) {
       const pts = this.getPoints(o, renderer, panel, model, seriesManager);
-      if (!pts) return;
+      if (!pts.length) return;
       const color = this.getColors(o, this.isWinning(o, model, seriesManager)).toolColor;
       const textColor = WEBRCP.utils.getContrastColor(color);
       renderer.drawPriceTag(
@@ -460,5 +389,6 @@ function TimeBetObject(this: ShapeRuntime) {
   };
 }
 
-const TimeBetObjectCtor: new (...args: any[]) => any = TimeBetObject as any;
+const TimeBetObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  TimeBetObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { TimeBetObjectCtor as TimeBetObject };

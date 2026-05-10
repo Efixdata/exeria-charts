@@ -14,20 +14,22 @@ import {
   createShapeMouseUpExpandableDelegate,
   shapeStageUpDelegate,
 } from "./_delegates";
+import type { LegacyValueLevelsShapeObject } from "../../objectRuntimeBases";
 import type { ShapeRuntime } from "./_sharedTypes";
 
 var FibonLinesObject = function (this: ShapeRuntime) {
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
+    const fibonObject = o as LegacyValueLevelsShapeObject;
     var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     var distance = Math.abs(pts[0].y - pts[1].y);
     //calc line values
     var valuesPoints = [];
-    for (var i = 0; i < o.values.length; i++) {
-      if (o.valuesState[i] == true) {
+    for (var i = 0; i < fibonObject.values.length; i++) {
+      if (fibonObject.valuesState[i] == true) {
         var p = pts[1];
         var y = p.y;
-        if (p.y > pts[0].y) y = y - (distance * o.values[i]) / 100;
-        else y = y + (distance * o.values[i]) / 100;
+        if (p.y > pts[0].y) y = y - (distance * fibonObject.values[i]) / 100;
+        else y = y + (distance * fibonObject.values[i]) / 100;
         var fV = LIB.getReferenceValue(o, model, seriesManager);
         var v =
           renderer.getPriceForYCoordinate(y, {
@@ -37,7 +39,7 @@ var FibonLinesObject = function (this: ShapeRuntime) {
             valueAxisMode: panel.valueAxisMode,
             fV,
           }) + panel._offset;
-        valuesPoints.push({ y: y, v: v, p: o.values[i] });
+        valuesPoints.push({ y: y, v: v, p: fibonObject.values[i] });
       }
     }
 
@@ -268,7 +270,7 @@ var FibonLinesObject = function (this: ShapeRuntime) {
 
   this.stageUp = shapeStageUpDelegate;
 
-  this.stageOut = function (e, o, renderer, interactor, model, panel, seriesManager) {
+  this.stageOut = function () {
     // console.log("stage out");
   };
 
@@ -288,5 +290,6 @@ var FibonLinesObject = function (this: ShapeRuntime) {
   // };
 };
 
-const FibonLinesObjectCtor: new (...args: any[]) => any = FibonLinesObject as any;
+const FibonLinesObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  FibonLinesObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { FibonLinesObjectCtor as FibonLinesObject };

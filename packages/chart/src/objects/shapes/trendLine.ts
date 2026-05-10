@@ -48,8 +48,8 @@ function TrendLineObject(this: ShapeRuntime) {
       else ctx.lineTo(pts[0].x, dPoint.y);
     } else {
       if (panel.valueAxisMode == "lin") {
-        let x1 = renderer.getIndexPoint(startI, model) + parseInt(model._midOffset);
-        let x2 = renderer.getIndexPoint(endI, model) + parseInt(model._midOffset);
+        let x1 = renderer.getIndexPoint(startI, model) + model._midOffset;
+        let x2 = renderer.getIndexPoint(endI, model) + model._midOffset;
         let y1 =
           renderer.getYCoordinateForPrice(line.a * startI + line.b, {
             panelHeight: panel._height,
@@ -71,7 +71,7 @@ function TrendLineObject(this: ShapeRuntime) {
       } else {
         for (var i = startI; i <= endI; i++) {
           var lineValue = line.a * i + line.b;
-          let x = renderer.getIndexPoint(i, model) + parseInt(model._midOffset);
+          let x = renderer.getIndexPoint(i, model) + model._midOffset;
           let y =
             renderer.getYCoordinateForPrice(lineValue, {
               panelHeight: panel._height,
@@ -144,8 +144,6 @@ function TrendLineObject(this: ShapeRuntime) {
           if (p) {
             o._hitAnchor = { x: p.x, y: p.y };
           }
-          var uPoint = pts[0].y < pts[1].y ? pts[0] : pts[1];
-          var dPoint = pts[0].y > pts[1].y ? pts[0] : pts[1];
           var a = findAnchorPointArrowForXY(
             pts,
             x,
@@ -166,7 +164,7 @@ function TrendLineObject(this: ShapeRuntime) {
         var lIndex1 = renderer.getPointIndex(x, model);
         var lIndex2 = lIndex1 >= 1 ? lIndex1 - 1 : lIndex1 + 1;
 
-        let lx1 = renderer.getIndexPoint(lIndex1, model) + parseInt(model._midOffset);
+        let lx1 = renderer.getIndexPoint(lIndex1, model) + model._midOffset;
         let ly1 =
           renderer.getYCoordinateForPrice(line.a * lIndex1 + line.b, {
             panelHeight: panel._height,
@@ -175,7 +173,7 @@ function TrendLineObject(this: ShapeRuntime) {
             valueAxisMode: panel.valueAxisMode,
             fV,
           }) + panel._offset;
-        let lx2 = renderer.getIndexPoint(lIndex2, model) + parseInt(model._midOffset);
+        let lx2 = renderer.getIndexPoint(lIndex2, model) + model._midOffset;
         let ly2 =
           renderer.getYCoordinateForPrice(line.a * lIndex2 + line.b, {
             panelHeight: panel._height,
@@ -313,5 +311,6 @@ function TrendLineObject(this: ShapeRuntime) {
   // };
 }
 
-const TrendLineObjectCtor: new (...args: any[]) => any = TrendLineObject as any;
+const TrendLineObjectCtor: import("./_sharedTypes").ShapeConstructor =
+  TrendLineObject as unknown as import("./_sharedTypes").ShapeConstructor;
 export { TrendLineObjectCtor as TrendLineObject };
