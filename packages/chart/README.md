@@ -1,3 +1,10 @@
+# Chart
+
+For contributors and maintainers, start with:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [MAINTAINER_ARCHITECTURE.md](MAINTAINER_ARCHITECTURE.md)
+
 Example:
 
 ```js
