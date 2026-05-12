@@ -23,7 +23,7 @@
     "README.md",
     "LICENSE"
   ],
-  "license": "UNLICENSED",
+  "license": "BUSL-1.1",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -35,7 +35,7 @@
   "scripts": {
     "lint": "eslint --ext .ts,.tsx index.tsx src",
     "lint:fix": "npm run lint -- --fix",
-    "build": "webpack --mode production && npm run build:types",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --mode production && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "webpack --mode development --watch"

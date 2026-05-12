@@ -79,3 +79,10 @@ chart.appendTick({
   dailyVolume: 101938, // not needed - will set the volume value if the interval is set to 1 day
 });
 ```
+
+## License
+
+This package is source-available under `BUSL-1.1` with an Additional Use Grant for
+personal use, education, qualifying open source projects, and qualifying small-scale use.
+Other commercial use requires a separate commercial license. See the bundled `LICENSE`
+file for the full legal terms.

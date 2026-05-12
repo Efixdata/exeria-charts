@@ -1,5 +1,4 @@
 const path = require("path");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
  
 const externals = {
   react: {
@@ -63,7 +62,6 @@ module.exports = (_env, argv = {}) => {
       ...baseConfig,
       name: "umd",
       mode: isProd ? "production" : "development",
-      plugins: [new CleanWebpackPlugin()],
       output: {
         filename: "index.js",
         path: path.resolve(__dirname, "dist"),

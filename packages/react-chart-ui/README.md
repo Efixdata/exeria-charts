@@ -61,3 +61,10 @@ export function ChartExample() {
 
 This package is intended to sit on top of the public chart API exported by `@dexer-io/chart`.
 The broader public-release work for documentation, examples, and package hardening is tracked in the repository release plan.
+
+## License
+
+This package is source-available under `BUSL-1.1` with an Additional Use Grant for
+personal use, education, qualifying open source projects, and qualifying small-scale use.
+Other commercial use requires a separate commercial license. See the bundled `LICENSE`
+file for the full legal terms.
