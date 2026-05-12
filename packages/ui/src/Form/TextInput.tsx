@@ -4,16 +4,16 @@ import { inputErrorBorder } from "ui/theme";
 
 interface TextInputProps {
   children?: JSX.Element | JSX.Element[];
-  style?: React.CSSProperties;
-  autoFocus?: boolean;
-  placeholder?: string;
+  style?: React.CSSProperties | undefined;
+  autoFocus?: boolean | undefined;
+  placeholder?: string | undefined;
   onChange?: any;
-  type?: string;
-  max?: number;
-  min?: number;
-  step?: number;
-  value?: string;
-  allowEmpty?: boolean;
+  type?: string | undefined;
+  max?: number | undefined;
+  min?: number | undefined;
+  step?: number | undefined;
+  value?: string | number | readonly string[] | undefined;
+  allowEmpty?: boolean | undefined;
 }
 
 const Input = styled.input`

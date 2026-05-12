@@ -62,7 +62,7 @@ class ChartUI extends React.Component<ChartUIProps> {
     this.containerOffset = {};
   }
 
-  componentDidMount() {
+  override componentDidMount() {
     this.setBoundingClientRect();
 
     if (typeof window !== "undefined") {
@@ -77,11 +77,11 @@ class ChartUI extends React.Component<ChartUIProps> {
     }
   }
 
-  componentDidUpdate() {
+  override componentDidUpdate() {
     this.setBoundingClientRect();
   }
 
-  render() {
+  override render() {
     const gap = this.props.theme?.gap || 0;
     const borders =
       (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);

@@ -4,9 +4,9 @@ import { inputBackgroundColor, checkboxBorderRadius } from "ui/theme";
 import { Check } from "@phosphor-icons/react";
 
 interface CheckboxInputProps {
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   onChange?: any;
-  value?: boolean;
+  value?: boolean | undefined;
 }
 
 const Input = styled.input`

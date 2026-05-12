@@ -67,7 +67,7 @@ export interface ThemeInterface {
 
 interface ThemeProps {
   children: any;
-  theme?: ThemeInterface;
+  theme?: ThemeInterface | undefined;
 }
 
 const violetDark = "#100c22";

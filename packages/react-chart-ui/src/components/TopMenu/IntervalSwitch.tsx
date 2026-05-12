@@ -6,8 +6,8 @@ import type { NullableChartInstance } from "../../chartTypes";
 
 interface IntervalSwitchProps {
   chart: NullableChartInstance;
-  style?: React.CSSProperties;
-  onIntervalChange?: (symbol: string) => void;
+  style?: React.CSSProperties | undefined;
+  onIntervalChange?: ((symbol: string) => void) | undefined;
 }
 
 export const IntervalSwitch = (props: IntervalSwitchProps) => {

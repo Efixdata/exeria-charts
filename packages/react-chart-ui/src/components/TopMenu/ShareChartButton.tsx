@@ -9,7 +9,7 @@ import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
 
 interface ShareChartButtonProps {
   chart: NullableChartInstance;
-  shareConfig?: ShareConfig;
+  shareConfig?: ShareConfig | undefined;
 }
 
 const ShareButtonWrapper = styled.div`

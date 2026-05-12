@@ -57,12 +57,12 @@ const Button = styled.button<{ themeContext: string }>`
 
 interface TextButtonProps {
   children?: JSX.Element | JSX.Element[] | string;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-  callback?: () => void;
-  active?: boolean;
-  id?: string;
-  themeContext?: string;
+  style?: React.CSSProperties | undefined;
+  onClick?: (() => void) | undefined;
+  callback?: (() => void) | undefined;
+  active?: boolean | undefined;
+  id?: string | undefined;
+  themeContext?: string | undefined;
 }
 
 export const TextButton = (props: TextButtonProps) => {

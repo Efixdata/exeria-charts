@@ -12,11 +12,11 @@ import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
 
 interface TopMenuProps {
   chart: NullableChartInstance;
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   mainContainer: React.RefObject<HTMLElement>;
-  onIntervalChange?: (symbol: string) => void;
-  className?: string;
-  shareConfig?: ShareConfig;
+  onIntervalChange?: ((symbol: string) => void) | undefined;
+  className?: string | undefined;
+  shareConfig?: ShareConfig | undefined;
 }
 
 const RightSection = styled.div`

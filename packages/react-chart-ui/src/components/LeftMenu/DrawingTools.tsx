@@ -460,26 +460,34 @@ export const DrawingTools = (props: DrawingToolsProps) => {
   }
 
   function renderSplitButton(ids: string[], defaultOption: string) {
-    const options = ids.map((id) => {
-      // @ts-ignore
-      return drawingTools[id];
-    });
+    const options = ids
+      .map((id) => drawingTools[id])
+      .filter((option): option is DrawingTool => option !== undefined);
+
+    const splitButtonOptions = options.reduce(
+      renderSplitButtonOption,
+      {} as React.ComponentProps<typeof SplitButton>["options"]
+    );
 
     return (
       <SplitButton
         defaultOption={defaultOption}
         // @ts-ignore
         activeOption={ids.indexOf(selectedTool) > -1 ? selectedTool : undefined}
-        options={[{}, ...options].reduce(renderSplitButtonOption)}
+        options={splitButtonOptions}
         containerOffset={containerOffset}
       />
     );
   }
 
-  function renderSplitButtonOption(options: any, option: any) {
+  function renderSplitButtonOption(
+    options: React.ComponentProps<typeof SplitButton>["options"],
+    option: DrawingTool
+  ) {
     options[option.props.id] = {
       text: <TextButton themeContext="subMenu">{option.props.name}</TextButton>,
       icon: <IconButton themeContext="subMenu">{option.icon}</IconButton>,
+      id: option.props.id,
       callback: () => {
         onSelectTool(option.props);
       },

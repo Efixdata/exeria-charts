@@ -4,7 +4,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
   "description": "React chart component",
   "author": {
     "name": "Dexer",
@@ -15,7 +15,7 @@
     "url": "ssh://git@github.com/dexer-io/chart-repo.git",
     "directory": "packages/react-chart-ui"
   },
-  "module": "dist/index.esm.js",
+  "module": "./dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -33,7 +33,7 @@
   "scripts": {
     "lint": "eslint --ext .ts,.tsx index.tsx src",
     "lint:fix": "npm run lint -- --fix",
-    "build": "webpack --mode production",
+    "build": "webpack --mode production && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "webpack --mode development --watch"

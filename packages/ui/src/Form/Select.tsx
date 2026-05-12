@@ -2,11 +2,11 @@ import * as React from "react";
 import styled from "styled-components";
 
 interface SelectProps {
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   children?: JSX.Element | JSX.Element[];
-  autoFocus?: boolean;
+  autoFocus?: boolean | undefined;
   onChange?: any;
-  value?: string;
+  value?: string | undefined;
 }
 
 const StyledSelect = styled.select`

@@ -71,6 +71,7 @@ module.exports = (_env, argv = {}) => {
           name: "ReactChartUI",
           type: "umd",
         },
+        globalObject: "this",
       },
       optimization: {
         minimize: isProd,

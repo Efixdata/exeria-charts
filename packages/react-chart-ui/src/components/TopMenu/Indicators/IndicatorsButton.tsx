@@ -1,3 +1,5 @@
+/// <reference path="../../../types/react-portal.d.ts" />
+
 import * as React from "react";
 import { TextButton, Modal } from "ui";
 import { Indicators } from "../../../img/icons";
@@ -42,7 +44,7 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
     for (let i in scripts) {
       const script = scripts[i];
 
-      if (script.quickAdd === false) continue;
+      if (!script || script.quickAdd === false) continue;
 
       script.key = i;
       script.title = script.title || i;

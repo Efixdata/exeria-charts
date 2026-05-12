@@ -48,6 +48,8 @@ const initializeConfig = (indicator: IndicatorConfig, seriesManager: any): Indic
   for (let i in config.inputs) {
     const input = config.inputs[i];
 
+    if (!input) continue;
+
     if (input.type === "integer" || input.type === "double" || input.type === "list") {
       if (input.value === null || input.value === undefined) {
         input.value = input?.properties?.def;
@@ -83,7 +85,11 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
     const inputConfig = config.inputs || {};
     for (let i in inputConfig) {
-      inputs.push(renderInput(inputConfig[i], i));
+      const input = inputConfig[i];
+
+      if (!input) continue;
+
+      inputs.push(renderInput(input, i));
     }
 
     return inputs.filter((input): input is JSX.Element => input !== null);
@@ -93,8 +99,11 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     if (!config.inputs) return;
     const newConfig = { ...config };
     const inputs = newConfig.inputs;
-    if (!inputs || !inputs[key]) return;
-    inputs[key].value = value;
+    const input = inputs?.[key];
+
+    if (!input) return;
+
+    input.value = value;
 
     setConfig(() => ({
       ...newConfig,

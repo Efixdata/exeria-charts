@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 interface FormProps {
   children?: JSX.Element | JSX.Element[];
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   onSubmit: React.FormEventHandler<HTMLFormElement> | undefined;
 }
 

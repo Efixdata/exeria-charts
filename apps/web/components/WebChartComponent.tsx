@@ -94,7 +94,7 @@ function drawReviewOverlays(
   });
 }
 
-export function WebChartComponent() {
+export default function WebChartComponent(_props: Record<string, never>) {
   const initialPreset = reviewPresets[0];
   if (!initialPreset) {
     throw new Error("No review presets configured");
