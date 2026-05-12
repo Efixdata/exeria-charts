@@ -4,7 +4,8 @@
   "description": "Chart",
   "main": "./dist/index.js",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "author": {
     "name": "Dexer",
@@ -12,27 +13,28 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com/dexer-io/chart-repo.git",
+    "url": "https://github.com/dexer-io/chart-repo.git",
     "directory": "packages/chart"
   },
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.esm.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.esm.js",
       "require": "./dist/index.js",
-      "default": "./dist/index.mjs"
+      "default": "./dist/index.esm.js"
     }
   },
   "license": "UNLICENSED",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode production && npm run build:types",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --mode production && npm run build:types",
     "build:types": "tsc -p tsconfig.build.json",
     "dev": "webpack --mode development --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",

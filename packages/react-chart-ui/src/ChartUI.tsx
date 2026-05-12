@@ -4,8 +4,8 @@ import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu/LeftMenu";
 import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
-import { Theme, ThemeInterface } from "ui";
-import type { NullableChartInstance, ShareConfig } from "./chartTypes";
+import { Theme } from "ui";
+import type { ChartUITheme, NullableChartInstance, ShareConfig } from "./chartTypes";
 
 interface ChartUIProps {
   chart: NullableChartInstance;
@@ -14,7 +14,7 @@ interface ChartUIProps {
   topMenuHeight?: number;
   loading?: boolean;
   onIntervalChange?: (symbol: string) => void;
-  theme?: ThemeInterface;
+  theme?: ChartUITheme;
   shareConfig?: ShareConfig;
 }
 

@@ -40,7 +40,6 @@ module.exports = (_env, argv = {}) => {
       output: {
         filename: "index.js",
         path: distPath,
-        clean: true,
         library: {
           type: "umd",
         },
@@ -59,7 +58,7 @@ module.exports = (_env, argv = {}) => {
         outputModule: true,
       },
       output: {
-        filename: "index.mjs",
+        filename: "index.esm.js",
         path: distPath,
         module: true,
         library: {
