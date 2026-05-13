@@ -1,0 +1,28 @@
+{
+  "id": "guides/choosing-a-package",
+  "title": "Choosing a Package",
+  "description": "Decide when to use the core chart runtime alone and when to add the React UI wrapper.",
+  "source": "@site/docs/guides/choosing-a-package.mdx",
+  "sourceDirName": "guides",
+  "slug": "/guides/choosing-a-package",
+  "permalink": "/docs/guides/choosing-a-package",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Choosing a Package",
+    "description": "Decide when to use the core chart runtime alone and when to add the React UI wrapper."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "React Quickstart",
+    "permalink": "/docs/getting-started/react"
+  },
+  "next": {
+    "title": "Licensing",
+    "permalink": "/docs/guides/licensing"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/react",
+  "title": "React Quickstart",
+  "description": "Mount the chart runtime inside React and layer the React UI controls on top.",
+  "source": "@site/docs/getting-started/react.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/react",
+  "permalink": "/docs/getting-started/react",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "React Quickstart",
+    "description": "Mount the chart runtime inside React and layer the React UI controls on top."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Vanilla Quickstart",
+    "permalink": "/docs/getting-started/vanilla"
+  },
+  "next": {
+    "title": "Choosing a Package",
+    "permalink": "/docs/guides/choosing-a-package"
+  }
+}

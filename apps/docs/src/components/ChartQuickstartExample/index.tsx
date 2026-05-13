@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { Candle, ChartInstance, DrawMode, Interval } from "@efixdata/exeria-chart";
 
 type DatasetKey = "trend" | "range";
@@ -136,7 +137,9 @@ export default function ChartQuickstartExample() {
 
       <div style={styles.metaRow}>
         <span style={styles.metaTag}>Public package only</span>
-        <span style={styles.metaText}>`new Chart(...)`, `init()`, `setMainSeriesData()`, `setMainDrawMode()`</span>
+        <span style={styles.metaText}>
+          Uses create/init/data/draw-mode lifecycle without importing internal files.
+        </span>
       </div>
 
       <div ref={containerRef} style={styles.chartSurface} />
@@ -144,7 +147,7 @@ export default function ChartQuickstartExample() {
   );
 }
 
-const baseButtonStyle = {
+const baseButtonStyle: CSSProperties = {
   padding: "10px 14px",
   borderRadius: 999,
   border: "1px solid #c8d7e6",
@@ -153,9 +156,9 @@ const baseButtonStyle = {
   cursor: "pointer",
   fontSize: 14,
   fontWeight: 600,
-} as const;
+};
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   wrapper: {
     display: "grid",
     gap: 18,

@@ -2,6 +2,8 @@
 
 React wrapper components for Exeria Charts.
 
+Use this package when you want the prebuilt toolbar and menu controls on top of an existing chart runtime instance.
+
 ## Installation
 
 ```bash
@@ -57,14 +59,26 @@ export function ChartExample() {
 }
 ```
 
-## Status
+## When to Use This Package
 
-This package is intended to sit on top of the public chart API exported by `@efixdata/exeria-chart`.
-The broader public-release work for documentation, examples, and package hardening is tracked in the repository release plan.
+Use the React wrapper when:
+
+- you are already mounting the chart runtime inside React
+- you want the built-in top toolbar and left-menu controls
+- you prefer to start with an existing UI layer rather than building all chart controls from scratch
+
+Start with `@efixdata/exeria-chart` alone if you want the smallest possible integration surface first.
+
+## Notes
+
+- `ChartUI` expects a live chart instance created from `@efixdata/exeria-chart`.
+- You are responsible for creating and destroying the runtime chart instance.
+- The broader documentation site and onboarding flow live in `apps/docs` in the repository.
 
 ## License
 
 This package is source-available under the Exeria Charts Source Available License 1.0.
 Personal use, education, qualifying open source projects, and qualifying small-scale use are
 allowed under the Additional Use Grant. Other commercial use requires a separate commercial
-license from Efix Data Sp. z o. o. See the bundled `LICENSE` file for the full legal terms.
+license from Efix Data Sp. z o. o. See the bundled `LICENSE` file and the repository
+`LICENSING.md` for the full legal terms and usage summary.

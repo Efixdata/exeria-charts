@@ -1,0 +1,72 @@
+---
+sidebar_position: 2
+title: React Quickstart
+description: Mount the chart runtime inside React and layer the React UI controls on top.
+---
+
+# React quickstart
+
+Use the React wrapper when you want the chart runtime plus the prebuilt toolbar and left-menu controls.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
+```
+
+## Mount the runtime and UI wrapper
+
+```tsx
+import { useLayoutEffect, useRef, useState } from "react";
+import Chart, { type Candle, type ChartInstance } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+
+const candles: Candle[] = [
+  {
+    stamp: 1715472000000,
+    o: 1.1,
+    h: 1.2,
+    l: 1.05,
+    c: 1.18,
+    v: 2500,
+  },
+];
+
+export function ChartExample() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [chart, setChart] = useState<ChartInstance | null>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return undefined;
+    }
+
+    const instance = new Chart({ container });
+
+    instance.init();
+    void instance.setMainSeriesData(candles);
+    setChart(instance);
+
+    return () => {
+      instance.destroy();
+      setChart(null);
+    };
+  }, []);
+
+  return (
+    <div>
+      <div ref={containerRef} style={{ height: 480 }} />
+      {chart ? <ChartUI chart={chart} /> : null}
+    </div>
+  );
+}
+```
+
+## Notes
+
+- Create and destroy the runtime chart instance yourself.
+- Pass the live `chart` instance into `ChartUI` only after the runtime is ready.
+- Keep the runtime container and the UI wrapper inside the same layout surface.
+
+If you need the smallest possible first integration, start with the [vanilla quickstart](./vanilla) and add the UI wrapper after your data flow is stable.

@@ -1,0 +1,23 @@
+---
+sidebar_position: 1
+title: Choosing a Package
+description: Decide when to use the core chart runtime alone and when to add the React UI wrapper.
+---
+
+# Choosing a package
+
+## Choose `@efixdata/exeria-chart` when
+
+- you already have your own application toolbar and menus
+- you want the smallest integration surface first
+- you need full control over layout, actions, and release cadence
+
+## Choose `@efixdata/exeria-chart-ui-react` when
+
+- you want a faster internal prototype with built-in chart controls
+- you are already mounting the runtime chart instance inside React
+- you want the toolbar and left-menu layer without rebuilding those controls first
+
+## Practical recommendation
+
+Start with the core chart runtime, prove your data lifecycle and lifecycle cleanup, then add the React UI wrapper if the built-in controls match your product direction.

@@ -1,79 +1,122 @@
-# Turborepo starter
+# Exeria Charts
 
-This is an official Yarn v1 starter turborepo.
+Source-available financial charting libraries for self-hosted web applications, trading surfaces, and data-rich dashboards.
 
-## The chart instance is initialized in `apps/web/components`
+This repository contains a core chart runtime, a React UI wrapper, a documentation site, and internal playground apps used to validate the public package surface.
 
-## What's inside?
+## Why Exeria Charts
 
-This turborepo uses [Yarn](https://classic.yarnpkg.com/lang/en/) as a package manager. It includes the following packages/apps:
+- Render directly inside your application instead of embedding an iframe.
+- Ship candlestick, line, bar, and histogram views from the same runtime.
+- Update charts with candle batches or real-time ticks.
+- Layer drawing tools, indicators, and UI controls on top of the core runtime.
+- Keep the integration self-hosted and themeable inside your own product shell.
 
-### Apps and Packages
+## Packages
 
-- `docs`: a [Next.js](https://nextjs.org) app
-- `web`: another [Next.js](https://nextjs.org) app
-- `ui`: a stub React component library shared by both `web` and `docs` applications
-- `eslint-config-custom`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `tsconfig`: `tsconfig.json`s used throughout the monorepo
+| Package | Purpose |
+| --- | --- |
+| `@efixdata/exeria-chart` | Core chart runtime for vanilla JavaScript or framework-managed integrations |
+| `@efixdata/exeria-chart-ui-react` | React toolbar and menu layer for teams that want prebuilt chart controls |
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Quickstart
 
-### Utilities
+Install the core runtime:
 
-This turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-## Setup
-
-This repository is used in the `npx create-turbo` command, and selected when choosing which package manager you wish to use with your monorepo (Yarn).
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-yarn run build
+```bash
+npm install @efixdata/exeria-chart
 ```
 
-### Develop
+Mount a chart with the public package API:
 
-To develop all apps and packages, run the following command:
+```ts
+import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
 
+const candles: Candle[] = [
+	{ stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
+	{ stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
+];
+
+const interval: Interval = {
+	symbol: "1h",
+	milis: 60 * 60 * 1000,
+};
+
+const container = document.getElementById("chart-root");
+
+if (!container) {
+	throw new Error("Missing chart container");
+}
+
+const chart = createChart({ container });
+
+await chart.setMainSeriesData(candles, interval);
+chart.init();
 ```
-cd my-turborepo
-yarn run dev
+
+If you want the React UI layer as well:
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
-### Remote Caching
+## Public API Highlights
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.org/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+- Lifecycle: `init()`, `destroy()`
+- Data: `setMainSeriesData()`, `appendMainSeriesData()`, `appendTick()`, `appendTicks()`
+- View controls: `setMainDrawMode()`, `setValueAxisMode()`, `setAutoScale()`
+- Integrations: `subscribe()`, `onDownload()`
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
+## Documentation in This Repo
 
+- Docs site source: `apps/docs`
+- Core package guide: `packages/chart/README.md`
+- React wrapper guide: `packages/react-chart-ui/README.md`
+- License summary: `LICENSING.md`
+
+Run the docs site locally:
+
+```bash
+npm install
+npm --prefix apps/docs run dev
 ```
-cd my-turborepo
-npx turbo login
+
+Run the chart playground locally:
+
+```bash
+npm --prefix apps/web run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Repository Layout
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your turborepo:
+- `packages/chart` contains the publishable core chart runtime.
+- `packages/react-chart-ui` contains the React UI wrapper.
+- `apps/docs` contains the Docusaurus documentation site.
+- `apps/web` contains a broader review playground used for theme and runtime validation.
 
+## Development
+
+Install workspace dependencies and use the root scripts:
+
+```bash
+npm install
+npm run build
+npm run typecheck
 ```
-npx turbo link
+
+For release-contract validation:
+
+```bash
+npm run verify:release
 ```
 
-## Useful Links
+## Licensing
 
-Learn more about the power of Turborepo:
+This repository is source-available under the Exeria Charts Source Available License 1.0.
 
-- [Pipelines](https://turborepo.org/docs/core-concepts/pipelines)
-- [Caching](https://turborepo.org/docs/core-concepts/caching)
-- [Remote Caching](https://turborepo.org/docs/core-concepts/remote-caching)
-- [Scoped Tasks](https://turborepo.org/docs/core-concepts/scopes)
-- [Configuration Options](https://turborepo.org/docs/reference/configuration)
-- [CLI Usage](https://turborepo.org/docs/reference/command-line-reference)
+- Personal use is allowed.
+- Educational use is allowed.
+- Qualifying open source and qualifying small-scale commercial use are allowed under the Additional Use Grant.
+- Other commercial use requires a separate commercial license from Efix Data Sp. z o. o.
+
+This is not an OSI-approved open source license. Read `LICENSE` and `LICENSING.md` before using the packages in a production or commercial setting.

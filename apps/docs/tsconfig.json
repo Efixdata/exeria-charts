@@ -1,10 +1,12 @@
 {
-  "extends": "tsconfig/nextjs.json",
+  "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
+    "baseUrl": ".",
+    "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"],
+  "include": ["src", "docs", "docusaurus.config.ts", "sidebars.ts"],
+  "exclude": ["build", ".docusaurus", "node_modules"],
 }

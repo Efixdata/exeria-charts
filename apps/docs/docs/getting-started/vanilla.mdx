@@ -1,0 +1,68 @@
+---
+sidebar_position: 1
+title: Vanilla Quickstart
+description: Mount your first Exeria chart with the core runtime only.
+---
+
+# Vanilla quickstart
+
+Use the core package when you want direct control over the chart container, lifecycle, and product UI.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart
+```
+
+## Mount a chart
+
+```ts
+import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
+
+const candles: Candle[] = [
+  { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
+  { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
+];
+
+const interval: Interval = {
+  symbol: "1h",
+  milis: 60 * 60 * 1000,
+};
+
+const container = document.getElementById("chart-root");
+
+if (!container) {
+  throw new Error("Missing chart container");
+}
+
+const chart = createChart({ container });
+
+await chart.setMainSeriesData(candles, interval);
+chart.init();
+```
+
+## Update the chart at runtime
+
+```ts
+chart.setMainDrawMode("Line");
+
+chart.appendTick({
+  stamp: Date.now(),
+  price: 104.12,
+  volume: 1200,
+});
+```
+
+## Clean up on unmount
+
+```ts
+chart.destroy();
+```
+
+## Use this path when
+
+- you already have your own toolbar and controls
+- you want to wire chart actions into an existing application shell
+- you need the smallest integration surface first
+
+Next step: read [React quickstart](./react) if you want the prebuilt UI layer.

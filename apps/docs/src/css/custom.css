@@ -1,0 +1,40 @@
+:root {
+  --ifm-color-primary: #0f766e;
+  --ifm-color-primary-dark: #0b675f;
+  --ifm-color-primary-darker: #0a6158;
+  --ifm-color-primary-darkest: #084f48;
+  --ifm-color-primary-light: #13867d;
+  --ifm-color-primary-lighter: #159183;
+  --ifm-color-primary-lightest: #1aa697;
+  --ifm-background-color: #eef3f8;
+  --ifm-code-font-size: 95%;
+  --ifm-heading-font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --ifm-font-family-base: "Mulish", "Avenir Next", "Segoe UI", sans-serif;
+  --ifm-navbar-background-color: rgba(8, 19, 29, 0.82);
+  --ifm-navbar-link-color: #eff6ff;
+  --ifm-footer-background-color: #08131d;
+  --ifm-footer-color: rgba(239, 246, 255, 0.78);
+  --ifm-footer-link-color: #eff6ff;
+}
+
+html[data-theme="dark"] {
+  --ifm-background-color: #0b1320;
+  --ifm-color-primary: #4ade80;
+  --ifm-navbar-background-color: rgba(8, 19, 29, 0.92);
+}
+
+.navbar {
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.button.button--secondary {
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f172a;
+}
+
+.theme-doc-markdown h1,
+.theme-doc-markdown h2,
+.theme-doc-markdown h3 {
+  letter-spacing: -0.03em;
+}

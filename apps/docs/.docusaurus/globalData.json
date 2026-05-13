@@ -1,0 +1,53 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "getting-started/react",
+              "path": "/docs/getting-started/react",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/vanilla",
+              "path": "/docs/getting-started/vanilla",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/choosing-a-package",
+              "path": "/docs/guides/choosing-a-package",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/licensing",
+              "path": "/docs/guides/licensing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/docs/intro",
+              "sidebar": "docsSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docsSidebar": {
+              "link": {
+                "path": "/docs/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

@@ -1,0 +1,36 @@
+---
+sidebar_position: 1
+title: Overview
+description: Start here to understand the Exeria Charts package split and the quickest path to a first chart.
+---
+
+# Exeria Charts
+
+Exeria Charts is split into two public packages:
+
+- `@efixdata/exeria-chart` is the chart runtime. Use it when you want full control over the mount point, data lifecycle, and product chrome.
+- `@efixdata/exeria-chart-ui-react` is the React toolbar and menu layer that sits on top of a chart instance.
+
+## Start with the core chart package
+
+Most integrations should start with the core chart package first. It gives you the shortest path to proving:
+
+- the chart mounts correctly in your app
+- your candle and tick data are shaped correctly
+- your interval and lifecycle flow are stable
+
+Once the core chart is working, add the React UI wrapper if you want the prebuilt toolbar, indicator flow, and drawing controls.
+
+## What the first docs milestone covers
+
+- a minimal vanilla quickstart
+- a React wrapper quickstart
+- a live chart example that uses only the public chart package surface
+- licensing guidance for public, small-scale, and commercial usage
+
+## Suggested reading order
+
+1. Read [Vanilla quickstart](./getting-started/vanilla).
+2. Read [React quickstart](./getting-started/react).
+3. Use [Choosing a package](./guides/choosing-a-package) to decide how much UI you want to adopt.
+4. Review [Licensing](./guides/licensing) before planning a commercial rollout.
