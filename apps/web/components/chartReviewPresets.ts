@@ -2,7 +2,7 @@ import bnbUsdHourly from "../data/BNBUSD.json";
 import bnbUsd5m from "../data/BNBUSD-5m.json";
 import btcUsdHourly from "../data/BTCUSD.json";
 import exampleRange from "../data/EXAMPLE-0-100.json";
-import type { Candle, DrawMode, Instrument, Interval } from "@dexer-io/chart";
+import type { Candle, DrawMode, Instrument, Interval } from "@efixdata/exeria-chart";
 
 interface IndexedCandleArrays {
   t: number[];
@@ -163,13 +163,13 @@ const reviewPresets: ReviewPreset[] = [
     defaultIntervalSymbol: "5m",
   },
   {
-    id: "dexer",
-    label: "Dexer Signal",
+    id: "signal",
+    label: "Exeria Signal",
     summary:
       "High-contrast runtime palette moved out of the package and into the app review surface.",
     callout: "Good for validating neon contrast, crosshair readability, and line-based studies.",
-    runtimeThemeId: "dexer",
-    uiThemeId: "dexer",
+    runtimeThemeId: "signal",
+    uiThemeId: "signal",
     themeVariant: "dark",
     overlayAccent: "#13F899",
     swatch: ["#13F899", "#6D86B1"],

@@ -1,4 +1,4 @@
-# Chart
+# Exeria Charts
 
 For contributors and maintainers, start with:
 
@@ -8,7 +8,7 @@ For contributors and maintainers, start with:
 Example:
 
 ```js
-import { createChart } from "path-to-chart.js";
+import { createChart } from "@efixdata/exeria-chart";
 
 const chart = createChart({
   container: DOMElement,
@@ -82,7 +82,7 @@ chart.appendTick({
 
 ## License
 
-This package is source-available under `BUSL-1.1` with an Additional Use Grant for
-personal use, education, qualifying open source projects, and qualifying small-scale use.
-Other commercial use requires a separate commercial license. See the bundled `LICENSE`
-file for the full legal terms.
+This package is source-available under the Exeria Charts Source Available License 1.0.
+Personal use, education, qualifying open source projects, and qualifying small-scale use are
+allowed under the Additional Use Grant. Other commercial use requires a separate commercial
+license from Efix Data Sp. z o. o. See the bundled `LICENSE` file for the full legal terms.

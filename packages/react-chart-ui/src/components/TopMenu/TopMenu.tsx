@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+import * as React from "react";
+import { useContext } from "react";
 import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";

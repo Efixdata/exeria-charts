@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { RefObject } from "react";
 import styled from "styled-components";
 import { LeftMenu } from "./components/LeftMenu/LeftMenu";

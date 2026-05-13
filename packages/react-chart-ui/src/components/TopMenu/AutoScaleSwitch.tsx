@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useState } from "react";
+import * as React from "react";
+import { useEffect, useState } from "react";
 import { TextButton } from "ui";
 import type { NullableChartInstance } from "../../chartTypes";
 

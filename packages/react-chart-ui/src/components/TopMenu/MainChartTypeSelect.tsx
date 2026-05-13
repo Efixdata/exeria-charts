@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import type { DrawMode } from "@dexer-io/chart";
+import type { DrawMode } from "@efixdata/exeria-chart";
 import {
   ChartHistogram,
   ChartLine,

@@ -1,4 +1,5 @@
-import React, { ReactElement, useState, useContext } from "react";
+import * as React from "react";
+import { ReactElement, useState, useContext } from "react";
 import styled from "styled-components";
 // @ts-ignore
 import {

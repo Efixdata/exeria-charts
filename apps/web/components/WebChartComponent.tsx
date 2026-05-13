@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ChartUI } from "@dexer-io/react-chart-ui";
-import Chart from "@dexer-io/chart";
-import type { Candle, ChartInstance } from "@dexer-io/chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+import Chart from "@efixdata/exeria-chart";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import {
   AVAILABLE_DRAW_MODES,
   buildInstrument,

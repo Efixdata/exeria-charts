@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { Interval } from "@dexer-io/chart";
+import type { Interval } from "@efixdata/exeria-chart";
 import { SelectButton, TextButton } from "ui";
 import type { NullableChartInstance } from "../../chartTypes";
 

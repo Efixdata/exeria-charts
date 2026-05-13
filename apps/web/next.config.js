@@ -1,7 +1,7 @@
 const withTM = require("next-transpile-modules")([
   "ui",
-  "@dexer-io/react-chart-ui",
-  "@dexer-io/chart",
+  "@efixdata/exeria-chart-ui-react",
+  "@efixdata/exeria-chart",
 ]);
 
 module.exports = withTM({

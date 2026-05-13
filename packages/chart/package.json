@@ -1,19 +1,16 @@
 {
-  "name": "@dexer-io/chart",
+  "name": "@efixdata/exeria-chart",
   "version": "1.3.1",
-  "description": "Chart",
+  "description": "Exeria Charts core charting library",
   "main": "./dist/index.js",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "author": {
-    "name": "Dexer",
-    "email": "kk@dexer.com"
-  },
+  "author": "Efix Data Sp. z o. o.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dexer-io/chart-repo.git",
+    "url": "https://github.com/Efixdata/exeria-charts.git",
     "directory": "packages/chart"
   },
   "module": "./dist/index.esm.js",
@@ -31,7 +28,7 @@
       "default": "./dist/index.esm.js"
     }
   },
-  "license": "BUSL-1.1",
+  "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --mode production && npm run build:types",

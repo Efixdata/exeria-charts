@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from "react";
-import type { ValueAxisMode } from "@dexer-io/chart";
+import * as React from "react";
+import { useState } from "react";
+import type { ValueAxisMode } from "@efixdata/exeria-chart";
 import { TextButton, RadioButton, SelectButton } from "ui";
 import styled from "styled-components";
 import type { NullableChartInstance } from "../../chartTypes";

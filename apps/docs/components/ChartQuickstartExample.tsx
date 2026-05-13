@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Candle, ChartInstance, DrawMode, Interval } from "@dexer-io/chart";
+import type { Candle, ChartInstance, DrawMode, Interval } from "@efixdata/exeria-chart";
 
 type DatasetKey = "trend" | "range";
 
@@ -65,7 +65,7 @@ export default function ChartQuickstartExample() {
         return;
       }
 
-      const chartModule = await import("@dexer-io/chart");
+      const chartModule = await import("@efixdata/exeria-chart");
       if (disposed) {
         return;
       }

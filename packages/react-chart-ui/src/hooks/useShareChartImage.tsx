@@ -1,5 +1,8 @@
 import { useState } from "react";
-import useGenerateWatermark from "./useGenerateWatermark";
+import useGenerateWatermark, {
+  DEFAULT_WATERMARK_HEIGHT,
+  DEFAULT_WATERMARK_WIDTH,
+} from "./useGenerateWatermark";
 import type { NullableChartInstance, ShareConfig } from "../chartTypes";
 
 export enum ActionEnum {
@@ -26,8 +29,8 @@ export default function useShareChartImage(chart: NullableChartInstance, shareCo
         return;
       }
 
-      const watermarkWidth = 240;
-      const watermarkHeight = 66;
+      const watermarkWidth = DEFAULT_WATERMARK_WIDTH;
+      const watermarkHeight = DEFAULT_WATERMARK_HEIGHT;
 
       const ctx = chart.ctx;
       const positionY = (chart.canvasHeight || 0) / 2 - watermarkHeight / 2;

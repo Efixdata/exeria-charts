@@ -1,19 +1,19 @@
-# React Chart UI
+# Exeria Charts React UI
 
-React wrapper components for the Dexer chart runtime.
+React wrapper components for Exeria Charts.
 
 ## Installation
 
 ```bash
-npm install @dexer-io/chart @dexer-io/react-chart-ui
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
 ## Usage
 
 ```tsx
 import { useLayoutEffect, useRef, useState } from "react";
-import Chart, { type ChartInstance, type Candle } from "@dexer-io/chart";
-import { ChartUI } from "@dexer-io/react-chart-ui";
+import Chart, { type ChartInstance, type Candle } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const candles: Candle[] = [
   {
@@ -59,12 +59,12 @@ export function ChartExample() {
 
 ## Status
 
-This package is intended to sit on top of the public chart API exported by `@dexer-io/chart`.
+This package is intended to sit on top of the public chart API exported by `@efixdata/exeria-chart`.
 The broader public-release work for documentation, examples, and package hardening is tracked in the repository release plan.
 
 ## License
 
-This package is source-available under `BUSL-1.1` with an Additional Use Grant for
-personal use, education, qualifying open source projects, and qualifying small-scale use.
-Other commercial use requires a separate commercial license. See the bundled `LICENSE`
-file for the full legal terms.
+This package is source-available under the Exeria Charts Source Available License 1.0.
+Personal use, education, qualifying open source projects, and qualifying small-scale use are
+allowed under the Additional Use Grant. Other commercial use requires a separate commercial
+license from Efix Data Sp. z o. o. See the bundled `LICENSE` file for the full legal terms.

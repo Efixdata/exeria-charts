@@ -1,4 +1,4 @@
-const withTM = require("next-transpile-modules")(["@dexer-io/chart"]);
+const withTM = require("next-transpile-modules")(["@efixdata/exeria-chart"]);
 
 module.exports = withTM({
   reactStrictMode: true,

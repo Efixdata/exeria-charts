@@ -79,7 +79,7 @@ function createUiTheme(config) {
   };
 }
 
-const dexerChartTheme = {
+const signalChartTheme = {
   colors: {
     accent: { light: "#1e6cab", dark: "#13f899" },
     primaryTextColor: { light: "rgba(0, 0, 0, 0.87)", dark: "#ffffff" },
@@ -291,7 +291,7 @@ const swipperChartTheme = {
 
 const chartReviewThemes = {
   swipper: swipperChartTheme,
-  dexer: dexerChartTheme,
+  signal: signalChartTheme,
   exeria: exeriaChartTheme,
 };
 
@@ -308,7 +308,7 @@ const reviewUiThemes = {
     mutedText: "rgba(255, 255, 255, 0.76)",
     divider: "rgba(255, 255, 255, 0.12)",
   }),
-  dexer: createUiTheme({
+  signal: createUiTheme({
     accent: "#13F899",
     arrow: "#13F899",
     toolbarBackground: "rgba(13, 11, 27, 0.95)",

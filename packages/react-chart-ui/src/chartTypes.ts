@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@dexer-io/chart";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 
 export type NullableChartInstance = ChartInstance | null | undefined;
 

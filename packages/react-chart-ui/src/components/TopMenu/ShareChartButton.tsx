@@ -4,7 +4,10 @@ import { IconButton, Loading } from "ui";
 import { selectButton } from "ui/theme";
 import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
 import { Share, Twitter, Telegram, Copy, Download } from "../../img/icons";
-import useGenerateWatermark from "../../hooks/useGenerateWatermark";
+import useGenerateWatermark, {
+  DEFAULT_WATERMARK_HEIGHT,
+  DEFAULT_WATERMARK_WIDTH,
+} from "../../hooks/useGenerateWatermark";
 import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
 
 interface ShareChartButtonProps {
@@ -133,7 +136,12 @@ export const ShareChartButton = (props: ShareChartButtonProps) => {
     {
       social: "Download image",
       logo: <Download height={24} width={24} fill="#fff" />,
-      action: () => props.chart?.onDownload(props.shareConfig?.watermarkDataUrl || waterMark64, 240, 66),
+      action: () =>
+        props.chart?.onDownload(
+          props.shareConfig?.watermarkDataUrl || waterMark64,
+          DEFAULT_WATERMARK_WIDTH,
+          DEFAULT_WATERMARK_HEIGHT
+        ),
     },
   ];
 

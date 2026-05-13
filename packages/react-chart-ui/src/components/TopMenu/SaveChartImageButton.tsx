@@ -2,7 +2,10 @@ import * as React from "react";
 import styled from "styled-components";
 import { IconButton, Loading } from "ui";
 import { selectButton } from "ui/theme";
-import useGenerateWatermark from "../../hooks/useGenerateWatermark";
+import useGenerateWatermark, {
+  DEFAULT_WATERMARK_HEIGHT,
+  DEFAULT_WATERMARK_WIDTH,
+} from "../../hooks/useGenerateWatermark";
 import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
 import type { NullableChartInstance } from "../../chartTypes";
 
@@ -57,7 +60,7 @@ export const SaveChartImageButton = (props: SaveChartImageButtonProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const onClick = () => {
     if (props.chart) {
-      props.chart.onDownload(waterMark64, 240, 66);
+      props.chart.onDownload(waterMark64, DEFAULT_WATERMARK_WIDTH, DEFAULT_WATERMARK_HEIGHT);
     }
   };
 

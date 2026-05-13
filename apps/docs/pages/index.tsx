@@ -16,7 +16,7 @@ export default function Docs() {
       <section style={styles.grid}>
         <article style={styles.card}>
           <h2 style={styles.cardTitle}>Install</h2>
-          <pre style={styles.codeBlock}>npm install @dexer-io/chart</pre>
+          <pre style={styles.codeBlock}>npm install @efixdata/exeria-chart</pre>
           <p style={styles.cardText}>
             The docs app now resolves the chart package through the workspace package entrypoint so
             examples stay aligned with the release surface.
