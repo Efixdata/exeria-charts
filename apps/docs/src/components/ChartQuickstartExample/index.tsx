@@ -136,10 +136,8 @@ export default function ChartQuickstartExample() {
       </div>
 
       <div style={styles.metaRow}>
-        <span style={styles.metaTag}>Public package only</span>
-        <span style={styles.metaText}>
-          Uses create/init/data/draw-mode lifecycle without importing internal files.
-        </span>
+        <span style={styles.metaTag}>Public API only</span>
+        <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
       </div>
 
       <div ref={containerRef} style={styles.chartSurface} />
@@ -150,32 +148,36 @@ export default function ChartQuickstartExample() {
 const baseButtonStyle: CSSProperties = {
   padding: "10px 14px",
   borderRadius: 999,
-  border: "1px solid #c8d7e6",
-  background: "#f4f8fc",
-  color: "#102235",
+  border: "1px solid var(--doc-border)",
+  background: "transparent",
+  color: "var(--doc-text)",
   cursor: "pointer",
   fontSize: 14,
-  fontWeight: 600,
+  fontWeight: 500,
 };
 
 const styles: Record<string, CSSProperties> = {
   wrapper: {
     display: "grid",
-    gap: 18,
+    gap: 20,
   },
   controls: {
     display: "grid",
-    gap: 18,
+    gap: 24,
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    padding: 24,
+    borderRadius: 20,
+    border: "1px solid var(--doc-border)",
+    background: "var(--doc-surface-elevated)",
   },
   controlLabel: {
     display: "block",
     marginBottom: 10,
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: "#5b7083",
+    color: "var(--doc-text-secondary)",
   },
   buttonRow: {
     display: "flex",
@@ -185,9 +187,9 @@ const styles: Record<string, CSSProperties> = {
   button: baseButtonStyle,
   activeButton: {
     ...baseButtonStyle,
-    border: "1px solid #09111d",
-    background: "#09111d",
-    color: "#f5fbff",
+    border: "1px solid transparent",
+    background: "var(--doc-text)",
+    color: "var(--doc-bg)",
   },
   metaRow: {
     display: "flex",
@@ -198,16 +200,18 @@ const styles: Record<string, CSSProperties> = {
   metaTag: {
     padding: "6px 10px",
     borderRadius: 999,
-    background: "#d6f4ff",
-    color: "#0b4a5f",
+    border: "1px solid var(--doc-border)",
+    background: "var(--doc-surface-elevated)",
+    color: "var(--doc-text)",
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   metaText: {
-    color: "#5b7083",
+    color: "var(--doc-text-secondary)",
     fontSize: 14,
+    fontFamily: "var(--ifm-font-family-monospace)",
   },
   chartSurface: {
     minHeight: 420,
@@ -215,8 +219,8 @@ const styles: Record<string, CSSProperties> = {
     width: "100%",
     overflow: "hidden",
     borderRadius: 24,
-    border: "1px solid rgba(9, 17, 29, 0.08)",
-    background: "#07131f",
-    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+    border: "1px solid var(--doc-border)",
+    background: "#050505",
+    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
   },
 };

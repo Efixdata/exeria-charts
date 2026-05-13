@@ -36,6 +36,11 @@ const config: Config = {
     ],
   ],
   themeConfig: {
+    colorMode: {
+      defaultMode: "dark",
+      disableSwitch: false,
+      respectPrefersColorScheme: false,
+    },
     image: "img/social-card.jpg",
     navbar: {
       title: "Exeria Charts",

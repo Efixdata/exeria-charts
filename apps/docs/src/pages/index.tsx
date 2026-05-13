@@ -4,18 +4,47 @@ import Layout from "@theme/Layout";
 import ChartQuickstartExample from "../components/ChartQuickstartExample";
 import styles from "./index.module.css";
 
-const highlights = [
+const features = [
   {
-    title: "Vanilla and React entry points",
-    body: "Start with the core chart package, then layer the React UI wrapper only where you want toolbar and menu chrome.",
+    eyebrow: "Performance",
+    title: "Built for dense market data.",
+    body: "Render real chart workflows without pushing your product through an iframe or a hosted dependency.",
   },
   {
-    title: "Self-hosted and customizable",
-    body: "Render directly in your application surface with your own data, theme decisions, and release cadence.",
+    eyebrow: "Ownership",
+    title: "Keep the chart surface yours.",
+    body: "Start with the core runtime, ship your own product chrome, and add the React controls only when they help.",
   },
   {
-    title: "Real financial chart workflows",
-    body: "Candles, intervals, draw modes, indicators, and runtime theming are designed for product surfaces, not toy demos.",
+    eyebrow: "DX",
+    title: "Public API first.",
+    body: "The docs and examples stay on the package surface you publish: lifecycle, series data, ticks, draw modes, and teardown.",
+  },
+  {
+    eyebrow: "Release",
+    title: "Documentation that reads like a product.",
+    body: "Shorter guidance, cleaner defaults, and a docs shell that feels closer to a launch site than a generated theme.",
+  },
+];
+
+const guides = [
+  {
+    title: "Vanilla Quickstart",
+    body: "Mount the runtime, load candles, switch draw modes, and keep the rest of the surface in your own app shell.",
+    href: "/docs/getting-started/vanilla",
+    cta: "Open guide",
+  },
+  {
+    title: "React Quickstart",
+    body: "Create the runtime instance in React, then layer the toolbar and left-menu controls on top.",
+    href: "/docs/getting-started/react",
+    cta: "Read React guide",
+  },
+  {
+    title: "Licensing",
+    body: "Understand the source-available model before you move from evaluation to a commercial rollout.",
+    href: "/docs/guides/licensing",
+    cta: "Review terms",
   },
 ];
 
@@ -31,59 +60,86 @@ export default function Home(): JSX.Element {
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
       <main className={styles.page}>
         <section className={styles.hero}>
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>Docs Preview</p>
-            <h1 className={styles.title}>Build chart surfaces your product team can actually own.</h1>
-            <p className={styles.lede}>
-              Exeria Charts gives you a self-hosted chart runtime, a React UI wrapper, and a
-              cleaner path to custom trading or analytics interfaces than iframe-based embeds.
-            </p>
-            <div className={styles.actions}>
-              <a className="button button--primary button--lg" href="/docs/getting-started/vanilla">
-                Start with Vanilla
-              </a>
-              <a className="button button--secondary button--lg" href="/docs/getting-started/react">
-                React Quickstart
-              </a>
-            </div>
+          <div className={styles.badge}>Source-available release preview</div>
+          <h1 className={styles.title}>Build modern charts in your own product.</h1>
+          <p className={styles.subtitle}>
+            A chart runtime for teams that want trading and analytics surfaces they can fully own,
+            theme, and ship without embed lock-in.
+          </p>
+
+          <div className={styles.actions}>
+            <a className="button button--primary button--lg" href="/docs/getting-started/vanilla">
+              Get Started
+            </a>
+            <a className="button button--secondary button--lg" href="/docs/getting-started/react">
+              Read the React Guide
+            </a>
           </div>
 
-          <div className={styles.heroPanel}>
-            <div className={styles.panelLabel}>First milestone</div>
-            <ul className={styles.panelList}>
-              <li>Public package entrypoints only</li>
-              <li>Focused quickstarts instead of release-plan archaeology</li>
-              <li>Live example built from the same repo packages you publish</li>
-            </ul>
+          <div className={styles.commandBox}>
+            <span className={styles.commandText}>npm install @efixdata/exeria-chart</span>
+            <span className={styles.commandHint}>Core runtime</span>
+          </div>
+
+          <div className={styles.heroChartContainer}>
+            {isMounted ? (
+              <ChartQuickstartExample />
+            ) : (
+              <div className={styles.exampleFallback}>Loading live chart example...</div>
+            )}
           </div>
         </section>
 
-        <section className={styles.highlights}>
-          {highlights.map((item) => (
-            <article key={item.title} className={styles.card}>
-              <h2>{item.title}</h2>
-              <p>{item.body}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className={styles.exampleSection}>
-          <div className={styles.exampleHeader}>
-            <div>
-              <p className={styles.eyebrow}>Live Example</p>
-              <h2>Basic chart initialization</h2>
-            </div>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Engineered for real chart surfaces.</h2>
             <p>
-              This example stays on the stable chart API surface: create a chart, initialize it,
-              load candles, and switch draw modes without reaching into internal source files.
+              The design goal is simple: the docs should feel as intentional as the product you are
+              building with the library.
             </p>
           </div>
 
-          {isMounted ? (
-            <ChartQuickstartExample />
-          ) : (
-            <div className={styles.exampleFallback}>Loading live chart example...</div>
-          )}
+          <div className={styles.featuresGrid}>
+            {features.map((item) => (
+              <article key={item.title} className={styles.featureItem}>
+                <p className={styles.featureEyebrow}>{item.eyebrow}</p>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Write once. Fit the product around it.</h2>
+            <p>
+              Start with the runtime. Add the React controls when they save time. Keep the surface
+              self-hosted either way.
+            </p>
+          </div>
+
+          <p className={styles.platformsLine}>
+            <strong>React</strong> <span>/</span> Next.js <span>/</span> <strong>Vanilla JS</strong>
+            <br />
+            Dashboards <span>/</span> Trading surfaces <span>/</span> Embedded analytics
+          </p>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2>Start with the guide that matches the job.</h2>
+          </div>
+
+          <div className={styles.guidesGrid}>
+            {guides.map((guide) => (
+              <a key={guide.title} className={styles.guideCard} href={guide.href}>
+                <h3>{guide.title}</h3>
+                <p>{guide.body}</p>
+                <span className={styles.guideLink}>{guide.cta} →</span>
+              </a>
+            ))}
+          </div>
         </section>
       </main>
     </Layout>
