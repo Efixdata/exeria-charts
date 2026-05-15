@@ -1,0 +1,72 @@
+---
+sidebar_position: 1
+title: Overview
+description: Understand the separation between runtime chart theming and the React UI theme layer.
+---
+
+# Theming overview
+
+There are two different theming layers in this repository:
+
+1. Runtime chart theming passed into the chart constructor.
+2. React UI theming passed into `ChartUI`.
+
+Keep these separate. The runtime theme changes the chart surface itself. The React UI theme changes the toolbar, menus, dialogs, and other chrome.
+
+## Runtime theme
+
+Pass a runtime theme through the chart constructor options.
+
+```ts
+const chart = createChart({
+  container,
+  theme: runtimeTheme,
+  themeVariant: "dark",
+});
+```
+
+This is the right layer for candle colors, grid colors, axis colors, and other chart-surface decisions.
+
+## React UI theme
+
+Pass a `theme` prop into `ChartUI` when you want to style the wrapper layer.
+
+```tsx
+<ChartUI
+  chart={chart}
+  theme={{
+    accentColor: "#14f7ab",
+    toolbar: {
+      background: "#111827",
+      showShareChartButton: true,
+    },
+    subMenu: {
+      background: "#0f172a",
+    },
+    splitButton: {},
+    dialog: {},
+    inputs: {},
+    scrollBar: {},
+  }}
+/>
+```
+
+The UI theme surface includes border, gap, accent color, button states, toolbar settings, submenu styling, dialog colors, input colors, and scrollbar colors.
+
+## Share and export theming
+
+The React wrapper also accepts `shareConfig`, which controls watermark and share-copy behavior for the built-in share flow.
+
+## Live theme creator
+
+The docs site now includes a public live theme creator with a real chart preview and the React UI wrapper embedded.
+
+- [Open the live theme creator](./live-theme-creator)
+
+Use this page as the contract boundary:
+
+- constructor `theme` and `themeVariant` for the runtime chart
+- `ChartUI` `theme` prop for UI chrome
+- `shareConfig` for export and share behavior
+
+Then use [Live theme creator](./live-theme-creator) when you want to tune colors visually and copy the resulting code.

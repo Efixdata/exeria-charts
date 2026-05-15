@@ -1,0 +1,111 @@
+---
+sidebar_position: 2
+title: Indicator Catalog
+description: Browse the current built-in indicator families and the keys you add with chart.addScript().
+---
+
+# Indicator catalog
+
+The source of truth for built-in indicator keys is the Fusion indicator registry in `packages/chart/src/fusion-scripts/indicators/index.ts`. This page groups the most visible keys into practical families so you can find the right starting point faster.
+
+## Moving averages and trend overlays
+
+- `EMA`
+- `SMA`
+- `WMA`
+- `HMA`
+- `DMA`
+- `MMA`
+- `DOUBLEEMA`
+- `TRIPLEEMA`
+- `VWMA`
+- `ALMA`
+- `ENVELOPE`
+- `ICHIMOKU`
+- `PARSAR`
+- `TREND`
+
+## Bands, channels, and volatility overlays
+
+- `BBAND`
+- `VARBANDS`
+- `KELTNERCHANNEL`
+- `DONCHIANCHANNEL`
+- `CHANDEKROLLSTOP`
+- `STANDARDDEVIATION`
+- `HISTORICALVOLATILITY`
+- `ATR`
+- `MASSINDEX`
+
+## Momentum and oscillator indicators
+
+- `RSI`
+- `MACD`
+- `CCI`
+- `SMI`
+- `STOCHASTICOSCILLATOR`
+- `AROON`
+- `MOMENTUM`
+- `ROC`
+- `TSI`
+- `AWESOMEOSCILLATOR`
+- `CHANDEMOMENTUMOSCILLATOR`
+- `COPPOCKCURVE`
+- `DPO`
+- `Ultimate_OSC`
+- `WILLIAMSPERCENTRANGE`
+
+## Volume and money-flow indicators
+
+- `VOLUME`
+- `OBV`
+- `ADL`
+- `CMF`
+- `ACCUMULATION`
+- `CHAIKINOSCILLATOR`
+- `FORCEINDEX`
+- `ELDERSFORCEINDEX`
+- `NETVOLUME`
+- `VOLUMEOSCILLATOR`
+- `VOLUMEROC`
+- `NVI`
+- `PVI`
+
+## Price transforms and derived series
+
+- `HeikinAshi`
+- `HL2`
+- `HLC3`
+- `OHLC4`
+- `OC2`
+- `PRICELEVELS`
+- `PIVOTPOINTS`
+- `PIVOTPOINTSHL`
+- `ZIGZAG`
+- `WILLIAMSALLIGATOR`
+- `WILLIAMSFRACTALS`
+
+## Specialized and decision-style indicators
+
+- `DECISIONLONGBUY`
+- `DECISIONLONGSELL`
+- `DECISIONSHORTBUY`
+- `DECISIONSHORTSELL`
+- `SIGNALDISTANCE`
+- `TRADINGTIMEFRAME`
+- `FORECAST`
+- `FORWARD`
+- `DOP`
+- `PRICELEVELS`
+
+## How to use the catalog
+
+The runtime key is the string you pass into `addScript()`.
+
+```ts
+chart.addScript("EMA");
+chart.addScript("BBAND");
+chart.addScript("RSI");
+```
+
+If you need a concrete starting set rather than the full registry, continue with [Key indicators](./key-indicators).

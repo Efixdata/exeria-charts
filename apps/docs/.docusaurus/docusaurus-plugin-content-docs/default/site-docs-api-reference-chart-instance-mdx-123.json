@@ -1,0 +1,28 @@
+{
+  "id": "api-reference/chart-instance",
+  "title": "ChartInstance",
+  "description": "Reference the stable, typed public runtime surface returned by createChart().",
+  "source": "@site/docs/api-reference/chart-instance.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/chart-instance",
+  "permalink": "/docs/api-reference/chart-instance",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "ChartInstance",
+    "description": "Reference the stable, typed public runtime surface returned by createChart()."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Chart Runtime Access",
+    "permalink": "/docs/advanced/chart-class-runtime"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/scripts/overview"
+  }
+}

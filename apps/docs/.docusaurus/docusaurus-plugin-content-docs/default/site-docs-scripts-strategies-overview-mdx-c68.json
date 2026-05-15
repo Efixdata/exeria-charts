@@ -1,0 +1,28 @@
+{
+  "id": "scripts/strategies/overview",
+  "title": "Strategies Overview",
+  "description": "Add built-in strategy scripts programmatically, inspect their signal-oriented metadata, and understand which ones need deeper input wiring.",
+  "source": "@site/docs/scripts/strategies/overview.mdx",
+  "sourceDirName": "scripts/strategies",
+  "slug": "/scripts/strategies/overview",
+  "permalink": "/docs/scripts/strategies/overview",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Strategies Overview",
+    "description": "Add built-in strategy scripts programmatically, inspect their signal-oriented metadata, and understand which ones need deeper input wiring."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Key Indicators",
+    "permalink": "/docs/scripts/indicators/key-indicators"
+  },
+  "next": {
+    "title": "Strategy Catalog",
+    "permalink": "/docs/scripts/strategies/catalog"
+  }
+}

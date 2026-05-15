@@ -1,0 +1,62 @@
+---
+sidebar_position: 2
+title: Realtime Updates
+description: Append candles and ticks without rebuilding the full chart state every time new market data arrives.
+---
+
+# Realtime updates
+
+Use different update paths depending on whether your feed sends complete candles or raw ticks.
+
+## Append complete candles
+
+Use `appendMainSeriesData()` when your backend already aggregates candles.
+
+```ts
+chart.appendMainSeriesData([
+  {
+    stamp: 1715479200000,
+    o: 103.9,
+    h: 104.7,
+    l: 103.4,
+    c: 104.3,
+    v: 2800,
+  },
+]);
+```
+
+This extends the main series and triggers script recalculation.
+
+## Append single ticks
+
+Use `appendTick()` when your feed is streaming one tick at a time.
+
+```ts
+socket.onmessage = (event) => {
+  const tick = JSON.parse(event.data);
+
+  chart.appendTick({
+    stamp: tick.stamp,
+    price: tick.price,
+    v: tick.volume,
+  });
+};
+```
+
+The runtime updates the active candle and moves the chart when a new candle is formed near the right edge.
+
+## Append tick batches
+
+Use `appendTicks()` when you receive grouped bursts from a transport or replay system.
+
+```ts
+chart.appendTicks(ticks);
+```
+
+Leave the `recalculate` argument at its default unless you are deliberately managing runtime internals. The typed public surface does not expose a separate manual script-recalculation step.
+
+## Runtime-only candle upserts
+
+The `Chart` class also implements `upsertCandle()`, which can be useful when you want to replace or insert one candle by timestamp. That method is not part of the typed `ChartInstance` interface today, so treat it as an advanced runtime entry point.
+
+See [Chart runtime access](../advanced/chart-class-runtime) for that boundary.

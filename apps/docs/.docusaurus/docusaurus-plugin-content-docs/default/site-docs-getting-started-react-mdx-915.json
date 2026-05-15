@@ -22,7 +22,7 @@
     "permalink": "/docs/getting-started/vanilla"
   },
   "next": {
-    "title": "Choosing a Package",
-    "permalink": "/docs/guides/choosing-a-package"
+    "title": "Chart Lifecycle",
+    "permalink": "/docs/core-concepts/chart-lifecycle"
   }
 }

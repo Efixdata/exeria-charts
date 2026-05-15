@@ -1,0 +1,28 @@
+{
+  "id": "scripts/functions/overview",
+  "title": "Functions Overview",
+  "description": "Add built-in function scripts programmatically, inspect their series-transform metadata, and understand which ones rely on custom input wiring.",
+  "source": "@site/docs/scripts/functions/overview.mdx",
+  "sourceDirName": "scripts/functions",
+  "slug": "/scripts/functions/overview",
+  "permalink": "/docs/scripts/functions/overview",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "sidebar_position": 7,
+    "title": "Functions Overview",
+    "description": "Add built-in function scripts programmatically, inspect their series-transform metadata, and understand which ones rely on custom input wiring."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Key Strategies",
+    "permalink": "/docs/scripts/strategies/key-strategies"
+  },
+  "next": {
+    "title": "Function Catalog",
+    "permalink": "/docs/scripts/functions/catalog"
+  }
+}

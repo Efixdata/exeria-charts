@@ -1,0 +1,67 @@
+---
+sidebar_position: 1
+title: Chart Runtime Access
+description: Use the exported Chart class directly when you need runtime methods outside the typed ChartInstance contract.
+---
+
+# Chart runtime access
+
+The package exports two ways to create a chart runtime:
+
+- `createChart(options)`, which returns the typed `ChartInstance` surface.
+- `new Chart(options)`, which gives you the runtime class directly.
+
+Use the `Chart` class when you need methods that are implemented by the runtime but are not currently part of `ChartInstance`.
+
+## Runtime methods that matter today
+
+The class currently exposes useful methods such as:
+
+- `moveToEnd()`
+- `moveToStamp(stamp)`
+- `upsertCandle(candle, recalculate?)`
+- `addPanelToModel()`
+- `getScriptsManager()`
+- `prependMainSeriesData(data)`
+
+## Example: move the viewport
+
+```ts
+import Chart from "@efixdata/exeria-chart";
+
+const chart = new Chart({ container });
+chart.init();
+await chart.setMainSeriesData(candles, interval);
+
+chart.moveToEnd();
+chart.moveToStamp(candles[40].stamp);
+```
+
+## Example: add a panel
+
+```ts
+const panel = chart.addPanelToModel();
+
+console.log(panel.id);
+```
+
+This creates a new panel object in the runtime model and redistributes panel basis values to make room.
+
+## Example: upsert one candle
+
+```ts
+chart.upsertCandle({
+  stamp: candles[0].stamp,
+  o: 101.2,
+  h: 103.4,
+  l: 100.8,
+  c: 102.6,
+  v: 3100,
+});
+```
+
+## Current boundary
+
+`prependMainSeriesData()` exists on the class, but the current implementation is still a stub. Treat it as a forward-looking hook, not as a finished history-loading API.
+
+Prefer `createChart()` for the default public integration path. Reach for `Chart` directly only when you accept a closer coupling to the runtime implementation.

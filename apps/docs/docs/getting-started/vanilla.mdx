@@ -37,8 +37,9 @@ if (!container) {
 
 const chart = createChart({ container });
 
-await chart.setMainSeriesData(candles, interval);
 chart.init();
+
+await chart.setMainSeriesData(candles, interval);
 ```
 
 ## Update the chart at runtime
@@ -49,7 +50,7 @@ chart.setMainDrawMode("Line");
 chart.appendTick({
   stamp: Date.now(),
   price: 104.12,
-  volume: 1200,
+  v: 1200,
 });
 ```
 
@@ -58,6 +59,12 @@ chart.appendTick({
 ```ts
 chart.destroy();
 ```
+
+## Notes
+
+- Call `init()` before `setMainSeriesData()`. The runtime model is created during initialization.
+- Give the container a non-zero height before mounting the chart.
+- Use [Chart lifecycle](../core-concepts/chart-lifecycle) and [Loading data](../chart-usage/loading-data) when you move beyond a static example.
 
 ## Use this path when
 

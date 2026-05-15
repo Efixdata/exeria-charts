@@ -1,0 +1,94 @@
+---
+sidebar_position: 7
+title: Functions Overview
+description: Add built-in function scripts programmatically, inspect their series-transform metadata, and understand which ones rely on custom input wiring.
+---
+
+# Functions overview
+
+Functions are built-in Fusion scripts that transform, combine, or condition existing series.
+
+## Add functions programmatically
+
+The public API path is the same as for indicators and strategies: initialize the chart, load candles, then add a built-in function key.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({ container, instrument });
+chart.init();
+
+await chart.setMainSeriesData(candles, interval);
+
+chart.addScript("HIGHEST");
+chart.addScript("LOWEST");
+chart.addScript("FIBONACCI");
+```
+
+Each key maps to a built-in script definition in the Fusion function registry.
+
+## Inspect function metadata
+
+Use `getScripts()` when you want to inspect the inputs, outputs, or pane behavior before adding a function.
+
+```ts
+const scripts = chart.getScripts();
+const fibonacci = scripts.FIBONACCI;
+
+console.log(fibonacci.title);
+console.log(fibonacci.newPane);
+console.log(fibonacci.inputs);
+console.log(fibonacci.outputs);
+```
+
+The runtime localizes titles and descriptions, but the stable programmatic keys stay the same, for example `HIGHEST`, `LOWEST`, `DISPLACE`, `IF`, `SUM`, and `FIBONACCI`.
+
+## Common function input types
+
+The current function registry uses a few recurring input patterns.
+
+- `series` inputs for market or script series such as `HIGH`, `LOW`, or `DSERIES`
+- `integer` and `double` inputs for periods, offsets, and modifiers
+- `list` inputs for arithmetic operations such as `Add`, `Substract`, `Multiply`, `Divide`, and `Power of`
+- `conditional` inputs that can resolve from a constant value or another series at runtime
+
+## Overlay functions vs new-pane functions
+
+Several functions are overlay-ready on the main chart.
+
+- `HIGHEST`
+- `LOWEST`
+- `DISPLACE`
+- `FIBONACCI`
+- `IGLUE`
+- `IMOD`
+
+Other functions open in a separate pane by default.
+
+- `IF`
+- `SUM`
+- `AVERAGE`
+- `1x`
+
+## Default-ready functions vs wiring-heavy functions
+
+Some functions are immediately usable because their defaults point at main-series prices.
+
+- `HIGHEST` defaults to `h`
+- `LOWEST` defaults to `l`
+- `FIBONACCI` defaults to `h` and `l`
+
+Other functions are more useful once you wire them to indicator or strategy outputs.
+
+- `IGLUE` combines two arbitrary series
+- `IMOD` modifies a series by a numeric value
+- `DISPLACE` offsets an arbitrary series in time
+- `IF`, `SUM`, and `AVERAGE` are best when fed by other script outputs or constants
+
+The public docs focus on the stable keys and baked-in defaults first. Deeper runtime input rewiring sits outside the default `ChartInstance` path.
+
+## Continue reading
+
+- [Programmatic wiring](../programmatic-wiring)
+- [Function catalog](./catalog)
+- [Key functions](./key-functions)

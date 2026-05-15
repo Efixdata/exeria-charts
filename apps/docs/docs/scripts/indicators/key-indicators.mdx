@@ -1,0 +1,120 @@
+---
+sidebar_position: 3
+title: Key Indicators
+description: Start with the most commonly needed built-in indicators and their current default inputs, outputs, and pane behavior.
+---
+
+# Key indicators
+
+This page documents five indicators that cover the most common first integrations: one moving average overlay, one volatility band overlay, one relative-strength oscillator, one multi-line oscillator, and one volatility-in-pane metric.
+
+## EMA
+
+- Key: `EMA`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `CLOSE`, `PERIODS = 14`
+- Output: one `EMA` series rendered as a line
+
+```ts
+chart.addScript("EMA");
+```
+
+Current definition notes:
+
+- input series defaults to close (`c`)
+- plotter renders a line
+- default line color in the registry is `#ff9800`
+
+Use `EMA` when you want the fastest first trend overlay without creating a new pane.
+
+## RSI
+
+- Key: `RSI`
+- Pane behavior: opens a new pane (`newPane: true`)
+- Default inputs: `CLOSE`, `PERIOD = 14`, `HI_BASELINE = 70`, `LO_BASELINE = 30`
+- Output: `RSI`, `RSIBaseHI`, and `RSIBaseLO`
+
+```ts
+chart.addScript("RSI");
+```
+
+Current definition notes:
+
+- the pane shows the RSI line plus the upper and lower baseline guides
+- the indicator computes against close prices by default
+- the default baselines match the standard 70/30 interpretation
+
+Use `RSI` when you need a separate momentum pane with explicit overbought and oversold guides.
+
+## MACD
+
+- Key: `MACD`
+- Pane behavior: opens a new pane (`newPane: true`)
+- Additional pane behavior: centered around zero (`centerZero: true`)
+- Default inputs: `CLOSE`, `FPERIOD = 12`, `SPERIOD = 26`, `SGPERIOD = 9`
+- Output: `MACDLine`, `MACDSignal`, and `MACDHistogram`
+
+```ts
+chart.addScript("MACD");
+```
+
+Current definition notes:
+
+- the histogram uses `Line and Histogram` rendering in the current plotter config
+- the signal and main line render separately on top
+- the default setup is the common 12/26/9 MACD configuration
+
+Use `MACD` when you want a multi-part oscillator with both line crossover and histogram context.
+
+## BBAND
+
+- Key: `BBAND`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `CLOSE`, `PERIODS = 15`, `DEVIATIONS = 2.5`
+- Output: `BBUpper`, `BBLower`, and `BBMiddle`
+
+```ts
+chart.addScript("BBAND");
+```
+
+Current definition notes:
+
+- the plotter renders the upper/lower band as a `Band`
+- the middle line renders separately as a line
+- the default period/deviation values come from the current registry, not from generic TA defaults
+
+Use `BBAND` when you need price envelopes directly over the main chart rather than in a separate pane.
+
+## ATR
+
+- Key: `ATR`
+- Pane behavior: opens a new pane (`newPane: true`)
+- Default inputs: `HIGH`, `LOW`, `CLOSE`, `PERIODS = 12`
+- Output: `ATR`
+
+```ts
+chart.addScript("ATR");
+```
+
+Current definition notes:
+
+- ATR uses high, low, and close by default
+- the current registry plots it as a line in its own pane
+- the indicator is a better fit for volatility context than for directional signals on its own
+
+Use `ATR` when you need a simple separate-pane volatility measure to support stop sizing or regime checks.
+
+## Putting them together
+
+This is a practical first combination:
+
+```ts
+chart.addScript("EMA");
+chart.addScript("BBAND");
+chart.addScript("RSI");
+chart.addScript("MACD");
+```
+
+That gives you two overlays on the main panel and two separate analysis panes below it.
+
+If you need the broader registry, go back to [Indicator catalog](./catalog).

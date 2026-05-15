@@ -1,0 +1,74 @@
+---
+sidebar_position: 1
+title: Indicators Overview
+description: Add built-in indicators programmatically, inspect their metadata, and understand which indicators open in new panes.
+---
+
+# Indicators overview
+
+Indicators are built-in Fusion scripts that you add to the chart runtime with `addScript()`.
+
+## Add indicators programmatically
+
+The shortest path is to initialize the chart, load candles, and then add one or more indicator keys.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({ container, instrument });
+chart.init();
+
+await chart.setMainSeriesData(candles, interval);
+
+chart.addScript("EMA");
+chart.addScript("RSI");
+chart.addScript("MACD");
+```
+
+Each indicator key maps to a built-in script definition in the Fusion registry.
+
+## Inspect indicator metadata
+
+Use `getScripts()` when you want to inspect inputs, outputs, or pane behavior before adding an indicator.
+
+```ts
+const scripts = chart.getScripts();
+const rsi = scripts.RSI;
+
+console.log(rsi.title);
+console.log(rsi.newPane);
+console.log(rsi.inputs);
+console.log(rsi.outputs);
+```
+
+The runtime localizes script titles and descriptions when you call `getScripts()`, but the stable programmatic keys stay the same, for example `EMA`, `RSI`, `MACD`, `BBAND`, and `ATR`.
+
+## Overlay indicators vs new-pane indicators
+
+Indicator definitions include a `newPane` flag.
+
+- Overlay indicators render on the main chart panel. Examples: `EMA`, `BBAND`, `KELTNERCHANNEL`, `PARSAR`.
+- New-pane indicators render below the main chart automatically. Examples: `RSI`, `MACD`, `ATR`, `STOCHASTICOSCILLATOR`, `OBV`.
+
+This matters because `chart.addScript("EMA")` changes the main chart panel, while `chart.addScript("RSI")` creates a separate analysis pane.
+
+## Defaults and configuration
+
+`addScript(scriptKey)` applies the defaults baked into the indicator definition.
+
+Examples from the current registry:
+
+- `EMA` defaults to `CLOSE` and `PERIODS = 14`
+- `RSI` defaults to `CLOSE`, `PERIOD = 14`, `HI_BASELINE = 70`, and `LO_BASELINE = 30`
+- `MACD` defaults to `CLOSE`, `FPERIOD = 12`, `SPERIOD = 26`, and `SGPERIOD = 9`
+
+The public docs focus on the default path first. If you need deeper runtime control over script configuration or management, that moves into advanced runtime territory.
+
+## Current boundary
+
+The typed public surface gives you `addScript()` and `getScripts()` on `ChartInstance`. Runtime-level script-manager operations live closer to the exported `Chart` class, not the default public docs path.
+
+## Continue reading
+
+- [Indicator catalog](./catalog)
+- [Key indicators](./key-indicators)

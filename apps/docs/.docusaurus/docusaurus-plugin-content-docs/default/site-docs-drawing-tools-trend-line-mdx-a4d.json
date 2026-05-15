@@ -1,0 +1,28 @@
+{
+  "id": "drawing-tools/trend-line",
+  "title": "Trend Line",
+  "description": "Use the built-in trend-line helper for the common case, then fall back to drawTool() when you need lower-level control.",
+  "source": "@site/docs/drawing-tools/trend-line.mdx",
+  "sourceDirName": "drawing-tools",
+  "slug": "/drawing-tools/trend-line",
+  "permalink": "/docs/drawing-tools/trend-line",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Trend Line",
+    "description": "Use the built-in trend-line helper for the common case, then fall back to drawTool() when you need lower-level control."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Catalog",
+    "permalink": "/docs/drawing-tools/catalog"
+  },
+  "next": {
+    "title": "Levels and Channels",
+    "permalink": "/docs/drawing-tools/levels-and-channels"
+  }
+}

@@ -1,0 +1,71 @@
+---
+sidebar_position: 3
+title: Rendering and Scales
+description: Switch chart draw modes, control the value axis, and understand autoscale behavior.
+---
+
+# Rendering and scales
+
+The runtime separates how the main series is drawn from how the value axis is scaled.
+
+## Main draw modes
+
+The public runtime supports these main-series draw modes:
+
+- `OHLC`
+- `Bars`
+- `Line`
+- `Histogram`
+- `Line and Histogram`
+
+Set the mode with `setMainDrawMode()`.
+
+```ts
+chart.setMainDrawMode("OHLC");
+chart.setMainDrawMode("Line");
+```
+
+Use this to move between candle-style views and simpler line or histogram presentations without replacing the underlying data.
+
+## Value axis modes
+
+The main panel value axis supports these modes:
+
+- `lin`
+- `log`
+- `perc`
+- `%`
+
+Set the mode with `setValueAxisMode()`.
+
+```ts
+chart.setValueAxisMode("lin");
+chart.setValueAxisMode("log");
+chart.setValueAxisMode("%");
+```
+
+The runtime normalizes `%` to `perc` internally.
+
+## Autoscale
+
+Use `setAutoScale()` to toggle automatic price-range fitting on the main panel.
+
+```ts
+chart.setAutoScale(true);
+
+if (chart.getAutoScale()) {
+  console.log("autoscale is enabled");
+}
+```
+
+Changing the value-axis mode also re-enables autoscale.
+
+## Value-axis width
+
+Use `getValueAxisWidth()` when you need layout-aware overlays or external controls that line up with the rendered chart surface.
+
+## Related docs
+
+- [ChartInstance reference](../api-reference/chart-instance)
+- [Drawing and interaction](../chart-usage/drawing-and-interaction)
+- [Theming overview](../theming/overview)

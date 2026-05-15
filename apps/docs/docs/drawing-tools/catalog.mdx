@@ -1,0 +1,45 @@
+---
+sidebar_position: 2
+title: Catalog
+description: Reference the current drawing-tool types, their runtime keys, anchor counts, and creation paths.
+---
+
+# Drawing tools catalog
+
+This page tracks the drawing-tool types currently visible in the React UI registry plus the helper-only runtime overlays.
+
+## Visible in the current React UI menu
+
+| Runtime type | UI label | Anchors | Typical use | Creation path |
+| --- | --- | ---: | --- | --- |
+| `trendLine` | Trend line | 2 | directional trend and support/resistance projection | `drawTrendLine()` or `drawTool()` |
+| `parallelChannel` | Parallel Channel | 3 | channel projection | `drawTool()` |
+| `hLine` | Horizontal line | 1 | price levels | `drawTool()` |
+| `vLine` | Vertical line | 1 | time markers | `drawTool()` |
+| `mLine` | Multi-line | 3 | custom multi-point line construction | `drawTool()` |
+| `fibonLines` | Fibonacci Levels | 2 | retracement and extension levels | `drawTool()` |
+| `abcd` | Abcd tool | 3 | measured-move projection | `drawTool()` |
+| `arrow` | Arrow | 2 | directional callouts | `drawTool()` |
+| `ellipse` | Ellipse | 2 | highlight area | `drawTool()` |
+| `triangle` | Triangle | 3 | geometric area highlight | `drawTool()` |
+| `box` | Rectangle | 2 | range box or zone highlight | `drawTool()` |
+| `cycle` | Cycle | 2 | repeating interval visualization | `drawTool()` |
+| `hRange` | Horizontal Range | 2 | price-span measurement | `drawTool()` |
+| `vRange` | Vertical Range | 2 | time-span measurement | `drawTool()` |
+| `priceTag` | priceTag | 1 | pinned price label | `drawTool()` |
+
+## Runtime shapes documented here but not shown in the current menu
+
+| Runtime type | Current surface | Typical use | Creation path |
+| --- | --- | --- | --- |
+| `timeRange` | helper method | session or review window | `drawTimeRange()` |
+| `timeBet` | helper method | risk-reward or outcome window | `drawTimeBet()` |
+| `textAnnotation` | registry only | freeform text label | `drawTool()` |
+
+## Notes
+
+- The anchor counts above come from the current React UI tool definitions.
+- Tool types such as `fibonLines`, `abcd`, `box`, `cycle`, and `textAnnotation` accept extra runtime fields beyond the shared `DrawToolConfig` shape.
+- The visible React UI menu does not currently expose every runtime tool type.
+
+Next step: use the grouped pages for practical examples rather than treating this page as the complete behavioral reference.

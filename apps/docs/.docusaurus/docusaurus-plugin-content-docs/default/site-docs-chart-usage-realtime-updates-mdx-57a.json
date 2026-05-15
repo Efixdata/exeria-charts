@@ -1,0 +1,28 @@
+{
+  "id": "chart-usage/realtime-updates",
+  "title": "Realtime Updates",
+  "description": "Append candles and ticks without rebuilding the full chart state every time new market data arrives.",
+  "source": "@site/docs/chart-usage/realtime-updates.mdx",
+  "sourceDirName": "chart-usage",
+  "slug": "/chart-usage/realtime-updates",
+  "permalink": "/docs/chart-usage/realtime-updates",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Realtime Updates",
+    "description": "Append candles and ticks without rebuilding the full chart state every time new market data arrives."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Loading Data",
+    "permalink": "/docs/chart-usage/loading-data"
+  },
+  "next": {
+    "title": "Drawing and Interaction",
+    "permalink": "/docs/chart-usage/drawing-and-interaction"
+  }
+}

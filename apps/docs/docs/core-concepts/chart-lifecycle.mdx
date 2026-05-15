@@ -1,0 +1,76 @@
+---
+sidebar_position: 1
+title: Chart Lifecycle
+description: Understand how the runtime chart is created, initialized, used, and destroyed.
+---
+
+# Chart lifecycle
+
+Every Exeria chart starts with a runtime instance. The shortest stable path is:
+
+1. Create the chart with `createChart()` or `new Chart()`.
+2. Call `init()`.
+3. Load data with `setMainSeriesData()`.
+4. Apply runtime changes such as draw mode, subscriptions, or drawings.
+5. Call `destroy()` when the chart leaves the page.
+
+## Create the runtime
+
+Use `createChart()` when you want the typed public `ChartInstance` contract.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({
+  container,
+  instrument: {
+    symbol: "BTCUSD",
+    currency: "USD",
+    precision: 2,
+  },
+});
+```
+
+Use `Chart` directly when you want access to runtime methods that are implemented on the class but not currently part of the typed `ChartInstance` surface.
+
+```ts
+import Chart from "@efixdata/exeria-chart";
+
+const chart = new Chart({ container });
+```
+
+## Initialize before loading data
+
+Call `init()` before `setMainSeriesData()`. The runtime creates its canvases, overlay, renderer, interactor, and Fusion model during initialization.
+
+```ts
+chart.init();
+await chart.setMainSeriesData(candles, interval);
+```
+
+If you call `setMainSeriesData()` before `init()`, the runtime returns early because the internal Fusion model is not ready yet.
+
+## Keep the container measurable
+
+The chart container needs a real size before initialization. In practice that means a fixed height or a parent layout that resolves to a non-zero height.
+
+```ts
+container.style.height = "480px";
+chart.init();
+```
+
+## Destroy on unmount
+
+Always destroy the chart instance when the container leaves the page.
+
+```ts
+chart.destroy();
+```
+
+This prevents orphaned canvases, event listeners, and observers from surviving after the page changes.
+
+## React wrapper note
+
+`ChartUI` does not create the runtime for you. Create the runtime chart yourself, initialize it, then pass the live instance into the React wrapper.
+
+Next step: read [Data model](./data-model) and [Loading data](../chart-usage/loading-data).

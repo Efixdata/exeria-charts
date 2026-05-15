@@ -1,0 +1,79 @@
+---
+sidebar_position: 1
+title: Overview
+description: Start from the built-in Fusion script model before drilling into indicator, strategy, and function pages.
+---
+
+# Indicators, strategies, and functions
+
+The chart runtime ships with a built-in Fusion script registry. Today the source tree is grouped into four categories:
+
+- functions
+- indicators
+- strategies
+- hidden scripts used by the runtime itself
+
+The public-first documentation pass focuses on the visible categories: indicators, strategies, and functions.
+
+## Current documentation status
+
+The first public documentation pass now covers all three visible script categories.
+
+- [Programmatic wiring](./programmatic-wiring)
+- [Indicators overview](./indicators/overview)
+- [Indicator catalog](./indicators/catalog)
+- [Key indicators](./indicators/key-indicators)
+- [Strategies overview](./strategies/overview)
+- [Strategy catalog](./strategies/catalog)
+- [Key strategies](./strategies/key-strategies)
+- [Functions overview](./functions/overview)
+- [Function catalog](./functions/catalog)
+- [Key functions](./functions/key-functions)
+
+## What the runtime exposes
+
+Use `getScripts()` to inspect the registered script definitions.
+
+```ts
+const scripts = chart.getScripts();
+
+console.log(Object.keys(scripts));
+```
+
+Use `addScript()` to add a built-in script by key.
+
+```ts
+chart.addScript("RSI");
+chart.addScript("EMA");
+```
+
+The runtime uses script metadata to decide inputs, outputs, plotters, and whether a script should open in a new pane.
+
+## Category differences at a glance
+
+- Indicators usually compute derived market series such as moving averages, bands, oscillators, and volume studies.
+- Strategies usually emit Fusion signal values such as `Buy`, `Sell`, `Exit long`, `Exit short`, `Exit all`, or `Do nothing`.
+- Functions usually transform, combine, offset, or condition one or more existing series.
+
+## Current catalog scope
+
+The repository currently contains:
+
+- 10 built-in functions
+- 80+ built-in indicators
+- 11 built-in strategies
+
+Some scripts are usable immediately with their baked-in default inputs, while others are more useful after runtime-level input rewiring to connect them to other script outputs.
+
+## What to expect next
+
+The item-level pages will document:
+
+- script key
+- purpose
+- inputs and defaults
+- outputs
+- pane behavior
+- how to add the script programmatically
+
+If you need the runtime wiring now, start with [Programmatic wiring](./programmatic-wiring), then go deeper with [ChartInstance](../api-reference/chart-instance) and [Chart runtime access](../advanced/chart-class-runtime).

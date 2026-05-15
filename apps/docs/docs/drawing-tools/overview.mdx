@@ -1,0 +1,111 @@
+---
+sidebar_position: 1
+title: Overview
+description: Learn the stable entry points for adding chart drawings programmatically and through the React UI layer.
+---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+
+# Drawing tools overview
+
+There are three practical ways to create drawings in Exeria Charts:
+
+1. Use `toolDrawer` helper methods for the common runtime shortcuts.
+2. Use `toolDrawer.drawTool()` when you want to create a specific shape type directly.
+3. Use `ChartUI` and its left menu when you want the built-in interactive drawing flow.
+
+## Live showcase
+
+<DrawingToolShowcase
+  visiblePresets={["trendLine", "fibonLines", "hLine", "timeRange", "timeBet"]}
+  initialPreset="trendLine"
+/>
+
+## Stable helper entry points
+
+The typed `ToolDrawerApi` exposes five methods:
+
+- `drawTool(toolConfig)`
+- `drawTrendLine(initialOptions?)`
+- `drawTimeRange(initialOptions)`
+- `drawTimeBet(initialOptions)`
+- `deleteTool(id)`
+
+Use the helper methods first when they exist. Drop down to `drawTool()` when you need a specific shape type or extra runtime fields.
+
+## Shared tool structure
+
+Most tool objects share the same core pieces:
+
+- `type`: runtime shape key such as `trendLine`, `parallelChannel`, or `hLine`
+- `anchors`: placement points with `stamp`, `offset`, `value`, and `_index`
+- visual fields such as `color`, `secondaryColor`, `textColor`, `width`, and `dash`
+- optional behavior fields such as `text`, `startTime`, `timeRange`, `price`, `reward`, and `status`
+
+Minimal example:
+
+```ts
+const toolId = chart.toolDrawer.drawTool({
+  type: "hLine",
+  color: "#14f7ab",
+  priceTag: true,
+  anchors: [
+    {
+      stamp: candles[candles.length - 1].stamp,
+      offset: 0,
+      value: 42000,
+      _index: 0,
+    },
+  ],
+});
+```
+
+## Anchors
+
+`ToolAnchor` is the core placement type for generic drawings.
+
+```ts
+{
+  stamp: 1715472000000,
+  offset: 0,
+  value: 102.8,
+  _index: 0,
+}
+```
+
+Some tools use expandable anchors with `defaultDirection`, `expandable`, and `expanded`. The current React UI defaults use those fields for tools such as `trendLine`, `parallelChannel`, and `fibonLines`.
+
+## Runtime-recognized extra fields
+
+`DrawToolConfig` is intentionally open-ended. The runtime accepts additional shape-specific properties beyond the shared typed fields. Current examples include:
+
+- `values`, `valuesState`, `valuesCanAdd`, and `valuesCanDelete` for analytical tools such as `fibonLines` and `abcd`
+- `fillBg` and `style` for filled shapes and range tools
+- `fontSize` for `textAnnotation`
+- `flipped` for range and tag-style tools
+
+Those properties are used by the current runtime and React UI tool definitions even though they do not each have a dedicated exported TypeScript interface yet.
+
+## React UI left menu
+
+The current `ChartUI` left menu groups tools into lines, shapes, analytical tools, ranges, and price tags. It currently shows these tool groups:
+
+- lines: `trendLine`, `parallelChannel`, `hLine`, `vLine`, `mLine`
+- shapes: `arrow`, `ellipse`, `triangle`, `box`
+- analytical: `abcd`, `cycle`, `fibonLines`
+- ranges: `hRange`, `vRange`
+- tag: `priceTag`
+
+`textAnnotation` exists in the tool registry but is not currently rendered in the visible left menu, so programmatic creation is the current path.
+
+## Main-panel note
+
+The current `ToolDrawer` implementation inserts drawings into the first chart panel. If you need deliberate panel-by-panel object placement, you are working beyond the typed helper layer and should treat that as advanced runtime access.
+
+## Continue reading
+
+- [Catalog](./catalog)
+- [Trend line](./trend-line)
+- [Levels and channels](./levels-and-channels)
+- [Lines, ranges, and tags](./lines-ranges-and-tags)
+- [Shapes and annotations](./shapes-and-annotations)

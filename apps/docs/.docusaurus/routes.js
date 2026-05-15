@@ -3,52 +3,101 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/__docusaurus/debug',
-    component: ComponentCreator('/__docusaurus/debug', '5ff'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/config',
-    component: ComponentCreator('/__docusaurus/debug/config', '5ba'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/content',
-    component: ComponentCreator('/__docusaurus/debug/content', 'a2b'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/globalData',
-    component: ComponentCreator('/__docusaurus/debug/globalData', 'c3c'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/metadata',
-    component: ComponentCreator('/__docusaurus/debug/metadata', '156'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/registry',
-    component: ComponentCreator('/__docusaurus/debug/registry', '88c'),
-    exact: true
-  },
-  {
-    path: '/__docusaurus/debug/routes',
-    component: ComponentCreator('/__docusaurus/debug/routes', '000'),
-    exact: true
-  },
-  {
     path: '/docs',
-    component: ComponentCreator('/docs', 'd54'),
+    component: ComponentCreator('/docs', '112'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '25f'),
+        component: ComponentCreator('/docs', '7a9'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', 'e3d'),
+            component: ComponentCreator('/docs', '426'),
             routes: [
+              {
+                path: '/docs/advanced/chart-class-runtime',
+                component: ComponentCreator('/docs/advanced/chart-class-runtime', '45f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/api-reference/chart-instance',
+                component: ComponentCreator('/docs/api-reference/chart-instance', '3fb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/drawing-and-interaction',
+                component: ComponentCreator('/docs/chart-usage/drawing-and-interaction', '37d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/loading-data',
+                component: ComponentCreator('/docs/chart-usage/loading-data', 'a18'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/realtime-updates',
+                component: ComponentCreator('/docs/chart-usage/realtime-updates', 'de5'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/core-concepts/chart-lifecycle',
+                component: ComponentCreator('/docs/core-concepts/chart-lifecycle', 'ed2'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/core-concepts/data-model',
+                component: ComponentCreator('/docs/core-concepts/data-model', 'f48'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/core-concepts/rendering-and-scales',
+                component: ComponentCreator('/docs/core-concepts/rendering-and-scales', '1aa'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/catalog',
+                component: ComponentCreator('/docs/drawing-tools/catalog', 'e53'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/levels-and-channels',
+                component: ComponentCreator('/docs/drawing-tools/levels-and-channels', 'ecb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/lines-ranges-and-tags',
+                component: ComponentCreator('/docs/drawing-tools/lines-ranges-and-tags', '95b'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/overview',
+                component: ComponentCreator('/docs/drawing-tools/overview', 'bd2'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/shapes-and-annotations',
+                component: ComponentCreator('/docs/drawing-tools/shapes-and-annotations', 'b91'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/drawing-tools/trend-line',
+                component: ComponentCreator('/docs/drawing-tools/trend-line', 'c10'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
               {
                 path: '/docs/getting-started/react',
                 component: ComponentCreator('/docs/getting-started/react', '7af'),
@@ -76,6 +125,84 @@ export default [
               {
                 path: '/docs/intro',
                 component: ComponentCreator('/docs/intro', '69a'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/functions/catalog',
+                component: ComponentCreator('/docs/scripts/functions/catalog', 'acd'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/functions/key-functions',
+                component: ComponentCreator('/docs/scripts/functions/key-functions', 'f36'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/functions/overview',
+                component: ComponentCreator('/docs/scripts/functions/overview', 'f0b'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/indicators/catalog',
+                component: ComponentCreator('/docs/scripts/indicators/catalog', '46c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/indicators/key-indicators',
+                component: ComponentCreator('/docs/scripts/indicators/key-indicators', 'dbc'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/indicators/overview',
+                component: ComponentCreator('/docs/scripts/indicators/overview', 'aa9'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/overview',
+                component: ComponentCreator('/docs/scripts/overview', '6d9'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/programmatic-wiring',
+                component: ComponentCreator('/docs/scripts/programmatic-wiring', 'e5d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/strategies/catalog',
+                component: ComponentCreator('/docs/scripts/strategies/catalog', 'e73'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/strategies/key-strategies',
+                component: ComponentCreator('/docs/scripts/strategies/key-strategies', '175'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/strategies/overview',
+                component: ComponentCreator('/docs/scripts/strategies/overview', 'f7f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/theming/live-theme-creator',
+                component: ComponentCreator('/docs/theming/live-theme-creator', 'a4f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/theming/overview',
+                component: ComponentCreator('/docs/theming/overview', '15c'),
                 exact: true,
                 sidebar: "docsSidebar"
               }

@@ -1,0 +1,83 @@
+---
+sidebar_position: 3
+title: Trend Line
+description: Use the built-in trend-line helper for the common case, then fall back to drawTool() when you need lower-level control.
+---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+
+# Trend line
+
+`trendLine` is the most direct drawing tool to start with because it has a dedicated helper and a simple two-anchor model.
+
+## Live example
+
+<DrawingToolShowcase visiblePresets={["trendLine"]} initialPreset="trendLine" />
+
+## Use the helper first
+
+```ts
+const toolId = chart.toolDrawer.drawTrendLine({
+  startStamp: candles[10].stamp,
+  endStamp: candles[30].stamp,
+  startPrice: candles[10].l,
+  endPrice: candles[30].h,
+  config: {
+    editable: false,
+    color: "#5cc8ff",
+  },
+});
+```
+
+This is the cleanest path when you already know the two endpoints.
+
+## Use drawTool() for direct anchor control
+
+The helper accepts `ToolVisualConfig`, which is enough for color and editability. Use `drawTool()` when you also want direct anchor control, `width`, `dash`, or a custom object name.
+
+```ts
+const toolId = chart.toolDrawer.drawTool({
+  type: "trendLine",
+  name: "breakout-guide",
+  color: "#14f7ab",
+  width: 2,
+  dash: [8, 4],
+  anchors: [
+    {
+      stamp: candles[5].stamp,
+      offset: 0,
+      value: candles[5].l,
+      _index: 0,
+      expandable: true,
+      expanded: false,
+      defaultDirection: "left",
+    },
+    {
+      stamp: candles[18].stamp,
+      offset: 0,
+      value: candles[18].h,
+      _index: 0,
+      expandable: true,
+      expanded: false,
+      defaultDirection: "right",
+    },
+  ],
+});
+```
+
+## Remove the tool later
+
+```ts
+if (toolId !== undefined) {
+  chart.toolDrawer.deleteTool(toolId);
+}
+```
+
+## How it works
+
+- the runtime type is `trendLine`
+- the standard drawing shape uses 2 anchors
+- the React UI default config treats both anchors as expandable
+- the object can be placed programmatically with the helper or through `drawTool()`
+
+If you want multi-point geometry or channel-style projection, continue with [Levels and channels](./levels-and-channels).

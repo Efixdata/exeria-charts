@@ -1,0 +1,28 @@
+{
+  "id": "scripts/functions/catalog",
+  "title": "Function Catalog",
+  "description": "Browse the current built-in function families and the keys you add with chart.addScript().",
+  "source": "@site/docs/scripts/functions/catalog.mdx",
+  "sourceDirName": "scripts/functions",
+  "slug": "/scripts/functions/catalog",
+  "permalink": "/docs/scripts/functions/catalog",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "sidebar_position": 8,
+    "title": "Function Catalog",
+    "description": "Browse the current built-in function families and the keys you add with chart.addScript()."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Functions Overview",
+    "permalink": "/docs/scripts/functions/overview"
+  },
+  "next": {
+    "title": "Key Functions",
+    "permalink": "/docs/scripts/functions/key-functions"
+  }
+}

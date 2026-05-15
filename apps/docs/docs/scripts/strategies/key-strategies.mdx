@@ -1,0 +1,139 @@
+---
+sidebar_position: 6
+title: Key Strategies
+description: Start with the most practical built-in strategies and their current default inputs, outputs, and pane behavior.
+---
+
+# Key strategies
+
+This page documents five strategies that cover the most common first integrations: crossover detection, band exceed/re-entry, signal combination, position sizing, and candlestick-pattern scanning.
+
+## CROSS
+
+- Key: `CROSS`
+- Pane behavior: renders on the main chart (`newPane: false`)
+- Default inputs: `LINE = MACDLine`, `SIGNAL = MACDSignal`, `ONDN = Buy`, `ONUP = Sell`
+- Output: one `CROSS` strategy series with field `CrossValue`
+
+```ts
+chart.addScript("CROSS");
+```
+
+Current definition notes:
+
+- the strategy checks whether two series crossed after resolving flat-equality runs backwards
+- the default input wiring makes it a practical MACD crossover strategy out of the box
+- the plotter uses a `StrategyObject`, so the result renders as signal markers rather than as a plain line
+
+Use `CROSS` when you need a first signal generator that works from two existing series and already has sensible defaults.
+
+## EXCEED
+
+- Key: `EXCEED`
+- Pane behavior: renders on the main chart (`newPane: false`)
+- Default inputs: `UPPER = BBUpper`, `LOWER = BBLower`, `HIGH = h`, `LOW = l`, `ONDN = Sell`, `ONUP = Buy`, `SINGLE = false`
+- Output: one `EXCEED` strategy series with field `ExceedValue`
+
+```ts
+chart.addScript("EXCEED");
+```
+
+Current definition notes:
+
+- the current registry treats a high above the upper band and a low below the lower band as the trigger conditions
+- the defaults line up with Bollinger-band outputs, so the key is usable without custom input wiring
+- `SINGLE` can suppress repeated identical signals on consecutive bars
+
+Use `EXCEED` when you want a fast “price moved outside the band” signal without building the comparison logic yourself.
+
+## REBOUND
+
+- Key: `REBOUND`
+- Pane behavior: renders on the main chart (`newPane: false`)
+- Default inputs: `UPPER`, `LOWER`, `VALUE`, `ONDN = Sell`, `ONUP = Buy`
+- Output: one `REBOUND` strategy series with field `Rebound`
+
+```ts
+chart.addScript("REBOUND");
+```
+
+Current definition notes:
+
+- the current controller detects a re-entry move back inside upper or lower bounds by comparing the current bar with the previous bar
+- unlike `EXCEED`, the series inputs do not ship with explicit default `def` mappings in the current registry
+- the output still uses a `StrategyObject`, so it is meant as a signal stream rather than a numeric overlay
+
+Use `REBOUND` when you want the opposite side of an exceed-style workflow: a signal that fires on re-entry rather than on breakout.
+
+## MIX
+
+- Key: `MIX`
+- Pane behavior: renders on the main chart (`newPane: false`)
+- Default inputs: `FIRST`, `SECOND`, and an editable `MATRIX = FUSION.createSelectiveSignalsMatrix()`
+- Output: one `MIX` strategy series with field `Mix`
+
+```ts
+chart.addScript("MIX");
+```
+
+Current definition notes:
+
+- the strategy reads two existing strategy series, converts their numeric values back to Fusion signal names, and resolves the final output through the matrix
+- unlike `JOIN` and `DOUBLECHECK`, the matrix is not read-only in the current definition
+- this key is more of a composition tool than a turnkey signal generator, so it becomes most useful when you can control its inputs
+
+Use `MIX` when you need to merge two independent strategy streams into one custom decision table.
+
+## POSITION
+
+- Key: `POSITION`
+- Pane behavior: opens a new pane (`newPane: true`)
+- Default inputs: `STRATEGY`, `WEIGHT = 1`, `MULTIPLIER = 1.0`
+- Output: one `POSITION` series with field `Position`
+
+```ts
+chart.addScript("POSITION");
+```
+
+Current definition notes:
+
+- the controller carries the previous position forward and reacts differently to `Buy`, `Sell`, `Exit long`, `Exit short`, and `Exit all`
+- `MULTIPLIER` is a conditional input, so it can be a constant or another series
+- this script is most useful once its `STRATEGY` input is wired to an actual signal-producing strategy
+
+Use `POSITION` when you need a running exposure series rather than just discrete signal markers.
+
+## CANDLESTICKPATTERNS
+
+- Key: `CANDLESTICKPATTERNS`
+- Pane behavior: renders on the main chart (`newPane: false`)
+- Default inputs: `OPEN = o`, `HIGH = h`, `LOW = l`, `CLOSE = c`, plus a `CHOSENPATTERNS` boolean list with all bundled patterns enabled by default
+- Output: one tooltip series with field `CANDLESTICKPATTERNS`
+
+```ts
+chart.addScript("CANDLESTICKPATTERNS");
+```
+
+Current definition notes:
+
+- the current output is a `tooltipSeries`, not a plain strategy series
+- the plotter type is `CandlestickPatternStrategyObject`, which matches its marker-style rendering
+- the built-in boolean list includes patterns such as `MORNINGSTAR`, `EVENINGSTAR`, `HAMMER`, `DOJIUP`, and `DOJIDOWN`
+
+Use `CANDLESTICKPATTERNS` when you want prebuilt pattern scanning on top of the main price series rather than a generic numeric study.
+
+## Putting them together
+
+This is a practical first combination:
+
+```ts
+chart.addScript("CROSS");
+chart.addScript("EXCEED");
+chart.addScript("CANDLESTICKPATTERNS");
+```
+
+That gives you a crossover strategy, a band-break strategy, and a candlestick-pattern layer without leaving the built-in registry.
+
+If you want to wire strategy inputs to custom indicator or strategy outputs, continue with [Programmatic wiring](../programmatic-wiring).
+
+If you need the full list, go back to [Strategy catalog](./catalog).

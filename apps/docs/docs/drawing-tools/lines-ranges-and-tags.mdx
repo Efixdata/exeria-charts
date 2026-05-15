@@ -1,0 +1,135 @@
+---
+sidebar_position: 5
+title: Lines, Ranges, and Tags
+description: Create price levels, time markers, session windows, and pinned price labels.
+---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+
+# Lines, ranges, and tags
+
+This group covers single-axis markers, span tools, and the helper overlays that work directly from time ranges.
+
+## Live examples
+
+<DrawingToolShowcase
+  visiblePresets={["hLine", "timeRange", "timeBet", "priceTag"]}
+  initialPreset="hLine"
+/>
+
+## Horizontal and vertical lines
+
+Use `hLine` for a price level and `vLine` for a time marker.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "hLine",
+  color: "#14f7ab",
+  priceTag: true,
+  anchors: [
+    {
+      stamp: candles[candles.length - 1].stamp,
+      offset: 0,
+      value: 42000,
+      _index: 0,
+    },
+  ],
+});
+
+chart.toolDrawer.drawTool({
+  type: "vLine",
+  color: "#f0b429",
+  anchors: [
+    {
+      stamp: candles[12].stamp,
+      offset: 0,
+      value: candles[12].c,
+      _index: 0,
+    },
+  ],
+});
+```
+
+Use `mLine` when you want a custom three-anchor line structure.
+
+## Horizontal and vertical ranges
+
+`hRange` and `vRange` use two anchors and support extra runtime fields such as `text` and `flipped`.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "vRange",
+  color: "#5cc8ff",
+  text: "Breakout window",
+  flipped: false,
+  anchors: [
+    { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
+    { stamp: candles[28].stamp, offset: 0, value: candles[28].h, _index: 0 },
+  ],
+});
+```
+
+## Time window helper
+
+Use `drawTimeRange()` when you already know the start timestamp and the duration.
+
+```ts
+chart.toolDrawer.drawTimeRange({
+  text: "Review range",
+  startTime: candles[20].stamp,
+  timeRange: 4 * 60 * 60 * 1000,
+  config: {
+    editable: false,
+    color: "#5cc8ff",
+    secondaryColor: "rgba(255, 255, 255, 0.08)",
+    textColor: "#F7FBFF",
+  },
+});
+```
+
+## Risk or outcome window helper
+
+Use `drawTimeBet()` when you want a time-bound directional box with price and outcome metadata.
+
+```ts
+chart.toolDrawer.drawTimeBet({
+  startTime: candles[24].stamp,
+  timeRange: 3 * 60 * 60 * 1000,
+  price: candles[24].c,
+  reward: 125,
+  bet: 50,
+  predictedDirection: "UP",
+  status: "ACTIVE",
+  isWinning: true,
+  config: {
+    editable: false,
+    color: "rgba(12, 18, 33, 0.72)",
+    winningColor: "#25AD98",
+    losingColor: "#D12E59",
+    secondaryColor: "rgba(255, 255, 255, 0.1)",
+    textColor: "#F7FBFF",
+    priceTag: true,
+  },
+});
+```
+
+## Price tags
+
+`priceTag` is its own drawing type in the left menu. Create it with `drawTool()` and a single anchor.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "priceTag",
+  color: "#D12E59",
+  anchors: [
+    {
+      stamp: candles[candles.length - 1].stamp,
+      offset: 0,
+      value: candles[candles.length - 1].c,
+      _index: 0,
+    },
+  ],
+});
+```
+
+If you want geometric highlight tools instead of line and span tools, continue with [Shapes and annotations](./shapes-and-annotations).

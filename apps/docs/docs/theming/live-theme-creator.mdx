@@ -1,0 +1,37 @@
+---
+sidebar_position: 2
+title: Live Theme Creator
+description: Tune chart runtime colors and React UI chrome separately, preview the result live, and copy the exact code to apply it.
+---
+
+import LiveThemeCreator from "@site/src/components/LiveThemeCreator";
+
+# Live theme creator
+
+This page keeps the two theme layers separate on purpose.
+
+- Chart runtime colors affect the chart surface itself: candles, grid, axes, crosshair, tool defaults, and tooltip surfaces.
+- React UI colors affect the wrapper chrome: toolbar, left menu, dialogs, inputs, split buttons, and surrounding controls.
+
+The preview below embeds both layers together so you can see the whole surface while still editing them independently.
+
+## How to use it
+
+1. Start from a preset that is close to the direction you want.
+2. Switch between the light and dark variants and tune each one independently.
+3. Change chart runtime colors in the chart section.
+4. Change React UI colors in the UI section.
+5. Copy the generated runtime theme, UI themes object, or full apply snippet.
+
+The generated runtime theme includes both `light` and `dark` keys so you can switch the active chart surface with `themeVariant` at runtime.
+
+<LiveThemeCreator />
+
+## Apply model
+
+The generated code follows the same boundary used elsewhere in the docs:
+
+- pass the runtime theme into `createChart({ theme: runtimeTheme, themeVariant })`
+- pass `uiThemes[themeVariant]` into `<ChartUI theme={uiThemes[themeVariant]} />`
+
+If you only use the runtime package without the React wrapper, copy the chart theme block and omit the `ChartUI` snippet.

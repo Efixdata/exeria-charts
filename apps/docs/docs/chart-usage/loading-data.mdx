@@ -1,0 +1,61 @@
+---
+sidebar_position: 1
+title: Loading Data
+description: Load initial candles, switch intervals, and understand the current history-loading boundary.
+---
+
+# Loading data
+
+The main-series entry point is `setMainSeriesData()`.
+
+```ts
+await chart.setMainSeriesData(candles, interval);
+```
+
+This does three important things:
+
+1. Replaces the current main-series candle array.
+2. Updates interval metadata when you pass an `Interval`.
+3. Recalculates scripts and rerenders the chart.
+
+## Load initial candles
+
+```ts
+import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
+
+const chart = createChart({ container, instrument });
+chart.init();
+
+const candles: Candle[] = await fetchCandles();
+const interval: Interval = { symbol: "1h", milis: 60 * 60 * 1000 };
+
+await chart.setMainSeriesData(candles, interval);
+```
+
+If you pass an interval, the runtime also emits the `INTERVAL_CHANGE` event after the data load completes.
+
+## Replace data for a different interval
+
+When the user changes timeframe, fetch the new candle slice and call `setMainSeriesData()` again.
+
+```ts
+async function loadInterval(nextInterval: Interval) {
+  const nextCandles = await fetchCandles(nextInterval.symbol);
+  await chart.setMainSeriesData(nextCandles, nextInterval);
+}
+```
+
+## History loading today
+
+The runtime class has a `prependMainSeriesData()` method, but it is currently a stub and it is not part of the typed `ChartInstance` contract.
+
+Today, the safe public approach is to merge older candles on your side and call `setMainSeriesData()` with the full slice you want rendered.
+
+```ts
+const history = await fetchOlderCandles();
+const current = await fetchVisibleCandles();
+
+await chart.setMainSeriesData([...history, ...current], interval);
+```
+
+If you are working directly against the `Chart` class and plan to rely on runtime-only methods, read [Chart runtime access](../advanced/chart-class-runtime) first.

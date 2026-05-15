@@ -1,0 +1,108 @@
+---
+sidebar_position: 6
+title: Shapes and Annotations
+description: Use boxes, arrows, ellipses, cycles, triangles, and text-style overlays to call out chart structure.
+---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+
+# Shapes and annotations
+
+This group covers the general-purpose shape types exposed by the runtime: `arrow`, `ellipse`, `triangle`, `box`, `cycle`, and `textAnnotation`.
+
+## Live examples
+
+<DrawingToolShowcase
+  visiblePresets={["box", "arrow", "ellipse", "triangle", "cycle", "textAnnotation"]}
+  initialPreset="box"
+/>
+
+## Rectangle and filled zones
+
+`box` is the simplest zone-highlighting tool. The current runtime accepts `fillBg` and `style` as extra object fields.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "box",
+  color: "#14f7ab",
+  fillBg: true,
+  style: "line",
+  anchors: [
+    { stamp: candles[14].stamp, offset: 0, value: candles[14].l, _index: 0 },
+    { stamp: candles[22].stamp, offset: 0, value: candles[22].h, _index: 0 },
+  ],
+});
+```
+
+## Text annotation
+
+`textAnnotation` is defined in the current tool registry even though it is not rendered in the visible React UI left menu.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "textAnnotation",
+  color: "#F7FBFF",
+  text: "Supply zone",
+  fontSize: 13,
+  anchors: [
+    { stamp: candles[16].stamp, offset: 0, value: candles[16].h, _index: 0 },
+    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
+  ],
+});
+```
+
+## Arrow and ellipse
+
+`arrow` and `ellipse` both use two anchors.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "arrow",
+  color: "#f0b429",
+  anchors: [
+    { stamp: candles[8].stamp, offset: 0, value: candles[8].h, _index: 0 },
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+  ],
+});
+
+chart.toolDrawer.drawTool({
+  type: "ellipse",
+  color: "#5cc8ff",
+  fillBg: false,
+  anchors: [
+    { stamp: candles[30].stamp, offset: 0, value: candles[30].l, _index: 0 },
+    { stamp: candles[36].stamp, offset: 0, value: candles[36].h, _index: 0 },
+  ],
+});
+```
+
+## Triangle and cycle
+
+`triangle` uses three anchors. `cycle` uses two and accepts a `style` field in the current runtime defaults.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "triangle",
+  color: "#D12E59",
+  fillBg: true,
+  anchors: [
+    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
+    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].l, _index: 0 },
+  ],
+});
+
+chart.toolDrawer.drawTool({
+  type: "cycle",
+  color: "#5cc8ff",
+  style: "line",
+  anchors: [
+    { stamp: candles[18].stamp, offset: 0, value: candles[18].c, _index: 0 },
+    { stamp: candles[26].stamp, offset: 0, value: candles[26].c, _index: 0 },
+  ],
+});
+```
+
+## Practical boundary
+
+For these shape tools, `drawTool()` is the main programmatic API. The React UI gives you interactive placement for only a subset of them, while programmatic creation gives you the full runtime shape list.

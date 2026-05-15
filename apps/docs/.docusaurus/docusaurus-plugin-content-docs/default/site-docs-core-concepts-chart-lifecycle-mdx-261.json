@@ -1,0 +1,28 @@
+{
+  "id": "core-concepts/chart-lifecycle",
+  "title": "Chart Lifecycle",
+  "description": "Understand how the runtime chart is created, initialized, used, and destroyed.",
+  "source": "@site/docs/core-concepts/chart-lifecycle.mdx",
+  "sourceDirName": "core-concepts",
+  "slug": "/core-concepts/chart-lifecycle",
+  "permalink": "/docs/core-concepts/chart-lifecycle",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Chart Lifecycle",
+    "description": "Understand how the runtime chart is created, initialized, used, and destroyed."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "React Quickstart",
+    "permalink": "/docs/getting-started/react"
+  },
+  "next": {
+    "title": "Data Model",
+    "permalink": "/docs/core-concepts/data-model"
+  }
+}

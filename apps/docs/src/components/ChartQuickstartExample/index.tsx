@@ -1,57 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { Candle, ChartInstance, DrawMode, Interval } from "@efixdata/exeria-chart";
-
-type DatasetKey = "trend" | "range";
-
-interface ExampleDataset {
-  label: string;
-  candles: Candle[];
-}
-
-const interval: Interval = {
-  symbol: "1h",
-  milis: 60 * 60 * 1000,
-};
+import type { ChartInstance, DrawMode } from "@efixdata/exeria-chart";
+import {
+  docsCandleCount,
+  docsExampleDatasets,
+  docsInterval,
+  type ExampleDataset,
+  type ExampleDatasetKey,
+} from "../chartExampleData";
 
 const drawModes: DrawMode[] = ["OHLC", "Line", "Histogram"];
-
-const datasets: Record<DatasetKey, ExampleDataset> = {
-  trend: {
-    label: "Trend continuation",
-    candles: [
-      { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
-      { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
-      { stamp: 1715479200000, o: 103.9, h: 105.5, l: 103.2, c: 105.1, v: 3325 },
-      { stamp: 1715482800000, o: 105.1, h: 106.2, l: 104.3, c: 104.8, v: 2875 },
-      { stamp: 1715486400000, o: 104.8, h: 107.1, l: 104.5, c: 106.9, v: 3640 },
-      { stamp: 1715490000000, o: 106.9, h: 108.3, l: 106.2, c: 107.6, v: 3900 },
-    ],
-  },
-  range: {
-    label: "Range compression",
-    candles: [
-      { stamp: 1715472000000, o: 95.1, h: 96.2, l: 94.5, c: 95.4, v: 1800 },
-      { stamp: 1715475600000, o: 95.4, h: 96.1, l: 94.9, c: 95.7, v: 1720 },
-      { stamp: 1715479200000, o: 95.7, h: 96.4, l: 95.2, c: 95.8, v: 1610 },
-      { stamp: 1715482800000, o: 95.8, h: 96.0, l: 95.1, c: 95.3, v: 1685 },
-      { stamp: 1715486400000, o: 95.3, h: 95.9, l: 94.8, c: 95.6, v: 1590 },
-      { stamp: 1715490000000, o: 95.6, h: 96.3, l: 95.2, c: 95.9, v: 1660 },
-    ],
-  },
-};
 
 export default function ChartQuickstartExample() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
-  const chartStateRef = useRef<{ datasetKey: DatasetKey; drawMode: DrawMode }>({
+  const chartStateRef = useRef<{ datasetKey: ExampleDatasetKey; drawMode: DrawMode }>({
     datasetKey: "trend",
     drawMode: "OHLC",
   });
-  const [datasetKey, setDatasetKey] = useState<DatasetKey>("trend");
+  const [datasetKey, setDatasetKey] = useState<ExampleDatasetKey>("trend");
   const [drawMode, setDrawMode] = useState<DrawMode>("OHLC");
 
-  const activeDataset = useMemo(() => datasets[datasetKey], [datasetKey]);
+  const activeDataset = useMemo(() => docsExampleDatasets[datasetKey], [datasetKey]);
 
   useEffect(() => {
     chartStateRef.current = { datasetKey, drawMode };
@@ -71,12 +41,12 @@ export default function ChartQuickstartExample() {
         return;
       }
 
-      const chart = new chartModule.default({ container }) as unknown as ChartInstance;
+      const chart = chartModule.createChart({ container });
       const initialState = chartStateRef.current;
       chartRef.current = chart;
 
       chart.init();
-      await chart.setMainSeriesData(datasets[initialState.datasetKey].candles, interval);
+      await chart.setMainSeriesData(docsExampleDatasets[initialState.datasetKey].candles, docsInterval);
       chart.setMainDrawMode(initialState.drawMode);
     };
 
@@ -95,7 +65,7 @@ export default function ChartQuickstartExample() {
       return;
     }
 
-    void chart.setMainSeriesData(activeDataset.candles, interval);
+    void chart.setMainSeriesData(activeDataset.candles, docsInterval);
     chart.setMainDrawMode(drawMode);
   }, [activeDataset, drawMode]);
 
@@ -105,7 +75,7 @@ export default function ChartQuickstartExample() {
         <div>
           <span style={styles.controlLabel}>Dataset</span>
           <div style={styles.buttonRow}>
-            {(Object.entries(datasets) as [DatasetKey, ExampleDataset][]).map(([key, dataset]) => (
+            {(Object.entries(docsExampleDatasets) as [ExampleDatasetKey, ExampleDataset][]).map(([key, dataset]) => (
               <button
                 key={key}
                 type="button"
@@ -138,6 +108,7 @@ export default function ChartQuickstartExample() {
       <div style={styles.metaRow}>
         <span style={styles.metaTag}>Public API only</span>
         <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
+        <span style={styles.metaChip}>{docsCandleCount} candles per dataset</span>
       </div>
 
       <div ref={containerRef} style={styles.chartSurface} />
@@ -212,6 +183,17 @@ const styles: Record<string, CSSProperties> = {
     color: "var(--doc-text-secondary)",
     fontSize: 14,
     fontFamily: "var(--ifm-font-family-monospace)",
+  },
+  metaChip: {
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "rgba(92, 200, 255, 0.12)",
+    border: "1px solid rgba(92, 200, 255, 0.2)",
+    color: "var(--doc-text)",
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
   },
   chartSurface: {
     minHeight: 420,

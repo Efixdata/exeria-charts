@@ -1,0 +1,28 @@
+{
+  "id": "scripts/strategies/catalog",
+  "title": "Strategy Catalog",
+  "description": "Browse the current built-in strategy families and the keys you add with chart.addScript().",
+  "source": "@site/docs/scripts/strategies/catalog.mdx",
+  "sourceDirName": "scripts/strategies",
+  "slug": "/scripts/strategies/catalog",
+  "permalink": "/docs/scripts/strategies/catalog",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "Strategy Catalog",
+    "description": "Browse the current built-in strategy families and the keys you add with chart.addScript()."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Strategies Overview",
+    "permalink": "/docs/scripts/strategies/overview"
+  },
+  "next": {
+    "title": "Key Strategies",
+    "permalink": "/docs/scripts/strategies/key-strategies"
+  }
+}

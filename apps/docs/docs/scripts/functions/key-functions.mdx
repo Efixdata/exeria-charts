@@ -1,0 +1,139 @@
+---
+sidebar_position: 9
+title: Key Functions
+description: Start with the most practical built-in functions and their current default inputs, outputs, and pane behavior.
+---
+
+# Key functions
+
+This page documents six functions that cover the most common first integrations: rolling range levels, time displacement, arithmetic combination, conditional branching, and multi-level price bands.
+
+## HIGHEST
+
+- Key: `HIGHEST`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `HIGH = h`, `PERIODS = 25`
+- Output: one `HIGHEST` series
+
+```ts
+chart.addScript("HIGHEST");
+```
+
+Current definition notes:
+
+- the controller delegates to `FUSION.lib.getMax()` over the requested lookback
+- the registry colors the line `#8bc34a`
+- the default input maps directly to the main-series high field
+
+Use `HIGHEST` when you need a rolling upper boundary from the current price series without creating a full channel indicator.
+
+## LOWEST
+
+- Key: `LOWEST`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `LOW = l`, `PERIODS = 25`
+- Output: one `LOWEST` series
+
+```ts
+chart.addScript("LOWEST");
+```
+
+Current definition notes:
+
+- the controller delegates to `FUSION.lib.getMin()` over the requested lookback
+- the registry colors the line `#ff5722`
+- this is the direct companion to `HIGHEST` for lower-bound calculations
+
+Use `LOWEST` when you need a rolling lower boundary that stays on the main panel.
+
+## DISPLACE
+
+- Key: `DISPLACE`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `DSERIES`, `VALUE = 0`, `PERIODS = 12`
+- Output: one `DISPLACE` series
+
+```ts
+chart.addScript("DISPLACE");
+```
+
+Current definition notes:
+
+- the current controller calls `FUSION.lib.displace()` and then adds the optional numeric offset from `VALUE`
+- when calculation reaches the end of the input series, the script also writes future values for the displacement window
+- this function is most useful after `DSERIES` is wired to a real source series
+
+Use `DISPLACE` when you need a forward- or backward-shifted version of an existing series.
+
+## IGLUE
+
+- Key: `IGLUE`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `IN1`, `IN2`, `OPERATION = Add`
+- Output: one `IGLUE` series
+
+```ts
+chart.addScript("IGLUE");
+```
+
+Current definition notes:
+
+- the current operation list is `Add`, `Substract`, `Multiply`, `Divide`, and `Power of`
+- both primary inputs are series inputs, so the function is designed to combine two existing script outputs or market series
+- the controller returns early if either input is missing at the current bar
+
+Use `IGLUE` when you need direct series-to-series math without authoring a custom Fusion script.
+
+## IF
+
+- Key: `IF`
+- Pane behavior: opens a new pane (`newPane: true`)
+- Default inputs: `VAL_A = 0`, `VAL_B = 0`, `VAL_X = 0`, `VAL_Y = 0`, `VAL_Z = 0`
+- Output: one `IF` series with field `IFValue`
+
+```ts
+chart.addScript("IF");
+```
+
+Current definition notes:
+
+- each input is `conditional`, so it can resolve from a constant or a series at runtime
+- the output chooses `VAL_X` when `VAL_A > VAL_B`, `VAL_Y` when equal, and `VAL_Z` when `VAL_A < VAL_B`
+- because all defaults are zero, the key is most useful once you wire its inputs to meaningful series or constants
+
+Use `IF` when you need a branching derived series without leaving the built-in registry.
+
+## FIBONACCI
+
+- Key: `FIBONACCI`
+- Pane behavior: overlay on the main chart (`newPane: false`)
+- Default inputs: `HIGH = h`, `LOW = l`, `PERIODS = 24`
+- Output: six line series: `FIBONACCI0`, `FIBONACCI2`, `FIBONACCI3`, `FIBONACCI4`, `FIBONACCI6`, and `FIBONACCI7`
+
+```ts
+chart.addScript("FIBONACCI");
+```
+
+Current definition notes:
+
+- the controller computes levels from the rolling highest high and lowest low over the configured lookback
+- the current output set maps to the low, `0.382`, `0.5`, `0.618`, high, and `1.618` extension levels
+- all plotted lines share the same default color in the current registry
+
+Use `FIBONACCI` when you want automatically updating retracement and extension bands without drawing manual fib tools.
+
+## Putting them together
+
+This is a practical first combination:
+
+```ts
+chart.addScript("HIGHEST");
+chart.addScript("LOWEST");
+chart.addScript("FIBONACCI");
+```
+
+That gives you rolling upper/lower bounds plus a multi-level retracement overlay on the main chart.
+
+If you want to wire function inputs to indicator outputs or conditional series inputs, continue with [Programmatic wiring](../programmatic-wiring).
+
+If you need the broader registry, go back to [Function catalog](./catalog).

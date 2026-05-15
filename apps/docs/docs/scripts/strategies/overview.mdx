@@ -1,0 +1,88 @@
+---
+sidebar_position: 4
+title: Strategies Overview
+description: Add built-in strategy scripts programmatically, inspect their signal-oriented metadata, and understand which ones need deeper input wiring.
+---
+
+# Strategies overview
+
+Strategies are built-in Fusion scripts that emit trading-signal or position-oriented series.
+
+## Add strategies programmatically
+
+The public entry point is the same as for indicators: initialize the chart, load candles, then add a built-in strategy key.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({ container, instrument });
+chart.init();
+
+await chart.setMainSeriesData(candles, interval);
+
+chart.addScript("CROSS");
+chart.addScript("EXCEED");
+chart.addScript("POSITION");
+```
+
+Each key maps to a built-in script definition in the Fusion strategy registry.
+
+## Inspect strategy metadata
+
+Use `getScripts()` when you want to inspect the strategy definition before adding it or when you need to see whether a strategy opens in a new pane.
+
+```ts
+const scripts = chart.getScripts();
+const cross = scripts.CROSS;
+
+console.log(cross.title);
+console.log(cross.newPane);
+console.log(cross.inputs);
+console.log(cross.outputs);
+```
+
+The runtime localizes titles and descriptions, but the stable programmatic keys stay the same, for example `CROSS`, `EXCEED`, `REBOUND`, `MIX`, and `POSITION`.
+
+## What strategy outputs represent
+
+Most strategies output Fusion signal values rather than plain numeric overlays. The standard signal set used across the registry is:
+
+- `Buy`
+- `Sell`
+- `Exit long`
+- `Exit short`
+- `Exit all`
+- `Do nothing`
+
+Several strategy inputs, such as `ONDN`, `ONUP`, and `RT`, are list inputs over that same signal set.
+
+## Main-panel strategies vs pane strategies
+
+Most strategy definitions render on the main chart with a `StrategyObject`-style plotter. Examples: `CROSS`, `EXCEED`, `REBOUND`, `JOIN`, `MIX`, `SINGLE`, and `CANDLESTICKPATTERNS`.
+
+Two strategies open in their own panes:
+
+- `POSITION` turns a strategy stream into a running position-size series.
+- `DIFFER` turns a position-size series into buy/sell delta signals.
+
+## Default-ready strategies vs wiring-heavy strategies
+
+Some strategies ship with useful default inputs right away.
+
+- `CROSS` defaults to `MACDLine` and `MACDSignal`.
+- `EXCEED` defaults to Bollinger-band outputs plus main-series high/low.
+- `CANDLESTICKPATTERNS` defaults to `o`, `h`, `l`, and `c`.
+
+Other strategies are mostly composition tools and become more useful once you wire them to other strategy outputs.
+
+- `JOIN`, `DOUBLECHECK`, and `MIX` combine two strategy series.
+- `SINGLE` filters or reverses a strategy stream.
+- `POSITION` and `DIFFER` transform strategy/position streams into new derived outputs.
+
+The public docs cover the stable keys, default inputs, and high-level behavior first. Deeper input rewiring lives closer to runtime-level script management.
+
+## Continue reading
+
+- [Programmatic wiring](../programmatic-wiring)
+- [Strategy catalog](./catalog)
+- [Key strategies](./key-strategies)

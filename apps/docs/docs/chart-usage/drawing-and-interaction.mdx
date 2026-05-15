@@ -1,0 +1,127 @@
+---
+sidebar_position: 3
+title: Drawing and Interaction
+description: Add drawings programmatically and switch runtime interaction modes.
+---
+
+# Drawing and interaction
+
+There are two main ways to work with chart interaction:
+
+1. Use `toolDrawer` to place drawings programmatically.
+2. Use `getInteractor()` to change the active runtime mode.
+
+## Draw with helpers
+
+The runtime exposes convenience methods for the most common drawing flows.
+
+```ts
+chart.toolDrawer.drawTrendLine({
+  startStamp: candles[10].stamp,
+  endStamp: candles[30].stamp,
+  startPrice: candles[10].l,
+  endPrice: candles[30].h,
+  config: {
+    color: "#5cc8ff",
+  },
+});
+```
+
+Time-range annotation:
+
+```ts
+chart.toolDrawer.drawTimeRange({
+  text: "London session",
+  startTime: candles[20].stamp,
+  timeRange: 4 * 60 * 60 * 1000,
+  config: {
+    color: "#f0b429",
+    textColor: "#f0b429",
+  },
+});
+```
+
+Risk or outcome marker:
+
+```ts
+chart.toolDrawer.drawTimeBet({
+  price: candles[40].c,
+  predictedDirection: "up",
+  reward: 2,
+  bet: 1,
+  startTime: candles[40].stamp,
+  timeRange: 2 * 60 * 60 * 1000,
+  status: "open",
+  isWinning: false,
+});
+```
+
+## Draw generic tools
+
+Use `drawTool()` when you want to create a drawing object directly.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "trendLine",
+  color: "#14f7ab",
+  width: 2,
+  anchors: [
+    {
+      stamp: candles[5].stamp,
+      offset: 0,
+      value: candles[5].l,
+      _index: 0,
+      expandable: true,
+      expanded: false,
+      defaultDirection: "left",
+    },
+    {
+      stamp: candles[15].stamp,
+      offset: 0,
+      value: candles[15].h,
+      _index: 0,
+      expandable: true,
+      expanded: false,
+      defaultDirection: "right",
+    },
+  ],
+});
+```
+
+The React UI left menu currently exposes drawing types such as `trendLine`, `parallelChannel`, `fibonLines`, `triangle`, `arrow`, `hLine`, `vLine`, `mLine`, `abcd`, `ellipse`, `vRange`, `hRange`, `cycle`, `box`, `textAnnotation`, and `priceTag`.
+
+## Change interaction mode
+
+Access the interactor with `getInteractor()`.
+
+```ts
+const interactor = chart.getInteractor();
+
+interactor.setMode("CROSSHAIR");
+```
+
+The interactor also supports object-selection control when the runtime exposes `setObjectSelectionAllowed()`.
+
+## Remove a drawing
+
+`drawTool()` returns the drawing identifier when creation succeeds.
+
+```ts
+const toolId = chart.toolDrawer.drawTrendLine({
+  startStamp: candles[1].stamp,
+  endStamp: candles[10].stamp,
+});
+
+if (toolId !== undefined) {
+  chart.toolDrawer.deleteTool(toolId);
+}
+```
+
+Use this page as the short entry point, then continue with the dedicated drawing-tools section:
+
+- [Drawing tools overview](../drawing-tools/overview)
+- [Drawing tools catalog](../drawing-tools/catalog)
+- [Trend line](../drawing-tools/trend-line)
+- [Levels and channels](../drawing-tools/levels-and-channels)
+- [Lines, ranges, and tags](../drawing-tools/lines-ranges-and-tags)
+- [Shapes and annotations](../drawing-tools/shapes-and-annotations)

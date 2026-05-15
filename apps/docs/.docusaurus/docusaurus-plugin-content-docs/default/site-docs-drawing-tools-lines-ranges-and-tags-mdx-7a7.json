@@ -1,0 +1,28 @@
+{
+  "id": "drawing-tools/lines-ranges-and-tags",
+  "title": "Lines, Ranges, and Tags",
+  "description": "Create price levels, time markers, session windows, and pinned price labels.",
+  "source": "@site/docs/drawing-tools/lines-ranges-and-tags.mdx",
+  "sourceDirName": "drawing-tools",
+  "slug": "/drawing-tools/lines-ranges-and-tags",
+  "permalink": "/docs/drawing-tools/lines-ranges-and-tags",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "Lines, Ranges, and Tags",
+    "description": "Create price levels, time markers, session windows, and pinned price labels."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Levels and Channels",
+    "permalink": "/docs/drawing-tools/levels-and-channels"
+  },
+  "next": {
+    "title": "Shapes and Annotations",
+    "permalink": "/docs/drawing-tools/shapes-and-annotations"
+  }
+}

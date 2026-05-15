@@ -1,0 +1,148 @@
+---
+sidebar_position: 2
+title: Programmatic Wiring
+description: Wire strategy and function inputs to other script outputs with cloned script definitions, series references, and live examples.
+---
+
+import ScriptWiringShowcase from "@site/src/components/ScriptWiringShowcase";
+
+# Programmatic wiring
+
+The first `chart.addScript("EMA")` case is straightforward because the script definition already carries usable defaults. The next level is wiring one script to the outputs of another.
+
+The runtime path is:
+
+1. Add the base script that produces the output series you need.
+2. Read `chart.getSeriesManager()` and capture the generated `seriesId:field` reference.
+3. Clone the dependent script definition from `chart.getScripts()`.
+4. Write the input values you want onto the cloned definition.
+5. Call `chart.addScript(scriptKey, clonedDefinition)`.
+
+`series` inputs expect a string in the form `seriesId:field`. `conditional` inputs can switch from constant mode to series mode by setting their value to an object of the form `{ type: "series", value: "seriesId:field" }`.
+
+## Clone before you mutate
+
+Treat the objects returned by `getScripts()` as reusable templates, not as one-off editable instances.
+
+Use a clone before changing input values:
+
+```ts
+import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
+
+function cloneScript(script: ScriptDefinition): ScriptDefinition {
+  return JSON.parse(JSON.stringify(script));
+}
+
+function getSeriesReference(chart: ChartInstance, field: string): string {
+  const series = Object.values(chart.getSeriesManager()).find((candidate) =>
+    candidate.fields.includes(field)
+  );
+
+  if (!series?.seriesId) {
+    throw new Error(`Series field ${field} not found`);
+  }
+
+  return `${series.seriesId}:${field}`;
+}
+
+function asConditionalSeries(reference: string) {
+  return { type: "series", value: reference };
+}
+```
+
+## Strategy wiring example: CROSS from EMA and SMA
+
+`CROSS` ships with MACD defaults, but it can compare any two series once you point its `LINE` and `SIGNAL` inputs at real outputs.
+
+```ts
+const ema = cloneScript(chart.getScripts().EMA);
+ema.inputs.PERIODS.value = 12;
+chart.addScript("EMA", ema);
+
+const sma = cloneScript(chart.getScripts().SMA);
+sma.inputs.PERIODS.value = 34;
+chart.addScript("SMA", sma);
+
+const emaRef = getSeriesReference(chart, "EMA");
+const smaRef = getSeriesReference(chart, "SMA");
+
+const cross = cloneScript(chart.getScripts().CROSS);
+cross.inputs.LINE.value = emaRef;
+cross.inputs.SIGNAL.value = smaRef;
+cross.inputs.ONDN.value = "Buy";
+cross.inputs.ONUP.value = "Sell";
+
+chart.addScript("CROSS", cross);
+```
+
+That produces a strategy layer from two indicator outputs instead of from the default MACD line pair.
+
+## Strategy-to-strategy wiring example: POSITION from CROSS
+
+`POSITION` consumes a strategy stream and turns it into a running position-size series in a separate pane.
+
+```ts
+const crossRef = getSeriesReference(chart, "CrossValue");
+
+const position = cloneScript(chart.getScripts().POSITION);
+position.inputs.STRATEGY.value = crossRef;
+position.inputs.WEIGHT.value = 1;
+position.inputs.MULTIPLIER.value = { type: "double", value: 1 };
+
+chart.addScript("POSITION", position);
+```
+
+`STRATEGY` is a `series` input. `MULTIPLIER` is a `conditional` input, so it can stay constant as shown above or switch to another series with `asConditionalSeries(reference)`.
+
+## Function wiring example: DISPLACE from EMA
+
+`DISPLACE` is a plain `series` input example. After the source indicator exists, point `DSERIES` at that output reference.
+
+```ts
+const emaRef = getSeriesReference(chart, "EMA");
+
+const displace = cloneScript(chart.getScripts().DISPLACE);
+displace.inputs.DSERIES.value = emaRef;
+displace.inputs.PERIODS.value = 18;
+displace.inputs.VALUE.value = 0;
+
+chart.addScript("DISPLACE", displace);
+```
+
+That creates a shifted overlay from the output of another script instead of from the raw price series.
+
+## Function wiring example: IF with conditional series inputs
+
+`IF` is the clearest example of a `conditional` input switching into series mode.
+
+```ts
+const emaRef = getSeriesReference(chart, "EMA");
+const smaRef = getSeriesReference(chart, "SMA");
+
+const ifScript = cloneScript(chart.getScripts().IF);
+ifScript.inputs.VAL_A.value = asConditionalSeries(emaRef);
+ifScript.inputs.VAL_B.value = asConditionalSeries(smaRef);
+ifScript.inputs.VAL_X.value = { type: "double", value: 1 };
+ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
+ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
+
+chart.addScript("IF", ifScript);
+```
+
+That turns `IF` into a compact regime series: `1` when EMA is above SMA, `0` when equal, and `-1` when below.
+
+## Live examples
+
+The live examples below run the same wiring path on the real BTC/USD fixture used elsewhere in the docs.
+
+<ScriptWiringShowcase />
+
+## What this does not cover yet
+
+This page focuses on the most common input shapes:
+
+- `series`
+- `conditional`
+- plain numeric and list inputs that support those examples
+
+Matrix inputs such as `JOIN`, `DOUBLECHECK`, and `MIX`, plus boolean-list inputs such as `CANDLESTICKPATTERNS`, still deserve their own dedicated pass.

@@ -1,0 +1,42 @@
+---
+sidebar_position: 8
+title: Function Catalog
+description: Browse the current built-in function families and the keys you add with chart.addScript().
+---
+
+# Function catalog
+
+The source of truth for built-in function keys is the Fusion function registry in `packages/chart/src/fusion-scripts/functions/index.ts`. This page groups the current keys by the kind of series transformation they perform.
+
+## Price-range and level helpers
+
+- `HIGHEST`: rolling highest-high series with default input `h` and default `PERIODS = 25`.
+- `LOWEST`: rolling lowest-low series with default input `l` and default `PERIODS = 25`.
+- `FIBONACCI`: rolling retracement and extension levels derived from default `h` and `l` inputs with `PERIODS = 24`.
+
+## Arithmetic and transform helpers
+
+- `DISPLACE`: shifts a source series by `PERIODS` and adds an optional numeric offset.
+- `IGLUE`: applies `Add`, `Substract`, `Multiply`, `Divide`, or `Power of` between two series.
+- `IMOD`: applies the same operation set between a series and a constant modifier.
+- `1x`: outputs the reciprocal of the input series.
+
+## Conditional and aggregation helpers
+
+- `IF`: selects one of three results based on whether `VAL_A` is greater than, equal to, or less than `VAL_B`.
+- `SUM`: adds up to ten conditional inputs.
+- `AVERAGE`: averages up to ten conditional inputs while skipping missing values.
+
+## How to use the catalog
+
+The runtime key is the string you pass into `addScript()`.
+
+```ts
+chart.addScript("HIGHEST");
+chart.addScript("DISPLACE");
+chart.addScript("IF");
+```
+
+Keys with price-based defaults are the easiest first steps. Generic transformer keys often become more useful when you can wire them to other script outputs.
+
+If you want concrete defaults and behavior for the highest-value built-ins, continue with [Key functions](./key-functions).

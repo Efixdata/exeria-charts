@@ -1,0 +1,92 @@
+---
+sidebar_position: 2
+title: Data Model
+description: Learn the core data shapes used by the runtime chart and script system.
+---
+
+# Data model
+
+The main chart runtime works with four concepts first: `Candle`, `Tick`, `Interval`, and `Instrument`.
+
+## Candle
+
+Use candles when you already have aggregated OHLCV data.
+
+```ts
+type Candle = {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  stamp: number;
+  v?: number;
+};
+```
+
+Example:
+
+```ts
+const candle = {
+  stamp: 1715472000000,
+  o: 101.2,
+  h: 103.1,
+  l: 100.9,
+  c: 102.8,
+  v: 3200,
+};
+```
+
+## Tick
+
+Use ticks when your feed is arriving trade by trade or quote by quote.
+
+```ts
+type Tick = {
+  stamp: number;
+  o?: number;
+  h?: number;
+  l?: number;
+  c?: number;
+  v?: number;
+  price?: number;
+};
+```
+
+`appendTick()` can work from a `price` field or from explicit OHLC fields depending on your feed shape.
+
+## Interval
+
+`Interval` describes the active timeframe.
+
+```ts
+const interval = {
+  symbol: "1h",
+  milis: 60 * 60 * 1000,
+};
+```
+
+Pass the interval when you call `setMainSeriesData()` if the chart should emit the correct interval change event and keep the main series metadata aligned.
+
+## Instrument
+
+`Instrument` carries symbol-level metadata such as display symbol, price precision, default interval, and available intervals.
+
+```ts
+const instrument = {
+  symbol: "BTCUSD",
+  currency: "USD",
+  precision: 2,
+  availableIntervals: [
+    { symbol: "5m", milis: 5 * 60 * 1000 },
+    { symbol: "1h", milis: 60 * 60 * 1000 },
+  ],
+};
+```
+
+Set the instrument in the constructor or later with `setInstrument()`.
+
+## Data and scripts
+
+The runtime also exposes script definitions through `getScripts()` and data series through `getSeriesManager()`. Those become relevant when you start adding built-in indicators, strategies, or custom scripts.
+
+Next step: read [Rendering and scales](./rendering-and-scales) and [Realtime updates](../chart-usage/realtime-updates).

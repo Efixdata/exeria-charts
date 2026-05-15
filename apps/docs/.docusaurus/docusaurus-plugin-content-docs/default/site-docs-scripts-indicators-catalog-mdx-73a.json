@@ -1,0 +1,28 @@
+{
+  "id": "scripts/indicators/catalog",
+  "title": "Indicator Catalog",
+  "description": "Browse the current built-in indicator families and the keys you add with chart.addScript().",
+  "source": "@site/docs/scripts/indicators/catalog.mdx",
+  "sourceDirName": "scripts/indicators",
+  "slug": "/scripts/indicators/catalog",
+  "permalink": "/docs/scripts/indicators/catalog",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Indicator Catalog",
+    "description": "Browse the current built-in indicator families and the keys you add with chart.addScript()."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Indicators Overview",
+    "permalink": "/docs/scripts/indicators/overview"
+  },
+  "next": {
+    "title": "Key Indicators",
+    "permalink": "/docs/scripts/indicators/key-indicators"
+  }
+}

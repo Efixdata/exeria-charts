@@ -1,0 +1,43 @@
+---
+sidebar_position: 5
+title: Strategy Catalog
+description: Browse the current built-in strategy families and the keys you add with chart.addScript().
+---
+
+# Strategy catalog
+
+The source of truth for built-in strategy keys is the Fusion strategy registry in `packages/chart/src/fusion-scripts/strategies/index.ts`. This page groups the current keys by the kind of signal work they do.
+
+## Direct event and threshold strategies
+
+- `CROSS`: emits signals when one series crosses another.
+- `EXCEED`: emits signals when price or another series pushes beyond upper or lower bounds.
+- `REBOUND`: emits signals when a series moves back inside upper or lower bounds.
+- `GREATERLESS`: emits a chosen signal when one series is greater than, less than, or equal to another.
+- `CANDLESTICKPATTERNS`: scans OHLC candles for a built-in set of candlestick patterns and renders pattern markers.
+
+## Signal combination and cleanup strategies
+
+- `SINGLE`: suppresses repeated signals and can optionally reverse behavior.
+- `JOIN`: combines two strategy series with the default Fusion signal matrix.
+- `DOUBLECHECK`: combines two strategy series with the runtime double-check matrix.
+- `MIX`: combines two strategy series with an editable matrix.
+
+## Position and size transforms
+
+- `POSITION`: converts a signal stream into a running position-size series using weight and multiplier inputs.
+- `DIFFER`: converts a position-size series into buy/sell deltas based on position changes.
+
+## How to use the catalog
+
+The runtime key is the string you pass into `addScript()`.
+
+```ts
+chart.addScript("CROSS");
+chart.addScript("EXCEED");
+chart.addScript("MIX");
+```
+
+Some strategy keys are immediately useful with their default input definitions, while composition keys such as `MIX`, `JOIN`, `DOUBLECHECK`, `POSITION`, and `DIFFER` usually make more sense after runtime-level input configuration.
+
+If you want concrete defaults and behavior for the most useful built-ins, continue with [Key strategies](./key-strategies).

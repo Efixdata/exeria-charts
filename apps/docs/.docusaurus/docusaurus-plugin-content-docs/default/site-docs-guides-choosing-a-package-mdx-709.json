@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "React Quickstart",
-    "permalink": "/docs/getting-started/react"
+    "title": "Live Theme Creator",
+    "permalink": "/docs/theming/live-theme-creator"
   },
   "next": {
     "title": "Licensing",

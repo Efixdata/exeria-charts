@@ -1,0 +1,85 @@
+---
+sidebar_position: 1
+title: ChartInstance
+description: Reference the stable, typed public runtime surface returned by createChart().
+---
+
+# ChartInstance
+
+`createChart()` returns `ChartInstance`, the typed public runtime surface.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({ container });
+```
+
+## Lifecycle
+
+- `init(): void`
+- `destroy(): void`
+
+## Instrument and interval
+
+- `setInstrument(instrument): void`
+- `getInstrument(): Instrument | undefined`
+- `getInterval(): Interval | undefined`
+- `getCurrency(): string | undefined`
+
+## Main-series data
+
+- `setMainSeriesData(data, interval?, moveToEnd?): Promise<void>`
+- `appendMainSeriesData(data): void`
+- `appendTick(tick, recalculate?): void`
+- `appendTicks(ticks, recalculate?): void`
+
+## Rendering and scale
+
+- `setMainDrawMode(mode): void`
+- `getValueAxisMode(): ValueAxisMode`
+- `setValueAxisMode(mode): void`
+- `getValueAxisWidth(): number`
+- `getAutoScale(): boolean`
+- `setAutoScale(autoScale): void`
+
+## Scripts and data access
+
+- `getScripts(): Record<string, ScriptDefinition>`
+- `addScript(scriptKey, proto?): void`
+- `getSeriesManager(): ChartSeriesManager`
+- `getInteractor(): ChartInteractor`
+
+## Drawings and export
+
+- `toolDrawer.drawTool(toolConfig)`
+- `toolDrawer.drawTrendLine(initialOptions?)`
+- `toolDrawer.drawTimeRange(initialOptions)`
+- `toolDrawer.drawTimeBet(initialOptions)`
+- `toolDrawer.deleteTool(id)`
+- `onDownload(watermark?, watermarkWidth?, watermarkHeight?): void`
+
+## Events
+
+`subscribe()` supports typed topics from `ChartEventPayloads`.
+
+```ts
+const subscription = chart.subscribe("INTERVAL_CHANGE", (interval) => {
+  console.log(interval.symbol);
+});
+
+subscription?.unsubscribe();
+```
+
+Available typed topics:
+
+- `AUTOSCALE`
+- `CURSOR_CHANGE`
+- `INTERVAL_CHANGE`
+- `OBJECT_SELECTION_ALLOWED_CHANGE`
+- `VALUE_AXIS_WIDTH_CHANGE`
+
+## Boundary with the Chart class
+
+Methods such as `moveToEnd()`, `moveToStamp()`, `upsertCandle()`, and `addPanelToModel()` are available on the exported `Chart` class but are not currently part of `ChartInstance`.
+
+Read [Chart runtime access](../advanced/chart-class-runtime) before depending on those runtime-only methods.
