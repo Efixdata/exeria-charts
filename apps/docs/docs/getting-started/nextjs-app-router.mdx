@@ -1,0 +1,110 @@
+---
+sidebar_position: 4
+title: Next.js App Router
+description: Mount Exeria Charts in a Next.js App Router app without evaluating the runtime on the server.
+---
+
+# Next.js App Router
+
+Use a client component for the chart surface. The runtime depends on browser APIs such as `window`, `document`, and `ResizeObserver`, so the chart should not be created during server rendering.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
+```
+
+## Create a client chart surface
+
+Create `app/components/chart-surface.tsx`.
+
+```tsx
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { Candle, ChartInstance, Interval } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+
+const candles: Candle[] = [
+  { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
+  { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
+];
+
+const interval: Interval = {
+  symbol: "1h",
+  milis: 60 * 60 * 1000,
+};
+
+export function ChartSurface() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [chart, setChart] = useState<ChartInstance | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    let instance: ChartInstance | null = null;
+
+    const mountChart = async () => {
+      const container = containerRef.current;
+      if (!container) {
+        return;
+      }
+
+      const { createChart } = await import("@efixdata/exeria-chart");
+      if (disposed) {
+        return;
+      }
+
+      instance = createChart({ container });
+      instance.init();
+      await instance.setMainSeriesData(candles, interval);
+
+      if (disposed) {
+        instance.destroy();
+        return;
+      }
+
+      setChart(instance);
+    };
+
+    void mountChart();
+
+    return () => {
+      disposed = true;
+      instance?.destroy();
+    };
+  }, []);
+
+  return (
+    <div style={{ height: 560 }}>
+      <ChartUI chart={chart}>
+        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+      </ChartUI>
+    </div>
+  );
+}
+```
+
+## Render it from a route
+
+Your route can stay a server component and just import the client surface.
+
+```tsx
+import { ChartSurface } from "./components/chart-surface";
+
+export default function Page() {
+  return (
+    <main style={{ padding: 24 }}>
+      <ChartSurface />
+    </main>
+  );
+}
+```
+
+## Notes
+
+- Keep `"use client"` at the top of the chart surface file.
+- Import `createChart()` inside the effect or isolate the whole chart surface behind a client-only boundary. That keeps the browser runtime out of the server render path.
+- `ChartUI` is safe to render with `chart={null}` during the first pass. The chart container still needs to be mounted as its child so the runtime has a DOM node to claim.
+- If you want the route chunk itself to stay lighter, you can wrap the chart surface in `next/dynamic(..., { ssr: false })` instead of importing it directly.
+
+Next step: use [React quickstart](./react) for the shared wrapper model and [Loading data](../chart-usage/loading-data) when you move from inline candles to live API responses.

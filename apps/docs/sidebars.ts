@@ -6,7 +6,12 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Getting Started",
-      items: ["getting-started/vanilla", "getting-started/react"],
+      items: [
+        "getting-started/vanilla",
+        "getting-started/react",
+        "getting-started/vite-react",
+        "getting-started/nextjs-app-router",
+      ],
     },
     {
       type: "category",

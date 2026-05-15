@@ -22,7 +22,7 @@
     "permalink": "/docs/getting-started/vanilla"
   },
   "next": {
-    "title": "Chart Lifecycle",
-    "permalink": "/docs/core-concepts/chart-lifecycle"
+    "title": "Vite + React",
+    "permalink": "/docs/getting-started/vite-react"
   }
 }

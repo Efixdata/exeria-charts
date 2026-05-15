@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "React Quickstart",
-    "permalink": "/docs/getting-started/react"
+    "title": "Next.js App Router",
+    "permalink": "/docs/getting-started/nextjs-app-router"
   },
   "next": {
     "title": "Data Model",

@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/nextjs-app-router",
+  "title": "Next.js App Router",
+  "description": "Mount Exeria Charts in a Next.js App Router app without evaluating the runtime on the server.",
+  "source": "@site/docs/getting-started/nextjs-app-router.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/nextjs-app-router",
+  "permalink": "/docs/getting-started/nextjs-app-router",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Next.js App Router",
+    "description": "Mount Exeria Charts in a Next.js App Router app without evaluating the runtime on the server."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Vite + React",
+    "permalink": "/docs/getting-started/vite-react"
+  },
+  "next": {
+    "title": "Chart Lifecycle",
+    "permalink": "/docs/core-concepts/chart-lifecycle"
+  }
+}

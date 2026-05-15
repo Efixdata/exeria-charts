@@ -1,0 +1,28 @@
+{
+  "id": "getting-started/vite-react",
+  "title": "Vite + React",
+  "description": "Mount Exeria Charts in a Vite React app with the optional React UI wrapper.",
+  "source": "@site/docs/getting-started/vite-react.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/vite-react",
+  "permalink": "/docs/getting-started/vite-react",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Vite + React",
+    "description": "Mount Exeria Charts in a Vite React app with the optional React UI wrapper."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "React Quickstart",
+    "permalink": "/docs/getting-started/react"
+  },
+  "next": {
+    "title": "Next.js App Router",
+    "permalink": "/docs/getting-started/nextjs-app-router"
+  }
+}

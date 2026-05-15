@@ -1,0 +1,92 @@
+---
+sidebar_position: 3
+title: Vite + React
+description: Mount Exeria Charts in a Vite React app with the optional React UI wrapper.
+---
+
+# Vite + React
+
+Use this path when you want a browser-only React app with the smallest amount of bundler setup.
+
+## Scaffold the app
+
+```bash
+npm create vite@latest exeria-vite -- --template react-ts
+cd exeria-vite
+npm install
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
+```
+
+## Mount the runtime and UI wrapper
+
+Replace `src/App.tsx` with a chart surface that mounts the runtime in an effect and keeps the chart container inside `ChartUI`.
+
+```tsx
+import { useEffect, useRef, useState } from "react";
+import {
+  createChart,
+  type Candle,
+  type ChartInstance,
+  type Interval,
+} from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+
+const candles: Candle[] = [
+  { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
+  { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
+];
+
+const interval: Interval = {
+  symbol: "1h",
+  milis: 60 * 60 * 1000,
+};
+
+export default function App() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [chart, setChart] = useState<ChartInstance | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    let disposed = false;
+    const instance = createChart({ container });
+
+    instance.init();
+
+    void (async () => {
+      await instance.setMainSeriesData(candles, interval);
+
+      if (!disposed) {
+        setChart(instance);
+      }
+    })();
+
+    return () => {
+      disposed = true;
+      instance.destroy();
+    };
+  }, []);
+
+  return (
+    <main style={{ padding: 24 }}>
+      <div style={{ height: 560 }}>
+        <ChartUI chart={chart}>
+          <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+        </ChartUI>
+      </div>
+    </main>
+  );
+}
+```
+
+## Notes
+
+- Vite runs this surface fully on the client, so you do not need an SSR guard around the chart module.
+- Keep a non-zero height on the wrapper that contains `ChartUI`, otherwise the chart has nothing to size against.
+- Keep the chart container as a child of `ChartUI`. The wrapper renders the toolbar and menus around that child surface.
+- If you do not need the built-in toolbar and left menu, remove `ChartUI` and keep the `createChart()` lifecycle exactly the same.
+
+Next step: continue with [React quickstart](./react) for the generic wrapper pattern, then [Theming overview](../theming/overview) when you want to style both the runtime and the React chrome.

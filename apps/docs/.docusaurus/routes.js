@@ -4,15 +4,15 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 export default [
   {
     path: '/docs',
-    component: ComponentCreator('/docs', '112'),
+    component: ComponentCreator('/docs', 'aa4'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '7a9'),
+        component: ComponentCreator('/docs', '08d'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', '426'),
+            component: ComponentCreator('/docs', '5d2'),
             routes: [
               {
                 path: '/docs/advanced/chart-class-runtime',
@@ -99,6 +99,12 @@ export default [
                 sidebar: "docsSidebar"
               },
               {
+                path: '/docs/getting-started/nextjs-app-router',
+                component: ComponentCreator('/docs/getting-started/nextjs-app-router', '36d'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
                 path: '/docs/getting-started/react',
                 component: ComponentCreator('/docs/getting-started/react', '7af'),
                 exact: true,
@@ -107,6 +113,12 @@ export default [
               {
                 path: '/docs/getting-started/vanilla',
                 component: ComponentCreator('/docs/getting-started/vanilla', 'cbb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/getting-started/vite-react',
+                component: ComponentCreator('/docs/getting-started/vite-react', '926'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

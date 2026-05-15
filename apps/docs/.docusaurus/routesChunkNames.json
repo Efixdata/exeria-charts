@@ -1,15 +1,15 @@
 {
-  "/docs-112": {
+  "/docs-aa4": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs-7a9": {
+  "/docs-08d": {
     "__comp": "a7bd4aaa",
     "__props": "0058b4c6"
   },
-  "/docs-426": {
+  "/docs-5d2": {
     "__comp": "a94703ab"
   },
   "/docs/advanced/chart-class-runtime-45f": {
@@ -68,6 +68,10 @@
     "__comp": "17896441",
     "content": "a4d89a07"
   },
+  "/docs/getting-started/nextjs-app-router-36d": {
+    "__comp": "17896441",
+    "content": "426fdd8c"
+  },
   "/docs/getting-started/react-7af": {
     "__comp": "17896441",
     "content": "915b85df"
@@ -75,6 +79,10 @@
   "/docs/getting-started/vanilla-cbb": {
     "__comp": "17896441",
     "content": "577ba503"
+  },
+  "/docs/getting-started/vite-react-926": {
+    "__comp": "17896441",
+    "content": "7f6b9b06"
   },
   "/docs/guides/choosing-a-package-838": {
     "__comp": "17896441",

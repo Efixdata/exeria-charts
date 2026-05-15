@@ -41,6 +41,18 @@ const guides = [
     cta: "Read React guide",
   },
   {
+    title: "Vite + React",
+    body: "Use the runtime and optional ChartUI wrapper in a browser-only React app with minimal bundler ceremony.",
+    href: "/docs/getting-started/vite-react",
+    cta: "Open Vite guide",
+  },
+  {
+    title: "Next.js App Router",
+    body: "Keep the chart inside a client boundary, avoid SSR pitfalls, and stream the rest of the route from the server.",
+    href: "/docs/getting-started/nextjs-app-router",
+    cta: "Read Next.js guide",
+  },
+  {
     title: "Licensing",
     body: "Understand the source-available model before you move from evaluation to a commercial rollout.",
     href: "/docs/guides/licensing",

@@ -81,6 +81,11 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "getting-started/nextjs-app-router",
+              "path": "/docs/getting-started/nextjs-app-router",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "getting-started/react",
               "path": "/docs/getting-started/react",
               "sidebar": "docsSidebar"
@@ -88,6 +93,11 @@
             {
               "id": "getting-started/vanilla",
               "path": "/docs/getting-started/vanilla",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/vite-react",
+              "path": "/docs/getting-started/vite-react",
               "sidebar": "docsSidebar"
             },
             {

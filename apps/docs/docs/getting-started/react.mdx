@@ -17,8 +17,13 @@ npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ## Mount the runtime and UI wrapper
 
 ```tsx
-import { useLayoutEffect, useRef, useState } from "react";
-import Chart, { type Candle, type ChartInstance } from "@efixdata/exeria-chart";
+import { useEffect, useRef, useState } from "react";
+import {
+  createChart,
+  type Candle,
+  type ChartInstance,
+  type Interval,
+} from "@efixdata/exeria-chart";
 import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const candles: Candle[] = [
@@ -32,32 +37,45 @@ const candles: Candle[] = [
   },
 ];
 
+const interval: Interval = {
+  symbol: "1h",
+  milis: 60 * 60 * 1000,
+};
+
 export function ChartExample() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [chart, setChart] = useState<ChartInstance | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) {
-      return undefined;
+      return;
     }
 
-    const instance = new Chart({ container });
+    let disposed = false;
+    const instance = createChart({ container });
 
     instance.init();
-    void instance.setMainSeriesData(candles);
-    setChart(instance);
+
+    void (async () => {
+      await instance.setMainSeriesData(candles, interval);
+
+      if (!disposed) {
+        setChart(instance);
+      }
+    })();
 
     return () => {
+      disposed = true;
       instance.destroy();
-      setChart(null);
     };
   }, []);
 
   return (
-    <div>
-      <div ref={containerRef} style={{ height: 480 }} />
-      {chart ? <ChartUI chart={chart} /> : null}
+    <div style={{ height: 480 }}>
+      <ChartUI chart={chart}>
+        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+      </ChartUI>
     </div>
   );
 }
@@ -66,8 +84,8 @@ export function ChartExample() {
 ## Notes
 
 - Create and destroy the runtime chart instance yourself.
-- Pass the live `chart` instance into `ChartUI` only after the runtime is ready.
-- Keep the runtime container and the UI wrapper inside the same layout surface.
+- Keep the chart container mounted as a child of `ChartUI`. The wrapper renders the toolbar and left menu around that child surface.
+- `ChartUI` can render before the runtime is ready. Pass `chart={null}` until your chart instance exists.
 - Use the runtime constructor options for chart colors and `ChartUI`'s `theme` prop for toolbar and menu styling.
 
-If you need the smallest possible first integration, start with the [vanilla quickstart](./vanilla) and add the UI wrapper after your data flow is stable. Then continue with [Theming overview](../theming/overview) and [ChartInstance reference](../api-reference/chart-instance).
+If you need the smallest possible first integration, start with the [vanilla quickstart](./vanilla) and add the UI wrapper after your data flow is stable. For stack-specific setup, use [Vite + React](./vite-react) or [Next.js App Router](./nextjs-app-router). Then continue with [Theming overview](../theming/overview) and [ChartInstance reference](../api-reference/chart-instance).
