@@ -29,7 +29,7 @@
   --ifm-heading-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ifm-navbar-background-color: rgba(var(--doc-bg-rgb), 0.7);
   --ifm-navbar-link-color: var(--doc-text-secondary);
-  --ifm-footer-background-color: var(--doc-surface);
+  --ifm-footer-background-color: var(--doc-bg);
   --ifm-footer-color: var(--doc-text-secondary);
   --ifm-footer-link-color: var(--doc-text-secondary);
   --ifm-heading-color: var(--doc-text);
@@ -62,7 +62,7 @@ html[data-theme="dark"] {
   --ifm-background-color: var(--doc-bg);
   --ifm-background-surface-color: var(--doc-surface);
   --ifm-navbar-background-color: rgba(var(--doc-bg-rgb), 0.72);
-  --ifm-footer-background-color: var(--doc-surface);
+  --ifm-footer-background-color: var(--doc-bg);
   --ifm-footer-color: var(--doc-text-secondary);
   --ifm-footer-link-color: var(--doc-text-secondary);
 }
@@ -258,7 +258,20 @@ html[data-theme="dark"] div[class^="codeBlockContainer"] {
 }
 
 .footer {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--doc-surface) 72%, transparent) 0%, transparent 96px),
+    var(--doc-bg);
   border-top: 1px solid var(--doc-border);
+}
+
+.footer__bottom {
+  border-top: 1px solid color-mix(in srgb, var(--doc-border) 72%, transparent);
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.footer__logo {
+  margin-top: 0;
 }
 
 .footer__title,

@@ -1,0 +1,110 @@
+---
+sidebar_position: 2
+title: Custom Indicator Authoring
+description: Author a new indicator inside the Exeria Charts package source, register it in the Fusion registry, and expose it to chart.addScript().
+---
+
+# Custom indicator authoring
+
+There are two different meanings of custom indicator work in this codebase:
+
+1. Reconfigure a built-in indicator by cloning the output of `chart.getScripts()`, changing input values, and calling `chart.addScript(existingKey, clonedDefinition)`.
+2. Author a net-new indicator key by adding a new Fusion script file under the package source and registering it in the indicator registry.
+
+This page covers the second path.
+
+Read [Fusion script authoring conventions](../authoring-conventions) first for the shared runtime boundary, helper usage, registry workflow, locale rules, and validation steps.
+
+If you only need to change inputs or wire one built-in script to another, stay on the public runtime path and use [Programmatic wiring](../programmatic-wiring).
+
+## Start from the closest built-in indicator
+
+The source-backed indicator files live under `packages/chart/src/fusion-scripts/indicators/`.
+
+Use a nearby indicator as your template:
+
+- `EMA.ts` is a good overlay example with one output series and a simple controller.
+- `ATR.ts` is a good new-pane example and shows the shared `createSeriesOutput()` helper.
+- `KELTNERCHANNEL.ts` is a good multi-output example when you need several plotted lines.
+
+Most current files use the shared helper pattern summarized in [Fusion script authoring conventions](../authoring-conventions).
+
+## Example: author a price-spread indicator
+
+Create a new file such as `packages/chart/src/fusion-scripts/indicators/PRICESPREAD.ts`.
+
+```ts
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesLinePlotter,
+  createSeriesOutput,
+  defineScript,
+} from "../helpers/scriptDefinition";
+
+export default function createPriceSpreadIndicatorScript(FUSION: CoreFusionStatic) {
+  return defineScript({
+    title: "priceSpreadTitle",
+    description: "priceSpreadDescription",
+    type: "indicators",
+    newPane: true,
+    centerZero: true,
+
+    inputs: {
+      OPEN: { type: "series", name: "priceOpen", properties: { def: "o" }, value: null },
+      CLOSE: {
+        type: "series",
+        name: "priceClose",
+        properties: { def: "c" },
+        value: null,
+      },
+    },
+
+    outputs: {
+      SPREAD: createSeriesOutput("priceSpreadTitle", ["value"], ["SPREAD"]),
+    },
+
+    plotters: [
+      createSeriesLinePlotter({
+        dataLink: "SPREAD",
+        dataField: "SPREAD",
+        color: "#14b8a6",
+        width: 1.5,
+      }),
+    ],
+
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.calculate = function (index: number) {
+        const open = this.OPEN.getValue(index);
+        const close = this.CLOSE.getValue(index);
+
+        if (open == null || close == null) {
+          return;
+        }
+
+        this.SPREAD.setValue(index, close - open);
+      };
+    }),
+  });
+}
+```
+
+## What each part controls
+
+- `type: "indicators"` places the script in the indicator category.
+- `newPane` decides whether the script overlays the main chart or opens a separate pane.
+- `centerZero` is useful for oscillators that should render around zero.
+- `inputs` define the editable fields shown by the runtime. For `series` inputs, `properties.def` gives the runtime a default field to auto-bind against the current series, for example `o`, `h`, `l`, `c`, or `v`.
+- `outputs` define the runtime series objects created for the script. The field names you place there become the controller wrappers you write to, for example `this.SPREAD`.
+- `plotters` define how each output is drawn.
+- `controller` owns the actual calculation path. `init()` is optional. `calculate(index)` is where you read input wrappers and write output values.
+
+After the file exists, follow [Fusion script authoring conventions](../authoring-conventions) to register the new key, add locale strings, validate the package, and verify the runtime path.
+
+## Continue reading
+
+- [Fusion script authoring conventions](../authoring-conventions)
+- [Indicators overview](./overview)
+- [Programmatic wiring](../programmatic-wiring)
+- [Chart runtime access](../../advanced/chart-class-runtime)

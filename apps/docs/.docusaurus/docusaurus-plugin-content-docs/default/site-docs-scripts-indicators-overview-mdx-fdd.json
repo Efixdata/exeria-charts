@@ -18,11 +18,11 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Programmatic Wiring",
-    "permalink": "/docs/scripts/programmatic-wiring"
+    "title": "Fusion Script Authoring Conventions",
+    "permalink": "/docs/scripts/authoring-conventions"
   },
   "next": {
-    "title": "Indicator Catalog",
-    "permalink": "/docs/scripts/indicators/catalog"
+    "title": "Custom Indicator Authoring",
+    "permalink": "/docs/scripts/indicators/custom-indicators"
   }
 }

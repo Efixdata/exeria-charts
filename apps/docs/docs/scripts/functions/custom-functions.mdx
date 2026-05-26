@@ -1,0 +1,104 @@
+---
+sidebar_position: 8
+title: Custom Function Authoring
+description: Author a new function inside the Exeria Charts package source, register it in the Fusion registry, and expose it to chart.addScript().
+---
+
+# Custom function authoring
+
+There are two different meanings of custom function work in this codebase:
+
+1. Reconfigure a built-in function by cloning the output of `chart.getScripts()`, changing input values, and calling `chart.addScript(existingKey, clonedDefinition)`.
+2. Author a net-new function key by adding a new Fusion script file under the package source and registering it in the function registry.
+
+This page covers the second path.
+
+Read [Fusion script authoring conventions](../authoring-conventions) first for the shared runtime boundary, helper usage, registry workflow, locale rules, and validation steps.
+
+If you only need to feed an existing function from another script output, stay on the public runtime path and use [Programmatic wiring](../programmatic-wiring).
+
+## Start from the closest built-in function
+
+The source-backed function files live under `packages/chart/src/fusion-scripts/functions/`.
+
+Use a nearby function as your template:
+
+- `DISPLACE.ts` is a good single-series transform example.
+- `IF.ts` is a good example when you need conditional inputs that can switch between constant values and series references.
+- `IGLUE.ts`, `SUM.ts`, and `AVERAGE.ts` are good examples when you need multiple series inputs or a separate result pane.
+
+Most current files use the shared helper pattern summarized in [Fusion script authoring conventions](../authoring-conventions).
+
+## Example: author a series-spread function
+
+Create a new file such as `packages/chart/src/fusion-scripts/functions/SERIESSPREAD.ts`.
+
+```ts
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesLinePlotter,
+  createSeriesOutput,
+  defineScript,
+} from "../helpers/scriptDefinition";
+
+export default function createSeriesSpreadFunctionScript(FUSION: CoreFusionStatic) {
+  return defineScript({
+    title: "seriesSpreadTitle",
+    description: "seriesSpreadDescription",
+    type: "functions",
+    newPane: true,
+    centerZero: true,
+
+    inputs: {
+      A: { type: "series", name: "aSeries", properties: {}, value: null },
+      B: { type: "series", name: "bSeries", properties: {}, value: null },
+    },
+
+    outputs: {
+      SPREAD: createSeriesOutput("seriesSpreadTitle", ["value"], ["SPREAD"]),
+    },
+
+    plotters: [
+      createSeriesLinePlotter({
+        dataLink: "SPREAD",
+        dataField: "SPREAD",
+        color: "#22c55e",
+        width: 1.5,
+      }),
+    ],
+
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.calculate = function (index: number) {
+        const a = this.A.getValue(index);
+        const b = this.B.getValue(index);
+
+        if (a == null || b == null) {
+          return;
+        }
+
+        this.SPREAD.setValue(index, a - b);
+      };
+    }),
+  });
+}
+```
+
+## What each part controls
+
+- `type: "functions"` places the script in the function category.
+- `newPane` and `centerZero` are useful when the result should read as a zero-centered transform rather than as a price overlay.
+- `inputs` define the editable fields shown by the runtime. Functions often use generic series labels such as `aSeries` and `bSeries` because they are designed to accept other script outputs as well as main-series fields.
+- `outputs` define the runtime series objects created for the function. The field names you place there become the controller wrappers you write to, for example `this.SPREAD`.
+- `createSeriesLinePlotter()` is the simplest way to render a numeric function output as a line.
+- `controller` owns the calculation path. `calculate(index)` is where you read input wrappers and write derived output values.
+
+After the file exists, follow [Fusion script authoring conventions](../authoring-conventions) to register the new key, add locale strings, validate the package, and verify the runtime path.
+
+## Continue reading
+
+- [Fusion script authoring conventions](../authoring-conventions)
+- [Functions overview](./overview)
+- [Programmatic wiring](../programmatic-wiring)
+- [Chart runtime access](../../advanced/chart-class-runtime)

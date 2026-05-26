@@ -22,7 +22,7 @@
     "permalink": "/docs/scripts/strategies/key-strategies"
   },
   "next": {
-    "title": "Function Catalog",
-    "permalink": "/docs/scripts/functions/catalog"
+    "title": "Custom Function Authoring",
+    "permalink": "/docs/scripts/functions/custom-functions"
   }
 }

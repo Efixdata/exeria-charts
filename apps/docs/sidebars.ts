@@ -28,6 +28,8 @@ const sidebars: SidebarsConfig = {
       items: [
         "chart-usage/loading-data",
         "chart-usage/realtime-updates",
+        "chart-usage/navigation-and-viewport",
+        "chart-usage/autoscale-and-value-axis",
         "chart-usage/drawing-and-interaction",
       ],
     },
@@ -46,7 +48,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Advanced Integration",
-      items: ["advanced/chart-class-runtime"],
+      items: [
+        "advanced/chart-class-runtime",
+        "advanced/react-ui-integration",
+        "advanced/react-ui-toolbar-and-tools",
+      ],
     },
     {
       type: "category",
@@ -59,13 +65,17 @@ const sidebars: SidebarsConfig = {
       items: [
         "scripts/overview",
         "scripts/programmatic-wiring",
+        "scripts/authoring-conventions",
         "scripts/indicators/overview",
+        "scripts/indicators/custom-indicators",
         "scripts/indicators/catalog",
         "scripts/indicators/key-indicators",
         "scripts/strategies/overview",
+        "scripts/strategies/custom-strategies",
         "scripts/strategies/catalog",
         "scripts/strategies/key-strategies",
         "scripts/functions/overview",
+        "scripts/functions/custom-functions",
         "scripts/functions/catalog",
         "scripts/functions/key-functions",
       ],

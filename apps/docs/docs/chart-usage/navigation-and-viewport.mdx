@@ -1,0 +1,120 @@
+---
+sidebar_position: 3
+title: Navigation and Viewport
+description: Move the chart viewport programmatically, understand the ChartInstance boundary, and use the runtime class when you need direct navigation helpers.
+---
+
+# Navigation and viewport
+
+There are two levels of viewport control in this repository:
+
+1. The stable `ChartInstance` path returned by `createChart()`.
+2. The runtime `Chart` class when you need direct viewport helpers such as `moveToEnd()` or `moveToStamp()`.
+
+Use this page to decide which layer you actually need.
+
+## Stable public path
+
+`ChartInstance` does not expose direct viewport helpers.
+
+The stable surface still gives you several useful behaviors indirectly:
+
+- `setMainSeriesData(data, interval, true)` loads data and moves the chart to the right edge.
+- `appendTick()` and `appendTicks()` keep the current chart flow alive for realtime updates.
+- `setAutoScale(true)` recenters the vertical range after data or draw-mode changes.
+
+```ts
+const chart = createChart({ container, instrument });
+chart.init();
+
+await chart.setMainSeriesData(candles, interval, true);
+
+chart.appendTick({
+  stamp: Date.now(),
+  price: candles[candles.length - 1].c,
+  v: 1200,
+});
+```
+
+If that is enough for your workflow, stay on `ChartInstance`.
+
+## Runtime path for direct viewport control
+
+Use the exported `Chart` class when you need explicit viewport movement.
+
+```ts
+import Chart from "@efixdata/exeria-chart";
+
+const chart = new Chart({ container, instrument });
+chart.init();
+
+await chart.setMainSeriesData(candles, interval);
+
+chart.moveToEnd();
+chart.moveToStamp(candles[40].stamp);
+```
+
+These methods are currently runtime-only. They are implemented on the class but are not part of the typed `ChartInstance` contract.
+
+## What `moveToEnd()` actually does
+
+`moveToEnd()` calculates `viewportLeft` from:
+
+- the main-series data length
+- the current `periodWidth`
+- the rendered value-axis width
+- the model `endMargin`
+
+If the calculated position would be negative, the runtime clamps it back to `0`.
+
+Practical effect:
+
+- short datasets stay anchored to the left when there is not enough data to fill the viewport
+- longer datasets scroll until the rightmost candles are visible with the configured end margin
+
+## What `moveToStamp()` actually does
+
+`moveToStamp(stamp)` first resolves the nearest data index for the given timestamp and then uses the same viewport calculation pattern as `moveToEnd()`.
+
+Use it when you want to jump to a known candle instead of simply returning to the latest data.
+
+```ts
+const earningsStamp = candles[120].stamp;
+
+chart.moveToStamp(earningsStamp);
+```
+
+If the target stamp resolves near the beginning of the dataset, the runtime clamps the viewport back to `0` instead of trying to scroll into negative space.
+
+## Common patterns
+
+### Return to live mode after historical navigation
+
+```ts
+chart.moveToStamp(candles[30].stamp);
+
+// ...inspect older data...
+
+chart.moveToEnd();
+```
+
+### Load history and keep the chart on the latest bar
+
+```ts
+await chart.setMainSeriesData(candles, interval, true);
+```
+
+That third argument is the stable public shortcut when you only need an initial move-to-latest behavior.
+
+## Current boundary
+
+- `moveToEnd()` and `moveToStamp()` require the runtime `Chart` class.
+- `prependMainSeriesData()` still exists on the runtime class but remains a stub. Do not document it as a finished history-loader.
+- There is no typed `ChartInstance` event for viewport movement. The current typed events cover autoscale, cursor, interval changes, object-selection allowance, and value-axis width.
+
+## Continue reading
+
+- [Chart lifecycle](../core-concepts/chart-lifecycle)
+- [Realtime updates](./realtime-updates)
+- [Chart runtime access](../advanced/chart-class-runtime)
+- [ChartInstance](../api-reference/chart-instance)

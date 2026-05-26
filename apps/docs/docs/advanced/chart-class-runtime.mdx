@@ -65,3 +65,5 @@ chart.upsertCandle({
 `prependMainSeriesData()` exists on the class, but the current implementation is still a stub. Treat it as a forward-looking hook, not as a finished history-loading API.
 
 Prefer `createChart()` for the default public integration path. Reach for `Chart` directly only when you accept a closer coupling to the runtime implementation.
+
+Continue with [Navigation and viewport](../chart-usage/navigation-and-viewport) when the runtime-only methods you need are specifically about scrolling or jumping through the visible range. Continue with [React UI integration](./react-ui-integration) when your next layer is `ChartUI` rather than direct runtime control.

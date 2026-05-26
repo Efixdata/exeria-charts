@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Functions Overview",
-    "permalink": "/docs/scripts/functions/overview"
+    "title": "Custom Function Authoring",
+    "permalink": "/docs/scripts/functions/custom-functions"
   },
   "next": {
     "title": "Key Functions",

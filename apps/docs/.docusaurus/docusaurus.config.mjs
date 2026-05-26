@@ -60,7 +60,13 @@ export default {
     },
     "image": "img/social-card.jpg",
     "navbar": {
-      "title": "Exeria Charts",
+      "logo": {
+        "alt": "Exeria Charts",
+        "src": "img/exeria.svg",
+        "srcDark": "img/exeria-dark.svg",
+        "width": 111,
+        "height": 32
+      },
       "items": [
         {
           "type": "docSidebar",
@@ -83,6 +89,14 @@ export default {
     },
     "footer": {
       "style": "dark",
+      "logo": {
+        "alt": "Exeria Charts",
+        "src": "img/exeria.svg",
+        "srcDark": "img/exeria-dark.svg",
+        "href": "/",
+        "width": 124,
+        "height": 36
+      },
       "links": [
         {
           "title": "Docs",

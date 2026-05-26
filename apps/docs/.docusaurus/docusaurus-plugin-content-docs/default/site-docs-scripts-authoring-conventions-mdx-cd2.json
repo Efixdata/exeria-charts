@@ -1,0 +1,28 @@
+{
+  "id": "scripts/authoring-conventions",
+  "title": "Fusion Script Authoring Conventions",
+  "description": "Shared source-level rules for authoring indicators, strategies, and functions in the Fusion registry.",
+  "source": "@site/docs/scripts/authoring-conventions.mdx",
+  "sourceDirName": "scripts",
+  "slug": "/scripts/authoring-conventions",
+  "permalink": "/docs/scripts/authoring-conventions",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Fusion Script Authoring Conventions",
+    "description": "Shared source-level rules for authoring indicators, strategies, and functions in the Fusion registry."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Programmatic Wiring",
+    "permalink": "/docs/scripts/programmatic-wiring"
+  },
+  "next": {
+    "title": "Indicators Overview",
+    "permalink": "/docs/scripts/indicators/overview"
+  }
+}

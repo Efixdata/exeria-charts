@@ -1,0 +1,28 @@
+{
+  "id": "advanced/react-ui-toolbar-and-tools",
+  "title": "React UI Toolbar and Tools",
+  "description": "Configure the ChartUI toolbar, share flow, and left-menu tool coverage using the current React UI surface.",
+  "source": "@site/docs/advanced/react-ui-toolbar-and-tools.mdx",
+  "sourceDirName": "advanced",
+  "slug": "/advanced/react-ui-toolbar-and-tools",
+  "permalink": "/docs/advanced/react-ui-toolbar-and-tools",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "React UI Toolbar and Tools",
+    "description": "Configure the ChartUI toolbar, share flow, and left-menu tool coverage using the current React UI surface."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "React UI Integration",
+    "permalink": "/docs/advanced/react-ui-integration"
+  },
+  "next": {
+    "title": "ChartInstance",
+    "permalink": "/docs/api-reference/chart-instance"
+  }
+}

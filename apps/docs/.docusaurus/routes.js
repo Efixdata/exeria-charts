@@ -4,15 +4,15 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 export default [
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'aa4'),
+    component: ComponentCreator('/docs', '1ab'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '08d'),
+        component: ComponentCreator('/docs', '4b0'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', '5d2'),
+            component: ComponentCreator('/docs', '4c0'),
             routes: [
               {
                 path: '/docs/advanced/chart-class-runtime',
@@ -21,8 +21,26 @@ export default [
                 sidebar: "docsSidebar"
               },
               {
+                path: '/docs/advanced/react-ui-integration',
+                component: ComponentCreator('/docs/advanced/react-ui-integration', 'd2b'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/advanced/react-ui-toolbar-and-tools',
+                component: ComponentCreator('/docs/advanced/react-ui-toolbar-and-tools', 'fc8'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
                 path: '/docs/api-reference/chart-instance',
                 component: ComponentCreator('/docs/api-reference/chart-instance', '3fb'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/autoscale-and-value-axis',
+                component: ComponentCreator('/docs/chart-usage/autoscale-and-value-axis', '8a0'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -35,6 +53,12 @@ export default [
               {
                 path: '/docs/chart-usage/loading-data',
                 component: ComponentCreator('/docs/chart-usage/loading-data', 'a18'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/navigation-and-viewport',
+                component: ComponentCreator('/docs/chart-usage/navigation-and-viewport', '3ed'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -141,8 +165,20 @@ export default [
                 sidebar: "docsSidebar"
               },
               {
+                path: '/docs/scripts/authoring-conventions',
+                component: ComponentCreator('/docs/scripts/authoring-conventions', '16a'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
                 path: '/docs/scripts/functions/catalog',
                 component: ComponentCreator('/docs/scripts/functions/catalog', 'acd'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/functions/custom-functions',
+                component: ComponentCreator('/docs/scripts/functions/custom-functions', '281'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -161,6 +197,12 @@ export default [
               {
                 path: '/docs/scripts/indicators/catalog',
                 component: ComponentCreator('/docs/scripts/indicators/catalog', '46c'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/indicators/custom-indicators',
+                component: ComponentCreator('/docs/scripts/indicators/custom-indicators', 'a19'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -191,6 +233,12 @@ export default [
               {
                 path: '/docs/scripts/strategies/catalog',
                 component: ComponentCreator('/docs/scripts/strategies/catalog', 'e73'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/scripts/strategies/custom-strategies',
+                component: ComponentCreator('/docs/scripts/strategies/custom-strategies', 'efa'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

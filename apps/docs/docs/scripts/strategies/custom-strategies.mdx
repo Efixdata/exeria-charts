@@ -1,0 +1,126 @@
+---
+sidebar_position: 5
+title: Custom Strategy Authoring
+description: Author a new strategy inside the Exeria Charts package source, register it in the Fusion registry, and expose it to chart.addScript().
+---
+
+# Custom strategy authoring
+
+There are two different meanings of custom strategy work in this codebase:
+
+1. Reconfigure a built-in strategy by cloning the output of `chart.getScripts()`, changing input values, and calling `chart.addScript(existingKey, clonedDefinition)`.
+2. Author a net-new strategy key by adding a new Fusion script file under the package source and registering it in the strategy registry.
+
+This page covers the second path.
+
+Read [Fusion script authoring conventions](../authoring-conventions) first for the shared runtime boundary, helper usage, registry workflow, locale rules, and validation steps.
+
+If you only need to feed one built-in strategy from another script output, stay on the public runtime path and use [Programmatic wiring](../programmatic-wiring).
+
+## Start from the closest built-in strategy
+
+The source-backed strategy files live under `packages/chart/src/fusion-scripts/strategies/`.
+
+Use a nearby strategy as your template:
+
+- `CROSS.ts` is a good signal-emitting example with `createSignalInput()`, `createStrategyPlotter()`, and `resolveStrategySignal()`.
+- `POSITION.ts` is a good new-pane example when a strategy produces a derived position-size series.
+- `JOIN.ts`, `DOUBLECHECK.ts`, and `MIX.ts` are good composition examples when you need multiple strategy inputs.
+
+Most current files use the shared helper pattern summarized in [Fusion script authoring conventions](../authoring-conventions).
+
+## Example: author a bar-direction strategy
+
+Create a new file such as `packages/chart/src/fusion-scripts/strategies/BARDIRECTION.ts`.
+
+```ts
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import {
+  createController,
+  createSeriesOutput,
+  createSignalInput,
+  createStrategyPlotter,
+  defineScript,
+} from "../helpers/scriptDefinition";
+import { resolveStrategySignal } from "../helpers/strategySignals";
+
+export default function createBarDirectionStrategyScript(FUSION: CoreFusionStatic) {
+  return defineScript({
+    title: "barDirectionTitle",
+    description: "barDirectionDescription",
+    type: "strategies",
+    newPane: false,
+
+    inputs: {
+      CLOSE: {
+        type: "series",
+        name: "priceClose",
+        properties: { def: "c" },
+        value: null,
+      },
+      ONDN: createSignalInput("crossOnDn", "Sell"),
+      ONUP: createSignalInput("crossOnUp", "Buy"),
+    },
+
+    outputs: {
+      BARDIRECTION: createSeriesOutput(
+        "barDirectionTitle",
+        ["signal"],
+        ["BarDirectionValue"]
+      ),
+    },
+
+    plotters: [createStrategyPlotter("BARDIRECTION", "BarDirectionValue")],
+
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.calculate = function (index: number) {
+        if (index < 1) {
+          this.BarDirectionValue.setValue(index, FUSION.DO_NOTHING);
+          this.BarDirectionValue.setStrength(index, 0);
+          return;
+        }
+
+        const current = this.CLOSE.getValue(index);
+        const previous = this.CLOSE.getValue(index - 1);
+
+        this.BarDirectionValue.setStrength(index, 1);
+
+        if (current == null || previous == null || current === previous) {
+          this.BarDirectionValue.setValue(index, FUSION.DO_NOTHING);
+          return;
+        }
+
+        if (current > previous) {
+          this.BarDirectionValue.setValue(
+            index,
+            resolveStrategySignal(FUSION, this.ONUP, FUSION.BUY)
+          );
+        } else {
+          this.BarDirectionValue.setValue(
+            index,
+            resolveStrategySignal(FUSION, this.ONDN, FUSION.SELL)
+          );
+        }
+      };
+    }),
+  });
+}
+```
+
+## What each part controls
+
+- `type: "strategies"` places the script in the strategy category.
+- `createSignalInput()` creates a list input over the standard Fusion signal set: `Buy`, `Sell`, `Exit long`, `Exit short`, `Exit all`, and `Do nothing`.
+- `outputs` define the runtime series objects created for the script. The field names you place there become the controller wrappers you write to, for example `this.BarDirectionValue`.
+- `createStrategyPlotter()` renders the strategy output with the strategy-object layer used by the built-in strategy registry.
+- `controller` owns the actual signal calculation path. `resolveStrategySignal()` converts the chosen list value into the numeric Fusion signal value the runtime expects.
+
+After the file exists, follow [Fusion script authoring conventions](../authoring-conventions) to register the new key, add locale strings, validate the package, and verify the runtime path.
+
+## Continue reading
+
+- [Fusion script authoring conventions](../authoring-conventions)
+- [Strategies overview](./overview)
+- [Programmatic wiring](../programmatic-wiring)
+- [Chart runtime access](../../advanced/chart-class-runtime)

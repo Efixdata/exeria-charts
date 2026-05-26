@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Realtime Updates",
-    "permalink": "/docs/chart-usage/realtime-updates"
+    "title": "Autoscale and Value Axis",
+    "permalink": "/docs/chart-usage/autoscale-and-value-axis"
   },
   "next": {
     "title": "Overview",

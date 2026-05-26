@@ -16,8 +16,23 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "advanced/react-ui-integration",
+              "path": "/docs/advanced/react-ui-integration",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "advanced/react-ui-toolbar-and-tools",
+              "path": "/docs/advanced/react-ui-toolbar-and-tools",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "api-reference/chart-instance",
               "path": "/docs/api-reference/chart-instance",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "chart-usage/autoscale-and-value-axis",
+              "path": "/docs/chart-usage/autoscale-and-value-axis",
               "sidebar": "docsSidebar"
             },
             {
@@ -28,6 +43,11 @@
             {
               "id": "chart-usage/loading-data",
               "path": "/docs/chart-usage/loading-data",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "chart-usage/navigation-and-viewport",
+              "path": "/docs/chart-usage/navigation-and-viewport",
               "sidebar": "docsSidebar"
             },
             {
@@ -116,8 +136,18 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "scripts/authoring-conventions",
+              "path": "/docs/scripts/authoring-conventions",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "scripts/functions/catalog",
               "path": "/docs/scripts/functions/catalog",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "scripts/functions/custom-functions",
+              "path": "/docs/scripts/functions/custom-functions",
               "sidebar": "docsSidebar"
             },
             {
@@ -133,6 +163,11 @@
             {
               "id": "scripts/indicators/catalog",
               "path": "/docs/scripts/indicators/catalog",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "scripts/indicators/custom-indicators",
+              "path": "/docs/scripts/indicators/custom-indicators",
               "sidebar": "docsSidebar"
             },
             {
@@ -158,6 +193,11 @@
             {
               "id": "scripts/strategies/catalog",
               "path": "/docs/scripts/strategies/catalog",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "scripts/strategies/custom-strategies",
+              "path": "/docs/scripts/strategies/custom-strategies",
               "sidebar": "docsSidebar"
             },
             {

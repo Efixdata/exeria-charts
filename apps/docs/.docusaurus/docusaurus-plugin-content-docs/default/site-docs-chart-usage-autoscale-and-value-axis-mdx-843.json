@@ -1,0 +1,28 @@
+{
+  "id": "chart-usage/autoscale-and-value-axis",
+  "title": "Autoscale and Value Axis",
+  "description": "Control autoscale, switch value-axis modes, subscribe to scale-related events, and understand the current public boundary.",
+  "source": "@site/docs/chart-usage/autoscale-and-value-axis.mdx",
+  "sourceDirName": "chart-usage",
+  "slug": "/chart-usage/autoscale-and-value-axis",
+  "permalink": "/docs/chart-usage/autoscale-and-value-axis",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Autoscale and Value Axis",
+    "description": "Control autoscale, switch value-axis modes, subscribe to scale-related events, and understand the current public boundary."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Navigation and Viewport",
+    "permalink": "/docs/chart-usage/navigation-and-viewport"
+  },
+  "next": {
+    "title": "Drawing and Interaction",
+    "permalink": "/docs/chart-usage/drawing-and-interaction"
+  }
+}

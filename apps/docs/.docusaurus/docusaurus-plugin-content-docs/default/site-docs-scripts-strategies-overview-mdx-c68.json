@@ -22,7 +22,7 @@
     "permalink": "/docs/scripts/indicators/key-indicators"
   },
   "next": {
-    "title": "Strategy Catalog",
-    "permalink": "/docs/scripts/strategies/catalog"
+    "title": "Custom Strategy Authoring",
+    "permalink": "/docs/scripts/strategies/custom-strategies"
   }
 }

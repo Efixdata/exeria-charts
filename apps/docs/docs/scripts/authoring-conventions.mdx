@@ -1,0 +1,163 @@
+---
+sidebar_position: 2
+title: Fusion Script Authoring Conventions
+description: Shared source-level rules for authoring indicators, strategies, and functions in the Fusion registry.
+---
+
+# Fusion script authoring conventions
+
+Use this page for the rules shared by custom indicators, custom strategies, and custom functions.
+
+The category-specific pages should only answer the category-specific questions:
+
+- which built-in file is the best template
+- what the script type usually outputs
+- which helpers matter most for that category
+- what a representative source file looks like
+
+Everything else belongs here.
+
+## Public runtime vs source-level authoring
+
+The typed public package surface gives you `getScripts()` and `addScript(scriptKey, proto?)` on `ChartInstance`.
+
+That is enough for:
+
+- reading the metadata for built-in scripts
+- cloning an existing definition
+- overriding inputs for an existing key
+
+It is not enough for a brand-new key by itself. The runtime resolves controllers, outputs, and plotters from the internal Fusion registry by `config.key`, so a net-new script must be added to the package source and registered into the registry before `chart.addScript("YOUR_KEY")` can work.
+
+This is an existing-key customization:
+
+```ts
+const ema = JSON.parse(JSON.stringify(chart.getScripts().EMA));
+ema.inputs.PERIODS.value = 34;
+
+chart.addScript("EMA", ema);
+```
+
+That is useful, but it is not source-level authoring.
+
+## Shared helper pattern
+
+Most current Fusion scripts use the internal helpers from `packages/chart/src/fusion-scripts/helpers/scriptDefinition.ts`.
+
+The common building blocks are:
+
+- `defineScript()` for the top-level definition object
+- `createController()` for the runtime `init()` and `calculate()` hooks
+- `createSeriesOutput()` for standard series outputs
+- `createSeriesLinePlotter()` for line-style numeric outputs
+- `createSignalInput()` for strategy signal pickers
+- `createStrategyPlotter()` for strategy signal rendering
+
+The common skeleton looks like this:
+
+```ts
+import type { CoreFusionStatic } from "../../internal-types/fusion";
+import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { createController, defineScript } from "../helpers/scriptDefinition";
+
+export default function createExampleScript(FUSION: CoreFusionStatic) {
+  return defineScript({
+    title: "exampleTitle",
+    description: "exampleDescription",
+    type: "indicators",
+    newPane: false,
+    inputs: {},
+    outputs: {},
+    plotters: [],
+    controller: createController(function (this: FusionScriptControllerRuntime) {
+      this.init = function () {};
+      this.calculate = function (index: number) {};
+    }),
+  });
+}
+```
+
+## Definition rules that apply everywhere
+
+- `title` and `description` should be locale keys, not final English strings.
+- `type` must match the target category exactly: `indicators`, `strategies`, or `functions`.
+- `newPane` controls whether the script opens in a separate pane.
+- `centerZero` is useful for oscillators and zero-centered transforms.
+- `inputs` define the editable runtime inputs.
+- `outputs` define the runtime series objects created for the script.
+- Output field names become controller wrappers, for example `fields: ["EMA"]` creates `this.EMA`.
+- `properties.def` on a `series` input lets the runtime auto-bind to a default field such as `o`, `h`, `l`, `c`, or `v`.
+
+## Registry locations
+
+Every new key needs two source edits:
+
+1. Add the new script file under the right category directory.
+2. Register that file in the corresponding category index.
+
+Category map:
+
+- Indicators: `packages/chart/src/fusion-scripts/indicators/` and `packages/chart/src/fusion-scripts/indicators/index.ts`
+- Strategies: `packages/chart/src/fusion-scripts/strategies/` and `packages/chart/src/fusion-scripts/strategies/index.ts`
+- Functions: `packages/chart/src/fusion-scripts/functions/` and `packages/chart/src/fusion-scripts/functions/index.ts`
+
+Those category registries are then assembled into the internal Fusion registry in `packages/chart/src/fusion.ts`. That is the registry read by `chart.getScripts()` and `chart.addScript()`.
+
+## Locale rules
+
+Script titles, descriptions, and many input labels are stored as locale keys in `packages/chart/src/locale/en-US.ts`.
+
+Add new locale strings for:
+
+- the script title
+- the script description
+- any brand-new input names you introduce
+
+Reuse existing keys when they already fit. Common reusable keys include:
+
+- `priceOpen`, `priceHigh`, `priceLow`, `priceClose`, `priceVolume`
+- `periods`, `value`, `series`, `aSeries`, `bSeries`
+- `crossOnUp`, `crossOnDn`
+
+Typical locale additions look like this:
+
+```ts
+exampleTitle: "Example Script",
+exampleDescription: "Describe what the script computes",
+```
+
+## Validation workflow
+
+After adding the source file, registry entry, and locale strings, validate the package first:
+
+```bash
+cd packages/chart
+npm run build
+npm run typecheck
+```
+
+Then verify the runtime path:
+
+```ts
+const scripts = chart.getScripts();
+
+console.log(scripts.YOUR_KEY);
+
+chart.addScript("YOUR_KEY");
+```
+
+## Authoring checklist
+
+1. Start from the nearest built-in script in the same category.
+2. Add the new source file under the category directory.
+3. Use the shared helper pattern unless that file needs a very custom shape.
+4. Register the new key in the category index.
+5. Add locale strings in `en-US.ts`.
+6. Build and typecheck `packages/chart`.
+7. Verify the key through `chart.getScripts()` and `chart.addScript()`.
+
+## Continue reading
+
+- [Custom indicator authoring](./indicators/custom-indicators)
+- [Custom strategy authoring](./strategies/custom-strategies)
+- [Custom function authoring](./functions/custom-functions)

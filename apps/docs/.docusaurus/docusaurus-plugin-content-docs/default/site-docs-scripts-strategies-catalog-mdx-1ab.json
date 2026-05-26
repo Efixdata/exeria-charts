@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "Strategies Overview",
-    "permalink": "/docs/scripts/strategies/overview"
+    "title": "Custom Strategy Authoring",
+    "permalink": "/docs/scripts/strategies/custom-strategies"
   },
   "next": {
     "title": "Key Strategies",

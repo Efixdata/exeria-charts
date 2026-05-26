@@ -22,7 +22,7 @@
     "permalink": "/docs/drawing-tools/shapes-and-annotations"
   },
   "next": {
-    "title": "ChartInstance",
-    "permalink": "/docs/api-reference/chart-instance"
+    "title": "React UI Integration",
+    "permalink": "/docs/advanced/react-ui-integration"
   }
 }

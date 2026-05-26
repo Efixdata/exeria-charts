@@ -1,24 +1,36 @@
 {
-  "/docs-aa4": {
+  "/docs-1ab": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs-08d": {
+  "/docs-4b0": {
     "__comp": "a7bd4aaa",
     "__props": "0058b4c6"
   },
-  "/docs-5d2": {
+  "/docs-4c0": {
     "__comp": "a94703ab"
   },
   "/docs/advanced/chart-class-runtime-45f": {
     "__comp": "17896441",
     "content": "cc2e60c4"
   },
+  "/docs/advanced/react-ui-integration-d2b": {
+    "__comp": "17896441",
+    "content": "c629e906"
+  },
+  "/docs/advanced/react-ui-toolbar-and-tools-fc8": {
+    "__comp": "17896441",
+    "content": "e5ba56eb"
+  },
   "/docs/api-reference/chart-instance-3fb": {
     "__comp": "17896441",
     "content": "1237f8c2"
+  },
+  "/docs/chart-usage/autoscale-and-value-axis-8a0": {
+    "__comp": "17896441",
+    "content": "843b530c"
   },
   "/docs/chart-usage/drawing-and-interaction-37d": {
     "__comp": "17896441",
@@ -27,6 +39,10 @@
   "/docs/chart-usage/loading-data-a18": {
     "__comp": "17896441",
     "content": "29f67bdb"
+  },
+  "/docs/chart-usage/navigation-and-viewport-3ed": {
+    "__comp": "17896441",
+    "content": "465117d9"
   },
   "/docs/chart-usage/realtime-updates-de5": {
     "__comp": "17896441",
@@ -96,9 +112,17 @@
     "__comp": "17896441",
     "content": "f8409a7e"
   },
+  "/docs/scripts/authoring-conventions-16a": {
+    "__comp": "17896441",
+    "content": "cd2ac2b9"
+  },
   "/docs/scripts/functions/catalog-acd": {
     "__comp": "17896441",
     "content": "a58856c0"
+  },
+  "/docs/scripts/functions/custom-functions-281": {
+    "__comp": "17896441",
+    "content": "3f208d16"
   },
   "/docs/scripts/functions/key-functions-f36": {
     "__comp": "17896441",
@@ -111,6 +135,10 @@
   "/docs/scripts/indicators/catalog-46c": {
     "__comp": "17896441",
     "content": "73a5e65e"
+  },
+  "/docs/scripts/indicators/custom-indicators-a19": {
+    "__comp": "17896441",
+    "content": "5f6b6268"
   },
   "/docs/scripts/indicators/key-indicators-dbc": {
     "__comp": "17896441",
@@ -131,6 +159,10 @@
   "/docs/scripts/strategies/catalog-e73": {
     "__comp": "17896441",
     "content": "1abea036"
+  },
+  "/docs/scripts/strategies/custom-strategies-efa": {
+    "__comp": "17896441",
+    "content": "47461212"
   },
   "/docs/scripts/strategies/key-strategies-175": {
     "__comp": "17896441",

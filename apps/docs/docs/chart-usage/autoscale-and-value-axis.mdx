@@ -1,0 +1,157 @@
+---
+sidebar_position: 4
+title: Autoscale and Value Axis
+description: Control autoscale, switch value-axis modes, subscribe to scale-related events, and understand the current public boundary.
+---
+
+# Autoscale and value axis
+
+Use this page when you need the operational behavior behind `setAutoScale()`, `setValueAxisMode()`, and `getValueAxisWidth()`.
+
+The public API here is small, but there are a few important runtime details behind it.
+
+## Public methods
+
+`ChartInstance` exposes these scale-related methods:
+
+- `getValueAxisMode()`
+- `setValueAxisMode(mode)`
+- `getAutoScale()`
+- `setAutoScale(autoScale)`
+- `getValueAxisWidth()`
+
+```ts
+chart.setValueAxisMode("log");
+chart.setAutoScale(true);
+
+console.log(chart.getValueAxisMode());
+console.log(chart.getAutoScale());
+console.log(chart.getValueAxisWidth());
+```
+
+## Supported value-axis modes
+
+The public `ValueAxisMode` union is:
+
+- `lin`
+- `log`
+- `perc`
+- `%`
+
+```ts
+chart.setValueAxisMode("lin");
+chart.setValueAxisMode("log");
+chart.setValueAxisMode("perc");
+chart.setValueAxisMode("%");
+```
+
+The runtime normalizes `"%"` to `"perc"` internally, so `getValueAxisMode()` returns the normalized mode.
+
+## What `setValueAxisMode()` changes
+
+From the public surface, `setValueAxisMode()` targets the main panel value axis.
+
+Practical effects:
+
+- `lin` keeps the axis in linear price space
+- `log` switches the main panel to logarithmic scaling
+- `perc` and `%` switch the main panel into percentage mode
+
+Important runtime behavior:
+
+- changing the value-axis mode re-enables autoscale
+- calling `setValueAxisMode()` also rerenders the chart immediately
+
+```ts
+chart.setAutoScale(false);
+chart.setValueAxisMode("log");
+
+console.log(chart.getAutoScale()); // true
+```
+
+That side effect matters if your app deliberately turned autoscale off and expected it to stay off across scale-mode changes.
+
+## Autoscale behavior
+
+Use `setAutoScale()` when you want the runtime to fit the visible vertical range automatically.
+
+```ts
+chart.setAutoScale(true);
+
+if (chart.getAutoScale()) {
+  console.log("Autoscale is enabled");
+}
+```
+
+When autoscale is on, the runtime recomputes visible extremes during the render fit pass. When autoscale is off, the existing panel range is left in place until something else changes it.
+
+This is the right toggle when users want to freeze the current visible range temporarily.
+
+## Value-axis width
+
+`getValueAxisWidth()` exposes the currently rendered width of the value axis.
+
+```ts
+const valueAxisWidth = chart.getValueAxisWidth();
+
+console.log(valueAxisWidth);
+```
+
+Use this when you need:
+
+- layout-aware overlays next to the chart
+- external controls that align with the visible plotting area
+- measurements that account for the current axis label width
+
+The width is recalculated when main-series data is loaded and the renderer refreshes its price-rendering options.
+
+## Scale-related events
+
+The public typed event surface gives you two scale-related hooks here:
+
+- `AUTOSCALE`
+- `VALUE_AXIS_WIDTH_CHANGE`
+
+```ts
+const autoscaleSubscription = chart.subscribe("AUTOSCALE", (data) => {
+  console.log("Autoscale changed", data.autoScale);
+});
+
+const widthSubscription = chart.subscribe("VALUE_AXIS_WIDTH_CHANGE", (width) => {
+  console.log("Axis width changed", width);
+});
+
+autoscaleSubscription?.unsubscribe();
+widthSubscription?.unsubscribe();
+```
+
+Use `AUTOSCALE` when your app mirrors the toggle state elsewhere in the UI.
+
+Use `VALUE_AXIS_WIDTH_CHANGE` when the surrounding layout depends on the actual rendered value-axis width after data loads or formatting changes.
+
+## Current public boundary
+
+There are a few important limits to the typed public surface:
+
+- these value-axis helpers operate on the main panel path exposed by `ChartInstance`
+- there is no public per-panel axis-mode setter on `ChartInstance`
+- internal model settings such as `extremesMargin`, panel precision, `hGrid`, and `vGrid` are not exposed as first-class `ChartInstance` setters
+
+If you need panel-by-panel control or closer access to the runtime model, continue with [Chart runtime access](../advanced/chart-class-runtime).
+
+## Practical recommendation
+
+Stay on the public API when you need:
+
+- linear, logarithmic, or percentage scaling on the main panel
+- an autoscale toggle in your own app shell
+- layout measurements from the rendered axis width
+
+Drop to the runtime layer only when you need per-panel or model-level scale customization that the typed surface does not currently expose.
+
+## Continue reading
+
+- [Rendering and scales](../core-concepts/rendering-and-scales)
+- [ChartInstance](../api-reference/chart-instance)
+- [Chart runtime access](../advanced/chart-class-runtime)
+- [Navigation and viewport](./navigation-and-viewport)

@@ -1,0 +1,28 @@
+{
+  "id": "scripts/indicators/custom-indicators",
+  "title": "Custom Indicator Authoring",
+  "description": "Author a new indicator inside the Exeria Charts package source, register it in the Fusion registry, and expose it to chart.addScript().",
+  "source": "@site/docs/scripts/indicators/custom-indicators.mdx",
+  "sourceDirName": "scripts/indicators",
+  "slug": "/scripts/indicators/custom-indicators",
+  "permalink": "/docs/scripts/indicators/custom-indicators",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Custom Indicator Authoring",
+    "description": "Author a new indicator inside the Exeria Charts package source, register it in the Fusion registry, and expose it to chart.addScript()."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Indicators Overview",
+    "permalink": "/docs/scripts/indicators/overview"
+  },
+  "next": {
+    "title": "Indicator Catalog",
+    "permalink": "/docs/scripts/indicators/catalog"
+  }
+}
