@@ -1,0 +1,587 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exeria Charting - Professional Financial Charts</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+
+    <style>
+        /* --- CSS VARIABLES (Theme System) --- */
+        :root {
+            /* DARK MODE (Default) */
+            --bg-color: #000000;
+            --surface-color: #0a0a0a;
+            --surface-elevated: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-color: #222222;
+            --accent-color: #0066cc; /* Elegant system blue */
+            --accent-hover: #005bb5;
+            
+            --font-ui: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+            --font-code: "JetBrains Mono", monospace;
+            --radius-sm: 8px;
+            --radius-lg: 24px;
+            
+            --spacing-section: 160px;
+        }
+
+
+        [data-theme="light"] {
+            /* LIGHT MODE */
+            --bg-color: #ffffff;
+            --surface-color: #f5f5f7;
+            --surface-elevated: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --border-color: #d2d2d7;
+            --accent-color: #0066cc;
+        }
+
+
+        /* --- GLOBAL RESET --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* Smooth scrolling with offset for the fixed navbar */
+        html { 
+            scroll-behavior: smooth; 
+            scroll-padding-top: 100px; /* 72px nav + 28px padding */
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+        }
+
+
+        a { text-decoration: none; color: inherit; transition: color 0.2s; }
+        ul { list-style: none; }
+
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { font-weight: 600; letter-spacing: -0.04em; }
+        h1 { font-size: 5.5rem; line-height: 1.05; margin-bottom: 1.5rem; text-align: center; }
+        h2 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1rem; text-align: center; }
+        h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        p { color: var(--text-secondary); font-size: 1.25rem; }
+        
+        .subtitle { text-align: center; max-width: 700px; margin: 0 auto 3rem auto; font-size: 1.5rem; line-height: 1.4; letter-spacing: -0.01em;}
+
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; height: 72px;
+            background: rgba(var(--bg-color-rgb), 0.7);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000; transition: background-color 0.4s, border-color 0.4s;
+        }
+        /* Trick to allow rgba background with css variables */
+        :root { --bg-color-rgb: 0, 0, 0; }
+        [data-theme="light"] { --bg-color-rgb: 255, 255, 255; }
+
+
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+        
+        .logo { display: flex; align-items: center; }
+        .logo img { height: 28px; width: auto; display: block; }
+        
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: var(--text-primary); }
+        
+        .nav-actions { display: flex; align-items: center; gap: 16px; }
+
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            background: none; border: none; color: var(--text-secondary); cursor: pointer;
+            padding: 8px; border-radius: 50%; transition: color 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .theme-toggle:hover { color: var(--text-primary); }
+        .theme-toggle svg { width: 20px; height: 20px; }
+        /* Hide/Show icons based on theme */
+        [data-theme="dark"] .icon-moon { display: none; }
+        [data-theme="light"] .icon-sun { display: none; }
+
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 12px 24px; border-radius: 999px; /* Pill shape - Apple style */
+            font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-primary { background-color: var(--text-primary); color: var(--bg-color); border: 1px solid transparent;}
+        .btn-primary:hover { transform: scale(1.02); opacity: 0.9; }
+        
+        .btn-secondary { background-color: transparent; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: var(--surface-color); }
+
+
+        /* --- HERO SECTION --- */
+        .hero { padding: 200px 0 100px; display: flex; flex-direction: column; align-items: center; }
+        
+        .award-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px; border-radius: 999px;
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            font-size: 0.9rem; font-weight: 500; color: var(--text-primary);
+            margin-bottom: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+
+        .hero-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 64px; }
+        
+        /* Minimalist Command Box */
+        .cmd-box {
+            display: inline-flex; align-items: center; gap: 16px;
+            font-family: var(--font-code); font-size: 0.9rem; color: var(--text-secondary);
+            cursor: pointer; transition: color 0.2s; margin-top: 2rem;
+        }
+        .cmd-box:hover { color: var(--text-primary); }
+        .cmd-box svg { width: 16px; height: 16px; }
+
+
+        /* Beautiful Hero Chart Presentation */
+        .hero-chart-container {
+            width: 100%; max-width: 1000px; margin: 0 auto;
+            border-radius: var(--radius-lg);
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        [data-theme="dark"] .hero-chart-container { box-shadow: 0 40px 80px rgba(0,0,0,0.5); }
+        
+        /* --- SECTIONS --- */
+        section { padding: var(--spacing-section) 0; }
+        .section-header { margin-bottom: 80px; }
+        
+        /* Add specific spacing adjustments requested */
+        #platforms { padding-top: 220px; }
+        #pricing { padding-top: 220px; padding-bottom: 240px; }
+
+
+        /* --- FEATURES (Minimal Text Grid) --- */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px;
+        }
+        .feature-item h3 { font-size: 1.25rem; margin-bottom: 12px; color: var(--text-primary); }
+        .feature-item p { font-size: 1rem; line-height: 1.6; }
+        .feature-icon {
+            width: 40px; height: 40px; margin-bottom: 24px; color: var(--text-primary);
+        }
+
+
+        /* --- PLATFORMS (Elegant Typography) --- */
+        .platforms-section { text-align: center; }
+        .tech-list {
+            font-size: 2.5rem; font-weight: 500; color: var(--text-secondary);
+            letter-spacing: -0.02em; line-height: 1.6; max-width: 900px; margin: 0 auto;
+        }
+        .tech-list span { color: var(--border-color); margin: 0 16px; font-weight: 300;}
+        .tech-list strong { color: var(--text-primary); font-weight: 500; }
+
+
+        /* --- CASE STUDIES (Apple-style Cards) --- */
+        .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .case-card {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+        }
+        .case-card:hover { transform: translateY(-4px); }
+        .case-visual {
+            height: 300px; width: 100%;
+            background: var(--surface-elevated);
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .case-content { padding: 40px; }
+        .case-content p { font-size: 1.1rem; margin-top: 12px; margin-bottom: 24px; }
+        .link-arrow { color: var(--accent-color); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; font-size: 1rem;}
+        .link-arrow:hover { gap: 8px; }
+
+
+        /* --- PRICING --- */
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .pricing-card {
+            padding: 48px 40px; border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+        }
+        .pricing-card h3 { font-size: 2rem; margin-bottom: 8px; }
+        .pricing-card .price { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 40px; }
+        .pricing-list { flex-grow: 1; margin-bottom: 40px; }
+        .pricing-list li {
+            padding: 12px 0; border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary); font-size: 1rem;
+        }
+        .pricing-list li:last-child { border-bottom: none; }
+        .pricing-list li strong { color: var(--text-primary); font-weight: 500; }
+
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--border-color);
+            background: var(--surface-color);
+        }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 64px; margin-bottom: 80px; }
+        .footer-brand p { font-size: 1rem; margin-top: 16px; max-width: 300px; }
+        .footer-col h4 { font-size: 1rem; margin-bottom: 24px; color: var(--text-primary); }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: var(--text-secondary); font-size: 0.95rem; }
+        .footer-col ul li a:hover { color: var(--text-primary); }
+        .footer-bottom {
+            text-align: center; color: var(--text-secondary); font-size: 0.9rem;
+            padding-top: 24px; border-top: 1px solid var(--border-color);
+        }
+
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            h1 { font-size: 4rem; }
+            h2 { font-size: 3rem; }
+            .features-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+            .case-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            .nav-links { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .hero { padding: 140px 0 60px; }
+        }
+    </style>
+</head>
+<body>
+
+
+    <nav>
+        <div class="container nav-inner">
+            <a href="#" class="logo">
+                <img src="exeria.svg" alt="Exeria">
+            </a>
+            
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#platforms">Platforms</a>
+                <a href="#showcase">Case Studies</a>
+                <a href="#pricing">Pricing</a>
+            </div>
+
+
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+                    <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <a href="#" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">Download</a>
+            </div>
+        </div>
+    </nav>
+
+
+    <header class="hero container">
+        <div class="award-badge">
+            🏆 Winner of the Benzinga Fintech Awards
+        </div>
+        
+        <h1>Build Modern Charts<br>in Minutes.</h1>
+        <p class="subtitle">
+            The high-performance open source charting library that developers love using. Integrate once, deploy everywhere. Zero dependencies.
+        </p>
+
+
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary">Get Started</a>
+            <a href="#docs" class="btn btn-secondary">Read the Docs</a>
+        </div>
+
+
+        <div class="hero-chart-container" id="hero-chart-mount">
+            <svg viewBox="0 0 1000 400" width="100%" height="100%" style="display: block;">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--border-color)" stroke-width="0.5"/>
+                    </pattern>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--accent-color)" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="var(--accent-color)" stop-opacity="0.0"/>
+                    </linearGradient>
+                </defs>
+                
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                <path d="M 0 300 Q 150 250 300 280 T 600 150 T 1000 80 L 1000 400 L 0 400 Z" fill="url(#chartGradient)" />
+                <path d="M 0 300 Q 150 250 300 280 T 600 150 T 1000 80" fill="none" stroke="var(--accent-color)" stroke-width="3" stroke-linecap="round"/>
+                
+                <g transform="translate(850, 60)">
+                    <rect x="0" y="0" width="120" height="40" rx="20" fill="var(--text-primary)" />
+                    <text x="60" y="25" font-family="var(--font-code)" font-size="14" font-weight="600" fill="var(--bg-color)" text-anchor="middle">$64,230.50</text>
+                </g>
+                <circle cx="1000" cy="80" r="6" fill="var(--accent-color)" stroke="var(--bg-color)" stroke-width="3"/>
+            </svg>
+        </div>
+
+
+        <div class="cmd-box" onclick="copyNpm()">
+            <span id="npm-text">npm install @exeria/charts</span>
+            <svg id="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </div>
+    </header>
+
+
+    <section id="features" class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <h3>Flawless Performance.</h3>
+                <p>Render millions of data points at 60 FPS without browser lag. Powered by raw HTML5 Canvas.</p>
+            </div>
+            <div class="feature-item">
+                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <h3>Zero Dependencies.</h3>
+                <p>Keep your bundle size small and secure. Integrate seamlessly with no external library conflicts.</p>
+            </div>
+            <div class="feature-item">
+                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <h3>TypeScript Native.</h3>
+                <p>Enjoy a first-class developer experience with strict type-checking and comprehensive autocompletion.</p>
+            </div>
+            <div class="feature-item">
+                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                <h3>Proven Reliability.</h3>
+                <p>Trusted in high-stakes financial environments. Built by winners of the Benzinga Fintech Awards.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="platforms" class="container platforms-section">
+        <div class="section-header">
+            <h2>Write once, run everywhere.</h2>
+            <p class="subtitle">Deploy native-feeling charts across any modern framework or mobile wrapper.</p>
+        </div>
+        
+        <div class="tech-list">
+            <strong>React</strong> <span>/</span> Vue <span>/</span> <strong>Next.js</strong> <br>
+            React Native <span>/</span> Flutter <span>/</span> <strong>Vanilla JS</strong>
+        </div>
+    </section>
+
+
+    <section id="showcase" class="container">
+        <div class="section-header">
+            <h2>Engineered for every use case.</h2>
+        </div>
+        
+        <div class="case-grid">
+            <div class="case-card">
+                <div class="case-visual" id="case-crypto-mount">
+                    <svg viewBox="0 0 200 150" width="60%">
+                        <rect x="40" y="60" width="8" height="40" rx="2" fill="#10B981" />
+                        <rect x="43" y="40" width="2" height="80" fill="#10B981" />
+                        
+                        <rect x="70" y="50" width="8" height="30" rx="2" fill="#EF4444" />
+                        <rect x="73" y="30" width="2" height="60" fill="#EF4444" />
+                        
+                        <rect x="100" y="80" width="8" height="50" rx="2" fill="#EF4444" />
+                        <rect x="103" y="70" width="2" height="80" fill="#EF4444" />
+                        
+                        <rect x="130" y="40" width="8" height="60" rx="2" fill="#10B981" />
+                        <rect x="133" y="20" width="2" height="90" fill="#10B981" />
+                    </svg>
+                </div>
+                <div class="case-content">
+                    <h3>The Ultimate Crypto Terminal.</h3>
+                    <p>Deliver the institutional trading experience your power users demand. Leverage our robust windowing framework to build fully customizable workspaces.</p>
+                    <a href="#" class="link-arrow">View Implementation <span style="font-family: var(--font-ui)">→</span></a>
+                </div>
+            </div>
+
+
+            <div class="case-card">
+                <div class="case-visual" id="case-quant-mount">
+                    <svg viewBox="0 0 200 150" width="60%">
+                        <path d="M 20 120 L 70 90 L 120 100 L 180 40" fill="none" stroke="var(--accent-color)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="20" y="130" width="10" height="10" fill="var(--border-color)" />
+                        <rect x="70" y="110" width="10" height="30" fill="var(--border-color)" />
+                        <rect x="120" y="120" width="10" height="20" fill="var(--border-color)" />
+                        <rect x="180" y="90" width="10" height="50" fill="var(--border-color)" />
+                    </svg>
+                </div>
+                <div class="case-content">
+                    <h3>Quant Analytics Dashboard.</h3>
+                    <p>Visualize complex backtest results, equity curves, and proprietary indicators over millions of historical ticks without browser lag.</p>
+                    <a href="#" class="link-arrow">View Implementation <span>→</span></a>
+                </div>
+            </div>
+            
+            <div class="case-card">
+                <div class="case-visual" id="case-forex-mount">
+                    <svg viewBox="0 0 200 150" width="60%">
+                        <line x1="20" y1="75" x2="180" y2="75" stroke="var(--border-color)" stroke-dasharray="4 4" stroke-width="2"/>
+                        <path d="M 20 80 Q 60 40 100 80 T 180 80" fill="none" stroke="#F59E0B" stroke-width="3"/>
+                        <circle cx="140" cy="80" r="5" fill="#F59E0B" />
+                    </svg>
+                </div>
+                <div class="case-content">
+                    <h3>Next-Gen Forex Platforms.</h3>
+                    <p>Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements and dynamic bid/ask spreads with zero latency.</p>
+                    <a href="#" class="link-arrow">View Implementation <span>→</span></a>
+                </div>
+            </div>
+
+
+            <div class="case-card">
+                <div class="case-visual" id="case-mobile-mount">
+                    <rect x="75" y="20" width="50" height="100" rx="8" fill="none" stroke="var(--text-primary)" stroke-width="3"/>
+                    <path d="M 80 80 L 100 60 L 120 70" fill="none" stroke="var(--accent-color)" stroke-width="2"/>
+                </div>
+                <div class="case-content">
+                    <h3>Mobile Native Experience.</h3>
+                    <p>Flawless touch interaction straight out of the box. Bring native-feeling pinch-to-zoom and swipe gestures to iOS and Android users.</p>
+                    <a href="#" class="link-arrow">View Implementation <span>→</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="pricing" class="container">
+        <div class="section-header">
+            <h2>Transparent Pricing.</h2>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Community</h3>
+                <div class="price">Open Source (AGPL v3)</div>
+                <ul class="pricing-list">
+                    <li><strong>Core chart engine</strong></li>
+                    <li>30+ Standard indicators</li>
+                    <li>Basic window management</li>
+                    <li>Community GitHub support</li>
+                </ul>
+                <a href="#" class="btn btn-secondary">Read Documentation</a>
+            </div>
+
+
+            <div class="pricing-card" style="border-color: var(--accent-color); background: var(--surface-color);">
+                <h3>Plugin Store</h3>
+                <div class="price">Perpetual license per project</div>
+                <ul class="pricing-list">
+                    <li><strong>Commercial rights</strong> (for plugins)</li>
+                    <li>Volume Profile & Footprint</li>
+                    <li>WebSocket Data adapters</li>
+                    <li>1 Year updates & support</li>
+                </ul>
+                <a href="#" class="btn btn-primary">Browse Plugins</a>
+            </div>
+
+
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="price">Custom Commercial License</div>
+                <ul class="pricing-list">
+                    <li><strong>Keep your code closed</strong></li>
+                    <li>All Premium Plugins included</li>
+                    <li>MT4/MT5 & FIX API Bridges</li>
+                    <li>Dedicated integration consulting</li>
+                </ul>
+                <a href="#" class="btn btn-secondary">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <img src="exeria.svg" alt="Exeria">
+                    </div>
+                    <p>The high-performance financial charting engine built for the modern web.</p>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#">Core Engine</a></li>
+                        <li><a href="#">Pro Plugins</a></li>
+                        <li><a href="#">Showcase</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">GitHub Repo</a></li>
+                        <li><a href="#">NPM Package</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Commercial EULA</a></li>
+                        <li><a href="#">AGPL v3 License</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                Copyright &copy; 2026 Exeria. Built for developers.
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+        }
+
+
+        function copyNpm() {
+            const command = "npm install @exeria/charts";
+            navigator.clipboard.writeText(command).then(() => {
+                const icon = document.getElementById('copy-icon');
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+                setTimeout(() => { 
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
