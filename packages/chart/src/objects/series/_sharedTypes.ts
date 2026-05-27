@@ -559,6 +559,7 @@ type SeriesRuntime = BaseSeriesRuntime & {
   getStartIndex: SeriesIndexFinderMethod;
   getEndIndex: SeriesIndexFinderMethod;
   renderAsLine: SeriesExtendedRenderMethod;
+  renderLineAreaFill: SeriesExtendedRenderMethod;
   renderAsOHLC: SeriesRenderMethod;
   renderAsBars: SeriesRenderMethod;
   renderAsChartShape: SeriesExtendedRenderMethod;

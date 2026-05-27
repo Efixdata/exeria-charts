@@ -33,9 +33,12 @@ import {
   BoxObject,
   TriangleObject,
   PriceTagObject,
+  LongShortPositionObject,
 } from "./Objects2";
 import { measurePriceTextWidth, renderPriceText } from "./utils/objects-lib";
-import type { CoreChartController } from "./internal-types/chart";
+import { withShapeOpacity } from "./shapeStyle";
+import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
+import type { CoreFusionRuntime } from "./internal-types/fusion";
 import type {
   ChartRuntimeObject,
   CoreRendererObject,
@@ -64,6 +67,23 @@ type RendererRuntimeError = {
 
 function isRendererRuntimeError(error: unknown): error is RendererRuntimeError {
   return typeof error === "object" && error !== null;
+}
+
+function resolveThemeColor(token: string, fallbackToken: string): string {
+  const colorManager = WEBRCP.utils.colorManager;
+  const value = colorManager.getColor(token);
+  const fallbacks = [fallbackToken, "primaryTextColor", "priceAxisTextColor", "timeAxisTextColor"];
+
+  if (!value || value === token || value.toLowerCase() === "transparent") {
+    for (const fallback of fallbacks) {
+      const next = colorManager.getColor(fallback);
+      if (next && next !== fallback && next.toLowerCase() !== "transparent") {
+        return next;
+      }
+    }
+  }
+
+  return value;
 }
 
 const Renderer: CoreRendererConstructor = function (
@@ -110,6 +130,7 @@ const Renderer: CoreRendererConstructor = function (
   TextObject.prototype = shape;
   TriangleObject.prototype = shape;
   PriceTagObject.prototype = shape;
+  LongShortPositionObject.prototype = shape;
 
   DiNapoliLevels.prototype = shape;
   DiNapoliAbcObject.prototype = shape;
@@ -158,6 +179,7 @@ const Renderer: CoreRendererConstructor = function (
     textAnnotation: new TextObject(),
     triangle: new TriangleObject(),
     priceTag: new PriceTagObject(),
+    longShortPosition: new LongShortPositionObject(),
     diNapoliLevels: new DiNapoliLevels(),
     diNapoliAbcd: new DiNapoliAbcObject(),
   };
@@ -167,6 +189,24 @@ const Renderer: CoreRendererConstructor = function (
   const getRendererObject = (type: string | undefined): CoreRendererObject | undefined => {
     if (!type || !Object.prototype.hasOwnProperty.call(this.objects, type)) return undefined;
     return this.objects[type];
+  };
+
+  type ShapeAnchorRenderer = {
+    getPoints: Shape["getPoints"];
+    renderAnchorsOverlay: Shape["renderAnchorsOverlay"];
+  };
+
+  const asShapeAnchorRenderer = (
+    rendererObject: CoreRendererObject | undefined,
+  ): ShapeAnchorRenderer | null => {
+    if (
+      rendererObject == null ||
+      typeof (rendererObject as unknown as ShapeAnchorRenderer).getPoints !== "function" ||
+      typeof (rendererObject as unknown as ShapeAnchorRenderer).renderAnchorsOverlay !== "function"
+    ) {
+      return null;
+    }
+    return rendererObject as unknown as ShapeAnchorRenderer;
   };
 
   this.validateSeriesBeforeRender = function (series) {
@@ -197,9 +237,6 @@ const Renderer: CoreRendererConstructor = function (
         if (panel._visible) this.renderPanel(ctx, model, panel, fusion, omitObject);
       }
 
-      //## Render time axis
-      this.renderTimeAxis(ctx, model, this.timeTicks, fusion);
-
       //## Render handlers
       for (var i = 0; i < model.panels.length; i++) {
         panel = model.panels[i];
@@ -211,6 +248,9 @@ const Renderer: CoreRendererConstructor = function (
         panel = model.panels[i];
         if (panel._visible) this.postRenderPlotPane(ctx, model, panel, seriesManager, omitObject);
       }
+
+      //## Render time axis last so panel overlays cannot cover it
+      this.renderTimeAxis(ctx, model, this.timeTicks, fusion);
     } catch (error: unknown) {
       if (isRendererRuntimeError(error) && error.type === "EMPTY_SERIES") {
         console.warn(error.message);
@@ -298,7 +338,9 @@ const Renderer: CoreRendererConstructor = function (
       const objectRenderer = getRendererObject(object.type);
       if (objectRenderer && object.id != omitObjectId) {
         try {
-          objectRenderer.render(object, ctx, this, model, panel, seriesManager);
+          withShapeOpacity(ctx, object, () =>
+            objectRenderer.render(object, ctx, this, model, panel, seriesManager),
+          );
         } catch (e) {
           this.onErrorWhileRendering(e);
         }
@@ -421,13 +463,15 @@ const Renderer: CoreRendererConstructor = function (
       const panelRenderer = getRendererObject(panel.objects[i].type);
       if (panelRenderer)
         try {
-          panelRenderer.postRender(
-            panel.objects[i],
-            ctx,
-            this,
-            model,
-            panel,
-            seriesManager
+          withShapeOpacity(ctx, panel.objects[i], () =>
+            panelRenderer.postRender(
+              panel.objects[i],
+              ctx,
+              this,
+              model,
+              panel,
+              seriesManager,
+            ),
           );
         } catch (e) {
           this.onErrorWhileRendering(e);
@@ -467,8 +511,9 @@ const Renderer: CoreRendererConstructor = function (
           if (o.hidden && o.hidden === true) continue;
 
           const overlayRenderer = getRendererObject(o.type);
-          if (overlayRenderer?.renderOverlay) {
-            overlayRenderer.renderOverlay(o, octx, this, model, panel, seriesManager);
+          const renderOverlay = overlayRenderer?.renderOverlay;
+          if (renderOverlay) {
+            renderOverlay(o, octx, this, model, panel, seriesManager);
           }
         }
 
@@ -526,6 +571,66 @@ const Renderer: CoreRendererConstructor = function (
         // octx.translate (-0.5, -0.5);
         octx.restore();
       }
+    }
+  };
+
+  this.renderSelectionHandles = function (
+    octx: CanvasRenderingContext2D,
+    model: CoreChartModel,
+    fusion: CoreFusionRuntime,
+    selectedObject: ChartRuntimeObject,
+  ) {
+    if (!selectedObject?.id || !selectedObject.type) {
+      return;
+    }
+
+    const shapeRenderer = asShapeAnchorRenderer(getRendererObject(selectedObject.type));
+    if (!shapeRenderer) {
+      return;
+    }
+
+    const seriesManager = fusion.getSeriesManager();
+
+    for (let panelIndex = 0; panelIndex < model.panels.length; panelIndex += 1) {
+      const panel = model.panels[panelIndex];
+      let panelObject: ChartRuntimeObject | undefined;
+
+      for (let objectIndex = 0; objectIndex < panel.objects.length; objectIndex += 1) {
+        if (panel.objects[objectIndex].id === selectedObject.id) {
+          panelObject = panel.objects[objectIndex];
+          break;
+        }
+      }
+
+      if (!panelObject || !Array.isArray((panelObject as { anchors?: unknown }).anchors)) {
+        continue;
+      }
+
+      panelObject.selected = true;
+
+      try {
+        octx.save();
+        octx.globalAlpha = 1;
+        const plotRight = panel._width - this.priceRenderingOptions.valueAxisWidth;
+        octx.rect(0, panel._offset, plotRight, panel._height);
+        octx.clip();
+
+        shapeRenderer.renderAnchorsOverlay(
+          panelObject as Parameters<Shape["renderAnchorsOverlay"]>[0],
+          octx,
+          this,
+          model,
+          panel,
+          seriesManager,
+          { drawArrowHandles: true, forceShow: true },
+        );
+      } catch (error) {
+        console.error(error);
+      } finally {
+        octx.restore();
+      }
+
+      return;
     }
   };
 
@@ -691,9 +796,11 @@ const Renderer: CoreRendererConstructor = function (
   this.renderHGrid = function (ctx, model, panel, tick) {
     var tickValue = tick.niceMin;
     var tickPoint = 0;
+    const gridDash = Array.isArray(panel.gridDash) && panel.gridDash.length > 0 ? panel.gridDash : [];
 
     ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
     ctx.lineWidth = 1;
+    ctx.setLineDash(gridDash);
 
     while (tickValue < tick.niceMax) {
       //drawTickValue
@@ -712,14 +819,18 @@ const Renderer: CoreRendererConstructor = function (
       ctx.stroke();
       ctx.closePath();
     }
+
+    ctx.setLineDash([]);
   };
 
   this.renderVGrid = function (ctx, model, panel, ticks) {
     var tickIndex = 0;
     var tickX = 0;
+    const gridDash = Array.isArray(panel.gridDash) && panel.gridDash.length > 0 ? panel.gridDash : [];
 
     ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
     ctx.lineWidth = 1;
+    ctx.setLineDash(gridDash);
 
     for (var i = 0; i < ticks.length; i++) {
       tickIndex = ticks[i];
@@ -733,57 +844,80 @@ const Renderer: CoreRendererConstructor = function (
       ctx.stroke();
       ctx.closePath();
     }
+
+    ctx.setLineDash([]);
   };
 
   this.renderTimeAxis = function (ctx, model, ticks, fusion) {
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisBackground");
-    ctx.fillRect(0, model._height - model.timeAxisHeight, model._width, model.timeAxisHeight);
+    const timeAxisHeight = model.timeAxisHeight > 0 ? model.timeAxisHeight : 24;
+    const tickY = model._height - timeAxisHeight;
+    const plotWidth = model._width - this.priceRenderingOptions.valueAxisWidth;
+
+    ctx.fillStyle = resolveThemeColor("timeAxisBackground", "backgroundColor");
+    ctx.fillRect(0, tickY, model._width, timeAxisHeight);
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor");
-    ctx.fillRect(-0.5, model._height - model.timeAxisHeight - 0.5, model._width, 1);
-
-    var tickIndex = 0;
-    var tickX = 0;
-    var tickY = model._height - model.timeAxisHeight;
-    var stamp = 0;
-
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("timeAxisTextColor");
-    ctx.lineWidth = 1;
-    ctx.font = WEBRCP.utils.colorManager.getFont("time");
+    ctx.fillRect(-0.5, tickY - 0.5, model._width, 1);
 
     const data = fusion.getMainSeries().data;
+    if (!data?.length) {
+      return;
+    }
 
-    const stamp0 = data[ticks[0]].stamp;
-    const stamp1 = data[ticks[1]].stamp;
-    //const lastStamp = data[data.length - 1].stamp;
-    const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
-    const currentDate = new Date(Date.now());
-    const firstDate = new Date(stamp0);
+    const lastIndex = fusion.getMainSeriesLastIndex();
+    let validTicks = ticks.filter(
+      (index) => index >= 0 && index <= lastIndex && typeof data[index]?.stamp === "number",
+    );
 
-    const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
-    const isInCurrentDay =
-      isInCurrentYear &&
-      firstDate.getDay() === currentDate.getDay() &&
-      firstDate.getMonth() === currentDate.getMonth();
+    if (validTicks.length === 0) {
+      validTicks = this.buildFallbackTimeTicks(model, lastIndex, plotWidth);
+    }
 
-    const hidden = {
-      year: isInCurrentYear,
-      month: isInCurrentDay && diffInHours <= 2,
-      day: isInCurrentDay && diffInHours <= 2,
-      hour: diffInHours > 24,
+    if (validTicks.length === 0) {
+      return;
+    }
+
+    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
+    ctx.fillStyle = resolveThemeColor("timeAxisTextColor", "primaryTextColor");
+    ctx.lineWidth = 1;
+    ctx.textBaseline = "middle";
+    ctx.font = WEBRCP.utils.colorManager.getFont("time", "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif");
+
+    let hidden = {
+      year: false,
+      month: false,
+      day: false,
+      hour: false,
     };
 
-    for (var i = 0; i < ticks.length; i++) {
-      tickIndex = ticks[i];
+    if (validTicks.length >= 2) {
+      const stamp0 = data[validTicks[0]].stamp as number;
+      const stamp1 = data[validTicks[1]].stamp as number;
+      const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
+      const currentDate = new Date(Date.now());
+      const firstDate = new Date(stamp0);
 
-      if (!fusion.getMainSeries().data || tickIndex > fusion.getMainSeriesLastIndex()) return;
+      const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
+      const isInCurrentDay =
+        isInCurrentYear &&
+        firstDate.getDay() === currentDate.getDay() &&
+        firstDate.getMonth() === currentDate.getMonth();
 
-      tickX = this.getIndexPoint(tickIndex, model);
-      stamp = fusion.getMainSeries().data[tickIndex].stamp;
+      hidden = {
+        year: isInCurrentYear,
+        month: isInCurrentDay && diffInHours <= 2,
+        day: isInCurrentDay && diffInHours <= 2,
+        hour: diffInHours > 24,
+      };
+    }
+
+    for (var i = 0; i < validTicks.length; i++) {
+      const tickIndex = validTicks[i];
+      const tickX = this.getIndexPoint(tickIndex, model);
+      const stamp = data[tickIndex].stamp as number;
 
       if (tickX > model._width - this.priceRenderingOptions.valueAxisWidth) continue;
 
-      ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + 18);
+      ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + timeAxisHeight / 2 + 2);
 
       ctx.beginPath();
       ctx.moveTo(tickX + 0.5, tickY);
@@ -1559,19 +1693,66 @@ const Renderer: CoreRendererConstructor = function (
     return nv;
   };
 
-  this.calculateTimeTicks = function (model) {
+  this.buildFallbackTimeTicks = function (model: CoreChartModel, lastIndex: number, plotWidth: number) {
+    const ticks: number[] = [];
+    const minSpacing = model.minTimeTickWidth > 0 ? model.minTimeTickWidth : 90;
+    let lastX = -minSpacing;
+
+    for (let x = 0; x <= plotWidth; x += 1) {
+      const index = this.getPointIndex(x, model);
+      if (index < 0 || index > lastIndex) {
+        continue;
+      }
+
+      const pointX = this.getIndexPoint(index, model);
+      if (pointX - lastX >= minSpacing) {
+        ticks.push(index);
+        lastX = pointX;
+      }
+    }
+
+    if (ticks.length === 0 && lastIndex >= 0) {
+      ticks.push(0, lastIndex);
+    }
+
+    return ticks;
+  };
+
+  this.calculateTimeTicks = function (model, seriesManager) {
     this.timeTicks = [];
+
+    const seriesData = seriesManager?.[model.mainSeries]?.data;
+    const lastIndex =
+      Array.isArray(seriesData) && seriesData.length > 0 ? seriesData.length - 1 : -1;
+
+    if (lastIndex < 0) {
+      return this.timeTicks;
+    }
+
+    let left = Math.max(0, model._leftIndex);
+    let right = Math.min(lastIndex, model._rightIndex);
+
+    if (left > right) {
+      left = Math.max(0, Math.min(lastIndex, model._leftIndex));
+      right = lastIndex;
+    }
 
     var lastIndexPoint = 4 - model.minTimeTickWidth;
     var indexPoint = 0;
+    const minSpacing = model.minTimeTickWidth > 0 ? model.minTimeTickWidth : 90;
 
-    for (var i = model._leftIndex; i < model._rightIndex; i++) {
+    for (var i = left; i <= right; i++) {
       indexPoint = this.getIndexPoint(i, model);
 
-      if (indexPoint - lastIndexPoint >= model.minTimeTickWidth) {
+      if (indexPoint - lastIndexPoint >= minSpacing) {
         lastIndexPoint = indexPoint;
         this.timeTicks.push(i);
       }
+    }
+
+    if (this.timeTicks.length === 0) {
+      const plotWidth = model._width - this.priceRenderingOptions.valueAxisWidth;
+      this.timeTicks = this.buildFallbackTimeTicks(model, lastIndex, plotWidth);
     }
 
     return this.timeTicks;
@@ -1628,6 +1809,20 @@ const Renderer: CoreRendererConstructor = function (
     if (!hidden || !hidden.year) str += "." + String(date.getFullYear()).substring(2, 4);
     if (!hidden || !hidden.hour)
       str += " " + this.zeroLead(date.getHours()) + ":" + this.zeroLead(date.getMinutes());
+
+    if (!str.trim()) {
+      return (
+        this.zeroLead(date.getDate()) +
+        "." +
+        this.months[date.getMonth()] +
+        "." +
+        String(date.getFullYear()).substring(2, 4) +
+        " " +
+        this.zeroLead(date.getHours()) +
+        ":" +
+        this.zeroLead(date.getMinutes())
+      );
+    }
 
     return str;
   };

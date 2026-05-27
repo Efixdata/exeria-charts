@@ -131,8 +131,12 @@ var SeriesObject = function (this: SeriesRuntime) {
       return this.renderAsOHLC(o, ctx, renderer, model, panel, seriesManager);
     if (renderMode === "bars")
       return this.renderAsBars(o, ctx, renderer, model, panel, seriesManager);
-    if (renderMode === "line")
+    if (renderMode === "line") {
+      if (o.lineFillVisible) {
+        this.renderLineAreaFill(o, ctx, renderer, model, panel, seriesManager);
+      }
       return this.renderAsLine(o, ctx, renderer, model, panel, seriesManager);
+    }
     if (renderMode === "chartshape")
       return this.renderAsChartShape(o, ctx, renderer, model, panel, seriesManager);
     if (renderMode === "histogram")
@@ -286,6 +290,10 @@ var SeriesObject = function (this: SeriesRuntime) {
     var indexX = 0;
 
     const getColor = (i: number) => {
+      if (o.volumeColorMode === "single" && typeof o.color === "string" && o.color.length > 0) {
+        return o.color;
+      }
+
       const close = seriesManager[model.mainSeries].data[i]["c"];
       const open = seriesManager[model.mainSeries].data[i]["o"];
       if (close > open) return WEBRCP.utils.colorManager.getColor("chartGreen");
@@ -293,7 +301,8 @@ var SeriesObject = function (this: SeriesRuntime) {
       else return WEBRCP.utils.colorManager.getColor("chartRed");
     };
 
-    ctx.globalAlpha = 0.2;
+    ctx.globalAlpha =
+      typeof o.volumeOpacity === "number" ? Math.min(1, Math.max(0, o.volumeOpacity)) : 0.2;
     const maxHeight = Math.round(panel._height * 0.25);
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -678,6 +687,72 @@ var SeriesObject = function (this: SeriesRuntime) {
     return true;
   };
 
+  this.renderLineAreaFill = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = forceField || o.closeDataField || o.dataField;
+    if (!linkedSeries || !field) return;
+
+    var indexX = 0;
+    var valueY = 0;
+    var midX = 0;
+
+    ctx.save();
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
+    ctx.beginPath();
+
+    var fV = LIB.getReferenceValue(o, model, seriesManager);
+    var start = model._leftIndex;
+    var end = model._rightIndex;
+    if (start > 0) start = this.getStartIndex(start, linkedSeries.data, field);
+    if (end < linkedSeries.data.length - 1) end = this.getEndIndex(end, linkedSeries.data, field);
+
+    const baseY = panel._offset + panel._height;
+    var firstRender = true;
+    var firstX = 0;
+    var lastX = 0;
+
+    for (var i = start; i <= end; i++) {
+      if (i > linkedSeries.data.length - 1) continue;
+
+      const value = linkedSeries.data[i]?.[field];
+      if (typeof value !== "number") continue;
+
+      indexX = renderer.getIndexPoint(i, model);
+      valueY =
+        renderer.getYCoordinateForPrice(value, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+          fV,
+        }) + panel._offset;
+
+      if (model.periodWidth == 1) {
+        midX = indexX;
+      } else {
+        midX = indexX + model._midOffset;
+      }
+
+      if (firstRender) {
+        ctx.moveTo(midX, valueY);
+        firstRender = false;
+        firstX = midX;
+      } else {
+        ctx.lineTo(midX, valueY);
+      }
+      lastX = midX;
+    }
+
+    if (!firstRender) {
+      ctx.lineTo(lastX, baseY);
+      ctx.lineTo(firstX, baseY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  };
+
   this.renderAsOHLC = function (o, ctx, renderer, model, panel, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
     if (!linkedSeries) return true;
@@ -965,7 +1040,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     ctx.save();
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("chartStroke");
-    ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("chartFill");
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
     ctx.lineWidth = o.width ? o.width : 1;
     ctx.beginPath();
 

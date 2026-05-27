@@ -93,8 +93,15 @@ export interface CoreChartModel extends ChartModelFragment {
   [key: string]: unknown;
 }
 
+export interface ChartObjectsManagerApi {
+  isThisSeriesOutputOfScript(dataLink?: string): { id?: string | number } | null;
+  getScriptModelById(scriptId: string | number): ScriptModelConfig | undefined;
+  cloneObject(object: ChartPanelObject): ChartPanelObject;
+}
+
 export interface CoreChartController {
   container: HTMLElement;
+  objectsManager: ChartObjectsManagerApi;
   canvas: HTMLCanvasElement;
   overlay: HTMLCanvasElement;
   topLayer: HTMLDivElement;

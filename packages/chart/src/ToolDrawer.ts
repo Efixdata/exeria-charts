@@ -2,6 +2,7 @@ import LIB from "./utils/chartingCommons";
 import type {
   DrawToolConfig,
   TimeBetToolOptions,
+  LongShortPositionToolOptions,
   TimeRangeToolOptions,
   ToolAnchor,
   ToolDrawerApi,
@@ -134,6 +135,69 @@ export default class ToolDrawer implements ToolDrawerApi {
       isWinning: initialOptions.isWinning,
       editable: false,
       width: 1,
+      anchors,
+    };
+
+    return this.drawTool(formattedConfig);
+  }
+
+  drawLongShortPosition(initialOptions: LongShortPositionToolOptions = {}): string | number | void {
+    const direction = initialOptions.direction === "SHORT" ? "SHORT" : "LONG";
+    const stopPrice = initialOptions.stopPrice ?? 0;
+    const targetPrice = initialOptions.targetPrice ?? stopPrice;
+    const entryPrice =
+      initialOptions.entryPrice ?? (stopPrice + targetPrice) / 2;
+
+    const firstRole =
+      direction === "LONG"
+        ? stopPrice < entryPrice
+          ? "stop"
+          : "target"
+        : stopPrice > entryPrice
+          ? "stop"
+          : "target";
+    const firstPrice = firstRole === "stop" ? stopPrice : targetPrice;
+    const oppositePrice = firstRole === "stop" ? targetPrice : stopPrice;
+
+    const anchors: ToolAnchor[] = [
+      {
+        stamp: initialOptions.startStamp ?? 0,
+        offset: 0,
+        value: entryPrice,
+        _index: 0,
+      },
+      {
+        stamp: initialOptions.startStamp ?? 0,
+        offset: 0,
+        value: firstPrice,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "right",
+      },
+      {
+        stamp: initialOptions.endStamp ?? 0,
+        offset: 0,
+        value: oppositePrice,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "left",
+      },
+    ];
+
+    const formattedConfig: DrawToolConfig = {
+      ...initialOptions.config,
+      type: "longShortPosition",
+      direction,
+      hidden: false,
+      _placementStep: 2,
+      _firstLevelRole: firstRole,
+      stopPrice,
+      targetPrice,
+      entryPrice,
+      accountSize: initialOptions.accountSize ?? 10000,
+      riskMode: initialOptions.riskMode ?? "PERCENT",
+      riskPercent: initialOptions.riskPercent ?? 1,
+      riskAmount: initialOptions.riskAmount ?? 100,
       anchors,
     };
 

@@ -23,4 +23,5 @@ export {
   BoxObject,
   TriangleObject,
   PriceTagObject,
+  LongShortPositionObject,
 } from "./objects/shapes/index";

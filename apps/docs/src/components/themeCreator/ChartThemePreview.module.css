@@ -1,0 +1,12 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.shell :global(.UI-container) {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  padding: 8px;
+}

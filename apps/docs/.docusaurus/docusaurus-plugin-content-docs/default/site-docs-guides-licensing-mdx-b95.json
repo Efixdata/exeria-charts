@@ -1,7 +1,7 @@
 {
   "id": "guides/licensing",
   "title": "Licensing",
-  "description": "Understand the source-available license and when commercial terms apply.",
+  "description": "Understand the AGPL v3 core license, plugin licenses, and when a commercial license is required.",
   "source": "@site/docs/guides/licensing.mdx",
   "sourceDirName": "guides",
   "slug": "/guides/licensing",
@@ -14,7 +14,7 @@
   "frontMatter": {
     "sidebar_position": 2,
     "title": "Licensing",
-    "description": "Understand the source-available license and when commercial terms apply."
+    "description": "Understand the AGPL v3 core license, plugin licenses, and when a commercial license is required."
   },
   "sidebar": "docsSidebar",
   "previous": {

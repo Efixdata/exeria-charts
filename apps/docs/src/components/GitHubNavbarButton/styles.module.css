@@ -1,0 +1,58 @@
+.githubButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1;
+  background-color: var(--doc-text);
+  color: var(--doc-bg);
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.githubButton:hover {
+  color: var(--doc-bg);
+  transform: scale(1.02);
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.githubIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.githubButtonCompact {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  gap: 6px;
+}
+
+.githubButtonCompact .githubIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.githubButtonFullWidth {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+}
+
+@media (min-width: 997px) {
+  .githubButtonCompact {
+    display: none;
+  }
+}
+
+@media (max-width: 996px) {
+  .githubButton:not(.githubButtonCompact):not(.githubButtonFullWidth) {
+    display: none;
+  }
+}

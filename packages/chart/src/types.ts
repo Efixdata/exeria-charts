@@ -52,6 +52,20 @@ export interface ChartTheme {
   [key: string]: unknown;
 }
 
+export type {
+  ChartAppearanceSettings,
+  ChartDrawingSettingsItem,
+  ChartGridLineStyle,
+  ChartGridMode,
+  ChartIndicatorSettingsItem,
+  ChartSettingsTemplate,
+  ChartStrategySettingsItem,
+  ChartVolumeColorMode,
+  ChartVolumeSettings,
+} from "./chartSettings";
+
+export type { ChartDrawingEditConfig, ChartDrawingEditPatch } from "./drawingEdit";
+
 export interface ScriptInputDefinition {
   type?: string;
   name?: string;
@@ -130,6 +144,7 @@ export interface ToolDrawerApi {
   drawTrendLine(initialOptions?: TrendLineToolOptions): string | number | void;
   drawTimeRange(initialOptions: TimeRangeToolOptions): string | number | void;
   drawTimeBet(initialOptions: TimeBetToolOptions): string | number | void;
+  drawLongShortPosition(initialOptions: LongShortPositionToolOptions): string | number | void;
   deleteTool(id: string | number): void;
 }
 
@@ -209,10 +224,26 @@ export interface TimeBetToolOptions {
   config?: ToolVisualConfig;
 }
 
+export interface LongShortPositionToolOptions {
+  direction?: "LONG" | "SHORT";
+  startStamp?: number;
+  endStamp?: number;
+  stopPrice?: number;
+  targetPrice?: number;
+  entryPrice?: number;
+  accountSize?: number;
+  riskMode?: "AMOUNT" | "PERCENT";
+  riskAmount?: number;
+  riskPercent?: number;
+  config?: ToolVisualConfig;
+}
+
 export interface ChartEventPayloads {
   AUTOSCALE: { autoScale: boolean };
   CURSOR_CHANGE: { cursor: string };
   INTERVAL_CHANGE: Interval;
+  INDICATOR_EDIT_REQUEST: { scriptId: string | number };
+  DRAWING_EDIT_REQUEST: { objectId: string | number };
   OBJECT_SELECTION_ALLOWED_CHANGE: boolean;
   VALUE_AXIS_WIDTH_CHANGE: number;
 }
@@ -250,7 +281,30 @@ export interface ChartInstance {
   getCurrency(): string | undefined;
   getInterval(): Interval | undefined;
   getScripts(): Record<string, ScriptDefinition>;
+  getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null;
   addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
+  getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
+  applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  getChartVolumeSettings(): import("./chartSettings").ChartVolumeSettings;
+  applyChartVolumeSettings(settings: import("./chartSettings").ChartVolumeSettings): void;
+  getChartIndicatorSettings(): import("./chartSettings").ChartIndicatorSettingsItem[];
+  setChartIndicatorVisibility(scriptId: string | number, visible: boolean): void;
+  setChartIndicatorPriceTagVisibility(scriptId: string | number, visible: boolean): void;
+  removeChartIndicator(scriptId: string | number): void;
+  getChartStrategySettings(): import("./chartSettings").ChartStrategySettingsItem[];
+  setChartStrategyVisibility(scriptId: string | number, visible: boolean): void;
+  removeChartStrategy(scriptId: string | number): void;
+  getChartDrawingSettings(): import("./chartSettings").ChartDrawingSettingsItem[];
+  setChartDrawingVisibility(objectId: string | number, visible: boolean): void;
+  removeChartDrawing(objectId: string | number): void;
+  getDrawingEditConfig(objectId: string | number): import("./drawingEdit").ChartDrawingEditConfig | null;
+  applyDrawingEditSettings(
+    objectId: string | number,
+    patch: import("./drawingEdit").ChartDrawingEditPatch,
+  ): void;
+  exportChartSettingsTemplate(name?: string): import("./chartSettings").ChartSettingsTemplate;
+  importChartSettingsTemplate(template: import("./chartSettings").ChartSettingsTemplate): void;
   getSeriesManager(): ChartSeriesManager;
   getInteractor(): ChartInteractor;
   onDownload(watermark?: string, watermarkWidth?: number, watermarkHeight?: number): void;

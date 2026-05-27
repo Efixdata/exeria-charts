@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { Shape } from "./Objects2";
 import { Series } from "./Objects";
@@ -199,6 +200,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.addEventListener("mousemove", self.onBodyMouseMove);
 
       self.topLayer.addEventListener("contextmenu", self.preventContextMenu);
+      self.topLayer.addEventListener("dblclick", self.onDoubleClick);
 
       self.hammer = createGestureManager(self.topLayer);
       self.hammer.on("swipe", self.onHammerSwipe);
@@ -227,6 +229,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.removeEventListener("mouseup", self.onBodyMouseUp);
       self.body.removeEventListener("mouseout", self.onBodyMouseOut);
       self.body.removeEventListener("mousemove", self.onBodyMouseMove);
+      self.topLayer.removeEventListener("dblclick", self.onDoubleClick);
     }
 
     if (isTouchDevice()) {
@@ -1010,6 +1013,60 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
   };
 
+  this.onDoubleClick = function (e: MouseEvent) {
+    if (self.controller.isChartEmpty(self.chart)) return;
+    if (self.currentMode.symbol !== "DEFAULT") return;
+
+    const eo = self.getEventOffset(e);
+    const hitObject = self.getCurrentHitObject(eo.offsetX, eo.offsetY);
+
+    if (!hitObject?.id || !hitObject.type) {
+      return;
+    }
+
+    const shapeRenderer = self.controller.renderer.objects[hitObject.type];
+    if (shapeRenderer && typeof shapeRenderer.renderAnchorsOverlay === "function") {
+      self.controller.emitEvent({
+        topic: "DRAWING_EDIT_REQUEST",
+        data: { objectId: hitObject.id },
+      });
+
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (hitObject.type !== "SeriesObject" || !hitObject.dataLink) {
+      return;
+    }
+
+    const scriptController = self.controller.objectsManager.isThisSeriesOutputOfScript(
+      String(hitObject.dataLink),
+    );
+    if (!scriptController?.id) {
+      return;
+    }
+
+    const modelScript = self.controller.objectsManager.getScriptModelById(scriptController.id);
+    const scriptKey = modelScript?.key;
+    if (typeof scriptKey !== "string" || scriptKey === "VOLUME") {
+      return;
+    }
+
+    const template = FUSION.getScript(scriptKey);
+    if (!template || template.type !== "indicators") {
+      return;
+    }
+
+    self.controller.emitEvent({
+      topic: "INDICATOR_EDIT_REQUEST",
+      data: { scriptId: scriptController.id },
+    });
+
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   this.onBodyMouseUp = function (evt) {
     if (evt.which !== 2) {
       var eventElement = evt.toElement || evt.target || evt.target;
@@ -1150,6 +1207,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onDragObject = function (e) {
     const object = this.currentHitObject;
     if (!object) return;
+    if (object.locked === true) return;
     object.isBeingDragged = true;
 
     this.renderer.objects[object.type].mouseDrag(
@@ -1768,7 +1826,16 @@ var InteractionsController: CoreInteractorConstructor = function (
     selectOrderPosition();
     this.currentSelectedObject = o;
 
-    if (this.renderer.objects[o.type] instanceof Shape) {
+    const shapeRenderer = this.renderer.objects[o.type] as unknown as Shape | undefined;
+    if (
+      o._isStaging !== true &&
+      shapeRenderer &&
+      typeof shapeRenderer.pop === "function"
+    ) {
+      shapeRenderer.pop(o, this.renderer, this.model, this.fusion.getSeriesManager(), this);
+    }
+
+    if (shapeRenderer && typeof shapeRenderer.renderAnchorsOverlay === "function") {
       this.controller.updateToolsOptions({ mode: "object", interactor: this, object: o });
     } else if (
       this.renderer.objects[o.type] instanceof Series &&
@@ -1813,6 +1880,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       }
     }
 
+    this.controller.renderOverlay();
   };
 
   this.pushPanel = function (r, o, panel) {
@@ -2071,21 +2139,20 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.copyMode = false;
 
     if (this.interactor.currentHitObject != null) {
-      if (e.ctrlKey && this.canBeCloned?.(this.interactor.currentHitObject)) {
+      const hitObject = this.interactor.currentHitObject;
+      this.interactor.select(hitObject);
+
+      if (hitObject.locked === true) {
+        return;
+      }
+
+      if (e.ctrlKey && this.canBeCloned?.(hitObject)) {
         this.copyMode = true;
-        var clone = this.interactor.chart.objectsManager.cloneObject(
-          this.interactor.currentHitObject
-        );
+        var clone = this.interactor.controller.objectsManager.cloneObject(hitObject);
         this.interactor.currentHitObject = clone;
       }
 
-      this.interactor.pushPanel(
-        this,
-        this.interactor.currentHitObject,
-        this.interactor.currentPanel
-      );
-
-      this.interactor.select(this.interactor.currentHitObject);
+      this.interactor.pushPanel(this, this.interactor.currentHitObject, this.interactor.currentPanel);
 
       this.interactor.currentAnchor = this.interactor.controller.renderer.objects[
         this.interactor.currentHitObject.type
@@ -2177,6 +2244,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     const hitObject = interactor.currentHitObject;
     if (
       hitObject != null &&
+      hitObject.locked !== true &&
       interactor.controller.renderer.objects[hitObject.type].isDraggable !== false
     )
       return interactor.onDragObject(e);
@@ -2914,8 +2982,42 @@ function StageTool(
 
   this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
   this.interactor.currentStagingObject.id = createFusionUniqueId();
+  if (this.interactor.currentStagingObject.type === "longShortPosition") {
+    const staging = this.interactor.currentStagingObject;
+    staging._placementStep = 0;
+    if (!Array.isArray(staging.anchors)) {
+      staging.anchors = [];
+    }
+    const anchorDefaults = [
+      { stamp: 0, offset: 0, value: 0, _index: 0 },
+      {
+        stamp: 0,
+        offset: 0,
+        value: 0,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "right",
+      },
+      {
+        stamp: 0,
+        offset: 0,
+        value: 0,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "left",
+      },
+    ];
+    for (let index = 0; index < 3; index += 1) {
+      if (!staging.anchors[index]) {
+        staging.anchors[index] = anchorDefaults[index];
+      }
+    }
+  }
+  this.interactor.currentStagingObject._isStaging = true;
   this.interactor.currentAnchor = null;
-  this.interactor.select(this.interactor.currentStagingObject);
+  this.interactor.deselectAll();
+  this.interactor.currentSelectedObject = this.interactor.currentStagingObject;
+  this.interactor.currentStagingObject.selected = true;
 
   // ************************************************** //
 
@@ -2969,9 +3071,23 @@ function StageTool(
       ) as boolean | void;
 
       if (isStageCompleted) {
-        this.interactor.currentPanel.objects.push(this.interactor.currentStagingObject);
+        const completed = this.interactor.currentStagingObject;
+        delete completed._isStaging;
+        this.interactor.currentPanel.objects.push(completed);
+
+        const completedRenderer = this.renderer.objects[completed.type];
+        if (completedRenderer?.push) {
+          completedRenderer.push(
+            completed,
+            this.renderer,
+            this.model,
+            this.interactor.fusion.getSeriesManager(),
+          );
+        }
+
         this.interactor.currentStagingObject = null;
         this.currentStep = 0;
+        this.interactor.select(completed);
         this.interactor.setMode("DEFAULT");
         this.interactor.controller.onDrawingDone();
         if (onFinished) onFinished();
@@ -2979,6 +3095,7 @@ function StageTool(
     }
 
     this.interactor.controller.render();
+    this.interactor.controller.renderOverlay();
   };
 
   this.onMouseMove = function (e) {
@@ -3030,15 +3147,24 @@ function StageTool(
   };
 
   this.renderOverlay = function (context) {
-    if (!this.tool) return;
-    this.tool.render(
-      this.interactor.currentStagingObject,
-      context,
-      this.renderer,
-      this.model,
-      this.interactor.currentPanel,
-      this.interactor.fusion.getSeriesManager()
-    );
+    if (!this.tool || !this.interactor.currentStagingObject) return;
+
+    const stagingObject = this.interactor.currentStagingObject;
+    const panel = this.interactor.currentPanel;
+    const seriesManager = this.interactor.fusion.getSeriesManager();
+
+    this.tool.render(stagingObject, context, this.renderer, this.model, panel, seriesManager);
+
+    if (this.tool.renderOverlay) {
+      this.tool.renderOverlay(
+        stagingObject,
+        context,
+        this.renderer,
+        this.model,
+        panel,
+        seriesManager,
+      );
+    }
   };
 
   this.keyDown = function (key) {

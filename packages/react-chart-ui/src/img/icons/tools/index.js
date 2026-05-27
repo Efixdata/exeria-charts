@@ -14,3 +14,5 @@ export { default as RangeVertical } from "./RangeVertical";
 export { default as Rectangle } from "./Rectangle";
 export { default as Text } from "./Text";
 export { default as Triangle } from "./Triangle";
+export { default as LongPosition } from "./LongPosition";
+export { default as ShortPosition } from "./ShortPosition";

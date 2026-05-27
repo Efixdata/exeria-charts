@@ -173,14 +173,14 @@ export class Series {
 }
 
 export class Shape {
-  anchorPointSize = 3;
+  anchorPointSize = 4;
   anchorPointDistanceToArrow = 10;
   anchorPointArrowSize = 6;
-  anchorColor = WEBRCP.utils.colorManager.getColor("accent");
-  anchorColorHover = WEBRCP.utils.colorManager.getColor("chartZeroColor");
+  anchorColor = "#21c1f2";
+  anchorColorHover = "#ffffff";
   defaultFont = WEBRCP.utils.colorManager.getFont("text");
   allowedStickyKeys: Record<string, boolean> = { o: true, h: true, l: true, c: true };
-  hitTolerance = 5;
+  hitTolerance = 8;
   wasDrag = false;
 
   constructor() {
@@ -334,6 +334,7 @@ export class Shape {
     options?: {
       drawArrowHandles?: boolean;
       redrawAnchorsWhenSelected?: boolean;
+      forceShow?: boolean;
     }
   ): void {
     const runtime = createToolRenderContext(
@@ -346,6 +347,27 @@ export class Shape {
     if (!points) return;
     if (!runtime.panel) return;
     const overlayPanel = runtime.panel as any;
+    const previousAlpha = overlayContext.globalAlpha;
+    overlayContext.globalAlpha = 1;
+
+    const anchorStroke =
+      WEBRCP.utils.colorManager.getColor("accent", this.anchorColor) ?? this.anchorColor;
+    const anchorHover =
+      WEBRCP.utils.colorManager.getColor("chartZeroColor", this.anchorColorHover) ??
+      this.anchorColorHover;
+    const plotRight =
+      overlayPanel._width -
+      (typeof renderer.getPriceRenderingOptions === "function"
+        ? renderer.getPriceRenderingOptions().valueAxisWidth
+        : 0);
+    const anchorOptions = { plotRight, strokeColor: anchorStroke, hollow: true };
+    const shouldShowHandles =
+      options?.forceShow === true || Boolean(object.selected) || Boolean(object._hit);
+
+    if (!shouldShowHandles || points.length === 0) {
+      overlayContext.globalAlpha = previousAlpha;
+      return;
+    }
 
     if (object._hitAnchor) {
       for (let index = 0; index < points.length; index += 1) {
@@ -355,12 +377,36 @@ export class Shape {
             overlayContext,
             overlayPanel,
             point,
-            this.hitTolerance,
-            this.anchorColorHover,
-            0.5
+            this.anchorPointSize + 1,
+            anchorHover,
+            1,
+            anchorOptions,
           );
         }
       }
+    }
+
+    drawAnchors(
+      overlayContext,
+      overlayPanel,
+      points,
+      this.anchorPointSize,
+      anchorStroke,
+      1,
+      anchorOptions,
+    );
+
+    if (options?.drawArrowHandles !== false) {
+      drawAnchorsArrow(
+        overlayContext,
+        overlayPanel,
+        points,
+        this.anchorPointArrowSize,
+        this.anchorPointDistanceToArrow,
+        anchorStroke,
+        1,
+        anchorOptions,
+      );
     }
 
     if (options?.drawArrowHandles !== false && object._hitArrow) {
@@ -373,40 +419,14 @@ export class Shape {
             point,
             this.anchorPointArrowSize + 2,
             this.anchorPointDistanceToArrow,
-            this.anchorColorHover,
-            0.5
+            anchorHover,
+            1,
           );
         }
       }
     }
 
-    if (object._hit || object.selected) {
-      drawAnchors(overlayContext, overlayPanel, points, this.anchorPointSize, this.anchorColor, 1);
-    }
-
-    if (object.selected) {
-      if (options?.redrawAnchorsWhenSelected) {
-        drawAnchors(
-          overlayContext,
-          overlayPanel,
-          points,
-          this.anchorPointSize,
-          this.anchorColor,
-          1
-        );
-      }
-      if (options?.drawArrowHandles !== false) {
-        drawAnchorsArrow(
-          overlayContext,
-          overlayPanel,
-          points,
-          this.anchorPointArrowSize,
-          this.anchorPointDistanceToArrow,
-          this.anchorColor,
-          1
-        );
-      }
-    }
+    overlayContext.globalAlpha = previousAlpha;
   }
 
   postRender(_object: LegacyShapeObject, ctx: CanvasRenderingContext2D): void {

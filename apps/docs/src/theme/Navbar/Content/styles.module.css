@@ -1,0 +1,95 @@
+/* Matches Index Ex3.html: .container.nav-inner */
+.navContainer {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  height: 72px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.navStart {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+}
+
+.navLinks :global(.navbar__item) {
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+.navLinks :global(.navbar__link) {
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--doc-text-secondary);
+}
+
+.navLinks :global(.navbar__link:hover),
+.navLinks :global(.navbar__link:focus-visible) {
+  color: var(--doc-text);
+  font-weight: 500;
+}
+
+.navLinks :global(.navbar__link--active) {
+  color: var(--doc-text);
+  font-weight: 500;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+}
+
+.navActionsMobile {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.colorModeToggle {
+  display: flex;
+}
+
+@media (max-width: 996px) {
+  .navContainer {
+    padding: 0 16px;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .navActions {
+    display: none;
+  }
+
+  .navActionsMobile {
+    display: flex;
+  }
+
+  .navStart {
+    flex: 1;
+    min-width: 0;
+  }
+}

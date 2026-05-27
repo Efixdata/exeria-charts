@@ -81,8 +81,18 @@ function TextObject(this: ShapeRuntime) {
     var x = pts[0].x;
     var y = pts[0].y;
 
-    this.font = (o.fontSize || cfg.fontSize) + "px" + WEBRCP.utils.colorManager.getFont("fontName");
-    const lineHeight = o.fontSize ? o.fontSize * cfg.lineMultiplier : cfg.lineHeight;
+    const resolvedFontSize =
+      typeof o.fontSize === "number" && o.fontSize > 0
+        ? o.fontSize
+        : typeof o.fontSize === "string" && Number(o.fontSize) > 0
+          ? Number(o.fontSize)
+          : cfg.fontSize;
+    const baseFont = WEBRCP.utils.colorManager.getFont(
+      "text",
+      "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    );
+    this.font = baseFont.replace(/\d+px/, `${resolvedFontSize}px`);
+    const lineHeight = resolvedFontSize * cfg.lineMultiplier;
     this.lineHeight = lineHeight;
 
     ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
@@ -152,7 +162,7 @@ function TextObject(this: ShapeRuntime) {
         y +
           cfg.offsetY +
           cfg.margin +
-          ((index + 1) * lineHeight - (o.fontSize || cfg.fontSize) / 2)
+          ((index + 1) * lineHeight - resolvedFontSize / 2)
       );
     }
     ctx.closePath();
@@ -245,15 +255,7 @@ function TextObject(this: ShapeRuntime) {
     return hitResult;
   };
 
-  this.lastClickStamp = 0;
   this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
-    const now = Date.now();
-    const lastClickStamp = this.lastClickStamp ?? 0;
-    if (now < lastClickStamp + 600) {
-      this.lastClickStamp = 0;
-      interactor.chart.requestObjectText(o, "text", o.text);
-    } else this.lastClickStamp = now;
-
     return Shape.prototype.mouseDownWithPanelPush.call(
       this,
       e,

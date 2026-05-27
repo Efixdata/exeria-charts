@@ -23,7 +23,7 @@ const StyledLabel = styled.label`
 
 export const Label = (props: LabelProps) => {
   return (
-    <StyledLabel>
+    <StyledLabel style={props.style}>
       {props.name}
       {props.children}
     </StyledLabel>

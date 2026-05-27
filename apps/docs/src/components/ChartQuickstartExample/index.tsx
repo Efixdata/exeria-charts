@@ -11,7 +11,11 @@ import {
 
 const drawModes: DrawMode[] = ["OHLC", "Line", "Histogram"];
 
-export default function ChartQuickstartExample() {
+type ChartQuickstartExampleProps = {
+  compact?: boolean;
+};
+
+export default function ChartQuickstartExample({ compact = false }: ChartQuickstartExampleProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
   const chartStateRef = useRef<{ datasetKey: ExampleDatasetKey; drawMode: DrawMode }>({
@@ -70,48 +74,54 @@ export default function ChartQuickstartExample() {
   }, [activeDataset, drawMode]);
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.controls}>
-        <div>
-          <span style={styles.controlLabel}>Dataset</span>
-          <div style={styles.buttonRow}>
-            {(Object.entries(docsExampleDatasets) as [ExampleDatasetKey, ExampleDataset][]).map(([key, dataset]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setDatasetKey(key)}
-                style={key === datasetKey ? styles.activeButton : styles.button}
-              >
-                {dataset.label}
-              </button>
-            ))}
+    <div style={compact ? styles.compactWrapper : styles.wrapper}>
+      {!compact ? (
+        <>
+          <div style={styles.controls}>
+            <div>
+              <span style={styles.controlLabel}>Dataset</span>
+              <div style={styles.buttonRow}>
+                {(Object.entries(docsExampleDatasets) as [ExampleDatasetKey, ExampleDataset][]).map(
+                  ([key, dataset]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setDatasetKey(key)}
+                      style={key === datasetKey ? styles.activeButton : styles.button}
+                    >
+                      {dataset.label}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span style={styles.controlLabel}>Draw mode</span>
+              <div style={styles.buttonRow}>
+                {drawModes.map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDrawMode(mode)}
+                    style={mode === drawMode ? styles.activeButton : styles.button}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <span style={styles.controlLabel}>Draw mode</span>
-          <div style={styles.buttonRow}>
-            {drawModes.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setDrawMode(mode)}
-                style={mode === drawMode ? styles.activeButton : styles.button}
-              >
-                {mode}
-              </button>
-            ))}
+          <div style={styles.metaRow}>
+            <span style={styles.metaTag}>Public API only</span>
+            <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
+            <span style={styles.metaChip}>{docsCandleCount} candles per dataset</span>
           </div>
-        </div>
-      </div>
+        </>
+      ) : null}
 
-      <div style={styles.metaRow}>
-        <span style={styles.metaTag}>Public API only</span>
-        <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
-        <span style={styles.metaChip}>{docsCandleCount} candles per dataset</span>
-      </div>
-
-      <div ref={containerRef} style={styles.chartSurface} />
+      <div ref={containerRef} style={compact ? styles.compactChartSurface : styles.chartSurface} />
     </div>
   );
 }
@@ -204,5 +214,16 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid var(--doc-border)",
     background: "#050505",
     boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
+  },
+  compactWrapper: {
+    width: "100%",
+    height: "100%",
+  },
+  compactChartSurface: {
+    width: "100%",
+    height: "100%",
+    minHeight: 300,
+    overflow: "hidden",
+    background: "#050505",
   },
 };

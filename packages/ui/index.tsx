@@ -8,6 +8,7 @@ export * from "./src/RadioButton";
 export * from "./src/SplitButton";
 export * from "./src/Loading";
 export * from "./src/Modal";
+export { CHART_UI_OVERLAY_ATTRIBUTE } from "./src/hooksHelper";
 export * from "./src/Dialog/DialogBox";
 export * from "./src/Dialog/DialogHeader";
 export * from "./src/Dialog/DialogFooter";

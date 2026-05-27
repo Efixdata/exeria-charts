@@ -1,0 +1,28 @@
+.menuToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--doc-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menuToggle:hover,
+.menuToggle:focus-visible {
+  color: var(--doc-text);
+}
+
+@media (max-width: 996px) {
+  .menuToggle {
+    display: flex;
+  }
+}

@@ -17,6 +17,10 @@ export interface ChartUITheme {
 		radius?: number;
 	};
 	gap?: number;
+	/** Outer padding between chart chrome and the container edges. */
+	edgeInset?: number;
+	/** Background behind toolbars and the chart surround (not the plot canvas). */
+	surroundBackground?: string;
 	accentColor?: string;
 	buttons?: ChartUIThemeButtonState;
 	radioButton?: {

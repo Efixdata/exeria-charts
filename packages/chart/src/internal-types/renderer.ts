@@ -145,6 +145,12 @@ export type RendererPostOverlayMethod = (
   model: CoreChartModel,
   seriesManager: SeriesManager,
 ) => void;
+export type RendererSelectionHandlesMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  fusion: CoreFusionRuntime,
+  selectedObject: ChartRuntimeObject,
+) => void;
 export type RendererValueAxisMethod = (
   context: CanvasRenderingContext2D,
   model: CoreChartModel,
@@ -256,6 +262,11 @@ export type RendererTimeTicksMethod = (
   model: CoreChartModel,
   seriesManager?: SeriesManager,
 ) => number[];
+export type RendererFallbackTimeTicksMethod = (
+  model: CoreChartModel,
+  lastIndex: number,
+  plotWidth: number,
+) => number[];
 export type RendererNiceTickMethod = (
   model: CoreChartModel,
   panel: CoreChartPanel,
@@ -294,6 +305,7 @@ export interface CoreRenderer {
   shouldBePanelVisible: RendererPanelVisibilityMethod;
   renderOverlay: RendererOverlayMethod;
   postRenderOverlay: RendererPostOverlayMethod;
+  renderSelectionHandles: RendererSelectionHandlesMethod;
   renderValueAxis: RendererValueAxisMethod;
   renderHGrid: RendererHGridMethod;
   renderVGrid: RendererVGridMethod;
@@ -313,6 +325,7 @@ export interface CoreRenderer {
   getYCoordinateForPrice: RendererPriceCoordinateMethod;
   getPriceForYCoordinate: RendererPriceCoordinateMethod;
   calculateTimeTicks: RendererTimeTicksMethod;
+  buildFallbackTimeTicks: RendererFallbackTimeTicksMethod;
   calculateNiceTick: RendererNiceTickMethod;
   niceNum: RendererNiceNumberMethod;
   getPrettyDate: RendererPrettyDateMethod;

@@ -25,7 +25,7 @@ const ButtonContainer = styled.div`
   display: flex;
 `;
 
-const OptionsContainer = styled.div`
+const OptionsContainer = styled.div<{ $menuAlign?: "start" | "end" }>`
   box-sizing: border-box;
   border-radius: ${selectButton.borderRadius}px;
   overflow: hidden;
@@ -35,8 +35,12 @@ const OptionsContainer = styled.div`
   padding: 4px 0;
   position: absolute;
   top: calc(-${buttonOption.basePadding}px - 4px);
-  left: -${buttonOption.basePadding}px;
-  z-index: 1;
+  left: ${(props) => (props.$menuAlign === "end" ? "auto" : `-${buttonOption.basePadding}px`)};
+  right: ${(props) => (props.$menuAlign === "end" ? `-${buttonOption.basePadding}px` : "auto")};
+  width: max-content;
+  min-width: calc(100% + ${buttonOption.basePadding * 2}px);
+  white-space: nowrap;
+  z-index: 20;
 `;
 
 const Option = styled.div`
@@ -83,6 +87,8 @@ interface SelectButtonProps {
   options: SelectButtonOptions;
   onSelect: (option: string | undefined) => void;
   selectedOption: string;
+  /** Align dropdown to the trigger's start (left) or end (right) edge. */
+  menuAlign?: "start" | "end";
   style?: React.CSSProperties | undefined;
 }
 
@@ -106,7 +112,9 @@ export const SelectButton = (props: SelectButtonProps) => {
       >
         {renderSelectedOption()}
       </ButtonContainer>
-      {isOpen && <OptionsContainer>{renderOptions()}</OptionsContainer>}
+      {isOpen && (
+        <OptionsContainer $menuAlign={props.menuAlign}>{renderOptions()}</OptionsContainer>
+      )}
     </Container>
   );
 

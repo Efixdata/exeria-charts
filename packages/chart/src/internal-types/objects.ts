@@ -80,6 +80,7 @@ export type KnownRendererObjectType =
   | "textAnnotation"
   | "triangle"
   | "priceTag"
+  | "longShortPosition"
   | "diNapoliLevels"
   | "diNapoliAbcd";
 
@@ -259,6 +260,7 @@ export interface RendererObjectsRegistry extends Record<string, CoreRendererObje
   textAnnotation: CoreRendererObject;
   triangle: CoreRendererObject;
   priceTag: CoreRendererObject;
+  longShortPosition: CoreRendererObject;
   diNapoliLevels: CoreRendererObject;
   diNapoliAbcd: CoreRendererObject;
 }

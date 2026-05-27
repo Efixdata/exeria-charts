@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import {
   DialogHeader,
   DialogBody,
@@ -29,12 +29,28 @@ interface IndicatorsDialogProps {
   onClose: () => void;
   indicators: IndicatorDefinition[];
   chart: NullableChartInstance;
+  editScriptId?: string | number | null;
   style?: React.CSSProperties;
 }
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const [filteredIndicators, setFilteredIndicators] = useState<IndicatorDefinition[]>(props.indicators);
   const [chosenIndicator, setChosenIndicator] = useState<IndicatorDefinition | null>(null);
+
+  useEffect(() => {
+    setFilteredIndicators(props.indicators);
+  }, [props.indicators]);
+
+  useEffect(() => {
+    if (props.editScriptId == null || !props.chart?.getIndicatorEditConfig) {
+      return;
+    }
+
+    const definition = props.chart.getIndicatorEditConfig(props.editScriptId);
+    if (definition) {
+      setChosenIndicator(definition as IndicatorDefinition);
+    }
+  }, [props.editScriptId, props.chart]);
   // styled-components in this workspace pulls a mismatched React context type
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -162,7 +178,11 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
           props.onClose();
         }}
         onBack={() => {
-          setChosenIndicator(null);
+          if (chosenIndicator?.id != null) {
+            props.onClose();
+          } else {
+            setChosenIndicator(null);
+          }
         }}
       />
     );

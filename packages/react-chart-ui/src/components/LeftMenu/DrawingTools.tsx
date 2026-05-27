@@ -19,6 +19,8 @@ import {
   Rectangle,
   Text,
   PriceTag,
+  LongPosition,
+  ShortPosition,
 } from "../../img/icons/tools/index.js";
 import { IconButton, SplitButton, TextButton } from "ui";
 import ContainerOffsetContext from "../../contexts/ContainerOffsetContext";
@@ -62,6 +64,7 @@ interface DrawingToolProps {
   style?: string;
   priceMarker?: boolean;
   fontSize?: number;
+  direction?: "LONG" | "SHORT";
 }
 
 interface DrawingTool {
@@ -406,12 +409,60 @@ export const DrawingTools = (props: DrawingToolsProps) => {
         order: 15,
       },
     },
+    longPosition: {
+      icon: <LongPosition />,
+      props: {
+        id: "longPosition",
+        type: "longShortPosition",
+        direction: "LONG",
+        name: "Long position",
+        sticky: true,
+        defaultColor: "defaultToolColor",
+        width: 1,
+        dash: [],
+        fillBg: false,
+        accountSize: 10000,
+        riskMode: "PERCENT",
+        riskPercent: 1,
+        riskAmount: 100,
+        anchors: [
+          { stamp: 0, offset: 0, value: 0, _index: 0 },
+          { stamp: 0, offset: 0, value: 0, _index: 0, expandable: true, defaultDirection: "right" },
+          { stamp: 0, offset: 0, value: 0, _index: 0, expandable: true, defaultDirection: "left" },
+        ],
+        order: 16,
+      },
+    },
+    shortPosition: {
+      icon: <ShortPosition />,
+      props: {
+        id: "shortPosition",
+        type: "longShortPosition",
+        direction: "SHORT",
+        name: "Short position",
+        sticky: true,
+        defaultColor: "defaultToolColor",
+        width: 1,
+        dash: [],
+        fillBg: false,
+        accountSize: 10000,
+        riskMode: "PERCENT",
+        riskPercent: 1,
+        riskAmount: 100,
+        anchors: [
+          { stamp: 0, offset: 0, value: 0, _index: 0 },
+          { stamp: 0, offset: 0, value: 0, _index: 0, expandable: true, defaultDirection: "right" },
+          { stamp: 0, offset: 0, value: 0, _index: 0, expandable: true, defaultDirection: "left" },
+        ],
+        order: 17,
+      },
+    },
     priceTag: {
       icon: <PriceTag />,
       props: {
         id: "priceTag",
         type: "priceTag",
-        name: "priceTag",
+        name: "Price tag",
         sticky: true,
         defaultColor: "defaultToolColor",
         width: 1,
@@ -419,7 +470,7 @@ export const DrawingTools = (props: DrawingToolsProps) => {
         flipped: false,
         setAnchorValue: [0], //st value to anchors with index
         anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],
-        order: 16,
+        order: 18,
       },
     },
   };
@@ -430,7 +481,8 @@ export const DrawingTools = (props: DrawingToolsProps) => {
   const lines = renderSplitButton(["channel", "hLine", "vLine", "mLine", "trend"], "trend");
   const shapes = renderSplitButton(["arrow", "ellipse", "triangle", "box"], "box");
   const analyticalTools = renderSplitButton(["abcd", "cycle", "fibon"], "fibon");
-  // const textAnnotation = renderDrawingTool(drawingTools.textAnnotation);
+  const textAnnotation = renderDrawingTool(drawingTools.textAnnotation);
+  const positions = renderSplitButton(["longPosition", "shortPosition"], "longPosition");
   const priceTag = renderDrawingTool(drawingTools.priceTag);
   const ranges = renderSplitButton(["hRange", "vRange"], "vRange");
 
@@ -440,7 +492,8 @@ export const DrawingTools = (props: DrawingToolsProps) => {
       {lines}
       {shapes}
       {analyticalTools}
-      {/* { textAnnotation } */}
+      {textAnnotation}
+      {positions}
       {priceTag}
       {ranges}
     </Container>

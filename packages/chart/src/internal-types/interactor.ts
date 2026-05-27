@@ -35,7 +35,7 @@ export interface InteractorChartHost extends HTMLDivElement {
     value: unknown,
     title?: string
   ): void;
-  objectsManager: {
+  objectsManager?: {
     cloneObject(object: ChartRuntimeObject): ChartRuntimeObject;
   };
 }

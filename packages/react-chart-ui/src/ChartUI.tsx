@@ -6,6 +6,9 @@ import { TopMenu } from "./components/TopMenu/TopMenu";
 import ContainerOffsetContext from "./contexts/ContainerOffsetContext";
 import { Theme } from "ui";
 import type { ChartUITheme, NullableChartInstance, ShareConfig } from "./chartTypes";
+import { ChartUiSettingsContext } from "./contexts/ChartUiSettingsContext";
+import { mergeChartUiTheme } from "./utils/mergeChartUiTheme";
+import { DrawingEditListener } from "./components/TopMenu/DrawingEdit/DrawingEditListener";
 
 interface ChartUIProps {
   chart: NullableChartInstance;
@@ -20,6 +23,7 @@ interface ChartUIProps {
 
 const Container = styled.div`
   position: relative;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   max-height: 100%;
@@ -31,9 +35,16 @@ const Container = styled.div`
   user-select: none;
 `;
 
+const ToolbarRow = styled.div`
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+`;
+
 const WrapperOuter = styled.div`
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 `;
 
@@ -52,7 +63,11 @@ const WrapperInner = styled.div<{ height: string }>`
   }
 `;
 
-class ChartUI extends React.Component<ChartUIProps> {
+interface ChartUIState {
+  uiThemeOverride: Partial<ChartUITheme> | null;
+}
+
+class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
   containerRef: RefObject<HTMLDivElement>;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
 
@@ -60,7 +75,16 @@ class ChartUI extends React.Component<ChartUIProps> {
     super(props);
     this.containerRef = React.createRef();
     this.containerOffset = {};
+    this.state = {
+      uiThemeOverride: null,
+    };
   }
+
+  applyUiTheme = (patch: Partial<ChartUITheme>) => {
+    this.setState((prev) => ({
+      uiThemeOverride: mergeChartUiTheme(prev.uiThemeOverride ?? {}, patch) ?? patch,
+    }));
+  };
 
   override componentDidMount() {
     this.setBoundingClientRect();
@@ -82,33 +106,44 @@ class ChartUI extends React.Component<ChartUIProps> {
   }
 
   override render() {
-    const gap = this.props.theme?.gap || 0;
+    const resolvedTheme = mergeChartUiTheme(this.props.theme, this.state.uiThemeOverride);
+    const gap = resolvedTheme?.gap || 0;
+    const edgeInset = resolvedTheme?.edgeInset || 0;
     const borders =
-      (this.props.theme?.border?.inner ? 1 : 0) + (this.props.theme?.border?.outter ? 1 : 0);
+      (resolvedTheme?.border?.inner ? 1 : 0) + (resolvedTheme?.border?.outter ? 1 : 0);
     const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
     const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
     let topMenuStyles: any = {
       height: topMenuHeight,
       marginBottom: gap,
     };
+    const surroundBackground = resolvedTheme?.surroundBackground;
 
     return (
-      <Theme theme={this.props.theme}>
-        <Container ref={this.containerRef} className="UI-container">
+      <ChartUiSettingsContext.Provider value={{ applyUiTheme: this.applyUiTheme }}>
+        <Theme theme={resolvedTheme}>
+          <Container
+            ref={this.containerRef}
+            className="UI-container"
+            style={{
+              ...(edgeInset > 0 ? { padding: edgeInset } : undefined),
+              ...(surroundBackground ? { backgroundColor: surroundBackground } : undefined),
+            }}
+          >
+          <DrawingEditListener chart={this.props.chart} />
+          <ToolbarRow>
+            <TopMenu
+              chart={this.props.chart}
+              className={resolvedTheme?.toolbar?.topMenuPosition === "right" ? "right" : ""}
+              style={topMenuStyles}
+              mainContainer={this.containerRef}
+              onIntervalChange={this.props.onIntervalChange}
+              shareConfig={this.props.shareConfig}
+            />
+          </ToolbarRow>
           <WrapperOuter className="wrapperOuter">
             <ContainerOffsetContext.Provider value={this.containerOffset}>
-              <TopMenu
-                chart={this.props.chart}
-                className={this.props.theme?.toolbar?.topMenuPosition === "right" ? "right" : ""}
-                style={topMenuStyles}
-                mainContainer={this.containerRef}
-                onIntervalChange={this.props.onIntervalChange}
-                shareConfig={this.props.shareConfig}
-              />
-              <WrapperInner
-                className="wrapperInner"
-                height={`calc(100% - ${topMenuHeight + gap + "px"})`}
-              >
+              <WrapperInner className="wrapperInner" height="100%">
                 <LeftMenu
                   chart={this.props.chart}
                   style={{ width: leftMenuWidth, marginRight: gap }}
@@ -124,8 +159,9 @@ class ChartUI extends React.Component<ChartUIProps> {
               </WrapperInner>
             </ContainerOffsetContext.Provider>
           </WrapperOuter>
-        </Container>
-      </Theme>
+          </Container>
+        </Theme>
+      </ChartUiSettingsContext.Provider>
     );
   }
 

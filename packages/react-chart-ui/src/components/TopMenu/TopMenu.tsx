@@ -2,6 +2,7 @@ import * as React from "react";
 import { useContext } from "react";
 import styled, { ThemeContext } from "styled-components";
 import { ChartScaleSwitch } from "./ChartScaleSwitch";
+import { ChartSettingsButton } from "./ChartSettings/ChartSettingsButton";
 import { AutoScaleSwitch } from "./AutoScaleSwitch";
 import { MainChartTypeSelect } from "./MainChartTypeSelect";
 import { FullScreenButton } from "./FullScreenButton";
@@ -102,8 +103,9 @@ export const TopMenu = (props: TopMenuProps) => {
           }}
         >
           <AutoScaleSwitch chart={props.chart} />
-          {renderChartScaleSwitch()}
           <Icons>
+            {renderChartScaleSwitch()}
+            <ChartSettingsButton chart={props.chart} />
             <FullScreenButton mainContainer={props.mainContainer} />
             {renderShareChartButton()}
           </Icons>

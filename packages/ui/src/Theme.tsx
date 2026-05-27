@@ -97,7 +97,7 @@ const defaultTheme: ThemeInterface = {
   toolbar: {
     buttons: buttonsTheme,
     background: violetDark,
-    showChartScaleSwitch: false,
+    showChartScaleSwitch: true,
     showShareChartButton: false,
     showCurrency: false,
     topMenuPosition: "right",

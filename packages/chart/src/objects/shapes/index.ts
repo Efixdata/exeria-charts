@@ -20,3 +20,11 @@ export { TextObject } from "./text";
 export { BoxObject } from "./box";
 export { TriangleObject } from "./triangle";
 export { PriceTagObject } from "./priceTag";
+export {
+  LongShortPositionObject,
+  ensureEntryAnchor,
+  readPositionPnlInput,
+  resolveEntryPrice,
+  syncAnchorsFromPrices,
+} from "./longShortPosition";
+export { computePositionPnl, formatPnlCurrency, type PositionRiskMode } from "./positionPnl";
