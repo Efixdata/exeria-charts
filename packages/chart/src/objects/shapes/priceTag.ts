@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { isDrawingSnapEnabled } from "../../drawingWorkflow";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -160,7 +161,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
 
     let index = renderer.getStampIndex(baseAnchors[0].stamp, model, seriesManager) + xOffset;
     var v = baseAnchors[0].value + yOffset;
-    if (o.sticky) {
+    if (isDrawingSnapEnabled(o, interactor)) {
       var candles = this.getCurrentCandles(index, model, seriesManager);
       v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
     }

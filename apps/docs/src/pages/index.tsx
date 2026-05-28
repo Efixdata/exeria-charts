@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import ChartQuickstartExample from "../components/ChartQuickstartExample";
+import CryptoTerminalCaseStudyChart from "../components/CryptoTerminalCaseStudyChart";
 import styles from "./index.module.css";
 
 const features = [
@@ -133,21 +134,25 @@ const pricingPlans = [
 
 const caseStudies = [
   {
+    id: "crypto-terminal",
     title: "The Ultimate Crypto Terminal.",
     body: "Deliver the institutional trading experience your power users demand. Leverage our robust windowing framework to build fully customizable workspaces.",
     href: "/docs/getting-started/react",
   },
   {
+    id: "quant-analytics",
     title: "Quant Analytics Dashboard.",
     body: "Visualize complex backtest results, equity curves, and proprietary indicators over millions of historical ticks without browser lag.",
     href: "/docs/getting-started/vanilla",
   },
   {
+    id: "forex-platforms",
     title: "Next-Gen Forex Platforms.",
     body: "Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements and dynamic bid/ask spreads with zero latency.",
     href: "/docs/getting-started/vite-react",
   },
   {
+    id: "mobile-native",
     title: "Mobile Native Experience.",
     body: "Flawless touch interaction straight out of the box. Bring native-feeling pinch-to-zoom and swipe gestures to iOS and Android users.",
     href: "/docs/getting-started/nextjs-app-router",
@@ -162,7 +167,12 @@ function CommandBox(): JSX.Element {
   };
 
   return (
-    <button type="button" className={styles.commandBox} onClick={copyCommand}>
+    <button
+      type="button"
+      className={styles.commandBox}
+      onClick={copyCommand}
+      aria-label="Copy npm install command"
+    >
       <span className={styles.commandText}>{NPM_COMMAND}</span>
       <svg
         className={styles.commandIcon}
@@ -264,7 +274,11 @@ export default function Home(): JSX.Element {
               <article key={item.title} className={styles.caseCard}>
                 <div className={styles.caseVisual}>
                   {isMounted ? (
-                    <ChartQuickstartExample compact />
+                    item.id === "crypto-terminal" ? (
+                      <CryptoTerminalCaseStudyChart />
+                    ) : (
+                      <ChartQuickstartExample compact />
+                    )
                   ) : (
                     <div className={styles.caseChartFallback}>Loading chart...</div>
                   )}

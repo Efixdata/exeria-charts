@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Interval } from "@efixdata/exeria-chart";
 import { SelectButton, TextButton } from "ui";
 import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface IntervalSwitchProps {
   chart: NullableChartInstance;
@@ -11,6 +12,7 @@ interface IntervalSwitchProps {
 }
 
 export const IntervalSwitch = (props: IntervalSwitchProps) => {
+  const t = useChartTranslate(props.chart);
   const instrument = props?.chart?.getInstrument();
   const interval = props?.chart?.getInterval();
   const [intervalSymbol, setIntervalSymbol] = useState(interval?.symbol);
@@ -29,7 +31,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
 
         const context = intervalSymbol === current.symbol ? "toolbar" : "subMenu";
         previous[current.symbol] = {
-          text: <TextButton themeContext={context}>{current.symbol}</TextButton>,
+          text: <TextButton tabIndex={-1} themeContext={context}>{current.symbol}</TextButton>,
           id: current.symbol,
         };
         return previous;
@@ -58,6 +60,7 @@ export const IntervalSwitch = (props: IntervalSwitchProps) => {
     if (availableIntervalsSymbols) {
       return (
         <SelectButton
+          ariaLabel={t("toolbar_chart_interval", "Chart interval")}
           // @ts-ignore
           style={{ ...props.style, minWidth: 34 }}
           options={availableIntervalsSymbols}

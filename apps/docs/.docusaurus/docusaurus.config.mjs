@@ -82,12 +82,12 @@ export default {
           "label": "Docs"
         },
         {
-          "href": "/#features",
+          "to": "/#features",
           "label": "Features",
           "position": "left"
         },
         {
-          "href": "/#case-studies",
+          "to": "/#case-studies",
           "label": "Case studies",
           "position": "left"
         },

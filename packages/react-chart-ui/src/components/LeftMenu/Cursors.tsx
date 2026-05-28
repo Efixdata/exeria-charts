@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { IconButton, RadioButton } from "ui";
-
-import { Cross, Default, Eraser } from "../../img/icons/cursors";
+import { IconButton } from "ui";
+import { Cross, Default } from "../../img/icons/cursors";
 import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface CursorsProps {
   chart: NullableChartInstance;
@@ -11,12 +11,16 @@ interface CursorsProps {
 }
 
 export const Cursors = (props: CursorsProps) => {
+  const t = useChartTranslate(props.chart);
   const [selectedCursor, setSelectedCursor] = useState("DEFAULT");
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe("CURSOR_CHANGE", (data: any) => {
-      if (data.cursor === "STAGE") setSelectedCursor("DEFAULT");
-      else setSelectedCursor(data.cursor);
+    const subscription = props?.chart?.subscribe("CURSOR_CHANGE", (data: { cursor: string }) => {
+      if (data.cursor === "STAGE") {
+        setSelectedCursor("DEFAULT");
+      } else {
+        setSelectedCursor(data.cursor);
+      }
     });
 
     return () => {
@@ -24,46 +28,41 @@ export const Cursors = (props: CursorsProps) => {
         subscription.unsubscribe();
       }
     };
-  });
+  }, [props.chart]);
 
-  const cursors = [
-    <IconButton
-      id={"DEFAULT"}
-      key={"DEFAULT"}
-      active={selectedCursor === "DEFAULT"}
-      themeContext="radioButton"
-    >
-      <Default />
-    </IconButton>,
-    <IconButton
-      id={"CROSSHAIR"}
-      key={"CROSSHAIR"}
-      active={selectedCursor === "CROSSHAIR"}
-      themeContext="radioButton"
-    >
-      <Cross />
-    </IconButton>,
-    <IconButton
-      id={"ERASER"}
-      key={"ERASER"}
-      active={selectedCursor === "ERASER"}
-      themeContext="radioButton"
-    >
-      <Eraser />
-    </IconButton>,
-  ];
+  const onCursorClick = (id: string) => {
+    const next = selectedCursor === id && id !== "DEFAULT" ? "DEFAULT" : id;
+    setSelectedCursor(next);
+    props.chart?.setCursor(next);
+  };
+
+  const pointerLabel = t("toolbar_cursor_pointer", "Pointer");
+  const crosshairLabel = t("toolbar_cursor_crosshair", "Crosshair");
 
   return (
-    <RadioButton
-      buttons={cursors}
-      currentButton={selectedCursor}
-      defaultButton={"DEFAULT"}
-      onSelect={onCursorClick}
-    />
+    <>
+      <IconButton
+        id="DEFAULT"
+        active={selectedCursor === "DEFAULT"}
+        themeContext="toolbar"
+        onClick={() => onCursorClick("DEFAULT")}
+        title={pointerLabel}
+        ariaLabel={pointerLabel}
+        tooltipPlacement="right"
+      >
+        <Default />
+      </IconButton>
+      <IconButton
+        id="CROSSHAIR"
+        active={selectedCursor === "CROSSHAIR"}
+        themeContext="toolbar"
+        onClick={() => onCursorClick("CROSSHAIR")}
+        title={crosshairLabel}
+        ariaLabel={crosshairLabel}
+        tooltipPlacement="right"
+      >
+        <Cross />
+      </IconButton>
+    </>
   );
-
-  function onCursorClick(id: string) {
-    setSelectedCursor(id);
-    props.chart?.setCursor(id);
-  }
 };

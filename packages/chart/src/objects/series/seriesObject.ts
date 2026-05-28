@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { resolveChartLocaleMessage } from "../../chartLocaleRuntime";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -26,6 +27,34 @@ function getLinkedSeries(
 ) {
   if (!object.dataLink) return null;
   return seriesManager[object.dataLink] ?? null;
+}
+
+function parseLineFillColor(color: string): { r: number; g: number; b: number } {
+  if (color.startsWith("#")) {
+    const normalized =
+      color.length === 4
+        ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+        : color;
+    const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
+    if (match) {
+      return {
+        r: Number.parseInt(match[1], 16),
+        g: Number.parseInt(match[2], 16),
+        b: Number.parseInt(match[3], 16),
+      };
+    }
+  }
+
+  const match = color.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (match) {
+    return {
+      r: Number.parseInt(match[1], 10),
+      g: Number.parseInt(match[2], 10),
+      b: Number.parseInt(match[3], 10),
+    };
+  }
+
+  return { r: 41, g: 98, b: 255 };
 }
 
 function getSeriesLabel(labels: string[] | Record<string, string>, index: number, field: string) {
@@ -198,8 +227,9 @@ var SeriesObject = function (this: SeriesRuntime) {
         return WEBRCP.utils.colorManager.getColor(color, color);
       },
       getTextColor: function (object) {
-        const color = object.color ?? WEBRCP.utils.colorManager.getColor("fontColor");
-        return WEBRCP.utils.getContrastColor(color);
+        const colorKey = typeof object.color === "string" ? object.color : "chartLine";
+        const resolvedColor = WEBRCP.utils.colorManager.getColor(colorKey, colorKey);
+        return WEBRCP.utils.getContrastColor(resolvedColor);
       },
       getUpColor: function () {
         return WEBRCP.utils.colorManager.getColor("chartGreenBackground");
@@ -697,7 +727,23 @@ var SeriesObject = function (this: SeriesRuntime) {
     var midX = 0;
 
     ctx.save();
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
+
+    const baseY = panel._offset + panel._height;
+    const fillMode = o.lineFillMode === "gradient" ? "gradient" : "solid";
+
+    if (fillMode === "gradient") {
+      const color = WEBRCP.utils.colorManager.getColor("chartFillGradient", "chartLine");
+      const opacity =
+        typeof o.lineFillGradientOpacity === "number" ? o.lineFillGradientOpacity : 0.4;
+      const rgb = parseLineFillColor(color);
+      const gradient = ctx.createLinearGradient(0, panel._offset, 0, baseY);
+      gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`);
+      gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+      ctx.fillStyle = gradient;
+    } else {
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
+    }
+
     ctx.beginPath();
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -706,7 +752,6 @@ var SeriesObject = function (this: SeriesRuntime) {
     if (start > 0) start = this.getStartIndex(start, linkedSeries.data, field);
     if (end < linkedSeries.data.length - 1) end = this.getEndIndex(end, linkedSeries.data, field);
 
-    const baseY = panel._offset + panel._height;
     var firstRender = true;
     var firstX = 0;
     var lastX = 0;
@@ -1248,7 +1293,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     fields.forEach((field, fieldIndex) => {
       const label = getSeriesLabel(labels, fieldIndex, field);
       const value: SeriesTooltipData["values"][number] = {
-        label: WEBRCP.locale.fusion.getMessage(label, label),
+        label: resolveChartLocaleMessage(label, label),
         value: dataPoint[field],
       };
 

@@ -31,11 +31,12 @@
 
 .workspace {
   display: grid;
-  gap: 20px;
+  gap: 24px;
   margin-bottom: 72px;
 }
 
 .controlsPanel {
+  width: 100%;
   padding: 12px 16px;
   border: 1px solid var(--doc-border);
   border-radius: var(--doc-radius-lg);
@@ -127,7 +128,7 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: var(--doc-font-chip, 0.8rem);
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
@@ -155,6 +156,23 @@
   color: var(--doc-bg);
 }
 
+.presetButton:focus-visible,
+.presetButtonActive:focus-visible,
+.variantButton:focus-visible,
+.variantButtonActive:focus-visible,
+.scopeTab:focus-visible,
+.scopeTabActive:focus-visible,
+.exampleCard:focus-visible,
+.exampleCardActive:focus-visible,
+.pickerTrigger:focus-visible,
+.pickerTriggerOpen:focus-visible,
+.pickerOption:focus-visible,
+.pickerOptionActive:focus-visible,
+.colorValue:focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 2px;
+}
+
 .presetSwatch {
   width: 12px;
   height: 12px;
@@ -180,7 +198,7 @@
 }
 
 .colorEditorLabel {
-  font-size: 0.72rem;
+  font-size: var(--doc-font-chip, 0.8rem);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -234,7 +252,7 @@
 }
 
 .selectLabel {
-  font-size: 0.72rem;
+  font-size: var(--doc-font-chip, 0.8rem);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -406,12 +424,17 @@
 .controlHint {
   margin: 0;
   color: var(--doc-text-secondary);
-  font-size: 0.78rem;
+  font-size: var(--doc-font-chip, 0.8rem);
   line-height: 1.4;
 }
 
 .chartSection {
+  width: 100%;
   scroll-margin-top: 88px;
+}
+
+.chartPreview {
+  width: 100%;
 }
 
 .examplesSection {

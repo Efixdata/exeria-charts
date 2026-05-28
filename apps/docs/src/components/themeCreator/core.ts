@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
 import type { ChartInstance, Candle, Instrument, Interval } from "@efixdata/exeria-chart";
+import { buildChartUiTheme } from "../../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets, docsInterval, getCandleAtRatio } from "../chartExampleData";
 
 export type ChartColorKey =
@@ -18,9 +19,11 @@ export type UiColorKey =
   | "toolbarBackground"
   | "panel"
   | "panelStrong"
+  | "inputSurface"
   | "text"
   | "mutedText"
-  | "divider";
+  | "divider"
+  | "inputBorder";
 
 export type ThemeVariant = "dark" | "light";
 
@@ -33,6 +36,17 @@ export interface UiColorState extends Record<UiColorKey, string> {}
 export interface ThemePreset {
   id: string;
   label: string;
+  chipLabel: string;
+  chipColor: string;
+  description?: string;
+  preferredVariant?: ThemeVariant;
+  swatches?: {
+    background: string;
+    up: string;
+    down: string;
+    grid: string;
+    chrome: string;
+  };
   chart: VariantPalette<ChartColorKey>;
   ui: VariantPalette<UiColorKey>;
 }
@@ -124,133 +138,15 @@ export const uiColorControls: ColorControl<UiColorKey>[] = [
   },
 ];
 
-export const themePresets: ThemePreset[] = [
-  {
-    id: "swipper",
-    label: "Swipper",
-    chart: createChartVariantState({
-      accent: "#1EA1CD",
-      background: "#0E2A3C",
-      axisText: "#1EA1CD",
-      grid: "#274D63",
-      candleUp: "#3CC3AF",
-      candleDown: "#CE3E5B",
-      crosshair: "#21C1F2",
-      tool: "#1EA1CD",
-    }),
-    ui: createUiVariantState({
-      accent: "#3CC3AF",
-      toolbarBackground: "#113D59",
-      panel: "#144869",
-      panelStrong: "#1EA1CD",
-      text: "#FFFFFF",
-      mutedText: "#D4F0FF",
-      divider: "#76CBE4",
-    }),
-  },
-  {
-    id: "signal",
-    label: "Signal",
-    chart: createChartVariantState({
-      accent: "#13F899",
-      background: "#100C22",
-      axisText: "#6D86B1",
-      grid: "#15132B",
-      candleUp: "#17F7AB",
-      candleDown: "#FF007B",
-      crosshair: "#13F899",
-      tool: "#F7FBFF",
-    }),
-    ui: createUiVariantState({
-      accent: "#13F899",
-      toolbarBackground: "#0D0B1B",
-      panel: "#181433",
-      panelStrong: "#201E3E",
-      text: "#F5FFFD",
-      mutedText: "#8FA6C9",
-      divider: "#6D86B1",
-    }),
-  },
-  {
-    id: "exeria",
-    label: "Exeria",
-    chart: createChartVariantState({
-      accent: "#2196F3",
-      background: "#282B38",
-      axisText: "#C7D3E8",
-      grid: "#353741",
-      candleUp: "#259B24",
-      candleDown: "#E51C23",
-      crosshair: "#2196F3",
-      tool: "#F3F8FF",
-    }),
-    ui: createUiVariantState({
-      accent: "#2196F3",
-      toolbarBackground: "#1F2029",
-      panel: "#2F3444",
-      panelStrong: "#246197",
-      text: "#FFFFFF",
-      mutedText: "#D3E3FF",
-      divider: "#90B8E2",
-    }),
-  },
-  {
-    id: "ocean",
-    label: "Ocean",
-    chart: createChartVariantState({
-      accent: "#38BDF8",
-      background: "#07111F",
-      axisText: "#7DD3FC",
-      grid: "#123047",
-      candleUp: "#2DD4BF",
-      candleDown: "#FB7185",
-      crosshair: "#38BDF8",
-      tool: "#E0F2FE",
-    }),
-    ui: createUiVariantState({
-      accent: "#38BDF8",
-      toolbarBackground: "#0B1728",
-      panel: "#102338",
-      panelStrong: "#1D4ED8",
-      text: "#F0F9FF",
-      mutedText: "#93C5FD",
-      divider: "#3B82F6",
-    }),
-  },
-  {
-    id: "ember",
-    label: "Ember",
-    chart: createChartVariantState({
-      accent: "#F59E0B",
-      background: "#14100C",
-      axisText: "#D6B48C",
-      grid: "#2A2118",
-      candleUp: "#84CC16",
-      candleDown: "#EF4444",
-      crosshair: "#FBBF24",
-      tool: "#FFF7ED",
-    }),
-    ui: createUiVariantState({
-      accent: "#F59E0B",
-      toolbarBackground: "#1A1410",
-      panel: "#241B14",
-      panelStrong: "#B45309",
-      text: "#FFF7ED",
-      mutedText: "#D6B48C",
-      divider: "#92400E",
-    }),
-  },
-];
-
 const chartFontValues = {
-  title: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  text: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  price: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  priceSubscript: "600 10px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  time: "600 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  legend: "12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  legendSubscript: "10px Mulish, Roboto, Tahoma, Arial, sans-serif",
-  fontName: "Mulish",
+  title: '600 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  text: '11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  price: '600 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  priceSubscript: '600 10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  time: '600 11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  legend: '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  legendSubscript: '10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  fontName: "Inter",
 };
 
 export const previewCandles = docsExampleDatasets.trend.candles;
@@ -410,7 +306,7 @@ function buildChartThemeVariant(
     overlay: chartGray,
     legendLabelColor: withAlpha(textColor, isLight ? 0.62 : 0.72),
     legendValueColor: textColor,
-    legendLineBackground: withAlpha(chartColors.background, isLight ? 0.94 : 0.82),
+    legendLineBackground: "transparent",
     fibonacciRetracementLine: withAlpha(textColor, isLight ? 0.08 : 0.12),
   };
 }
@@ -435,89 +331,23 @@ export function buildChartTheme(chartColorsByVariant: VariantPalette<ChartColorK
   };
 }
 
-export function buildUiTheme(uiColors: UiColorState, themeVariant: ThemeVariant) {
-  const isLight = themeVariant === "light";
-  const control = withAlpha(uiColors.accent, isLight ? 0.1 : 0.14);
-  const controlActive = mixColors(uiColors.accent, uiColors.panelStrong, isLight ? 0.22 : 0.38);
-
-  return {
-    border: {
-      inner: `1px solid ${withAlpha(uiColors.divider, isLight ? 0.32 : 0.22)}`,
-      outter: `1px solid ${withAlpha(uiColors.divider, isLight ? 0.32 : 0.22)}`,
-      radius: 20,
-    },
-    gap: 10,
-    accentColor: uiColors.accent,
-    buttons: {
-      color: uiColors.text,
-      activeColor: uiColors.text,
-      activeBackground: controlActive,
-      hoverColor: uiColors.text,
-      hoverBackground: control,
-    },
-    radioButton: {
-      background: control,
-      buttons: {
-        color: uiColors.mutedText,
-        activeColor: uiColors.text,
-        hoverColor: uiColors.text,
-        hoverBackground: control,
-      },
-    },
-    toolbar: {
-      background: uiColors.toolbarBackground,
-      buttons: {
-        color: uiColors.mutedText,
-        activeColor: uiColors.text,
-        activeBackground: controlActive,
-        hoverColor: uiColors.text,
-        hoverBackground: control,
-      },
-      showCurrency: false,
-      showShareChartButton: false,
-      showChartScaleSwitch: true,
-      topMenuPosition: "right",
-    },
-    subMenu: {
-      background: uiColors.panelStrong,
-      buttons: {
-        color: uiColors.text,
-        activeColor: uiColors.text,
-        activeBackground: controlActive,
-        hoverColor: uiColors.text,
-        hoverBackground: control,
-      },
-    },
-    splitButton: {
-      openBackground: uiColors.panelStrong,
-      hoverBackground: uiColors.panelStrong,
-      openColor: uiColors.text,
-      hoverColor: uiColors.text,
-      arrowHoverBackground: control,
-      arrowColor: uiColors.accent,
-      arrowOpenColor: uiColors.accent,
-    },
-    dialog: {
-      backgroundColor: uiColors.panel,
-      titleColor: uiColors.text,
-      textColor: uiColors.text,
-      dividerColor: withAlpha(uiColors.divider, isLight ? 0.22 : 0.18),
-      itemTitleColor: uiColors.text,
-      itemSubTitleColor: uiColors.mutedText,
-      itemHoverBackgroundColor: control,
-    },
-    inputs: {
-      backgroundColor: uiColors.panelStrong,
-      placeholderColor: uiColors.mutedText,
-      textColor: uiColors.text,
-      labelColor: uiColors.text,
-    },
-    scrollBar: {
-      trackColor: withAlpha(isLight ? "#08111B" : uiColors.text, 0.04),
-      thumbColor: withAlpha(uiColors.divider, isLight ? 0.68 : 0.42),
-      thumbHoverColor: uiColors.accent,
-    },
-  };
+export function buildUiTheme(
+  uiColors: UiColorState,
+  themeVariant: ThemeVariant,
+  chartAccent?: string,
+) {
+  return buildChartUiTheme({
+    mode: themeVariant === "light" ? "light" : "dark",
+    surround: uiColors.toolbarBackground,
+    toolbar: uiColors.toolbarBackground,
+    dialog: uiColors.panel,
+    input: uiColors.inputSurface,
+    accent: chartAccent ?? uiColors.accent,
+    uiAccent: uiColors.accent,
+    text: uiColors.text,
+    muted: uiColors.mutedText,
+    inputBorder: uiColors.inputBorder,
+  });
 }
 
 export function formatCodeBlock(name: string, value: unknown) {

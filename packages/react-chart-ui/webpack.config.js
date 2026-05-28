@@ -39,6 +39,11 @@ const baseConfig = {
         },
       },
       {
+        test: /\.css$/i,
+        exclude: /\.module\.css$/i,
+        use: [require.resolve("style-loader"), require.resolve("css-loader")],
+      },
+      {
         test: /\.(svg|png|jpe?g|gif)$/i,
         use: [
           {

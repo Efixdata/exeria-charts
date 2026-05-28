@@ -58,7 +58,8 @@ export default function createCANDLESTICKPATTERNSStrategyScript(FUSION: CoreFusi
         dataLink: "CANDLESTICKPATTERNS",
         renderAs: "",
         dataField: "CANDLESTICKPATTERNS",
-        color: "#ff0000",
+        buyColor: "#3CC3AF",
+        sellColor: "#CE3E5B",
         width: 1,
         dash: [],
       },
@@ -348,7 +349,7 @@ export default function createCANDLESTICKPATTERNSStrategyScript(FUSION: CoreFusi
 
           if (INDEX >= 2) {
             if (
-              this.MORNINGSTAR &&
+              this.CHOSENPATTERNS.MORNINGSTAR &&
               C_2 < O_2 &&
               C > O &&
               O_2 - C_2 > this.SMA10ABSOC &&
@@ -655,6 +656,7 @@ export default function createCANDLESTICKPATTERNSStrategyScript(FUSION: CoreFusi
             this.CANDLESTICKPATTERNS.setValue(INDEX, signal);
             this.CANDLESTICKPATTERNS.setStrength(INDEX, 1);
           } else {
+            this.CANDLESTICKPATTERNS.clearTooltips(INDEX);
             this.CANDLESTICKPATTERNS.setValue(INDEX, 0);
             this.CANDLESTICKPATTERNS.setStrength(INDEX, 0);
           }

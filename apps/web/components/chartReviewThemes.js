@@ -125,34 +125,34 @@ const signalChartTheme = {
   },
   fonts: {
     title: {
-      light: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "bold 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: 'bold 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: 'bold 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     text: {
-      light: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: '11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: '11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     price: {
-      light: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "600 12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: '600 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: '600 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     priceSubscript: {
-      light: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "bold 10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: 'bold 10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: 'bold 10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     time: {
-      light: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "bold 11px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: 'bold 11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: 'bold 11px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     legend: {
-      light: "12px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "12px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
     legendSubscript: {
-      light: "10px Mulish, Roboto, Tahoma, Arial, sans-serif",
-      dark: "10px Mulish, Roboto, Tahoma, Arial, sans-serif",
+      light: '10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      dark: '10px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     },
-    fontName: { light: "Mulish", dark: "Mulish" },
+    fontName: { light: "Inter", dark: "Inter" },
   },
 };
 

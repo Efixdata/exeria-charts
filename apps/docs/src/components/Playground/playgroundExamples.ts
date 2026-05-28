@@ -5,16 +5,16 @@ import {
   cloneVariantPalette,
   drawPreviewOverlays,
   previewCandles,
-  themePresets,
 } from "../themeCreator/core";
+import { themePresets } from "../themeCreator/chartSettingsThemePresets";
 
 export type PlaygroundExampleId =
-  | "signal-dark"
-  | "swipper-tools"
-  | "exeria-light"
-  | "ocean-indicators"
-  | "ember-line"
-  | "signal-full";
+  | "trading-dark-scene"
+  | "carbon-tools"
+  | "day-light"
+  | "midnight-indicators"
+  | "onyx-line"
+  | "paper-full";
 
 export type PlaygroundExample = {
   id: PlaygroundExampleId;
@@ -39,34 +39,34 @@ export function createPlaygroundPalette(presetId: string) {
 
 export const playgroundExamples: PlaygroundExample[] = [
   {
-    id: "signal-dark",
-    title: "Neon momentum",
+    id: "trading-dark-scene",
+    title: "Trading dark momentum",
     image: "/img/playground/example-1.jpg",
-    presetId: "signal",
+    presetId: "trading-dark",
     themeVariant: "dark",
   },
   {
-    id: "swipper-tools",
+    id: "carbon-tools",
     title: "Drawing tools",
     image: "/img/playground/example-2.jpg",
-    presetId: "swipper",
+    presetId: "carbon",
     themeVariant: "dark",
     applyScene: async (chart) => {
       drawPreviewOverlays(chart, previewCandles);
     },
   },
   {
-    id: "exeria-light",
-    title: "Light workspace",
+    id: "day-light",
+    title: "Day light workspace",
     image: "/img/playground/example-3.jpg",
-    presetId: "exeria",
+    presetId: "day",
     themeVariant: "light",
   },
   {
-    id: "ocean-indicators",
+    id: "midnight-indicators",
     title: "RSI + MACD stack",
     image: "/img/playground/example-4.jpg",
-    presetId: "ocean",
+    presetId: "midnight",
     themeVariant: "dark",
     applyScene: async (chart) => {
       chart.addScript("RSI");
@@ -74,21 +74,21 @@ export const playgroundExamples: PlaygroundExample[] = [
     },
   },
   {
-    id: "ember-line",
+    id: "onyx-line",
     title: "Line mode",
     image: "/img/playground/example-5.jpg",
-    presetId: "ember",
+    presetId: "onyx",
     themeVariant: "dark",
     applyScene: async (chart) => {
       chart.setMainDrawMode("Line");
     },
   },
   {
-    id: "signal-full",
+    id: "paper-full",
     title: "Full chart surface",
     image: "/img/playground/example-6.jpg",
-    presetId: "signal",
-    themeVariant: "dark",
+    presetId: "paper",
+    themeVariant: "light",
     applyScene: async (chart) => {
       chart.addScript("EMA");
       drawPreviewOverlays(chart, previewCandles);

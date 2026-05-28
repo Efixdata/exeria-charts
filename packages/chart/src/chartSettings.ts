@@ -1,5 +1,6 @@
 import FUSION from "./fusion";
 import { resolveDrawingDisplayLabel } from "./drawingToolLabels";
+import { getCatalogTypeForScriptKey } from "./locale/catalogTranslator";
 import { Shape } from "./Objects2";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
@@ -12,6 +13,7 @@ import type { ScriptModelConfig } from "./internal-types/scripts";
 export type ChartGridMode = "both" | "horizontal" | "vertical" | "none";
 export type ChartGridLineStyle = "solid" | "dashed";
 export type ChartVolumeColorMode = "candle" | "single";
+export type ChartLineFillMode = "solid" | "gradient";
 
 export interface ChartAppearanceSettings {
   backgroundColor: string;
@@ -19,6 +21,9 @@ export interface ChartAppearanceSettings {
   chartLineColor: string;
   chartFillColor: string;
   chartLineFillVisible: boolean;
+  chartLineFillMode: ChartLineFillMode;
+  chartFillGradientColor: string;
+  chartFillGradientOpacity: number;
   candleUpColor: string;
   candleDownColor: string;
   candleUpStrokeColor: string;
@@ -57,6 +62,14 @@ export interface ChartStrategySettingsItem {
   visible: boolean;
 }
 
+export interface ChartFunctionSettingsItem {
+  scriptId: string | number;
+  key: string;
+  title: string;
+  visible: boolean;
+  priceTagVisible: boolean;
+}
+
 export interface ChartDrawingSettingsItem {
   objectId: string | number;
   label: string;
@@ -85,6 +98,7 @@ interface ChartSettingsHost {
     objects: Record<string, unknown>;
   };
   translate(text: string): string;
+  translateCatalog?(text: string, catalogType?: string): string;
   getScripts(): Record<string, { title?: string; type?: string }>;
   rerender(): void;
   objectsManager: {
@@ -247,10 +261,30 @@ function isStrategyScript(script: ScriptModelConfig): boolean {
   return proto?.type === "strategies" && proto.hidden !== true;
 }
 
+function isFunctionScript(script: ScriptModelConfig): boolean {
+  const scriptKey = script.key;
+  if (typeof scriptKey !== "string") {
+    return false;
+  }
+
+  if (script.permHide) {
+    return false;
+  }
+
+  const proto = FUSION.getScript(scriptKey) as { type?: string; hidden?: boolean } | undefined;
+  return proto?.type === "functions" && proto.hidden !== true;
+}
+
 function getScriptTitle(chart: ChartSettingsHost, script: ScriptModelConfig): string {
   const scriptKey = String(script.key || "");
-  const catalogEntry = chart.getScripts()[scriptKey];
+  const catalogEntry = FUSION.getFreeScripts()[scriptKey];
   const title = catalogEntry?.title || script.userName || scriptKey;
+  const catalogType = getCatalogTypeForScriptKey(scriptKey);
+
+  if (chart.translateCatalog) {
+    return chart.translateCatalog(String(title), catalogType);
+  }
+
   return chart.translate(String(title));
 }
 
@@ -312,6 +346,16 @@ export function getChartAppearanceSettings(
     ),
     chartFillColor: colorManager.getColor("chartFill"),
     chartLineFillVisible: mainSeries?.lineFillVisible === true,
+    chartLineFillMode:
+      mainSeries?.lineFillMode === "gradient" ? "gradient" : "solid",
+    chartFillGradientColor: colorManager.getColor(
+      "chartFillGradient",
+      "chartLine",
+    ),
+    chartFillGradientOpacity:
+      typeof mainSeries?.lineFillGradientOpacity === "number"
+        ? mainSeries.lineFillGradientOpacity
+        : 0.4,
     candleUpColor: colorManager.getColor("chartGreen"),
     candleDownColor: colorManager.getColor("chartRed"),
     candleUpStrokeColor: colorManager.getColor("chartGreenStroke"),
@@ -349,6 +393,7 @@ export function applyChartAppearanceSettings(
   patch("chartLine", settings.chartLineColor);
   patch("chartStroke", settings.chartLineColor);
   patch("chartFill", settings.chartFillColor);
+  patch("chartFillGradient", settings.chartFillGradientColor);
   patch("chartGreen", settings.candleUpColor);
   patch("chartGreenStroke", settings.candleUpStrokeColor);
   patch("chartRed", settings.candleDownColor);
@@ -378,6 +423,8 @@ export function applyChartAppearanceSettings(
     mainSeries.priceLine = settings.lastPriceLineVisible;
     mainSeries.priceTag = settings.lastPriceLabelVisible;
     mainSeries.lineFillVisible = settings.chartLineFillVisible;
+    mainSeries.lineFillMode = settings.chartLineFillMode;
+    mainSeries.lineFillGradientOpacity = settings.chartFillGradientOpacity;
   }
 
   const panel = getMainPanel(chart);
@@ -508,6 +555,32 @@ export function getChartStrategySettings(chart: ChartSettingsHost): ChartStrateg
   return items;
 }
 
+export function getChartFunctionSettings(chart: ChartSettingsHost): ChartFunctionSettingsItem[] {
+  const items: ChartFunctionSettingsItem[] = [];
+
+  for (const script of chart.model.scripts) {
+    if (!script.id || !isFunctionScript(script)) {
+      continue;
+    }
+
+    const plotters = getPlottersForScript(chart, script.id);
+    const visible =
+      script.visible !== false && plotters.length > 0
+        ? plotters.every((plotter) => !plotter.hidden)
+        : script.visible !== false;
+
+    items.push({
+      scriptId: script.id,
+      key: String(script.key || ""),
+      title: getScriptTitle(chart, script),
+      visible,
+      priceTagVisible: plotters.some((plotter) => plotter.priceTag === true),
+    });
+  }
+
+  return items;
+}
+
 export function setChartIndicatorVisibility(
   chart: ChartSettingsHost,
   scriptId: string | number,
@@ -517,6 +590,14 @@ export function setChartIndicatorVisibility(
 }
 
 export function setChartStrategyVisibility(
+  chart: ChartSettingsHost,
+  scriptId: string | number,
+  visible: boolean,
+): void {
+  setScriptVisibility(chart, scriptId, visible);
+}
+
+export function setChartFunctionVisibility(
   chart: ChartSettingsHost,
   scriptId: string | number,
   visible: boolean,
@@ -572,12 +653,25 @@ export function setChartIndicatorPriceTagVisibility(
   chart.rerender();
 }
 
+export function setChartFunctionPriceTagVisibility(
+  chart: ChartSettingsHost,
+  scriptId: string | number,
+  visible: boolean,
+): void {
+  setChartIndicatorPriceTagVisibility(chart, scriptId, visible);
+}
+
 export function removeChartIndicator(chart: ChartSettingsHost, scriptId: string | number): void {
   chart.objectsManager.detachScript(scriptId);
   chart.rerender();
 }
 
 export function removeChartStrategy(chart: ChartSettingsHost, scriptId: string | number): void {
+  chart.objectsManager.detachScript(scriptId);
+  chart.rerender();
+}
+
+export function removeChartFunction(chart: ChartSettingsHost, scriptId: string | number): void {
   chart.objectsManager.detachScript(scriptId);
   chart.rerender();
 }

@@ -3,7 +3,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import styled from "styled-components";
 import { CaretDown } from "phosphor-react";
 import { Portal } from "react-portal";
-import { CHART_UI_OVERLAY_ATTRIBUTE } from "ui";
+import { CHART_UI_OVERLAY_ATTRIBUTE, UI_RADIUS } from "ui";
+import { inputBorderRadius } from "ui/theme";
+import { inputFocusVisibleStyles, menuOptionFocusVisibleStyles } from "ui/inputStyles";
 
 const MENU_GAP = 6;
 const MENU_MAX_HEIGHT = 260;
@@ -34,22 +36,19 @@ const Trigger = styled.button`
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 30px;
-  padding: 4px 12px 4px 14px;
-  border: none;
-  border-radius: 30px;
+  height: var(--ui-input-height, 36px);
+  padding: var(--ui-space-1, 4px) var(--ui-space-3, 12px) var(--ui-space-1, 4px) 14px;
+  border: ${(props) => props.theme.border?.inner || "1px solid transparent"};
+  border-radius: ${inputBorderRadius};
   cursor: pointer;
   box-sizing: border-box;
   color: ${(props) => props.theme.inputs.textColor};
   background-color: ${(props) => props.theme.inputs.backgroundColor};
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   font-family: inherit;
   text-align: left;
 
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accentColor};
-    outline-offset: 2px;
-  }
+  ${inputFocusVisibleStyles}
 `;
 
 const TriggerLabel = styled.span`
@@ -79,8 +78,8 @@ const Menu = styled.div<{ $placement: MenuPlacement }>`
   ${(props) =>
     props.$placement.bottom !== undefined ? `bottom: ${props.$placement.bottom}px;` : ""}
   z-index: ${MENU_Z_INDEX};
-  padding: 4px;
-  border-radius: 6px;
+  padding: var(--ui-space-1, 4px);
+  border-radius: ${UI_RADIUS.lg};
   background-color: ${(props) => props.theme.subMenu.background};
   border: ${(props) => props.theme.border?.inner || "1px solid rgba(255, 255, 255, 0.1)"};
   box-shadow: 8px 8px 24px rgba(0, 0, 0, 0.45);
@@ -92,17 +91,17 @@ const Menu = styled.div<{ $placement: MenuPlacement }>`
     ${(props) => props.theme.scrollBar.trackColor};
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: var(--dialog-scrollbar-width, 8px);
   }
 
   &::-webkit-scrollbar-track {
     background: ${(props) => props.theme.scrollBar.trackColor};
-    border-radius: 3px;
+    border-radius: var(--ui-radius-md, 6px);
   }
 
   &::-webkit-scrollbar-thumb {
     background: ${(props) => props.theme.scrollBar.thumbColor};
-    border-radius: 3px;
+    border-radius: var(--ui-radius-md, 6px);
   }
 
   &::-webkit-scrollbar-thumb:hover {
@@ -115,11 +114,11 @@ const OptionButton = styled.button<{ $active: boolean }>`
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 8px 10px;
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
   border: none;
-  border-radius: 6px;
+  border-radius: ${UI_RADIUS.md};
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   font-family: inherit;
   text-align: left;
   color: ${(props) =>
@@ -131,6 +130,8 @@ const OptionButton = styled.button<{ $active: boolean }>`
     background-color: ${(props) => props.theme.subMenu.buttons?.hoverBackground};
     color: ${(props) => props.theme.subMenu.buttons?.hoverColor};
   }
+
+  ${menuOptionFocusVisibleStyles}
 `;
 
 const OptionLabel = styled.span`
@@ -189,9 +190,17 @@ export const DialogSelect = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [menuPlacement, setMenuPlacement] = useState<MenuPlacement | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const listboxId = React.useId();
 
   const selectedOption =
     options.find((option) => option.value === value) ?? options[0] ?? { value: "", label: "" };
+
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
 
   const updateMenuPlacement = useCallback(() => {
     if (!triggerRef.current) {
@@ -227,6 +236,55 @@ export const DialogSelect = ({
   }, [isOpen, updateMenuPlacement]);
 
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveIndex((index) => (index + 1) % options.length);
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveIndex((index) => (index - 1 + options.length) % options.length);
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        setActiveIndex(0);
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        setActiveIndex(options.length - 1);
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const option = options[activeIndex];
+        if (option) {
+          selectOption(option.value);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, isOpen, options]);
+
+  useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
 
@@ -244,18 +302,39 @@ export const DialogSelect = ({
   const selectOption = (nextValue: string) => {
     onChange(nextValue);
     setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const openMenu = () => {
+    setActiveIndex(selectedIndex);
+    setOpen(true);
+  };
+
+  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (
+      event.key === "ArrowDown" ||
+      event.key === "ArrowUp" ||
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      if (!isOpen) {
+        openMenu();
+      }
+    }
   };
 
   const menu =
     isOpen && menuPlacement && options.length > 0 ? (
       <Menu
         ref={menuRef}
+        id={listboxId}
         role="listbox"
         aria-label={ariaLabel}
         $placement={menuPlacement}
         {...{ [CHART_UI_OVERLAY_ATTRIBUTE]: "" }}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const isActive = option.value === value;
 
           return (
@@ -264,8 +343,10 @@ export const DialogSelect = ({
               type="button"
               role="option"
               aria-selected={isActive}
+              tabIndex={activeIndex === index ? 0 : -1}
               $active={isActive}
               onMouseDown={(event) => event.stopPropagation()}
+              onMouseEnter={() => setActiveIndex(index)}
               onClick={() => selectOption(option.value)}
             >
               {renderOptionPrefix?.(option, isActive)}
@@ -284,7 +365,9 @@ export const DialogSelect = ({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        onClick={() => setOpen((open) => !open)}
+        aria-controls={isOpen ? listboxId : undefined}
+        onClick={() => (isOpen ? setOpen(false) : openMenu())}
+        onKeyDown={handleTriggerKeyDown}
       >
         {selectedOption && renderTriggerPrefix?.(selectedOption)}
         <TriggerLabel>{selectedOption?.label ?? ""}</TriggerLabel>

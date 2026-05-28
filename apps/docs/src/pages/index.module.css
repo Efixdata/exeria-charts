@@ -109,6 +109,7 @@ html[data-theme="dark"] .heroChartContainer {
   width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
   padding: 80px 0 0;
+  scroll-margin-top: 88px;
 }
 
 .section {
@@ -201,12 +202,14 @@ html[data-theme="dark"] .heroChartContainer {
   width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
   padding: 120px 0 0;
+  scroll-margin-top: 88px;
 }
 
 .pricingSection {
   width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
   padding: 120px 0 0;
+  scroll-margin-top: 88px;
 }
 
 .pricingGrid {
@@ -433,7 +436,7 @@ html[data-theme="light"] .pricingCta.pricingCtaOutlined:hover {
   display: grid;
   place-items: center;
   border-radius: calc(var(--doc-radius-lg) - 6px);
-  background: #050505;
+  background: var(--doc-chart-surface);
   color: var(--doc-text-secondary);
 }
 

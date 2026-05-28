@@ -2,23 +2,21 @@ import * as React from "react";
 import { useMemo } from "react";
 import styled from "styled-components";
 import { CaretDown, CaretUp } from "phosphor-react";
-import { inputErrorBorder } from "ui/theme";
+import { inputErrorBorder, inputBorderRadius } from "ui/theme";
+import { inputFocusWithinStyles, menuOptionFocusVisibleStyles } from "ui/inputStyles";
 
 const Field = styled.div<{ $invalid?: boolean }>`
   display: flex;
   align-items: stretch;
   width: 100%;
-  height: 30px;
-  border-radius: 30px;
+  height: var(--ui-input-height, 36px);
+  border-radius: ${inputBorderRadius};
   background-color: ${(props) => props.theme.inputs.backgroundColor};
   overflow: hidden;
   box-sizing: border-box;
-  border: ${(props) => (props.$invalid ? inputErrorBorder : "1px solid transparent")};
+  border: ${(props) => (props.$invalid ? inputErrorBorder : props.theme.border?.inner || "1px solid transparent")};
 
-  &:focus-within {
-    outline: 2px solid ${(props) => props.theme.accentColor};
-    outline-offset: 2px;
-  }
+  ${inputFocusWithinStyles}
 `;
 
 const Input = styled.input`
@@ -30,7 +28,7 @@ const Input = styled.input`
   outline: none;
   background: transparent;
   color: ${(props) => props.theme.inputs.textColor};
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   font-family: inherit;
   padding: 0 8px 0 14px;
   -moz-appearance: textfield;
@@ -81,6 +79,8 @@ const StepButton = styled.button`
     opacity: 0.35;
     cursor: not-allowed;
   }
+
+  ${menuOptionFocusVisibleStyles}
 `;
 
 const parseNumericValue = (value: string | number, integer: boolean): number | null => {

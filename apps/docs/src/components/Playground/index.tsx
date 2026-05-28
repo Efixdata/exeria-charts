@@ -5,9 +5,12 @@ import {
   type UiColorKey,
   type ThemeVariant,
   chartColorControls,
-  themePresets,
   uiColorControls,
 } from "../themeCreator/core";
+import {
+  getThemePresetPreferredVariant,
+  themePresets,
+} from "../themeCreator/chartSettingsThemePresets";
 import ElementPicker from "./ElementPicker";
 import {
   type PlaygroundExampleId,
@@ -19,7 +22,7 @@ import styles from "./playground.module.css";
 
 type ColorScope = "chart" | "ui";
 
-const defaultPalette = createPlaygroundPalette("signal");
+const defaultPalette = createPlaygroundPalette("trading-dark");
 
 const chartPickerOptions = chartColorControls.map((control) => ({
   value: control.key,
@@ -40,15 +43,16 @@ const pickerWidthCh =
 const pickerWidthStyle = { "--picker-width": `${pickerWidthCh}ch` } as CSSProperties;
 
 export default function Playground() {
-  const [presetId, setPresetId] = useState("signal");
+  const [presetId, setPresetId] = useState("trading-dark");
   const [themeVariant, setThemeVariant] = useState<ThemeVariant>("dark");
   const [chartColorsByVariant, setChartColorsByVariant] = useState(defaultPalette.chart);
   const [uiColorsByVariant, setUiColorsByVariant] = useState(defaultPalette.ui);
   const [colorScope, setColorScope] = useState<ColorScope>("chart");
   const [selectedChartKey, setSelectedChartKey] = useState<ChartColorKey>("background");
   const [selectedUiKey, setSelectedUiKey] = useState<UiColorKey>("toolbarBackground");
-  const [activeExampleId, setActiveExampleId] = useState<PlaygroundExampleId>("signal-dark");
+  const [activeExampleId, setActiveExampleId] = useState<PlaygroundExampleId>("trading-dark-scene");
   const [sceneVersion, setSceneVersion] = useState(0);
+  const [usePresetOnly, setUsePresetOnly] = useState(true);
 
   const activeExample = useMemo(
     () => getPlaygroundExample(activeExampleId),
@@ -69,15 +73,22 @@ export default function Playground() {
   );
 
   const chartSceneAction = useMemo(
-    () => activeExample.applyScene,
-    [activeExample],
+    () => (usePresetOnly ? undefined : activeExample.applyScene),
+    [activeExample, usePresetOnly],
+  );
+
+  const chartUiLayoutKey = useMemo(
+    () => JSON.stringify({ themeVariant, ui: uiColorsByVariant[themeVariant], presetId }),
+    [presetId, themeVariant, uiColorsByVariant],
   );
 
   const handlePresetChange = (nextPresetId: string) => {
     const palette = createPlaygroundPalette(nextPresetId);
     setPresetId(nextPresetId);
+    setThemeVariant(getThemePresetPreferredVariant(nextPresetId));
     setChartColorsByVariant(palette.chart);
     setUiColorsByVariant(palette.ui);
+    setUsePresetOnly(true);
     setSceneVersion((value) => value + 1);
   };
 
@@ -90,6 +101,7 @@ export default function Playground() {
     setThemeVariant(example.themeVariant);
     setChartColorsByVariant(palette.chart);
     setUiColorsByVariant(palette.ui);
+    setUsePresetOnly(false);
     setSceneVersion((value) => value + 1);
 
     document.getElementById("playground-chart")?.scrollIntoView({
@@ -137,7 +149,7 @@ export default function Playground() {
       </header>
 
       <div className={styles.workspace}>
-        <aside className={styles.controlsPanel} aria-label="Playground controls">
+        <div className={styles.controlsPanel} aria-label="Playground controls">
           <ol className={styles.steps}>
             <li className={`${styles.stepRow} ${styles.stepRowInline}`}>
               <span className={styles.stepNumber} aria-hidden>
@@ -147,24 +159,24 @@ export default function Playground() {
                 <div className={styles.stepHeader}>
                   <h2 className={styles.stepTitle}>Choose the preset colors</h2>
                   <div className={styles.presetRow}>
-                  {themePresets.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      className={
-                        preset.id === presetId ? styles.presetButtonActive : styles.presetButton
-                      }
-                      onClick={() => handlePresetChange(preset.id)}
-                    >
-                      <span
-                        className={styles.presetSwatch}
-                        style={{
-                          background: `linear-gradient(135deg, ${preset.chart[themeVariant].accent}, ${preset.ui[themeVariant].accent})`,
-                        }}
-                      />
-                      {preset.label}
-                    </button>
-                  ))}
+                    {themePresets.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className={
+                          preset.id === presetId ? styles.presetButtonActive : styles.presetButton
+                        }
+                        onClick={() => handlePresetChange(preset.id)}
+                        aria-pressed={preset.id === presetId}
+                        title={preset.description ?? preset.label}
+                      >
+                        <span
+                          className={styles.presetSwatch}
+                          style={{ background: preset.chipColor }}
+                        />
+                        {preset.chipLabel}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -186,6 +198,7 @@ export default function Playground() {
                         variant === themeVariant ? styles.variantButtonActive : styles.variantButton
                       }
                       onClick={() => setThemeVariant(variant)}
+                      aria-pressed={variant === themeVariant}
                     >
                       {variant === "dark" ? "Dark" : "Light"}
                     </button>
@@ -207,6 +220,7 @@ export default function Playground() {
                       type="button"
                       className={colorScope === "chart" ? styles.scopeTabActive : styles.scopeTab}
                       onClick={() => setColorScope("chart")}
+                      aria-pressed={colorScope === "chart"}
                     >
                       Chart runtime
                     </button>
@@ -214,6 +228,7 @@ export default function Playground() {
                       type="button"
                       className={colorScope === "ui" ? styles.scopeTabActive : styles.scopeTab}
                       onClick={() => setColorScope("ui")}
+                      aria-pressed={colorScope === "ui"}
                     >
                       React UI
                     </button>
@@ -255,6 +270,7 @@ export default function Playground() {
                             className={styles.colorValue}
                             maxLength={10}
                             spellCheck={false}
+                            aria-label="Chart color hex value"
                           />
                         </div>
                       </div>
@@ -291,6 +307,7 @@ export default function Playground() {
                             className={styles.colorValue}
                             maxLength={10}
                             spellCheck={false}
+                            aria-label="UI color hex value"
                           />
                         </div>
                       </div>
@@ -313,20 +330,20 @@ export default function Playground() {
               </div>
             </li>
           </ol>
-        </aside>
-
-        <div className={styles.chartColumn}>
-          <section id="playground-chart" className={styles.chartSection}>
-            <ChartThemePreview
-              chartColorsByVariant={chartColorsByVariant}
-              uiColorsByVariant={uiColorsByVariant}
-              themeVariant={themeVariant}
-              sceneKey={sceneKey}
-              onChartReady={chartSceneAction}
-              minHeight={520}
-            />
-          </section>
         </div>
+
+        <section id="playground-chart" className={styles.chartSection}>
+          <ChartThemePreview
+            chartColorsByVariant={chartColorsByVariant}
+            uiColorsByVariant={uiColorsByVariant}
+            themeVariant={themeVariant}
+            sceneKey={sceneKey}
+            chartUiLayoutKey={chartUiLayoutKey}
+            onChartReady={chartSceneAction}
+            minHeight={560}
+            className={styles.chartPreview}
+          />
+        </section>
       </div>
 
       <section className={styles.examplesSection}>
@@ -346,6 +363,7 @@ export default function Playground() {
                 example.id === activeExampleId ? styles.exampleCardActive : styles.exampleCard
               }
               onClick={() => handleExampleSelect(example.id)}
+              aria-pressed={example.id === activeExampleId}
             >
               <img
                 src={example.image}

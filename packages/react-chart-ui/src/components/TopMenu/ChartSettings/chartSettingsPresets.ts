@@ -36,65 +36,89 @@ const baseAppearance = (
   lastPriceLineVisible: true,
   lastPriceLabelVisible: true,
   chartLineFillVisible: false,
+  chartLineFillMode: "solid",
+  chartFillGradientColor: "#2962FF",
+  chartFillGradientOpacity: 0.4,
   ...patch,
 });
 
-const buildUiTheme = (options: {
+function accentFill(accent: string, alpha: number): string {
+  const normalized = accent.replace("#", "");
+  if (normalized.length !== 6) {
+    return `rgba(41, 98, 255, ${alpha})`;
+  }
+
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const buildChartUiTheme = (options: {
   mode: "light" | "dark";
   surround: string;
   toolbar: string;
-  panel: string;
+  dialog: string;
+  input: string;
   accent: string;
+  uiAccent?: string;
   text?: string;
   muted?: string;
+  inputBorder?: string;
 }): Partial<ChartUITheme> => {
   const isLight = options.mode === "light";
   const text = options.text ?? (isLight ? "#131722" : "#D1D4DC");
-  const muted = options.muted ?? (isLight ? "#787B86" : "rgba(255, 255, 255, 0.65)");
-  const hoverBackground = isLight ? "rgba(19, 23, 34, 0.08)" : "rgba(255, 255, 255, 0.1)";
-  const activeBackground = isLight ? "rgba(41, 98, 255, 0.14)" : "rgba(41, 98, 255, 0.22)";
-  const inputBackground = isLight ? "#F0F3FA" : options.panel;
-  const divider = isLight ? "rgba(19, 23, 34, 0.12)" : "rgba(255, 255, 255, 0.1)";
+  const muted = options.muted ?? (isLight ? "#787B86" : "#848E9C");
+  const divider = isLight ? "rgba(19, 23, 34, 0.12)" : "rgba(255, 255, 255, 0.12)";
+  const inputBorder =
+    options.inputBorder ?? (isLight ? "1px solid #E0E3EB" : "1px solid rgba(255, 255, 255, 0.14)");
+  const hoverBackground = isLight ? "rgba(19, 23, 34, 0.06)" : "rgba(255, 255, 255, 0.08)";
+  const chromeAccent = options.uiAccent ?? options.accent;
+  const activeBackground = isLight ? accentFill(chromeAccent, 0.14) : options.input;
+  const activeColor = isLight ? chromeAccent : "#FFFFFF";
 
   const buttonColors = {
     color: muted,
-    activeColor: text,
+    activeColor,
     hoverColor: text,
-    hoverBackground,
+    hoverBackground: isLight ? hoverBackground : "rgba(255, 255, 255, 0.12)",
     activeBackground,
   };
 
   return {
     surroundBackground: options.surround,
-    accentColor: options.accent,
+    gap: 8,
+    accentColor: chromeAccent,
     border: {
-      inner: `1px solid ${divider}`,
-      outter: `1px solid ${divider}`,
+      inner: inputBorder,
+      radius: 8,
     },
     buttons: buttonColors,
     radioButton: {
-      background: isLight ? "rgba(19, 23, 34, 0.06)" : "rgba(127, 157, 204, 0.15)",
+      background: isLight ? "rgba(19, 23, 34, 0.05)" : "rgba(255, 255, 255, 0.06)",
       buttons: buttonColors,
     },
     toolbar: {
       background: options.toolbar,
       buttons: buttonColors,
+      topMenuPosition: "right",
+      showCurrency: false,
     },
     subMenu: {
-      background: options.panel,
+      background: options.dialog,
       buttons: buttonColors,
     },
     splitButton: {
-      openBackground: options.panel,
-      hoverBackground: options.panel,
+      openBackground: options.dialog,
+      hoverBackground: options.dialog,
       openColor: text,
       hoverColor: text,
       arrowHoverBackground: hoverBackground,
-      arrowColor: options.accent,
-      arrowOpenColor: options.accent,
+      arrowColor: muted,
+      arrowOpenColor: text,
     },
     dialog: {
-      backgroundColor: options.panel,
+      backgroundColor: options.dialog,
       titleColor: text,
       textColor: text,
       dividerColor: divider,
@@ -103,15 +127,15 @@ const buildUiTheme = (options: {
       itemHoverBackgroundColor: hoverBackground,
     },
     inputs: {
-      backgroundColor: inputBackground,
+      backgroundColor: options.input,
       textColor: text,
       labelColor: text,
       placeholderColor: muted,
     },
     scrollBar: {
       trackColor: hoverBackground,
-      thumbColor: isLight ? "rgba(19, 23, 34, 0.2)" : "rgba(255, 255, 255, 0.2)",
-      thumbHoverColor: isLight ? "rgba(19, 23, 34, 0.35)" : "rgba(255, 255, 255, 0.35)",
+      thumbColor: isLight ? "rgba(19, 23, 34, 0.18)" : "rgba(255, 255, 255, 0.22)",
+      thumbHoverColor: isLight ? "rgba(19, 23, 34, 0.32)" : "rgba(255, 255, 255, 0.34)",
     },
   };
 };
@@ -125,13 +149,16 @@ const makePreset = (
     mode: "light" | "dark";
     surround: string;
     toolbar: string;
-    panel: string;
+    dialog: string;
+    input: string;
     accent: string;
+    uiAccent?: string;
     text?: string;
     muted?: string;
+    inputBorder?: string;
   },
 ): ChartSettingsPreset => {
-  const uiTheme = buildUiTheme(ui);
+  const uiTheme = buildChartUiTheme(ui);
 
   return {
     id,
@@ -158,14 +185,13 @@ const makePreset = (
 };
 
 /**
- * Six presets modeled after the most common themes in TradingView, Thinkorswim, and MetaTrader.
- * Four dark + two light.
+ * Six common chart theme presets. Four dark + two light.
  */
 export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
   makePreset(
     "trading-dark",
     "Trading Dark",
-    "TradingView default dark",
+    "Default dark theme",
     baseAppearance({
       backgroundColor: "#131722",
       gridColor: "#2A2E39",
@@ -174,20 +200,27 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       chartLineColor: "#2962FF",
       chartFillColor: "rgba(41, 98, 255, 0.25)",
       chartLineFillVisible: true,
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#2962FF",
+      chartFillGradientOpacity: 0.45,
       crosshairColor: "#2962FF",
     }),
     {
       mode: "dark",
       surround: "#1E222D",
       toolbar: "#1E222D",
-      panel: "#2A2E39",
+      dialog: "#1E222D",
+      input: "#2A2E39",
       accent: "#2962FF",
+      uiAccent: "#9598A1",
+      muted: "#787B86",
+      inputBorder: "1px solid #434651",
     },
   ),
   makePreset(
     "midnight",
     "Midnight",
-    "TradingView Midnight blue",
+    "Deep midnight blue",
     baseAppearance({
       backgroundColor: "#0C1220",
       gridColor: "#1A2332",
@@ -196,6 +229,9 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       chartLineColor: "#5B8CFF",
       chartFillColor: "rgba(91, 140, 255, 0.22)",
       chartLineFillVisible: true,
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#5B8CFF",
+      chartFillGradientOpacity: 0.42,
       candleUpColor: "#34D399",
       candleDownColor: "#F87171",
       crosshairColor: "#5B8CFF",
@@ -204,14 +240,18 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       mode: "dark",
       surround: "#090E18",
       toolbar: "#090E18",
-      panel: "#151D2E",
+      dialog: "#0C1220",
+      input: "#151D2E",
       accent: "#5B8CFF",
+      uiAccent: "#8BA4C9",
+      muted: "#8B9BB5",
+      inputBorder: "1px solid #243044",
     },
   ),
   makePreset(
     "carbon",
     "Carbon",
-    "Neutral gray (Thinkorswim-style)",
+    "Neutral gray workspace",
     baseAppearance({
       backgroundColor: "#1C1C1C",
       gridColor: "#323232",
@@ -220,6 +260,9 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       chartLineColor: "#4DA3FF",
       chartFillColor: "rgba(77, 163, 255, 0.2)",
       chartLineFillVisible: true,
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#4DA3FF",
+      chartFillGradientOpacity: 0.4,
       candleUpColor: "#4CAF50",
       candleDownColor: "#E53935",
       crosshairColor: "#4DA3FF",
@@ -228,39 +271,50 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       mode: "dark",
       surround: "#141414",
       toolbar: "#141414",
-      panel: "#262626",
+      dialog: "#1C1C1C",
+      input: "#262626",
       accent: "#4DA3FF",
+      uiAccent: "#9CA3AF",
+      muted: "#9CA3AF",
+      inputBorder: "1px solid #3A3A3A",
     },
   ),
   makePreset(
     "onyx",
     "Onyx",
-    "Pure black (MetaTrader classic)",
+    "Warm charcoal with amber accents",
     baseAppearance({
-      backgroundColor: "#000000",
-      gridColor: "#1F1F1F",
-      axisTextColor: "#BDBDBD",
-      axisBackgroundColor: "#000000",
-      chartLineColor: "#FFD54F",
-      chartFillColor: "rgba(255, 213, 79, 0.18)",
+      backgroundColor: "#141210",
+      gridColor: "#2C2A27",
+      axisTextColor: "#D4CFC6",
+      axisBackgroundColor: "#141210",
+      chartLineColor: "#FFAB40",
+      chartFillColor: "rgba(255, 171, 64, 0.2)",
       chartLineFillVisible: true,
-      candleUpColor: "#00E676",
-      candleDownColor: "#FF5252",
-      crosshairColor: "#FFD54F",
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#FFAB40",
+      chartFillGradientOpacity: 0.4,
+      candleUpColor: "#66BB6A",
+      candleDownColor: "#EF5350",
+      crosshairColor: "#FFAB40",
       gridLineStyle: "dashed",
     }),
     {
       mode: "dark",
-      surround: "#0A0A0A",
-      toolbar: "#0A0A0A",
-      panel: "#141414",
-      accent: "#FFD54F",
+      surround: "#1C1A17",
+      toolbar: "#1C1A17",
+      dialog: "#242220",
+      input: "#2E2C28",
+      accent: "#FFAB40",
+      uiAccent: "#C8C4BC",
+      muted: "#9E9890",
+      inputBorder: "1px solid #3D3A35",
     },
   ),
   makePreset(
     "day",
     "Day",
-    "TradingView light",
+    "Default light theme",
     baseAppearance({
       backgroundColor: "#FFFFFF",
       gridColor: "#E0E3EB",
@@ -279,36 +333,51 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       mode: "light",
       surround: "#F0F3FA",
       toolbar: "#F0F3FA",
-      panel: "#FFFFFF",
+      dialog: "#FFFFFF",
+      input: "#F0F3FA",
       accent: "#2962FF",
       text: "#131722",
       muted: "#787B86",
+      inputBorder: "1px solid #E0E3EB",
     },
   ),
   makePreset(
     "paper",
     "Paper",
-    "Bright office / high contrast",
+    "Warm cream paper tone",
     baseAppearance({
-      backgroundColor: "#FAFBFC",
-      gridColor: "#E5E7EB",
-      axisTextColor: "#111827",
-      axisBackgroundColor: "#F3F4F6",
-      chartLineColor: "#2563EB",
-      chartFillColor: "rgba(37, 99, 235, 0.1)",
+      backgroundColor: "#FFFDF8",
+      gridColor: "#E8E4DC",
+      axisTextColor: "#3D3929",
+      axisBackgroundColor: "#F5F1E8",
+      chartLineColor: "#B45309",
+      chartFillColor: "rgba(180, 83, 9, 0.12)",
       chartLineFillVisible: true,
-      candleUpColor: "#16A34A",
-      candleDownColor: "#DC2626",
-      crosshairColor: "#2563EB",
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#B45309",
+      chartFillGradientOpacity: 0.35,
+      candleUpColor: "#2F855A",
+      candleDownColor: "#C53030",
+      crosshairColor: "#B45309",
     }),
     {
       mode: "light",
-      surround: "#EEF0F3",
-      toolbar: "#EEF0F3",
-      panel: "#FFFFFF",
-      accent: "#2563EB",
-      text: "#111827",
-      muted: "#6B7280",
+      surround: "#F5F1E8",
+      toolbar: "#F5F1E8",
+      dialog: "#FFFDF8",
+      input: "#EDE8DE",
+      accent: "#B45309",
+      uiAccent: "#B45309",
+      text: "#3D3929",
+      muted: "#7A7368",
+      inputBorder: "1px solid #D9D2C4",
     },
   ),
 ];
+
+export { buildChartUiTheme };
+
+const tradingDarkPreset = CHART_SETTINGS_PRESETS.find((preset) => preset.id === "trading-dark")!;
+
+export const DEFAULT_CHART_UI_THEME = tradingDarkPreset.uiTheme as ChartUITheme;
+export const DEFAULT_CHART_SETTINGS_TEMPLATE = tradingDarkPreset.template;

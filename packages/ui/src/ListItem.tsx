@@ -1,15 +1,26 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Headline } from "./Headline";
+import { menuOptionFocusVisibleStyles } from "../inputStyles";
 
-const Item = styled.div`
-  padding: 6px 8px;
-  border-radius: 6px;
+const Item = styled.button`
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: var(--ui-space-2, 8px);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-md, 6px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    cursor: pointer;
+    background-color: ${(props) => props.theme.dialog.itemHoverBackgroundColor};
   }
+
+  ${menuOptionFocusVisibleStyles}
 `;
 
 interface ListItemProps {
@@ -22,7 +33,7 @@ interface ListItemProps {
 
 export const ListItem = (props: ListItemProps) => {
   return (
-    <Item style={props.style} onClick={props.onClick}>
+    <Item type="button" style={props.style} onClick={props.onClick}>
       <Headline title={props.title} subtitle={props.subtitle} />
       {props.children}
     </Item>

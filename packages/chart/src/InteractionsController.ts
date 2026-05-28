@@ -15,6 +15,7 @@ import {
   showPropertiesDialog,
 } from "./adapters/propertiesDialog";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
+import { runWithChartLocale } from "./chartLocaleRuntime";
 import type { ChartConfig } from "./types";
 import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
 import type { CoreFusionRuntime } from "./internal-types/fusion";
@@ -131,6 +132,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.model = model;
   this.renderer = renderer;
   this.isObjectSelectionAllowed = true;
+  this.drawingMagnetEnabled = false;
 
   this.pinch = { trackedIndex: null, leftGrabbedIndex: null, rightGrabbedIndex: null };
   this.swipe = {
@@ -305,7 +307,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       this.fusion,
       panels,
       os,
-      WEBRCP.locale.fusion
+      this.chart.getLocaleMessages?.() ?? WEBRCP.locale.fusion,
     );
     function onCancel() {
       hideFusionScriptDialog();
@@ -1036,7 +1038,13 @@ var InteractionsController: CoreInteractorConstructor = function (
       return;
     }
 
-    if (hitObject.type !== "SeriesObject" || !hitObject.dataLink) {
+    const scriptPlotterTypes = [
+      "SeriesObject",
+      "StrategyObject",
+      "CandlestickPatternStrategyObject",
+      "FractalsObject",
+    ];
+    if (!hitObject.dataLink || !scriptPlotterTypes.includes(String(hitObject.type))) {
       return;
     }
 
@@ -1054,7 +1062,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     const template = FUSION.getScript(scriptKey);
-    if (!template || template.type !== "indicators") {
+    if (!template || !["indicators", "functions", "strategies"].includes(String(template.type))) {
       return;
     }
 
@@ -2138,6 +2146,14 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.finishEvent = null;
     this.copyMode = false;
 
+    const eventOffset = this.interactor.getEventOffset(e);
+    if (!this.interactor.isAboveValueAxis(e)) {
+      this.interactor.currentHitObject = this.interactor.getCurrentHitObject(
+        eventOffset.offsetX,
+        eventOffset.offsetY,
+      );
+    }
+
     if (this.interactor.currentHitObject != null) {
       const hitObject = this.interactor.currentHitObject;
       this.interactor.select(hitObject);
@@ -2355,62 +2371,68 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
 
     if (this.interactor.currentHitObject) {
-      if (this.tipTimeOut) clearTimeout(this.tipTimeout);
+      if (this.tipTimeout) clearTimeout(this.tipTimeout);
 
       if (this.currentTip) showTip();
       else this.tipTimeout = setTimeout(showTip, this.toolTipShowDelay);
 
       function showTip() {
-        var hitObject = self.interactor.currentHitObject;
+        runWithChartLocale(self.interactor.controller, () => {
+          var hitObject = self.interactor.currentHitObject;
 
-        if (
-          hitObject &&
-          hitObject._hit &&
-          hitObject._hit.x &&
-          hitObject._hit.y &&
-          hitObject.dataLink &&
-          self.interactor.fusion.getSeriesManager()[hitObject.dataLink]
-        ) {
-          var object = self.interactor.controller.renderer.objects[hitObject.type];
-          var index = self.interactor.controller.renderer.getPointIndex(
-            hitObject._hit.x,
-            self.interactor.model
-          );
-
-          if (index > self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length - 1)
-            return;
-
-          if (!object.getToolTip) return;
-
-          var tip = object.getToolTip(
-            self.interactor.currentHitObject,
-            index,
-            self.interactor.model,
-            self.interactor.fusion.getSeriesManager(),
-            self.interactor.fusion.getScriptsManager()
-          );
-
-          try {
-            octx.save();
-            // octx.translate (0.5, 0.5);
-            tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
-            tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision;
-            self.currentTip = tip;
-            drawTip(
-              tip,
+          if (
+            hitObject &&
+            hitObject._hit &&
+            hitObject._hit.x &&
+            hitObject._hit.y &&
+            hitObject.dataLink &&
+            self.interactor.fusion.getSeriesManager()[hitObject.dataLink]
+          ) {
+            var object = self.interactor.controller.renderer.objects[hitObject.type];
+            var index = self.interactor.controller.renderer.getPointIndex(
               hitObject._hit.x,
-              hitObject._hit.y,
-              octx,
-              self.interactor.model,
-              self.interactor.controller
+              self.interactor.model
             );
-          } catch (e: any) {
-            console.error(e, e.stack);
-          } finally {
-            // octx.translate (-0.5, -0.5);
-            octx.restore();
+
+            if (
+              index >
+              self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length - 1
+            ) {
+              return;
+            }
+
+            if (!object.getToolTip) return;
+
+            var tip = object.getToolTip(
+              self.interactor.currentHitObject,
+              index,
+              self.interactor.model,
+              self.interactor.fusion.getSeriesManager(),
+              self.interactor.fusion.getScriptsManager()
+            );
+
+            try {
+              octx.save();
+              // octx.translate (0.5, 0.5);
+              tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
+              tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision;
+              self.currentTip = tip;
+              drawTip(
+                tip,
+                hitObject._hit.x,
+                hitObject._hit.y,
+                octx,
+                self.interactor.model,
+                self.interactor.controller
+              );
+            } catch (e: any) {
+              console.error(e, e.stack);
+            } finally {
+              // octx.translate (-0.5, -0.5);
+              octx.restore();
+            }
           }
-        }
+        });
       }
     } else {
       clearTimeout(this.tipTimeout);
@@ -2476,9 +2498,19 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     var lw = 0;
     var vw = 0;
     for (var i in tip.values) {
+      const rowValue = tip.values[i].value;
+      const hasInlineValue =
+        rowValue !== null && rowValue !== undefined && String(rowValue).length > 0;
+
+      if (!hasInlineValue) {
+        const inlineWidth = ctx.measureText(String(tip.values[i].label)).width;
+        lw = inlineWidth > lw ? inlineWidth : lw;
+        continue;
+      }
+
       var _lw = ctx.measureText(tip.values[i].label).width;
       lw = _lw > lw ? _lw : lw;
-      var v = getValue(tip.values[i].value, tip.values[i].precision);
+      var v = getValue(rowValue, tip.values[i].precision);
 
       var _vw = measurePriceTextWidth({
         text: v,
@@ -2487,7 +2519,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
       });
       vw = _vw > vw ? _vw : vw;
     }
-    var valueWidth = lw + ctx.measureText(" : ").width + vw;
+    var valueWidth = vw > 0 ? lw + ctx.measureText(" : ").width + vw : lw;
     cfg.width = newSize(valueWidth + 2 * cfg.margin, cfg.width, cfg.widthMax);
     cfg.valueOffset = lw + ctx.measureText(" : ").width;
     //cfg.valueOffset = cfg.valueOffset < (cfg.width/2-cfg.margin) ? cfg.width/2-cfg.margin :  cfg.valueOffset;
@@ -2530,7 +2562,18 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     for (var i in tip.values) {
       ctx.font = WEBRCP.utils.colorManager.getFont("text");
       txtY += cfg.lineSpacing + cfg.lineHeight;
-      ctx.fillText(tip.values[i].label + " : ", txtX, txtY);
+
+      const rowValue = tip.values[i].value;
+      const rowLabel = tip.values[i].label;
+      const hasInlineValue =
+        rowValue !== null && rowValue !== undefined && String(rowValue).length > 0;
+
+      if (!hasInlineValue) {
+        ctx.fillText(String(rowLabel), txtX, txtY);
+        continue;
+      }
+
+      ctx.fillText(rowLabel + " : ", txtX, txtY);
       let zerosToReduce = controller.renderer.getPriceRenderingOptions().zerosToReduce;
       const precision = tip.values[i].precision;
 
@@ -2538,8 +2581,8 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
         zerosToReduce = 0;
       }
 
-      var v = getValue(tip.values[i].value, precision);
-      var x =
+      var v = getValue(rowValue, precision);
+      var valueX =
         txtX +
         cfg.width -
         2 * cfg.margin -
@@ -2548,7 +2591,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           ctx,
           zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce,
         });
-      renderPriceText({ text: v, ctx, x, y: txtY, zerosToReduce: zerosToReduce });
+      renderPriceText({ text: v, ctx, x: valueX, y: txtY, zerosToReduce: zerosToReduce });
     }
 
     ctx.closePath();
@@ -2599,6 +2642,14 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   this.onMouseDown = function (e) {
     this.startEvent = e;
     this.finishEvent = null;
+
+    const eventOffset = this.interactor.getEventOffset(e);
+    if (!this.interactor.isAboveValueAxis(e)) {
+      this.interactor.currentHitObject = this.interactor.getCurrentHitObject(
+        eventOffset.offsetX,
+        eventOffset.offsetY,
+      );
+    }
 
     if (this.interactor.currentHitObject != null) {
       this.interactor.select(this.interactor.currentHitObject);
@@ -3018,6 +3069,12 @@ function StageTool(
   this.interactor.deselectAll();
   this.interactor.currentSelectedObject = this.interactor.currentStagingObject;
   this.interactor.currentStagingObject.selected = true;
+
+  if (tool.type === "brush") {
+    this.cursor = "crosshair";
+    this.cursorOverObject = "crosshair";
+    this.cursorOnDrag = "crosshair";
+  }
 
   // ************************************************** //
 

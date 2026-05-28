@@ -89,12 +89,33 @@ export default class ToolDrawer implements ToolDrawerApi {
   }
 
   drawTimeRange(initialOptions: TimeRangeToolOptions): string | number | void {
+    const startTime = initialOptions.startTime;
+    const timeRange = initialOptions.timeRange;
+    const anchors: ToolAnchor[] =
+      typeof startTime === "number" && typeof timeRange === "number"
+        ? [
+            {
+              stamp: startTime,
+              offset: 0,
+              value: 0,
+              _index: 0,
+            },
+            {
+              stamp: startTime + timeRange,
+              offset: 0,
+              value: 0,
+              _index: 0,
+            },
+          ]
+        : [];
+
     const formattedConfig: DrawToolConfig = {
       ...initialOptions.config,
       type: "timeRange",
       text: initialOptions.text,
       startTime: initialOptions.startTime,
       timeRange: initialOptions.timeRange,
+      anchors,
     };
 
     return this.drawTool(formattedConfig);

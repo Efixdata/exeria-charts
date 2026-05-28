@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import { isDrawingSnapEnabled } from "./drawingWorkflow";
 import LIB from "./utils/chartingCommons";
 import { hitTolerance, isTouchDevice } from "./utils/environment";
 import { drawAnchor, drawAnchors, drawAnchorArrow, drawAnchorsArrow } from "./utils/objects-lib";
@@ -129,6 +130,24 @@ function isToolRenderContext(value: unknown): value is ToolRenderContext {
   );
 }
 
+export function resolveToolRenderContext(
+  rendererOrContext: ToolRenderContext | AnyRecord,
+  panel?: AnyRecord | null | undefined,
+  model?: AnyRecord,
+  seriesManager?: AnyRecord,
+): ToolRenderContext {
+  if (isToolRenderContext(rendererOrContext)) {
+    return rendererOrContext;
+  }
+
+  return createToolRenderContext(
+    rendererOrContext as CoreRenderer,
+    model as CoreChartModel,
+    panel as CoreChartPanel | null | undefined,
+    seriesManager as SeriesManager,
+  );
+}
+
 export class Series {
   hitTolerance = hitTolerance;
   isDraggable = false;
@@ -176,7 +195,7 @@ export class Shape {
   anchorPointSize = 4;
   anchorPointDistanceToArrow = 10;
   anchorPointArrowSize = 6;
-  anchorColor = "#21c1f2";
+  anchorColor = "#2962FF";
   anchorColorHover = "#ffffff";
   defaultFont = WEBRCP.utils.colorManager.getFont("text");
   allowedStickyKeys: Record<string, boolean> = { o: true, h: true, l: true, c: true };
@@ -208,14 +227,7 @@ export class Shape {
     model?: AnyRecord,
     seriesManager?: AnyRecord
   ): LegacyShapePoint[] {
-    const runtime = isToolRenderContext(rendererOrContext)
-      ? rendererOrContext
-      : createToolRenderContext(
-          rendererOrContext as CoreRenderer,
-          model as CoreChartModel,
-          panel as CoreChartPanel | null | undefined,
-          seriesManager as SeriesManager
-        );
+    const runtime = resolveToolRenderContext(rendererOrContext, panel, model, seriesManager);
 
     if (!runtime.panel) return [];
 
@@ -923,7 +935,7 @@ export class Shape {
     if (selectedAnchor != null) {
       const index =
         renderer.getStampIndex(baseAnchors[selectedAnchor].stamp, model, seriesManager) + xOffset;
-      const value = object.sticky
+      const value = isDrawingSnapEnabled(object, interactor)
         ? this.stickToCandleValue(
             yValue,
             this.getCurrentCandles(index, model, seriesManager),
@@ -989,7 +1001,7 @@ export class Shape {
     const index = runtime.renderer.getPointIndex(eventOffset.offsetX, runtime.model);
     const yValue = eventOffset.offsetY - activePanel._offset;
     const currentAnchor = runtime.interactor.currentAnchor?.selected ?? 0;
-    const value = object.sticky
+    const value = isDrawingSnapEnabled(object, runtime.interactor)
       ? this.stickToCandleValue(
           yValue,
           this.getCurrentCandles(index, runtime.model, runtime.seriesManager),
@@ -1053,7 +1065,7 @@ export class Shape {
     const referenceValue = LIB.getReferenceValue(object, model as any, seriesManager as any);
     const index = renderer.getPointIndex(event._offset.offsetX, model);
     const yValue = event._offset.offsetY - panel._offset;
-    const value = object.sticky
+    const value = isDrawingSnapEnabled(object, interactor)
       ? this.stickToCandleValue(
           yValue,
           this.getCurrentCandles(index, model, seriesManager),

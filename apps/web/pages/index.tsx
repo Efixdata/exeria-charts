@@ -15,7 +15,7 @@ const WebChartComponent = dynamic(
                 display: "grid",
                 placeItems: "center",
                 color: "#ffb4b4",
-                fontFamily: "Mulish, sans-serif",
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                 textAlign: "center",
                 padding: "24px",
               }}
@@ -34,7 +34,7 @@ const WebChartComponent = dynamic(
           display: "grid",
           placeItems: "center",
           color: "#ecf5ff",
-          fontFamily: "Mulish, sans-serif",
+          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         }}
       >
         Loading chart workspace...

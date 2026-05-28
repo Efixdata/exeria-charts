@@ -35,6 +35,9 @@ export interface InteractorChartHost extends HTMLDivElement {
     value: unknown,
     title?: string
   ): void;
+  getLocaleMessages?(): {
+    getMessage(key: string | null | undefined, defaultMsg?: unknown, emptyAllowed?: boolean): unknown;
+  };
   objectsManager?: {
     cloneObject(object: ChartRuntimeObject): ChartRuntimeObject;
   };
@@ -179,6 +182,7 @@ export interface CoreInteractor {
   currentStagingObject: ChartRuntimeObject | null;
   valueAxisClicked: boolean;
   isObjectSelectionAllowed: boolean;
+  drawingMagnetEnabled: boolean;
   pinch: InteractorPinchState;
   swipe: InteractorSwipeState;
   doFrame: UnknownFn;

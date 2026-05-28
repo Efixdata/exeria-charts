@@ -10,6 +10,7 @@ import { Portal } from "react-portal";
 import { usePortalNode } from "../../../hooks/usePortalNode";
 import { Icon } from "ui/src/Icon";
 import type { NullableChartInstance } from "../../../chartTypes";
+import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import type { IndicatorDefinition } from "./IndicatorsDialog";
 
 const IndicatorsText = styled.span`
@@ -23,8 +24,11 @@ interface IndicatorsButtonProps {
 }
 
 export const IndicatorsButton = (props: IndicatorsButtonProps) => {
+  const t = useChartTranslate(props.chart);
+
   interface Script extends IndicatorDefinition {
     quickAdd?: boolean;
+    showAsType?: string;
   }
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -50,7 +54,14 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
     for (const key in scripts) {
       const script = scripts[key];
 
-      if (!script || script.quickAdd === false) {
+      if (!script) {
+        continue;
+      }
+
+      const showAsStrategies = script.showAsType === "strategies";
+      const isCatalogVisible = script.quickAdd !== false || showAsStrategies;
+
+      if (!isCatalogVisible) {
         continue;
       }
 
@@ -58,7 +69,9 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
       script.title = script.title || key;
       script.description = script.description || "";
 
-      if (script.type === "indicators") {
+      if (showAsStrategies) {
+        tempStrategies.push(script as Script);
+      } else if (script.type === "indicators") {
         tempIndicators.push(script as Script);
       } else if (script.type === "strategies") {
         tempStrategies.push(script as Script);
@@ -97,6 +110,24 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
     };
   }, [props.chart]);
 
+  useEffect(() => {
+    if (!props.chart?.subscribe) {
+      return;
+    }
+
+    const subscription = props.chart.subscribe("LOCALE_CHANGE", () => {
+      if (isModalVisible) {
+        initializeScripts();
+      }
+    });
+
+    return () => {
+      if (subscription && "unsubscribe" in subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [props.chart, initializeScripts, isModalVisible]);
+
   const onClick = () => {
     if (!props.chart) {
       return;
@@ -114,11 +145,11 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
 
   return (
     <>
-      <TextButton themeContext="toolbar" onClick={onClick}>
-        <Icon themeContext="toolbar" style={{ marginLeft: -6 }}>
+      <TextButton themeContext="toolbar" onClick={onClick} title={t("toolbar_indicators", "Indicators")}>
+        <Icon themeContext="toolbar">
           <Indicators />
         </Icon>
-        <IndicatorsText>Indicators</IndicatorsText>
+        <IndicatorsText>{t("toolbar_indicators", "Indicators")}</IndicatorsText>
       </TextButton>
       <Portal node={usePortalNode(document)}>
         <Modal visible={isModalVisible} onCloseOutsideClick={true} onClose={onClose}>
@@ -126,6 +157,8 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
             key={isModalVisible ? String(editScriptId ?? "browse") : "closed"}
             onClose={onClose}
             indicators={indicators}
+            functions={functions}
+            strategies={strategies}
             chart={props.chart}
             editScriptId={editScriptId}
           />

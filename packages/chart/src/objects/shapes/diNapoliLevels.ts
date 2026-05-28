@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { isDrawingSnapEnabled } from "../../drawingWorkflow";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -317,7 +318,7 @@ function DiNapoliLevels(this: ShapeRuntime) {
     var yValue = e._offset.offsetY - panel._offset;
     var v;
 
-    if (o.sticky) {
+    if (isDrawingSnapEnabled(o, interactor)) {
       var candles = this.getCurrentCandles(idx, model, seriesManager);
       v = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
     } else

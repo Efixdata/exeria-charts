@@ -1,5 +1,8 @@
 import * as React from "react";
+import styled from "styled-components";
 import { Label } from "ui";
+import { inputBorderRadius } from "ui/theme";
+import { inputFocusVisibleStyles } from "ui/inputStyles";
 
 const normalizeHexColor = (value: string) => {
   const trimmed = value.trim();
@@ -7,6 +10,56 @@ const normalizeHexColor = (value: string) => {
   if (/^[0-9A-Fa-f]{6}$/.test(trimmed)) return `#${trimmed.toUpperCase()}`;
   return trimmed;
 };
+
+const FieldRow = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2, 8px);
+  max-width: 100%;
+`;
+
+const ColorSwatch = styled.input.attrs({ type: "color" })`
+  width: var(--ui-input-height, 36px);
+  height: var(--ui-input-height, 36px);
+  padding: var(--ui-space-1, 4px);
+  border: ${(props) => props.theme.border?.inner || "1px solid transparent"};
+  border-radius: ${inputBorderRadius};
+  background: ${(props) => props.theme.inputs.backgroundColor};
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: calc(${inputBorderRadius} - 2px);
+  }
+
+  ${inputFocusVisibleStyles}
+`;
+
+const HexInput = styled.input`
+  width: 10ch;
+  max-width: 10ch;
+  min-width: 0;
+  flex: 0 0 auto;
+  height: var(--ui-input-height, 36px);
+  box-sizing: border-box;
+  padding: 0 var(--ui-space-2, 8px);
+  font-size: var(--ui-font-label, 12px);
+  line-height: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  border: ${(props) => props.theme.border?.inner || "1px solid transparent"};
+  border-radius: ${inputBorderRadius};
+  background: ${(props) => props.theme.inputs.backgroundColor};
+  color: ${(props) => props.theme.inputs.textColor};
+  outline: none;
+
+  ${inputFocusVisibleStyles}
+`;
 
 interface ColorFieldProps {
   label: string;
@@ -18,55 +71,21 @@ export const ColorField = (props: ColorFieldProps) => {
   const color = normalizeHexColor(props.value);
 
   return (
-    <Label name={props.label} style={{ width: "auto", maxWidth: "100%" }}>
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          maxWidth: "100%",
-        }}
-      >
-        <input
-          type="color"
+    <Label name={props.label}>
+      <FieldRow>
+        <ColorSwatch
           value={color}
           onChange={(event) => props.onChange(event.target.value)}
           aria-label={`${props.label} color`}
-          style={{
-            width: 32,
-            height: 32,
-            padding: 0,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
         />
-        <input
+        <HexInput
           type="text"
           value={color}
           maxLength={10}
           onChange={(event) => props.onChange(event.target.value)}
           aria-label={`${props.label} hex value`}
-          style={{
-            width: "10ch",
-            maxWidth: "10ch",
-            minWidth: 0,
-            flex: "0 0 auto",
-            height: 32,
-            boxSizing: "border-box",
-            padding: "0 8px",
-            fontSize: 12,
-            lineHeight: "32px",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-            border: "1px solid rgba(255, 255, 255, 0.18)",
-            borderRadius: 4,
-            background: "rgba(0, 0, 0, 0.18)",
-            color: "inherit",
-            outline: "none",
-          }}
         />
-      </div>
+      </FieldRow>
     </Label>
   );
 };

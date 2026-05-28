@@ -71,11 +71,11 @@ export default function createIFFunctionScript(FUSION: CoreFusionStatic) {
         this.init = function (this: any) {};
 
         this.calculate = function (this: any, index: any) {
-          var CURR_A = getConditionalInputValue(this.VAL_A, index);
-          var CURR_B = getConditionalInputValue(this.VAL_B, index);
-          var CURR_X = getConditionalInputValue(this.VAL_X, index);
-          var CURR_Y = getConditionalInputValue(this.VAL_Y, index);
-          var CURR_Z = getConditionalInputValue(this.VAL_Z, index);
+          var CURR_A = FUSION.lib.getConditionalInputValue(this.VAL_A, index);
+          var CURR_B = FUSION.lib.getConditionalInputValue(this.VAL_B, index);
+          var CURR_X = FUSION.lib.getConditionalInputValue(this.VAL_X, index);
+          var CURR_Y = FUSION.lib.getConditionalInputValue(this.VAL_Y, index);
+          var CURR_Z = FUSION.lib.getConditionalInputValue(this.VAL_Z, index);
 
           var OUT_RESULT: any = 0;
 
@@ -86,14 +86,6 @@ export default function createIFFunctionScript(FUSION: CoreFusionStatic) {
 
           this.IFValue.setValue(index, OUT_RESULT);
         };
-
-        function getConditionalInputValue(input: any, index: any) {
-          if (input["type"] && input["type"] == "double") {
-            //double
-            return parseFloat(input["value"]);
-          } //series
-          else return input.getValue(index);
-        }
     }),
   });
 }

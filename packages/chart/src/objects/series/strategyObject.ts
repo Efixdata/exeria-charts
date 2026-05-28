@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { resolveChartLocaleMessage } from "../../chartLocaleRuntime";
 import FUSION from "../../fusion";
 import LIB from "../../utils/chartingCommons";
 import {
@@ -38,6 +39,48 @@ function getStrategyValue(value: unknown) {
   return typeof value === "number" ? value : null;
 }
 
+type StrategyColorObject = LegacySeriesObject & {
+  buyColor?: string;
+  sellColor?: string;
+};
+
+function getStrategyBuyColor(object: StrategyColorObject): string {
+  if (typeof object.buyColor === "string" && object.buyColor.length > 0) {
+    return object.buyColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("buyColor");
+}
+
+function getStrategySellColor(object: StrategyColorObject): string {
+  if (typeof object.sellColor === "string" && object.sellColor.length > 0) {
+    return object.sellColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("sellColor");
+}
+
+function getAuxPanelMarkerY(
+  panel: SeriesPanelContext,
+  strategyValue: number,
+): SeriesStrategyValueRange {
+  let upRatio = 0.15;
+  let dnRatio = 0.85;
+
+  if (strategyValue === FUSION.EXIT_LONG || strategyValue === FUSION.EXIT_SHORT) {
+    upRatio = 0.12;
+    dnRatio = 0.88;
+  } else if (strategyValue === FUSION.EXIT_ALL) {
+    upRatio = 0.1;
+    dnRatio = 0.9;
+  }
+
+  return {
+    up: panel._offset + panel._height * upRatio,
+    dn: panel._offset + panel._height * dnRatio,
+  };
+}
+
 var StrategyObject = function (this: SeriesRuntime) {
   this.downRenderedValues = [1, 2, -3];
   this.upperRenderedValues = [-1, -2, -3];
@@ -71,7 +114,9 @@ var StrategyObject = function (this: SeriesRuntime) {
     ctx.strokeStyle = stroke;
     ctx.lineWidth = o.width;
 
-    for (var i = model._leftIndex; i < model._rightIndex; i++) {
+    this._activeStrategyObject = o;
+
+    for (var i = model._leftIndex; i <= model._rightIndex; i++) {
       if (i > linkedSeries.data.length - 1) continue;
 
       const strategyValue = getStrategyValue(linkedSeries.data[i][field]);
@@ -97,13 +142,16 @@ var StrategyObject = function (this: SeriesRuntime) {
 
       if (strategyValue == FUSION.BUY) this.drawBuy(ctx, midX, valuesY.dn);
       else if (strategyValue == FUSION.SELL) this.drawSell(ctx, midX, valuesY.up);
-      else if (strategyValue == FUSION.EXIT_LONG) drawExitLong(ctx, midX, valuesY.dn);
-      else if (strategyValue == FUSION.EXIT_SHORT) drawExitShort(ctx, midX, valuesY.up);
+      else if (strategyValue == FUSION.EXIT_LONG)
+        drawExitLong(ctx, midX, valuesY.dn, getStrategyBuyColor(o));
+      else if (strategyValue == FUSION.EXIT_SHORT)
+        drawExitShort(ctx, midX, valuesY.up, getStrategySellColor(o));
       else if (strategyValue == FUSION.EXIT_ALL) {
         this.drawExitAll(ctx, midX, valuesY.up, "up");
         this.drawExitAll(ctx, midX, valuesY.dn, "down");
       }
     }
+    this._activeStrategyObject = null;
     //ctx.globalAlpha = 1;
     ctx.restore();
     return true;
@@ -139,7 +187,7 @@ var StrategyObject = function (this: SeriesRuntime) {
         dataPoint.strength +
         ")";
       values.push({
-        label: WEBRCP.locale.fusion.getMessage(label, label),
+        label: resolveChartLocaleMessage(label, label),
         value: v,
       });
     });
@@ -182,7 +230,7 @@ var StrategyObject = function (this: SeriesRuntime) {
     ctx.save();
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
-    for (var i = model._leftIndex; i < model._rightIndex; i++) {
+    for (var i = model._leftIndex; i <= model._rightIndex; i++) {
       if (i > linkedSeries.data.length - 1) continue;
 
       const strategyValue = getStrategyValue(linkedSeries.data[i][field]);
@@ -328,6 +376,16 @@ var StrategyObject = function (this: SeriesRuntime) {
       }
     }
 
+    if (!seriesObjectTarget) {
+      const mainSeriesKey = model.mainSeries;
+      if (
+        typeof mainSeriesKey === "string" &&
+        seriesManager[mainSeriesKey]?.data?.[index]
+      ) {
+        seriesObjectTarget = { type: "SeriesObject", dataLink: mainSeriesKey };
+      }
+    }
+
     if (seriesObjectTarget) {
       var seriesObject = renderer.objects["SeriesObject"];
       var max = seriesObject.getMax(index, seriesObjectTarget, seriesManager);
@@ -393,6 +451,10 @@ var StrategyObject = function (this: SeriesRuntime) {
     model,
     seriesManager
   ) {
+    if (panel.main !== true) {
+      return getAuxPanelMarkerY(panel, strategyValue);
+    }
+
     var sv = this.getValuesY4StrategyValue(
       o,
       index,
@@ -424,10 +486,11 @@ var StrategyObject = function (this: SeriesRuntime) {
 
   this.drawBuy = function (ctx, midX, valueY) {
     var offset = 0;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
 
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor");
+    ctx.fillStyle = object ? getStrategyBuyColor(object) : WEBRCP.utils.colorManager.getColor("buyColor");
 
     // #ZACIEMKA PRZESUNIĘCIE O 0.5 PIKSLA BO SIĘ ZAMAZUJE
     midX -= 0.5;
@@ -445,9 +508,11 @@ var StrategyObject = function (this: SeriesRuntime) {
 
   this.drawSell = function (ctx, midX, valueY) {
     var offset = 0;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor");
+    ctx.fillStyle = object ? getStrategySellColor(object) : WEBRCP.utils.colorManager.getColor("sellColor");
 
     // #ZACIEMKA PRZESUNIĘCIE O 0.5 PIKSLA BO SIĘ ZAMAZUJE
     midX -= 0.5;
@@ -463,10 +528,15 @@ var StrategyObject = function (this: SeriesRuntime) {
     ctx.restore();
   };
 
-  function drawExitShort(ctx: CanvasRenderingContext2D, midX: number, valueY: number) {
+  function drawExitShort(
+    ctx: CanvasRenderingContext2D,
+    midX: number,
+    valueY: number,
+    color: string,
+  ) {
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("sellColor");
+    ctx.strokeStyle = color;
     ctx.beginPath();
     var offset = -2;
     ctx.moveTo(midX - 4, valueY + 4 + offset);
@@ -480,10 +550,15 @@ var StrategyObject = function (this: SeriesRuntime) {
     ctx.restore();
   }
 
-  function drawExitLong(ctx: CanvasRenderingContext2D, midX: number, valueY: number) {
+  function drawExitLong(
+    ctx: CanvasRenderingContext2D,
+    midX: number,
+    valueY: number,
+    color: string,
+  ) {
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("buyColor");
+    ctx.strokeStyle = color;
     ctx.beginPath();
     var offset = +2;
     ctx.moveTo(midX - 4, valueY - 4 + offset);
@@ -498,9 +573,13 @@ var StrategyObject = function (this: SeriesRuntime) {
   }
 
   this.drawExitAll = function (ctx, midX, valueY) {
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("exitAllColor");
+    ctx.strokeStyle = object
+      ? getStrategySellColor(object)
+      : WEBRCP.utils.colorManager.getColor("exitAllColor");
     ctx.beginPath();
     var offset = 0;
     ctx.moveTo(midX - 3, valueY - 3 + offset);
@@ -577,9 +656,10 @@ var CandlestickPatternStrategyObject = function () {
     const values: SeriesTooltipData["values"] = [];
     const tooltips = dataPoint.tooltips as Record<string, unknown>;
     for (var tooltip in tooltips) {
+      const patternLabel = resolveChartLocaleMessage(tooltip, tooltip);
       values.push({
-        label: WEBRCP.locale.fusion.getMessage(tooltip, tooltip).toUpperCase(),
-        value: valToString(tooltips[tooltip]),
+        label: patternLabel + ": " + valToString(tooltips[tooltip]),
+        value: null,
       });
     }
 
@@ -611,10 +691,14 @@ var CandlestickPatternStrategyObject = function () {
 
   candleStickPatternStrategyObject.drawSell = function (ctx, midX, valueY) {
     var offset = 0;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+    const sellColor = object
+      ? getStrategySellColor(object)
+      : WEBRCP.utils.colorManager.getColor("sellColor");
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("sellColor");
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("sellColor");
+    ctx.fillStyle = sellColor;
+    ctx.strokeStyle = sellColor;
 
     // #ZACIEMKA PRZESUNIĘCIE O 0.5 PIKSLA BO SIĘ ZAMAZUJE
     midX -= 0.5;
@@ -647,10 +731,14 @@ var CandlestickPatternStrategyObject = function () {
 
   candleStickPatternStrategyObject.drawBuy = function (ctx, midX, valueY) {
     var offset = 0;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+    const buyColor = object
+      ? getStrategyBuyColor(object)
+      : WEBRCP.utils.colorManager.getColor("buyColor");
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("buyColor");
-    ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("buyColor");
+    ctx.fillStyle = buyColor;
+    ctx.strokeStyle = buyColor;
 
     // #ZACIEMKA PRZESUNIĘCIE O 0.5 PIKSLA BO SIĘ ZAMAZUJE
     midX -= 0.5;
@@ -753,7 +841,7 @@ var FractalsObject = function () {
       const label = Array.isArray(labels) ? (labels[fieldIndex] ?? field) : (labels[field] ?? field);
       var v = valToString(dataPoint[field]);
       values.push({
-        label: WEBRCP.locale.fusion.getMessage(label, label),
+        label: resolveChartLocaleMessage(label, label),
         value: v,
       });
     });
@@ -782,10 +870,12 @@ var FractalsObject = function () {
 
   fractalsObject.drawSell = function (ctx, midX, valueY) {
     var offset = -4;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+    const sellColor = object ? getStrategySellColor(object) : "#009688";
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = "#009688";
-    ctx.strokeStyle = "#009688";
+    ctx.fillStyle = sellColor;
+    ctx.strokeStyle = sellColor;
 
     midX -= 0.5;
     valueY -= 0.5;
@@ -803,10 +893,12 @@ var FractalsObject = function () {
 
   fractalsObject.drawBuy = function (ctx, midX, valueY) {
     var offset = 4;
+    const object = this._activeStrategyObject as StrategyColorObject | null;
+    const buyColor = object ? getStrategyBuyColor(object) : "#e91e63";
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = "#e91e63";
-    ctx.strokeStyle = "#e91e63";
+    ctx.fillStyle = buyColor;
+    ctx.strokeStyle = buyColor;
 
     midX -= 0.5;
     valueY -= 0.5;
@@ -897,7 +989,7 @@ var FractalsObject = function () {
     ctx.save();
     ctx.fillStyle = WEBRCP.utils.colorManager.getColor("accent");
 
-    for (var i = model._leftIndex; i < model._rightIndex; i++) {
+    for (var i = model._leftIndex; i <= model._rightIndex; i++) {
       if (i > linkedSeries.data.length - 1) continue;
 
       const strategyValue = getStrategyValue(linkedSeries.data[i][field]);

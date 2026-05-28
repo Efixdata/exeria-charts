@@ -9,7 +9,6 @@ import {
   type ThemeVariant,
   type VariantPalette,
   themeVariants,
-  themePresets,
   chartColorControls,
   uiColorControls,
   cloneVariantPalette,
@@ -22,12 +21,14 @@ import {
   previewCandles,
   previewInstrument,
 } from "../themeCreator/core";
-import chartPreviewStyles from "../themeCreator/ChartThemePreview.module.css";
+import { themePresets } from "../themeCreator/chartSettingsThemePresets";
+import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import showcaseStyles from "../docsShowcase.module.css";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
 
 export default function LiveThemeCreator() {
-  const defaultPreset = themePresets[1] ?? themePresets[0];
-  const [presetId, setPresetId] = useState(defaultPreset?.id ?? "signal");
+  const defaultPreset = themePresets[0];
+  const [presetId, setPresetId] = useState(defaultPreset?.id ?? "trading-dark");
   const [themeVariant, setThemeVariant] = useState<ThemeVariant>("dark");
   const [chartColorsByVariant, setChartColorsByVariant] = useState<VariantPalette<ChartColorKey>>(
     cloneVariantPalette(defaultPreset?.chart ?? themePresets[0]!.chart)
@@ -37,6 +38,7 @@ export default function LiveThemeCreator() {
   );
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [chartUiLoading, setChartUiLoading] = useState(true);
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<any> | null>(null);
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,10 +48,10 @@ export default function LiveThemeCreator() {
   const runtimeTheme = useMemo(() => buildChartTheme(chartColorsByVariant), [chartColorsByVariant]);
   const uiThemes = useMemo(
     () => ({
-      dark: buildUiTheme(uiColorsByVariant.dark, "dark"),
-      light: buildUiTheme(uiColorsByVariant.light, "light"),
+      dark: buildUiTheme(uiColorsByVariant.dark, "dark", chartColorsByVariant.dark.accent),
+      light: buildUiTheme(uiColorsByVariant.light, "light", chartColorsByVariant.light.accent),
     }),
-    [uiColorsByVariant]
+    [chartColorsByVariant, uiColorsByVariant]
   );
   const activeUiTheme = uiThemes[themeVariant];
 
@@ -72,12 +74,14 @@ export default function LiveThemeCreator() {
       .then((ChartUI) => {
         if (!disposed) {
           setChartUIComponent(() => ChartUI as ComponentType<any>);
+          setChartUiLoading(false);
         }
       })
       .catch((error: unknown) => {
         console.error("Failed to load ChartUI", error);
         if (!disposed) {
           setPreviewError("Failed to load the React UI preview component.");
+          setChartUiLoading(false);
         }
       });
 
@@ -193,6 +197,7 @@ export default function LiveThemeCreator() {
   };
 
   const ChartUIPreview = ChartUIComponent;
+  const isChartLoading = chartUiLoading || (!!ChartUIPreview && !chart && !previewError);
 
   return (
     <div style={styles.wrapper}>
@@ -308,25 +313,30 @@ export default function LiveThemeCreator() {
                 <h3 style={styles.previewTitle}>Chart + React UI embedded</h3>
               </div>
               <div style={styles.previewMetaRow}>
-                <span style={styles.metaChip}>{themeVariant} variant</span>
-                <span style={styles.metaChip}>BTC/USD fixture</span>
+                <span className={showcaseStyles.metaChip} style={styles.metaChip}>
+                  {themeVariant} variant
+                </span>
+                <span className={showcaseStyles.metaChip} style={styles.metaChip}>BTC/USD fixture</span>
               </div>
             </div>
 
-            {previewError ? <div style={styles.errorBox}>{previewError}</div> : null}
-
-            <div
-              className={chartPreviewStyles.shell}
-              style={{ ...styles.previewShell, background: chartColors.background }}
+            <DocChartEmbed
+              minHeight={540}
+              height={540}
+              background={chartColors.background}
+              padded
+              loading={isChartLoading}
+              error={previewError}
+              loadingLabel="Loading preview UI…"
             >
               {ChartUIPreview ? (
                 <ChartUIPreview chart={chart} theme={activeUiTheme}>
-                  <div ref={containerRef} style={styles.chartCanvas} />
+                  <div ref={containerRef} className={docChartEmbedStyles.canvas} />
                 </ChartUIPreview>
               ) : (
-                <div style={styles.loadingBox}>Loading preview UI…</div>
+                <div ref={containerRef} className={docChartEmbedStyles.canvas} />
               )}
-            </div>
+            </DocChartEmbed>
           </div>
 
           <div style={styles.codePanel}>
@@ -444,10 +454,9 @@ const styles: Record<string, CSSProperties> = {
     display: "grid",
     gap: 16,
     padding: 24,
-    borderRadius: 24,
+    borderRadius: "var(--doc-radius-lg)",
     border: "1px solid var(--doc-border)",
-    background:
-      "linear-gradient(145deg, rgba(7, 10, 18, 0.98) 0%, rgba(18, 25, 40, 0.92) 55%, rgba(9, 16, 29, 0.96) 100%)",
+    background: "var(--doc-spotlight-gradient)",
   },
   eyebrow: {
     display: "inline-block",
@@ -460,14 +469,14 @@ const styles: Record<string, CSSProperties> = {
   },
   sectionTitle: {
     margin: 0,
-    color: "#F7FBFF",
+    color: "var(--doc-spotlight-title)",
     fontSize: 28,
     lineHeight: 1.1,
   },
   sectionText: {
     margin: "10px 0 0",
     maxWidth: 720,
-    color: "#C5D7ED",
+    color: "var(--doc-spotlight-text)",
     fontSize: 15,
     lineHeight: 1.7,
   },
@@ -484,7 +493,7 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
   },
   variantLabel: {
-    color: "#C5D7ED",
+    color: "var(--doc-spotlight-text)",
     fontSize: 13,
     fontWeight: 600,
   },
@@ -494,15 +503,15 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
     padding: 6,
     borderRadius: 999,
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "rgba(255, 255, 255, 0.05)",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-elevated-overlay)",
   },
   variantButton: {
     padding: "10px 14px",
     borderRadius: 999,
     border: "1px solid transparent",
     background: "transparent",
-    color: "#D7E6F5",
+    color: "var(--doc-spotlight-text)",
     cursor: "pointer",
     fontSize: 13,
     fontWeight: 700,
@@ -510,9 +519,9 @@ const styles: Record<string, CSSProperties> = {
   activeVariantButton: {
     padding: "10px 14px",
     borderRadius: 999,
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "#F7FBFF",
-    color: "#09111D",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-inverse-surface)",
+    color: "var(--doc-inverse-text)",
     cursor: "pointer",
     fontSize: 13,
     fontWeight: 700,
@@ -523,9 +532,9 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
     padding: "12px 14px",
     borderRadius: 999,
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    background: "rgba(255, 255, 255, 0.04)",
-    color: "#F7FBFF",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-elevated-overlay)",
+    color: "var(--doc-spotlight-title)",
     cursor: "pointer",
     fontSize: 14,
     fontWeight: 600,
@@ -536,9 +545,9 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
     padding: "12px 14px",
     borderRadius: 999,
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "#F7FBFF",
-    color: "#09111D",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-inverse-surface)",
+    color: "var(--doc-inverse-text)",
     cursor: "pointer",
     fontSize: 14,
     fontWeight: 700,
@@ -547,7 +556,7 @@ const styles: Record<string, CSSProperties> = {
     width: 18,
     height: 18,
     borderRadius: 999,
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    border: "1px solid var(--doc-elevated-border)",
   },
   mainGrid: {
     display: "grid",
@@ -581,8 +590,8 @@ const styles: Record<string, CSSProperties> = {
     width: "fit-content",
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(30, 161, 205, 0.12)",
-    border: "1px solid rgba(30, 161, 205, 0.24)",
+    background: "var(--doc-accent-muted-bg)",
+    border: "1px solid var(--doc-accent-muted-border)",
     color: "var(--doc-text)",
     fontSize: 12,
     fontWeight: 700,
@@ -611,8 +620,8 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
     padding: 14,
     borderRadius: 18,
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "rgba(255, 255, 255, 0.03)",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-elevated-overlay)",
   },
   controlCopy: {
     display: "grid",
@@ -647,8 +656,8 @@ const styles: Record<string, CSSProperties> = {
     padding: "10px 12px",
     borderRadius: 12,
     border: "1px solid var(--doc-border)",
-    background: "rgba(5, 5, 5, 0.84)",
-    color: "#F7FBFF",
+    background: "var(--doc-code-bg)",
+    color: "var(--doc-code-text)",
     fontSize: 13,
     fontFamily: "var(--ifm-font-family-monospace)",
   },
@@ -682,42 +691,16 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(240, 180, 41, 0.12)",
-    border: "1px solid rgba(240, 180, 41, 0.22)",
-    color: "var(--doc-text)",
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: "0.06em",
     textTransform: "uppercase",
   },
-  previewShell: {
-    minHeight: 540,
-    height: 540,
-    overflow: "hidden",
-    borderRadius: 24,
-    border: "1px solid var(--doc-border)",
-    background: "#05070D",
-    position: "relative",
-  },
-  chartCanvas: {
-    width: "100%",
-    height: "100%",
-    minHeight: 0,
-    position: "relative",
-  },
-  loadingBox: {
-    display: "grid",
-    placeItems: "center",
-    width: "100%",
-    height: "100%",
-    color: "var(--doc-text-secondary)",
-    fontSize: 14,
-  },
   errorBox: {
     padding: "14px 16px",
     borderRadius: 16,
-    border: "1px solid rgba(209, 46, 89, 0.28)",
-    background: "rgba(209, 46, 89, 0.08)",
+    border: "1px solid var(--doc-danger-border)",
+    background: "var(--doc-danger-bg)",
     color: "var(--doc-text)",
     fontSize: 14,
   },
@@ -747,8 +730,8 @@ const styles: Record<string, CSSProperties> = {
     gap: 12,
     padding: 16,
     borderRadius: 18,
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "rgba(255, 255, 255, 0.02)",
+    border: "1px solid var(--doc-elevated-border)",
+    background: "var(--doc-elevated-overlay)",
   },
   codeCardHeader: {
     display: "flex",
@@ -783,8 +766,8 @@ const styles: Record<string, CSSProperties> = {
     padding: 16,
     borderRadius: 16,
     overflowX: "auto",
-    background: "#06101A",
-    color: "#D7F0FF",
+    background: "var(--doc-code-bg)",
+    color: "var(--doc-code-text)",
     fontSize: 13,
     lineHeight: 1.6,
     fontFamily: "var(--ifm-font-family-monospace)",

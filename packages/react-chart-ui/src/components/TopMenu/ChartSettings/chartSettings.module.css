@@ -1,13 +1,6 @@
-.scrollArea {
-  padding: 16px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .section {
   border: 1px solid var(--cs-border, rgba(255, 255, 255, 0.12));
-  border-radius: 10px;
+  border-radius: var(--ui-radius-xl, 10px);
   overflow: hidden;
   background: var(--cs-section-bg, rgba(255, 255, 255, 0.03));
 }
@@ -16,14 +9,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: var(--ui-space-2, 8px);
+  padding: var(--ui-space-3, 12px) 14px;
   border-bottom: 1px solid var(--cs-border, rgba(255, 255, 255, 0.08));
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--ui-font-label, 12px);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -32,7 +25,7 @@
 
 .sectionHint {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--ui-font-helper, 11px);
   color: var(--cs-muted, rgba(255, 255, 255, 0.55));
 }
 
@@ -61,7 +54,7 @@
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--cs-border, rgba(255, 255, 255, 0.14));
-  border-radius: 8px;
+  border-radius: var(--ui-radius-lg, 8px);
   background: var(--cs-card-bg, rgba(0, 0, 0, 0.15));
   cursor: pointer;
   text-align: left;
@@ -69,13 +62,13 @@
 }
 
 .templateCard:hover {
-  border-color: var(--cs-accent, #21c1f2);
+  border-color: var(--cs-accent, #2962ff);
   transform: translateY(-1px);
 }
 
 .templateCardActive {
-  border-color: var(--cs-accent, #21c1f2);
-  box-shadow: 0 0 0 1px var(--cs-accent, #21c1f2);
+  border-color: var(--cs-accent, #2962ff);
+  box-shadow: 0 0 0 1px var(--cs-accent, #2962ff);
 }
 
 .templateSwatches {
@@ -86,18 +79,18 @@
 }
 
 .swatch {
-  border-radius: 4px;
+  border-radius: var(--ui-radius-sm, 4px);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .templateLabel {
-  font-size: 12px;
+  font-size: var(--ui-font-label, 12px);
   font-weight: 600;
   color: var(--cs-text, #fff);
 }
 
 .templateDescription {
-  font-size: 10px;
+  font-size: var(--ui-font-helper, 11px);
   line-height: 1.3;
   color: var(--cs-muted, rgba(255, 255, 255, 0.55));
 }
@@ -133,6 +126,13 @@
   min-width: 0;
 }
 
+.gradientFillColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
 .fieldRow {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -153,45 +153,30 @@
 }
 
 .toggleLabel {
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   color: var(--cs-text, #fff);
 }
 
 .toggleHint {
   display: block;
-  font-size: 11px;
+  font-size: var(--ui-font-helper, 11px);
   color: var(--cs-muted, rgba(255, 255, 255, 0.55));
   margin-top: 2px;
 }
 
-.layersTabs {
+.drawingsWorkflow {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.layersTab {
-  padding: 6px 10px;
-  font-size: 12px;
-  border: 1px solid var(--cs-border, rgba(255, 255, 255, 0.14));
-  border-radius: 6px;
-  background: transparent;
-  color: var(--cs-muted, rgba(255, 255, 255, 0.7));
-  cursor: pointer;
-}
-
-.layersTabActive {
-  border-color: var(--cs-accent, #21c1f2);
-  color: var(--cs-text, #fff);
-  background: rgba(33, 193, 242, 0.12);
+  justify-content: flex-end;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--cs-border-subtle, rgba(255, 255, 255, 0.08));
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .layersTable {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--cs-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: var(--ui-radius-lg, 8px);
   overflow: hidden;
 }
 
@@ -200,7 +185,7 @@
   grid-template-columns: 1fr 72px 72px 36px;
   gap: 8px;
   padding: 8px 12px;
-  font-size: 10px;
+  font-size: var(--ui-font-helper, 11px);
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -228,7 +213,7 @@
   padding: 8px 12px;
   border-top: 1px solid var(--cs-border-subtle, rgba(255, 255, 255, 0.06));
   color: var(--cs-text, #fff);
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
 }
 
 .layersRowSimple {
@@ -250,7 +235,7 @@
 .emptyState {
   padding: 16px 12px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   color: var(--cs-muted, rgba(255, 255, 255, 0.55));
 }
 
@@ -262,7 +247,7 @@
 }
 
 .visibilityCompactHint {
-  font-size: 9px;
+  font-size: var(--ui-font-helper, 11px);
   line-height: 1.1;
   color: var(--cs-muted, rgba(255, 255, 255, 0.5));
   text-align: center;
@@ -270,7 +255,7 @@
 
 .rangeInput {
   width: 100%;
-  accent-color: var(--cs-accent, #21c1f2);
+  accent-color: var(--cs-accent, #2962ff);
 }
 
 .colorField {
@@ -290,19 +275,11 @@
   flex-shrink: 0;
 }
 
-.dialogPrimaryFooter {
-  flex-shrink: 0;
-  margin-top: auto;
-  padding: 14px 20px 20px;
-  border-top: 1px solid var(--cs-border, rgba(255, 255, 255, 0.12));
-  background: transparent;
-}
-
 .pnlTable {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--cs-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: var(--ui-radius-lg, 8px);
   overflow: hidden;
   background: var(--cs-card-bg, rgba(0, 0, 0, 0.15));
 }
@@ -314,7 +291,7 @@
   gap: 12px;
   padding: 9px 12px;
   border-top: 1px solid var(--cs-border-subtle, rgba(255, 255, 255, 0.06));
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   color: var(--cs-text, #fff);
 }
 

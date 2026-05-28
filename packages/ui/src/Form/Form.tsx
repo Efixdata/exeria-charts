@@ -8,14 +8,14 @@ interface FormProps {
 }
 
 const StyledForm = styled.form`
-  color: white;
+  color: ${(props) => props.theme.dialog.textColor};
   display: flex;
   flex-direction: row;
   width: 100%;
   box-sizing: border-box;
-  grid-gap: 25px;
+  grid-gap: var(--ui-space-4, 16px);
   flex-wrap: wrap;
-  align-items: end;
+  align-items: stretch;
 `;
 
 export const Form = (props: FormProps) => {

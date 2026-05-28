@@ -1,4 +1,6 @@
 import WEBRCP from "./WebRCP";
+import { resolveChartLocaleMessage, resolveCatalogLocaleMessage } from "./chartLocaleRuntime";
+import { getCatalogTypeForScriptId } from "./locale/catalogTranslator";
 import LIB from "./utils/chartingCommons";
 import {
   Series,
@@ -14,9 +16,24 @@ import {
 import {
   Shape,
   TrendLineObject,
+  TrendRayObject,
+  HorizontalRayObject,
+  VerticalRayObject,
+  CrossLineObject,
   FibonLinesObject,
+  FibonExtensionObject,
+  FibonTimeZoneObject,
+  FibonChannelObject,
+  FibonArcsObject,
+  FibonCirclesObject,
   ParallelChannelObject,
+  PitchforkObject,
+  RegressionChannelObject,
+  GannFanObject,
+  GannGridObject,
+  GannBoxObject,
   ArrowObject,
+  BrushObject,
   HorizontalLineObject,
   VerticalLineObject,
   DiNapoliLevels,
@@ -31,6 +48,7 @@ import {
   CycleObject,
   TextObject,
   BoxObject,
+  FixedRangeVolumeProfileObject,
   TriangleObject,
   PriceTagObject,
   LongShortPositionObject,
@@ -86,6 +104,119 @@ function resolveThemeColor(token: string, fallbackToken: string): string {
   return value;
 }
 
+const TIME_AXIS_LABEL_GAP = 12;
+const TIME_AXIS_ESTIMATED_LABEL_WIDTH = 96;
+
+type TimeAxisFormat = "time" | "day-time" | "date";
+
+function getTimeAxisMinSpacing(model: CoreChartModel): number {
+  const configured = model.minTimeTickWidth > 0 ? model.minTimeTickWidth : 90;
+  return Math.max(configured, TIME_AXIS_ESTIMATED_LABEL_WIDTH + TIME_AXIS_LABEL_GAP);
+}
+
+function downsampleTimeTicks(ticks: number[], maxCount: number): number[] {
+  if (ticks.length <= maxCount) {
+    return ticks;
+  }
+
+  if (maxCount <= 1) {
+    return [ticks[0]];
+  }
+
+  const result: number[] = [];
+  const last = ticks.length - 1;
+
+  for (let i = 0; i < maxCount; i++) {
+    result.push(ticks[Math.round((i / (maxCount - 1)) * last)]);
+  }
+
+  return result;
+}
+
+function resolveTimeAxisFormat(
+  tickIndices: number[],
+  data: Array<{ stamp?: number }>,
+): TimeAxisFormat {
+  if (tickIndices.length < 2) {
+    return "day-time";
+  }
+
+  const firstStamp = data[tickIndices[0]]?.stamp;
+  const lastStamp = data[tickIndices[tickIndices.length - 1]]?.stamp;
+
+  if (typeof firstStamp !== "number" || typeof lastStamp !== "number") {
+    return "day-time";
+  }
+
+  const spanMs = Math.abs(lastStamp - firstStamp);
+  const avgIntervalMs = spanMs / Math.max(1, tickIndices.length - 1);
+  const hour = 60 * 60 * 1000;
+  const day = 24 * hour;
+
+  if (avgIntervalMs <= 2 * hour) {
+    return "time";
+  }
+
+  if (avgIntervalMs <= 1.5 * day) {
+    return "day-time";
+  }
+
+  if (spanMs >= 45 * day) {
+    return "date";
+  }
+
+  return "day-time";
+}
+
+function formatTimeAxisLabel(
+  stamp: number,
+  format: TimeAxisFormat,
+  months: string[],
+  zeroLead: (num: number) => string,
+  prevStamp?: number | null,
+): string {
+  const date = new Date(stamp);
+  const day = zeroLead(date.getDate());
+  const month = months[date.getMonth()];
+  const year = String(date.getFullYear()).substring(2, 4);
+  const hours = zeroLead(date.getHours());
+  const minutes = zeroLead(date.getMinutes());
+  const currentYear = new Date().getFullYear();
+  const hideYear = date.getFullYear() === currentYear;
+
+  if (format === "time") {
+    return `${hours}:${minutes}`;
+  }
+
+  if (format === "date") {
+    return hideYear ? `${day}.${month}` : `${day}.${month}.${year}`;
+  }
+
+  if (typeof prevStamp === "number") {
+    const prev = new Date(prevStamp);
+    const sameDay =
+      date.getDate() === prev.getDate() &&
+      date.getMonth() === prev.getMonth() &&
+      date.getFullYear() === prev.getFullYear();
+
+    if (sameDay) {
+      return `${hours}:${minutes}`;
+    }
+
+    if (hideYear) {
+      return `${day}.${month} ${hours}:${minutes}`;
+    }
+
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  }
+
+  if (hideYear) {
+    return `${day}.${month} ${hours}:${minutes}`;
+  }
+
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
+
 const Renderer: CoreRendererConstructor = function (
   this: CoreRenderer,
   settings: RendererSettings,
@@ -113,9 +244,24 @@ const Renderer: CoreRendererConstructor = function (
 
   var shape = new Shape(); //instancja bazowa
   TrendLineObject.prototype = shape;
+  TrendRayObject.prototype = shape;
+  HorizontalRayObject.prototype = shape;
+  VerticalRayObject.prototype = shape;
+  CrossLineObject.prototype = shape;
   ArrowObject.prototype = shape;
+  BrushObject.prototype = shape;
   ParallelChannelObject.prototype = shape;
+  PitchforkObject.prototype = shape;
+  RegressionChannelObject.prototype = shape;
+  GannFanObject.prototype = shape;
+  GannGridObject.prototype = shape;
+  GannBoxObject.prototype = shape;
   FibonLinesObject.prototype = shape;
+  FibonExtensionObject.prototype = shape;
+  FibonTimeZoneObject.prototype = shape;
+  FibonChannelObject.prototype = shape;
+  FibonArcsObject.prototype = shape;
+  FibonCirclesObject.prototype = shape;
   HorizontalLineObject.prototype = shape;
   VerticalLineObject.prototype = shape;
   MultiLineObject.prototype = shape;
@@ -127,6 +273,7 @@ const Renderer: CoreRendererConstructor = function (
   TimeBetObject.prototype = shape;
   CycleObject.prototype = shape;
   BoxObject.prototype = shape;
+  FixedRangeVolumeProfileObject.prototype = shape;
   TextObject.prototype = shape;
   TriangleObject.prototype = shape;
   PriceTagObject.prototype = shape;
@@ -162,15 +309,31 @@ const Renderer: CoreRendererConstructor = function (
     "BUY TAKE_PROFIT_LIMIT": new StopLimitObject(this.settings.orders),
     MovePaneArrows: new MovePaneArrows(),
     trendLine: new TrendLineObject(),
+    trendRay: new TrendRayObject(),
+    hRay: new HorizontalRayObject(),
+    vRay: new VerticalRayObject(),
+    crossLine: new CrossLineObject(),
     arrow: new ArrowObject(),
+    brush: new BrushObject(),
     parallelChannel: new ParallelChannelObject(),
+    pitchfork: new PitchforkObject(),
+    regressionChannel: new RegressionChannelObject(),
+    gannFan: new GannFanObject(),
+    gannGrid: new GannGridObject(),
+    gannBox: new GannBoxObject(),
     fibonLines: new FibonLinesObject(),
+    fibonExtension: new FibonExtensionObject(),
+    fibonTimeZone: new FibonTimeZoneObject(),
+    fibonChannel: new FibonChannelObject(),
+    fibonArcs: new FibonArcsObject(),
+    fibonCircles: new FibonCirclesObject(),
     hLine: new HorizontalLineObject(),
     vLine: new VerticalLineObject(),
     mLine: new MultiLineObject(),
     abcd: new AbcdObject(),
     ellipse: new EllipseObject(),
     box: new BoxObject(),
+    fixedRangeVolumeProfile: new FixedRangeVolumeProfileObject(),
     hRange: new HorizontalRangeObject(),
     vRange: new VerticalRangeObject(),
     timeRange: new TimeRangeObject(),
@@ -608,6 +771,14 @@ const Renderer: CoreRendererConstructor = function (
 
       panelObject.selected = true;
 
+      const anchors = Array.isArray((panelObject as { anchors?: unknown }).anchors)
+        ? ((panelObject as unknown as { anchors: Array<{ expandable?: boolean }> }).anchors)
+        : [];
+      const drawArrowHandles =
+        panelObject.type !== "fibonArcs" &&
+        panelObject.type !== "fibonCircles" &&
+        anchors.some((anchor) => anchor.expandable === true);
+
       try {
         octx.save();
         octx.globalAlpha = 1;
@@ -622,7 +793,7 @@ const Renderer: CoreRendererConstructor = function (
           model,
           panel,
           seriesManager,
-          { drawArrowHandles: true, forceShow: true },
+          { drawArrowHandles, forceShow: true },
         );
       } catch (error) {
         console.error(error);
@@ -882,42 +1053,38 @@ const Renderer: CoreRendererConstructor = function (
     ctx.textBaseline = "middle";
     ctx.font = WEBRCP.utils.colorManager.getFont("time", "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif");
 
-    let hidden = {
-      year: false,
-      month: false,
-      day: false,
-      hour: false,
-    };
-
-    if (validTicks.length >= 2) {
-      const stamp0 = data[validTicks[0]].stamp as number;
-      const stamp1 = data[validTicks[1]].stamp as number;
-      const diffInHours = (stamp1 - stamp0) / 1000 / 60 / 60;
-      const currentDate = new Date(Date.now());
-      const firstDate = new Date(stamp0);
-
-      const isInCurrentYear = firstDate.getFullYear() === currentDate.getFullYear();
-      const isInCurrentDay =
-        isInCurrentYear &&
-        firstDate.getDay() === currentDate.getDay() &&
-        firstDate.getMonth() === currentDate.getMonth();
-
-      hidden = {
-        year: isInCurrentYear,
-        month: isInCurrentDay && diffInHours <= 2,
-        day: isInCurrentDay && diffInHours <= 2,
-        hour: diffInHours > 24,
-      };
-    }
+    const format = resolveTimeAxisFormat(validTicks, data);
+    let lastLabelRight = -Infinity;
+    let prevRenderedStamp: number | null = null;
 
     for (var i = 0; i < validTicks.length; i++) {
       const tickIndex = validTicks[i];
       const tickX = this.getIndexPoint(tickIndex, model);
       const stamp = data[tickIndex].stamp as number;
 
-      if (tickX > model._width - this.priceRenderingOptions.valueAxisWidth) continue;
+      if (tickX > plotWidth) continue;
 
-      ctx.fillText(this.getPrettyDate(stamp, hidden), tickX - 4, tickY + timeAxisHeight / 2 + 2);
+      const label = formatTimeAxisLabel(
+        stamp,
+        format,
+        this.months,
+        this.zeroLead.bind(this),
+        prevRenderedStamp,
+      );
+      const labelWidth = ctx.measureText(label).width;
+      const labelLeft = tickX - 4;
+
+      if (labelLeft < lastLabelRight + TIME_AXIS_LABEL_GAP) {
+        continue;
+      }
+
+      if (labelLeft + labelWidth > plotWidth + 4) {
+        continue;
+      }
+
+      ctx.fillText(label, tickX - 4, tickY + timeAxisHeight / 2 + 2);
+      lastLabelRight = labelLeft + labelWidth;
+      prevRenderedStamp = stamp;
 
       ctx.beginPath();
       ctx.moveTo(tickX + 0.5, tickY);
@@ -987,6 +1154,7 @@ const Renderer: CoreRendererConstructor = function (
     const series = seriesManager[dataLink];
     if (!series) return false;
     const script = isThisSeriesOutputOfScript(dataLink);
+    const catalogType = getCatalogTypeForScriptId(model.scripts, script?.id);
 
     this.validateSeriesBeforeRender(series);
 
@@ -995,7 +1163,9 @@ const Renderer: CoreRendererConstructor = function (
     if (legendsRendered.indexOf(dataLink) > -1) return false;
     legendsRendered.push(dataLink);
 
-    let name = series.userName || WEBRCP.locale.fusion.getMessage(series.title, series.title, true);
+    let name =
+      series.userName ||
+      resolveCatalogLocaleMessage(series.title, catalogType, series.title, true);
     if (series.instrument && series.instrument.relatedKey) {
       name = series.instrument.symbol + "." + series.instrument.name;
     }
@@ -1012,7 +1182,7 @@ const Renderer: CoreRendererConstructor = function (
           const inputTitle = seriesManager[input]?.title;
           if (inputTitle && !formattedInputs.includes(inputTitle))
             formattedInputs.push(
-              WEBRCP.locale.fusion.getMessage(
+              resolveChartLocaleMessage(
                 inputTitle,
                 inputTitle,
                 true
@@ -1023,7 +1193,7 @@ const Renderer: CoreRendererConstructor = function (
           typeof script.inputs[key] === "number"
         ) {
           formattedInputs.push(
-            WEBRCP.locale.fusion.getMessage(
+            resolveChartLocaleMessage(
               script.inputs[key].toString(),
               script.inputs[key].toString(),
               true
@@ -1095,7 +1265,7 @@ const Renderer: CoreRendererConstructor = function (
 
       var v = LIB.nFormatter(field, precision);
 
-      valueToRender.label.text = WEBRCP.locale.fusion.getMessage(label, label) + ": ";
+      valueToRender.label.text = resolveChartLocaleMessage(label, label) + ": ";
       if (series.fields.length == 1 && label == "value") valueToRender.label.text = "";
       else {
         valueToRender.label.x = x;
@@ -1217,16 +1387,11 @@ const Renderer: CoreRendererConstructor = function (
       ctx.clip();
 
       ctx.fillStyle = color;
-      ctx.font = WEBRCP.utils.colorManager.getFont("price");
-      // if (style === "TRADE") {
-      // 	ctx.save();
-      // 	ctx.fillStyle = "#fff";
-      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth, y - 14, this.priceRenderingOptions.valueAxisWidth, 26);
-      // 	ctx.fillStyle = "#000";
-      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 3, y - 11, this.priceRenderingOptions.valueAxisWidth - 6, 20);
-      // 	ctx.restore();
-      // 	ctx.fillRect(model._width - this.priceRenderingOptions.valueAxisWidth + 4, y - 10, this.priceRenderingOptions.valueAxisWidth - 8, 18);
-      // }
+      const priceFont = WEBRCP.utils.colorManager.getFont("price");
+      ctx.font = priceFont;
+      const tagHeight = 18;
+      const tagTop = Math.round(y - tagHeight / 2);
+
       if (style === "ARROW") {
         ctx.beginPath();
         ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
@@ -1239,9 +1404,9 @@ const Renderer: CoreRendererConstructor = function (
       } else {
         ctx.fillRect(
           model._width - this.priceRenderingOptions.valueAxisWidth,
-          y - 9,
+          tagTop,
           this.priceRenderingOptions.valueAxisWidth,
-          16
+          tagHeight
         );
       }
 
@@ -1253,13 +1418,16 @@ const Renderer: CoreRendererConstructor = function (
           v = logConverter.axisToReal?.(v, 1) ?? v;
         }
         var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
+        const previousBaseline = ctx.textBaseline;
+        ctx.textBaseline = "middle";
         renderPriceText({
           text: vs,
           ctx,
           x: model._width - this.priceRenderingOptions.valueAxisWidth + model.valueAxisPadding,
-          y: y + 3,
+          y: Math.round(y),
           zerosToReduce: this.priceRenderingOptions.zerosToReduce,
         });
+        ctx.textBaseline = previousBaseline;
       }
     } catch (error: unknown) {
       if (isRendererRuntimeError(error)) {
@@ -1334,11 +1502,13 @@ const Renderer: CoreRendererConstructor = function (
       if (panel.valueAxisMode == "log" && valueType != "real")
         vp1 = logConverter.axisToReal?.(v1, 1) ?? v1;
       var vs1 = LIB.nFormatter(vp1, this.getPrecision(model, panel));
+      const previousBaseline = ctx.textBaseline;
+      ctx.textBaseline = "middle";
       renderPriceText({
         text: vs1,
         ctx,
         x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
-        y: y1 + 3,
+        y: Math.round(y1),
         zerosToReduce: this.priceRenderingOptions.zerosToReduce,
       });
 
@@ -1444,13 +1614,13 @@ const Renderer: CoreRendererConstructor = function (
         text: vs2,
         ctx,
         x: model._width - this.priceRenderingOptions.valueAxisWidth + 8,
-        y: y2 + 3,
+        y: Math.round(y2),
         zerosToReduce: this.priceRenderingOptions.zerosToReduce,
       });
+      ctx.textBaseline = previousBaseline;
 
       ctx.fillStyle = innerTextColor;
       ctx.font = WEBRCP.utils.colorManager.getFont("text");
-      console.log(fontSize);
       ctx.fillText(
         labelUp,
         model._width - this.priceRenderingOptions.valueAxisWidth + 23,
@@ -1695,7 +1865,7 @@ const Renderer: CoreRendererConstructor = function (
 
   this.buildFallbackTimeTicks = function (model: CoreChartModel, lastIndex: number, plotWidth: number) {
     const ticks: number[] = [];
-    const minSpacing = model.minTimeTickWidth > 0 ? model.minTimeTickWidth : 90;
+    const minSpacing = getTimeAxisMinSpacing(model);
     let lastX = -minSpacing;
 
     for (let x = 0; x <= plotWidth; x += 1) {
@@ -1715,7 +1885,8 @@ const Renderer: CoreRendererConstructor = function (
       ticks.push(0, lastIndex);
     }
 
-    return ticks;
+    const maxTicks = Math.max(2, Math.floor(plotWidth / minSpacing));
+    return downsampleTimeTicks(ticks, maxTicks);
   };
 
   this.calculateTimeTicks = function (model, seriesManager) {
@@ -1737,9 +1908,11 @@ const Renderer: CoreRendererConstructor = function (
       right = lastIndex;
     }
 
-    var lastIndexPoint = 4 - model.minTimeTickWidth;
+    const plotWidth = model._width - this.priceRenderingOptions.valueAxisWidth;
+    const minSpacing = getTimeAxisMinSpacing(model);
+    const maxTicks = Math.max(2, Math.floor(plotWidth / minSpacing));
+    var lastIndexPoint = 4 - minSpacing;
     var indexPoint = 0;
-    const minSpacing = model.minTimeTickWidth > 0 ? model.minTimeTickWidth : 90;
 
     for (var i = left; i <= right; i++) {
       indexPoint = this.getIndexPoint(i, model);
@@ -1751,8 +1924,9 @@ const Renderer: CoreRendererConstructor = function (
     }
 
     if (this.timeTicks.length === 0) {
-      const plotWidth = model._width - this.priceRenderingOptions.valueAxisWidth;
       this.timeTicks = this.buildFallbackTimeTicks(model, lastIndex, plotWidth);
+    } else if (this.timeTicks.length > maxTicks) {
+      this.timeTicks = downsampleTimeTicks(this.timeTicks, maxTicks);
     }
 
     return this.timeTicks;

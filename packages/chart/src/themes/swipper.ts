@@ -35,6 +35,7 @@ const chartTheme = {
     chartRedStroke: { dark: redDark },
     chartGreenStroke: { dark: green },
     chartFill: { dark: blueLight },
+    chartFillGradient: { dark: blueLight },
     chartStroke: { dark: blueLight },
 
     buyColor: { dark: greenLight },

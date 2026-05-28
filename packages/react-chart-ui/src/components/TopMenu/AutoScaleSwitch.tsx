@@ -3,6 +3,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { TextButton } from "ui";
 import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface AutoScaleSwitchProps {
   chart: NullableChartInstance;
@@ -10,6 +11,7 @@ interface AutoScaleSwitchProps {
 }
 
 export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
+  const t = useChartTranslate(props.chart);
   const defaultAutoScaleValue = props.chart ? props.chart.getAutoScale() : true;
   const [autoScale, setAutoScale] = useState(defaultAutoScaleValue);
   const changeMode = () => {
@@ -38,8 +40,10 @@ export const AutoScaleSwitch = (props: AutoScaleSwitchProps) => {
       }}
       active={autoScale}
       themeContext="toolbar"
+      title={t("toolbar_auto_scale", "Auto scale")}
+      ariaLabel={t("toolbar_auto_scale", "Auto scale")}
     >
-      auto scale
+      {t("toolbar_auto_scale", "Auto scale")}
     </TextButton>
   );
 };

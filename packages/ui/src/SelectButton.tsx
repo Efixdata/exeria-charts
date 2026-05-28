@@ -1,6 +1,7 @@
-import React, { useState, useRef, ReactElement, useEffect } from "react";
+import React, { useState, useRef, ReactElement, useEffect, useCallback } from "react";
 import { selectButton, buttonOption } from "../theme";
 import styled from "styled-components";
+import { menuOptionFocusVisibleStyles } from "../inputStyles";
 
 const Container = styled.div`
   position: relative;
@@ -18,11 +19,20 @@ const Container = styled.div`
   }
 `;
 
-const ButtonContainer = styled.div`
+const Trigger = styled.div`
   border-radius: ${selectButton.borderRadius}px;
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+
+  ${menuOptionFocusVisibleStyles}
 `;
 
 const OptionsContainer = styled.div<{ $menuAlign?: "start" | "end" }>`
@@ -45,11 +55,18 @@ const OptionsContainer = styled.div<{ $menuAlign?: "start" | "end" }>`
 
 const Option = styled.div`
   display: flex;
+  width: 100%;
   cursor: pointer;
   padding-left: ${buttonOption.basePadding}px;
   padding-top: ${buttonOption.basePadding}px;
   padding-right: ${buttonOption.basePadding * 4}px;
   padding-bottom: ${buttonOption.basePadding}px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  box-sizing: border-box;
 
   &:hover {
     background-color: ${(props) => props.theme.subMenu.buttons.hoverBackground};
@@ -71,6 +88,8 @@ const Option = styled.div`
       fill: ${(props) => props.theme.subMenu.buttons.activeColor};
     }
   }
+
+  ${menuOptionFocusVisibleStyles}
 `;
 
 interface SelectButtonOption {
@@ -90,58 +109,109 @@ interface SelectButtonProps {
   /** Align dropdown to the trigger's start (left) or end (right) edge. */
   menuAlign?: "start" | "end";
   style?: React.CSSProperties | undefined;
+  ariaLabel?: string;
 }
 
 export const SelectButton = (props: SelectButtonProps) => {
   const myRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const [selectedOption, setSelectedOption] = useState(props.selectedOption);
   const [isOpen, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const optionIds = Object.keys(props.options);
 
   useEffect(() => {
     setSelectedOption(props.selectedOption);
+  }, [props.selectedOption]);
+
+  useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   });
 
-  return (
-    <Container className={isOpen ? "open" : undefined} ref={myRef} style={props.style}>
-      <ButtonContainer
-        onClick={() => {
-          setOpen(!isOpen);
-        }}
-      >
-        {renderSelectedOption()}
-      </ButtonContainer>
-      {isOpen && (
-        <OptionsContainer $menuAlign={props.menuAlign}>{renderOptions()}</OptionsContainer>
-      )}
-    </Container>
-  );
-
-  function onSelect(id: string) {
-    setSelectedOption(id);
-    props.onSelect(id);
-    setOpen(!isOpen);
-  }
-
-  function renderOptions() {
-    const options: JSX.Element[] = [];
-
-    for (const o in props.options) {
-      const option = props.options[o];
-      if (!option) continue;
-      options.push(renderOption(option));
+  useEffect(() => {
+    if (!isOpen) {
+      return;
     }
 
-    return options;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveIndex((index) => (index + 1) % optionIds.length);
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveIndex((index) => (index - 1 + optionIds.length) % optionIds.length);
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        setActiveIndex(0);
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        setActiveIndex(optionIds.length - 1);
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const id = optionIds[activeIndex];
+        if (id) {
+          onSelect(id);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, isOpen, optionIds]);
+
+  const openMenu = useCallback(() => {
+    const currentIndex = optionIds.indexOf(selectedOption);
+    setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
+    setOpen(true);
+  }, [optionIds, selectedOption]);
+
+  const onSelect = (id: string) => {
+    setSelectedOption(id);
+    props.onSelect(id);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  function renderOptions() {
+    return optionIds.map((id, index) => renderOption(props.options[id]!, id, index));
   }
 
-  function renderOption(option: SelectButtonOption) {
+  function renderOption(option: SelectButtonOption, id: string, index: number) {
     return (
       <Option
         key={option.id}
+        role="option"
+        aria-selected={selectedOption === option.id}
         className={selectedOption === option.id ? "active" : undefined}
+        tabIndex={isOpen && activeIndex === index ? 0 : -1}
         onClick={() => onSelect(option.id)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelect(option.id);
+          }
+        }}
+        onMouseEnter={() => setActiveIndex(index)}
       >
         {option.icon && option.icon}
         {option.text && option.text}
@@ -154,14 +224,14 @@ export const SelectButton = (props: SelectButtonProps) => {
 
     if (selected) {
       return (
-        <div onClick={() => setOpen(!isOpen)}>
+        <>
           {selected.icon}
           {!selected.icon && selected.text}
-        </div>
+        </>
       );
-    } else {
-      return <></>;
     }
+
+    return null;
   }
 
   function handleClickOutside(e: MouseEvent) {
@@ -169,4 +239,35 @@ export const SelectButton = (props: SelectButtonProps) => {
       setOpen(false);
     }
   }
+
+  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      if (!isOpen) {
+        openMenu();
+      }
+    }
+  };
+
+  return (
+    <Container className={isOpen ? "open" : undefined} ref={myRef} style={props.style}>
+      <Trigger
+        ref={triggerRef}
+        role="combobox"
+        tabIndex={0}
+        aria-label={props.ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => (isOpen ? setOpen(false) : openMenu())}
+        onKeyDown={handleTriggerKeyDown}
+      >
+        {renderSelectedOption()}
+      </Trigger>
+      {isOpen ? (
+        <OptionsContainer $menuAlign={props.menuAlign} role="listbox" aria-label={props.ariaLabel}>
+          {renderOptions()}
+        </OptionsContainer>
+      ) : null}
+    </Container>
+  );
 };

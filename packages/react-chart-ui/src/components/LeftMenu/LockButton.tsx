@@ -1,46 +1,58 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { IconButton } from "ui";
 import { Lock, LockOpen } from "../../img/icons";
-import { useState, useEffect } from "react";
 import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface LockButtonProps {
   chart: NullableChartInstance;
 }
 
 export const LockButton = (props: LockButtonProps) => {
-  const [isObjectSelectionAllowed, setObjectSelectionAllowed] = useState(false);
-  const icon = isObjectSelectionAllowed ? <LockOpen /> : <Lock />;
+  const t = useChartTranslate(props.chart);
+  const [allLocked, setAllLocked] = useState(false);
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe(
-      "OBJECT_SELECTION_ALLOWED_CHANGE",
-      (data: boolean) => {
-        setObjectSelectionAllowed(data);
-      }
-    );
+    if (props.chart?.getAllDrawingsLocked) {
+      setAllLocked(props.chart.getAllDrawingsLocked());
+    }
+
+    const subscription = props.chart?.subscribe("DRAWINGS_LOCK_CHANGE", (data: { allLocked: boolean }) => {
+      setAllLocked(data.allLocked);
+    });
 
     return () => {
       if (subscription && "unsubscribe" in subscription) {
         subscription.unsubscribe();
       }
     };
-  });
+  }, [props.chart]);
 
   const onClick = () => {
     if (!props.chart) return;
 
-    if (isObjectSelectionAllowed) {
-      props.chart.setObjectSelectionAllowed(false);
-      setObjectSelectionAllowed(false);
+    if (allLocked) {
+      props.chart.unlockAllDrawings?.();
     } else {
-      props.chart.setObjectSelectionAllowed(true);
-      setObjectSelectionAllowed(true);
+      props.chart.lockAllDrawings?.();
     }
   };
 
+  const icon = allLocked ? <Lock /> : <LockOpen />;
+
   return (
-    <IconButton onClick={onClick} themeContext="toolbar">
+    <IconButton
+      onClick={onClick}
+      active={allLocked}
+      themeContext="toolbar"
+      title={
+        allLocked
+          ? t("drawings_unlock_all", "Unlock all drawings")
+          : t("drawings_lock_all", "Lock all drawings")
+      }
+      tooltipPlacement="right"
+    >
       {icon}
     </IconButton>
   );

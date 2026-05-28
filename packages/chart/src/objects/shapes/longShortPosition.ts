@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { isDrawingSnapEnabled } from "../../drawingWorkflow";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -713,6 +714,7 @@ function readEventPrice(
   e: ShapeInteractionArgs[0],
   o: LegacyShapeObject,
   renderer: ShapeInteractionArgs[2],
+  interactor: ShapeInteractionArgs[3],
   model: ShapeInteractionArgs[4],
   panel: ShapeInteractionArgs[5],
   seriesManager: ShapeInteractionArgs[6],
@@ -720,7 +722,7 @@ function readEventPrice(
   const referenceValue = LIB.getReferenceValue(o, model, seriesManager);
   const index = renderer.getPointIndex(e._offset.offsetX, model);
   const yValue = e._offset.offsetY - panel._offset;
-  const rawValue = o.sticky
+  const rawValue = isDrawingSnapEnabled(o, interactor)
     ? shape.stickToCandleValue(
         yValue,
         shape.getCurrentCandles(index, model, seriesManager),
@@ -1398,7 +1400,7 @@ function LongShortPositionObject(this: ShapeRuntime) {
     if ((getPlacementStep(o) === 1 || (getPlacementStep(o) === 0 && hasFirstBoxCommitted(o))) && panel) {
       const entryPrice = readPrice(o.anchors[ENTRY_ANCHOR].value, 0);
       const firstPrice = readPrice(o.anchors[BOX_CORNER_B].value, entryPrice);
-      const clickPrice = readEventPrice(this, e, o, renderer, model, panel, seriesManager);
+      const clickPrice = readEventPrice(this, e, o, renderer, interactor, model, panel, seriesManager);
 
       if (!isOnOppositeSideOfEntry(entryPrice, firstPrice, clickPrice)) {
         return {
@@ -1471,7 +1473,7 @@ function LongShortPositionObject(this: ShapeRuntime) {
     }
 
     if (getPlacementStep(o) === 1) {
-      o._previewLevelPrice = readEventPrice(this, e, o, renderer, model, panel, seriesManager);
+      o._previewLevelPrice = readEventPrice(this, e, o, renderer, interactor, model, panel, seriesManager);
       interactor.controller?.renderOverlay?.();
     }
   };

@@ -35,6 +35,7 @@ export interface ChartDrawingEditConfig {
   dash: number[];
   width: number;
   visible: boolean;
+  supportsColor: boolean;
   supportsFill: boolean;
   fillVisible: boolean;
   supportsText: boolean;
@@ -42,6 +43,9 @@ export interface ChartDrawingEditConfig {
   fontSize: number;
   opacity: number;
   locked: boolean;
+  supportsBackground: boolean;
+  backgroundColor: string;
+  backgroundOpacity: number;
   supportsPosition: boolean;
   direction: "LONG" | "SHORT";
   entryPrice: number;
@@ -72,6 +76,8 @@ export interface ChartDrawingEditPatch {
   fontSize?: number;
   opacity?: number;
   locked?: boolean;
+  backgroundColor?: string;
+  backgroundOpacity?: number;
   direction?: "LONG" | "SHORT";
   entryPrice?: number;
   stopPrice?: number;
@@ -91,11 +97,21 @@ const FILL_SUPPORTED_TYPES = new Set([
   "box",
   "triangle",
   "fibonLines",
+  "fibonExtension",
+  "fibonChannel",
+  "fibonArcs",
+  "fibonCircles",
+  "fixedRangeVolumeProfile",
+  "regressionChannel",
   "textAnnotation",
+  "brush",
 ]);
 
-const TEXT_SUPPORTED_TYPES = new Set(["textAnnotation"]);
+const BACKGROUND_SETTINGS_TYPES = new Set(["brush"]);
+
+const TEXT_SUPPORTED_TYPES = new Set(["textAnnotation", "timeRange", "hRange", "vRange"]);
 const POSITION_SUPPORTED_TYPES = new Set(["longShortPosition"]);
+const COLOR_UNSUPPORTED_TYPES = new Set(["gannFan", "gannGrid", "gannBox"]);
 
 function readPrice(value: unknown, fallback = 0): number {
   const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
@@ -149,6 +165,15 @@ function readFontSize(object: ChartRuntimeObject): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 12;
 }
 
+function readBackgroundOpacity(object: ChartRuntimeObject): number {
+  const raw = (object as { backgroundOpacity?: unknown }).backgroundOpacity;
+  const parsed = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
+  if (!Number.isFinite(parsed)) {
+    return 0.25;
+  }
+  return Math.min(1, Math.max(0, parsed));
+}
+
 export function getDrawingEditConfig(
   chart: DrawingEditHost,
   objectId: string | number,
@@ -160,6 +185,8 @@ export function getDrawingEditConfig(
 
   const type = String(object.type);
   const supportsFill = FILL_SUPPORTED_TYPES.has(type);
+  const supportsBackground = BACKGROUND_SETTINGS_TYPES.has(type);
+  const supportsColor = !COLOR_UNSUPPORTED_TYPES.has(type);
   const supportsText = TEXT_SUPPORTED_TYPES.has(type);
   const supportsPosition = POSITION_SUPPORTED_TYPES.has(type);
   if (supportsPosition) {
@@ -189,6 +216,7 @@ export function getDrawingEditConfig(
     dash: readDash(object),
     width: typeof object.width === "number" && object.width > 0 ? object.width : 1,
     visible: object.hidden !== true,
+    supportsColor,
     supportsFill,
     fillVisible: supportsFill ? object.fillBg === true : false,
     supportsText,
@@ -196,6 +224,11 @@ export function getDrawingEditConfig(
     fontSize: readFontSize(object),
     opacity: resolveShapeOpacity(object),
     locked: isShapeLocked(object),
+    supportsBackground,
+    backgroundColor: resolveObjectColor(
+      (object as { backgroundColor?: unknown }).backgroundColor ?? object.color,
+    ),
+    backgroundOpacity: readBackgroundOpacity(object),
     supportsPosition,
     direction: object.direction === "SHORT" ? "SHORT" : "LONG",
     entryPrice,
@@ -229,7 +262,7 @@ export function applyDrawingEditSettings(
 
   const type = String(object.type || "");
 
-  if (typeof patch.color === "string") {
+  if (typeof patch.color === "string" && !COLOR_UNSUPPORTED_TYPES.has(type)) {
     object.color = patch.color;
   }
 
@@ -251,6 +284,9 @@ export function applyDrawingEditSettings(
 
   if (typeof patch.text === "string" && TEXT_SUPPORTED_TYPES.has(type)) {
     object.text = patch.text;
+    if (type === "timeRange") {
+      object._textManual = true;
+    }
   }
 
   if (patch.fontSize !== undefined && TEXT_SUPPORTED_TYPES.has(type)) {
@@ -263,6 +299,17 @@ export function applyDrawingEditSettings(
 
   if (typeof patch.opacity === "number" && Number.isFinite(patch.opacity)) {
     object.opacity = Math.min(1, Math.max(0, patch.opacity));
+  }
+
+  if (typeof patch.backgroundColor === "string" && BACKGROUND_SETTINGS_TYPES.has(type)) {
+    (object as { backgroundColor?: string }).backgroundColor = patch.backgroundColor;
+  }
+
+  if (typeof patch.backgroundOpacity === "number" && Number.isFinite(patch.backgroundOpacity)) {
+    (object as { backgroundOpacity?: number }).backgroundOpacity = Math.min(
+      1,
+      Math.max(0, patch.backgroundOpacity),
+    );
   }
 
   if (typeof patch.locked === "boolean") {

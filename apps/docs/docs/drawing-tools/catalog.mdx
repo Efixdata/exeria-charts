@@ -13,19 +13,35 @@ This page tracks the drawing-tool types currently visible in the React UI regist
 | Runtime type | UI label | Anchors | Typical use | Creation path |
 | --- | --- | ---: | --- | --- |
 | `trendLine` | Trend line | 2 | directional trend and support/resistance projection | `drawTrendLine()` or `drawTool()` |
+| `trendRay` | Trend ray | 2 | diagonal ray from origin through second point | `drawTool()` |
 | `parallelChannel` | Parallel Channel | 3 | channel projection | `drawTool()` |
+| `pitchfork` | Pitchfork | 3 | Andrews median-line fork from pivot + baseline | `drawTool()` |
+| `regressionChannel` | Regression channel | 2 | linear regression channel with ±σ bands over a time range | `drawTool()` |
+| `gannFan` | Gann fan | 2 | Gann angle rays from origin (1x1 set by second anchor) | `drawTool()` |
+| `gannGrid` | Gann grid | 2 | Gann square grid (0.25 / 0.382 / 0.5 / 0.618 / 0.75) | `drawTool()` |
+| `gannBox` | Gann box | 2 | Gann square grid plus internal fan diagonals | `drawTool()` |
 | `hLine` | Horizontal line | 1 | price levels | `drawTool()` |
+| `hRay` | Horizontal ray | 1 | horizontal ray to the right from anchor | `drawTool()` |
 | `vLine` | Vertical line | 1 | time markers | `drawTool()` |
+| `vRay` | Vertical ray | 1 | vertical ray downward from anchor | `drawTool()` |
+| `crossLine` | Cross line | 1 | horizontal + vertical lines through one point | `drawTool()` |
 | `mLine` | Multi-line | 3 | custom multi-point line construction | `drawTool()` |
-| `fibonLines` | Fibonacci Levels | 2 | retracement and extension levels | `drawTool()` |
+| `fibonLines` | Fibonacci Retracement | 2 | retracement levels between two swing points | `drawTool()` |
+| `fibonExtension` | Fibonacci Extension | 2 | extension levels beyond 100% of the swing | `drawTool()` |
+| `fibonTimeZone` | Fibonacci Time Zone | 2 | vertical Fibonacci time projections from two anchors | `drawTool()` |
+| `fibonChannel` | Fibonacci channel | 3 | parallel Fibonacci levels between a trend line and channel width | `drawTool()` |
+| `fibonArcs` | Fibonacci arcs | 2 | elliptical Fibonacci arcs from center through radius anchor | `drawTool()` |
+| `fibonCircles` | Fibonacci circles | 2 | concentric Fibonacci circles from center through radius anchor | `drawTool()` |
 | `abcd` | Abcd tool | 3 | measured-move projection | `drawTool()` |
 | `arrow` | Arrow | 2 | directional callouts | `drawTool()` |
+| `brush` | Brush | dynamic | freehand stroke (click + drag) | `drawTool()` |
 | `ellipse` | Ellipse | 2 | highlight area | `drawTool()` |
 | `triangle` | Triangle | 3 | geometric area highlight | `drawTool()` |
 | `box` | Rectangle | 2 | range box or zone highlight | `drawTool()` |
 | `cycle` | Cycle | 2 | repeating interval visualization | `drawTool()` |
 | `hRange` | Horizontal Range | 2 | price-span measurement | `drawTool()` |
 | `vRange` | Vertical Range | 2 | time-span measurement | `drawTool()` |
+| `timeRange` | Time range | 2 | session or review window on the time axis | `drawTool()` or `drawTimeRange()` |
 | `priceTag` | Price tag | 1 | pinned price label | `drawTool()` |
 | `textAnnotation` | Text | 2 | freeform text label | `drawTool()` |
 | `longShortPosition` | Long / Short position | 3 | trade plan: drag **corner 1 → corner 2** (rectangle), then **Entry** (like Box + ABCD) | `drawTool()` or `drawLongShortPosition()` |
@@ -34,12 +50,31 @@ This page tracks the drawing-tool types currently visible in the React UI regist
 
 | Runtime type | Current surface | Typical use | Creation path |
 | --- | --- | --- | --- |
-| `timeRange` | helper method | session or review window | `drawTimeRange()` |
 | `timeBet` | helper method | risk-reward or outcome window | `drawTimeBet()` |
+## Workflow controls
+
+The left toolbar exposes two chart-wide drawing controls:
+
+| Control | Location | Behavior |
+| --- | --- | --- |
+| **Magnet** | left toolbar (above drawing tools) | When enabled, new and edited drawing anchors snap to the nearest OHLC value on the candle under the cursor. Per-tool `sticky: true` in `DrawToolConfig` still forces snap even when the global magnet is off. |
+| **Lock all / Unlock all** | left toolbar and **Chart settings → Layers → Drawings** | Sets `locked: true` on every drawing shape on all panels. Locked drawings stay visible and selectable, but anchors cannot be dragged until unlocked. Individual drawings can also be locked from the drawing edit dialog. |
+
+Programmatic API:
+
+```js
+chart.setDrawingMagnetEnabled(true);
+chart.getDrawingMagnetEnabled();
+chart.lockAllDrawings();
+chart.unlockAllDrawings();
+chart.getAllDrawingsLocked();
+```
+
+Events: `DRAWING_MAGNET_CHANGE`, `DRAWINGS_LOCK_CHANGE`.
+
 ## Notes
 
 - The anchor counts above come from the current React UI tool definitions.
 - Tool types such as `fibonLines`, `abcd`, `box`, `cycle`, and `textAnnotation` accept extra runtime fields beyond the shared `DrawToolConfig` shape.
-- The visible React UI menu does not currently expose every runtime tool type.
 
 Next step: use the grouped pages for practical examples rather than treating this page as the complete behavioral reference.

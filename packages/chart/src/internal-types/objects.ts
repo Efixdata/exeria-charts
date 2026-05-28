@@ -63,15 +63,31 @@ export type KnownRendererObjectType =
   | "BUY TAKE_PROFIT_LIMIT"
   | "MovePaneArrows"
   | "trendLine"
+  | "trendRay"
+  | "hRay"
+  | "vRay"
+  | "crossLine"
   | "arrow"
+  | "brush"
   | "parallelChannel"
+  | "pitchfork"
+  | "regressionChannel"
+  | "gannFan"
+  | "gannGrid"
+  | "gannBox"
   | "fibonLines"
+  | "fibonExtension"
+  | "fibonTimeZone"
+  | "fibonChannel"
+  | "fibonArcs"
+  | "fibonCircles"
   | "hLine"
   | "vLine"
   | "mLine"
   | "abcd"
   | "ellipse"
   | "box"
+  | "fixedRangeVolumeProfile"
   | "hRange"
   | "vRange"
   | "timeRange"
@@ -243,15 +259,31 @@ export interface RendererObjectsRegistry extends Record<string, CoreRendererObje
   "BUY TAKE_PROFIT_LIMIT": CoreRendererObject;
   MovePaneArrows: CoreRendererObject;
   trendLine: CoreRendererObject;
+  trendRay: CoreRendererObject;
+  hRay: CoreRendererObject;
+  vRay: CoreRendererObject;
+  crossLine: CoreRendererObject;
   arrow: CoreRendererObject;
+  brush: CoreRendererObject;
   parallelChannel: CoreRendererObject;
+  pitchfork: CoreRendererObject;
+  regressionChannel: CoreRendererObject;
+  gannFan: CoreRendererObject;
+  gannGrid: CoreRendererObject;
+  gannBox: CoreRendererObject;
   fibonLines: CoreRendererObject;
+  fibonExtension: CoreRendererObject;
+  fibonTimeZone: CoreRendererObject;
+  fibonChannel: CoreRendererObject;
+  fibonArcs: CoreRendererObject;
+  fibonCircles: CoreRendererObject;
   hLine: CoreRendererObject;
   vLine: CoreRendererObject;
   mLine: CoreRendererObject;
   abcd: CoreRendererObject;
   ellipse: CoreRendererObject;
   box: CoreRendererObject;
+  fixedRangeVolumeProfile: CoreRendererObject;
   hRange: CoreRendererObject;
   vRange: CoreRendererObject;
   timeRange: CoreRendererObject;

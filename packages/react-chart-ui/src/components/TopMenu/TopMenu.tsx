@@ -11,64 +11,35 @@ import { IntervalSwitch } from "./IntervalSwitch";
 import { ShareChartButton } from "./ShareChartButton";
 import { IndicatorsButton } from "./Indicators/IndicatorsButton";
 import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
+import toolbarStyles from "../toolbar/toolbarLayout.module.css";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface TopMenuProps {
   chart: NullableChartInstance;
   style?: React.CSSProperties | undefined;
   mainContainer: React.RefObject<HTMLElement>;
   onIntervalChange?: ((symbol: string) => void) | undefined;
-  className?: string | undefined;
+  compact?: boolean | undefined;
   shareConfig?: ShareConfig | undefined;
 }
-
-const RightSection = styled.div`
-  display: flex;
-  flex-direction: row;
-  margin-left: auto;
-  gap: 16px;
-  align-items: center;
-  @media (max-width: 600px) {
-    gap: 4px;
-    margin-left: auto !important;
-  }
-`;
 
 const Container = styled.div`
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
-  padding: 8px 0 8px 8px;
-  grid-gap: 12px;
+  align-items: center;
+  padding: var(--ui-space-2, 8px);
+  gap: var(--ui-toolbar-group-gap, 12px);
   background: ${(props) => props.theme.toolbar.background};
-
-  border-bottom: ${(props) => props.theme.border.inner || "none"};
-  border-left: ${(props) => props.theme.border.outter || "none"};
-  border-right: ${(props) => props.theme.border.outter || "none"};
-  border-top: ${(props) => props.theme.border.outter || "none"};
-  border-radius: ${(props) => props.theme.border.radius + "px" || 0};
-
-  &.right {
-    @media (min-width: 600px) {
-      width: fit-content;
-      margin-left: auto;
-    }
-  }
-`;
-const LeftSection = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: row;
-  z-index: 2;
-`;
-
-const Icons = styled.div`
-  display: flex;
-  gap: 2px;
+  width: ${(props) => (props.$compact ? "fit-content" : "100%")};
+  max-width: 100%;
 `;
 
 export const TopMenu = (props: TopMenuProps) => {
   // @ts-ignore - styled-components ThemeContext type mismatch with React.useContext
   const tc = useContext(ThemeContext);
+  const t = useChartTranslate(props.chart);
+  const compact = props.compact ?? true;
 
   const renderShareChartButton = () => {
     if (tc?.toolbar?.showShareChartButton) {
@@ -87,30 +58,39 @@ export const TopMenu = (props: TopMenuProps) => {
   };
 
   return (
-    <Container style={props.style} className={props.className}>
-      <LeftSection
-        style={{
-          paddingRight: tc?.toolbar?.showCurrency === false ? "8px" : "0",
-        }}
-      >
-        <MainChartTypeSelect chart={props.chart} />
-        <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange} />
-        <IndicatorsButton chart={props.chart} />
+    <Container
+      $compact={compact}
+      style={props.style}
+      role="toolbar"
+      aria-label={t("toolbar_chart_toolbar", "Chart toolbar")}
+    >
+      <div className={toolbarStyles.toolbarRow} style={{ flex: compact ? "0 1 auto" : "1 1 auto" }}>
+        <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Chart type and interval">
+          <MainChartTypeSelect chart={props.chart} />
+          <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange} />
+        </div>
 
-        <RightSection
-          style={{
-            marginLeft: tc?.toolbar?.topMenuPosition === "right" ? "8px" : "0",
-          }}
-        >
-          <AutoScaleSwitch chart={props.chart} />
-          <Icons>
+        <div className={toolbarStyles.toolbarDivider} aria-hidden="true" />
+
+        <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Indicators">
+          <IndicatorsButton chart={props.chart} />
+        </div>
+
+        <div className={toolbarStyles.toolbarGroupActions}>
+          <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Scale">
+            <AutoScaleSwitch chart={props.chart} />
+          </div>
+
+          <div className={toolbarStyles.toolbarDivider} aria-hidden="true" />
+
+          <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Chart actions">
             {renderChartScaleSwitch()}
             <ChartSettingsButton chart={props.chart} />
-            <FullScreenButton mainContainer={props.mainContainer} />
+            <FullScreenButton chart={props.chart} mainContainer={props.mainContainer} />
             {renderShareChartButton()}
-          </Icons>
-        </RightSection>
-      </LeftSection>
+          </div>
+        </div>
+      </div>
       {renderShowCurrency()}
     </Container>
   );

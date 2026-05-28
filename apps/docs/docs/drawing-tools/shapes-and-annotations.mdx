@@ -8,14 +8,37 @@ import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Shapes and annotations
 
-This group covers the general-purpose shape types exposed by the runtime: `arrow`, `ellipse`, `triangle`, `box`, `cycle`, and `textAnnotation`.
+This group covers the general-purpose shape types exposed by the runtime: `brush`, `arrow`, `ellipse`, `triangle`, `box`, `cycle`, and `textAnnotation`.
 
 ## Live examples
 
 <DrawingToolShowcase
-  visiblePresets={["box", "arrow", "ellipse", "triangle", "cycle", "textAnnotation"]}
-  initialPreset="box"
+  visiblePresets={["brush", "box", "arrow", "ellipse", "triangle", "cycle", "textAnnotation"]}
+  initialPreset="brush"
 />
+
+## Brush
+
+`brush` works like TradingView's freehand brush: **click and drag** on the chart to draw, then **release** to finish the stroke. Points are sampled into chart anchors while you drag. Default line width is **2** with round caps for a smooth handwritten look.
+
+Enable **Background fill** in the drawing settings to close the path (first anchor → last anchor) and shade the enclosed area. Background color and opacity are configured separately from the stroke.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "brush",
+  color: "#f0b429",
+  width: 2,
+  fillBg: true,
+  backgroundColor: "#f0b429",
+  backgroundOpacity: 0.25,
+  anchors: [
+    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
+    { stamp: candles[14].stamp, offset: 0, value: candles[14].c, _index: 0 },
+    { stamp: candles[16].stamp, offset: 0, value: candles[16].h, _index: 0 },
+    // ... more sampled points from the stroke
+  ],
+});
+```
 
 ## Rectangle and filled zones
 

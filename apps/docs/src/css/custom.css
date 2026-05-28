@@ -14,6 +14,33 @@
   --doc-radius-sm: 8px;
   --doc-radius-lg: 24px;
 
+  /* Chart embed + showcase (docs ↔ product bridge) */
+  --doc-chart-surface: #131722;
+  --doc-chart-embed-radius: var(--doc-radius-lg);
+  --doc-chart-embed-padding: 8px;
+  --doc-chart-embed-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --doc-font-chip: 0.8rem;
+  --doc-code-bg: #f5f5f7;
+  --doc-code-text: #1d1d1f;
+  --doc-accent-muted-bg: color-mix(in srgb, var(--doc-accent) 12%, transparent);
+  --doc-accent-muted-border: color-mix(in srgb, var(--doc-accent) 22%, transparent);
+  --doc-warning-muted-bg: rgba(240, 180, 41, 0.12);
+  --doc-warning-muted-border: rgba(240, 180, 41, 0.22);
+  --doc-danger-border: rgba(209, 46, 89, 0.28);
+  --doc-danger-bg: rgba(209, 46, 89, 0.08);
+  --doc-spotlight-gradient: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--doc-surface) 92%, #070a12) 0%,
+    color-mix(in srgb, var(--doc-surface) 78%, #121928) 55%,
+    color-mix(in srgb, var(--doc-surface) 88%, #09101d) 100%
+  );
+  --doc-spotlight-title: var(--doc-text);
+  --doc-spotlight-text: var(--doc-text-secondary);
+  --doc-inverse-surface: var(--doc-text);
+  --doc-inverse-text: var(--doc-bg);
+  --doc-elevated-overlay: rgba(0, 0, 0, 0.04);
+  --doc-elevated-border: color-mix(in srgb, var(--doc-text) 12%, var(--doc-border));
+
   --ifm-color-primary: var(--doc-accent);
   --ifm-color-primary-dark: #005bb5;
   --ifm-color-primary-darker: #0056ad;
@@ -47,10 +74,28 @@ html[data-theme="dark"] {
   --doc-surface: #0a0a0a;
   --doc-surface-elevated: #111111;
   --doc-text: #ffffff;
-  --doc-text-secondary: #888888;
+  --doc-text-secondary: #a3a3a3;
   --doc-border: #222222;
   --doc-accent: #0066cc;
   --doc-accent-hover: #005bb5;
+
+  --doc-chart-surface: #050505;
+  --doc-code-bg: #050505;
+  --doc-code-text: #d7f0ff;
+  --doc-accent-muted-bg: rgba(92, 200, 255, 0.12);
+  --doc-accent-muted-border: rgba(92, 200, 255, 0.2);
+  --doc-spotlight-gradient: linear-gradient(
+    145deg,
+    rgba(7, 10, 18, 0.98) 0%,
+    rgba(18, 25, 40, 0.92) 55%,
+    rgba(9, 16, 29, 0.96) 100%
+  );
+  --doc-spotlight-title: #f7fbff;
+  --doc-spotlight-text: #c5d7ed;
+  --doc-inverse-surface: #f7fbff;
+  --doc-inverse-text: #09111d;
+  --doc-elevated-overlay: rgba(255, 255, 255, 0.05);
+  --doc-elevated-border: rgba(255, 255, 255, 0.08);
 
   --ifm-color-primary: var(--doc-accent);
   --ifm-color-primary-dark: #005bb5;
@@ -307,12 +352,12 @@ div[class^="codeBlockContainer"] {
 
 html[data-theme="light"] .theme-code-block,
 html[data-theme="light"] div[class^="codeBlockContainer"] {
-  background: #ffffff;
+  background: var(--doc-code-bg);
 }
 
 html[data-theme="dark"] .theme-code-block,
 html[data-theme="dark"] div[class^="codeBlockContainer"] {
-  background: #050505;
+  background: var(--doc-code-bg);
 }
 
 .pagination-nav__link,

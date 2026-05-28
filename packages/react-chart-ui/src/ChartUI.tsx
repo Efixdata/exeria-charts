@@ -8,6 +8,10 @@ import { Theme } from "ui";
 import type { ChartUITheme, NullableChartInstance, ShareConfig } from "./chartTypes";
 import { ChartUiSettingsContext } from "./contexts/ChartUiSettingsContext";
 import { mergeChartUiTheme } from "./utils/mergeChartUiTheme";
+import { DEFAULT_CHART_UI_THEME } from "./components/TopMenu/ChartSettings/chartSettingsPresets";
+import { getUILayoutCssVars } from "ui/designTokens";
+import { UI_FONT_FAMILY } from "ui/theme";
+import "./fonts.css";
 import { DrawingEditListener } from "./components/TopMenu/DrawingEdit/DrawingEditListener";
 
 interface ChartUIProps {
@@ -30,8 +34,8 @@ const Container = styled.div`
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  font-family: Mulish, Roboto, sans-serif;
-  font-size: 13px;
+  font-family: ${UI_FONT_FAMILY};
+  font-size: var(--ui-font-body, 13px);
   user-select: none;
 `;
 
@@ -39,6 +43,16 @@ const ToolbarRow = styled.div`
   position: relative;
   z-index: 5;
   flex-shrink: 0;
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  padding-right: 8px;
+  box-sizing: border-box;
+
+  &.fullWidth {
+    justify-content: stretch;
+    padding-right: 0;
+  }
 `;
 
 const WrapperOuter = styled.div`
@@ -48,19 +62,31 @@ const WrapperOuter = styled.div`
   overflow: hidden;
 `;
 
-const WrapperInner = styled.div<{ height: string }>`
+const WrapperInner = styled.div`
   display: flex;
-  flexdirection: row;
-  flexgrow: 1;
-  height: ${(props) => props.height};
+  flex-direction: row;
+  align-items: stretch;
   width: 100%;
-  overflow-y: auto;
+  height: 100%;
+  min-height: 0;
+`;
 
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
-  &::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
-  }
+const LeftMenuColumn = styled.div`
+  position: relative;
+  z-index: 20;
+  flex: 0 0 var(--ui-left-menu-width, 44px);
+  width: var(--ui-left-menu-width, 44px);
+  overflow: visible;
+  min-height: 0;
+  height: 100%;
+`;
+
+const ChartArea = styled.div`
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 `;
 
 interface ChartUIState {
@@ -69,11 +95,13 @@ interface ChartUIState {
 
 class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
   containerRef: RefObject<HTMLDivElement>;
+  wrapperOuterRef: RefObject<HTMLDivElement>;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
 
   constructor(props: ChartUIProps) {
     super(props);
     this.containerRef = React.createRef();
+    this.wrapperOuterRef = React.createRef();
     this.containerOffset = {};
     this.state = {
       uiThemeOverride: null,
@@ -106,18 +134,17 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
   }
 
   override render() {
-    const resolvedTheme = mergeChartUiTheme(this.props.theme, this.state.uiThemeOverride);
+    const resolvedTheme = mergeChartUiTheme(
+      DEFAULT_CHART_UI_THEME,
+      mergeChartUiTheme(this.props.theme, this.state.uiThemeOverride),
+    );
     const gap = resolvedTheme?.gap || 0;
     const edgeInset = resolvedTheme?.edgeInset || 0;
-    const borders =
-      (resolvedTheme?.border?.inner ? 1 : 0) + (resolvedTheme?.border?.outter ? 1 : 0);
-    const leftMenuWidth = (this.props.leftMenuWidth || 42) + borders;
-    const topMenuHeight = (this.props.topMenuHeight || 42) + borders;
-    let topMenuStyles: any = {
-      height: topMenuHeight,
+    const topMenuPosition = resolvedTheme?.toolbar?.topMenuPosition ?? "right";
+    const surroundBackground = resolvedTheme?.surroundBackground;
+    const topMenuStyles: React.CSSProperties = {
       marginBottom: gap,
     };
-    const surroundBackground = resolvedTheme?.surroundBackground;
 
     return (
       <ChartUiSettingsContext.Provider value={{ applyUiTheme: this.applyUiTheme }}>
@@ -128,37 +155,30 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
             style={{
               ...(edgeInset > 0 ? { padding: edgeInset } : undefined),
               ...(surroundBackground ? { backgroundColor: surroundBackground } : undefined),
+              ...getUILayoutCssVars(),
             }}
           >
-          <DrawingEditListener chart={this.props.chart} />
-          <ToolbarRow>
-            <TopMenu
-              chart={this.props.chart}
-              className={resolvedTheme?.toolbar?.topMenuPosition === "right" ? "right" : ""}
-              style={topMenuStyles}
-              mainContainer={this.containerRef}
-              onIntervalChange={this.props.onIntervalChange}
-              shareConfig={this.props.shareConfig}
-            />
-          </ToolbarRow>
-          <WrapperOuter className="wrapperOuter">
-            <ContainerOffsetContext.Provider value={this.containerOffset}>
-              <WrapperInner className="wrapperInner" height="100%">
-                <LeftMenu
-                  chart={this.props.chart}
-                  style={{ width: leftMenuWidth, marginRight: gap }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: `${topMenuHeight + gap + "px"} 0 0 ${leftMenuWidth + gap + "px"}`,
-                  }}
-                >
-                  {this.props.children}
-                </div>
-              </WrapperInner>
-            </ContainerOffsetContext.Provider>
-          </WrapperOuter>
+            <DrawingEditListener chart={this.props.chart} />
+            <ToolbarRow className={topMenuPosition === "right" ? "" : "fullWidth"}>
+              <TopMenu
+                chart={this.props.chart}
+                compact={topMenuPosition === "right"}
+                style={topMenuStyles}
+                mainContainer={this.containerRef}
+                onIntervalChange={this.props.onIntervalChange}
+                shareConfig={this.props.shareConfig}
+              />
+            </ToolbarRow>
+            <WrapperOuter ref={this.wrapperOuterRef} className="wrapperOuter">
+              <ContainerOffsetContext.Provider value={this.containerOffset}>
+                <WrapperInner className="wrapperInner">
+                  <LeftMenuColumn style={{ marginRight: gap }}>
+                    <LeftMenu chart={this.props.chart} />
+                  </LeftMenuColumn>
+                  <ChartArea data-chart-area>{this.props.children}</ChartArea>
+                </WrapperInner>
+              </ContainerOffsetContext.Provider>
+            </WrapperOuter>
           </Container>
         </Theme>
       </ChartUiSettingsContext.Provider>
@@ -166,7 +186,7 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
   }
 
   setBoundingClientRect = () => {
-    const boundingClientRect = this.containerRef.current?.getBoundingClientRect();
+    const boundingClientRect = this.wrapperOuterRef.current?.getBoundingClientRect();
 
     if (boundingClientRect) {
       this.containerOffset.offsetBottom = boundingClientRect.bottom;

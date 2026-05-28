@@ -9,20 +9,24 @@ import { Modal } from "ui";
 import { usePortalNode } from "../../../hooks/usePortalNode";
 import type { NullableChartInstance } from "../../../chartTypes";
 import { ChartSettingsDialog } from "./ChartSettingsDialog";
+import { useChartTranslate } from "../../../hooks/useChartTranslate";
 
 interface ChartSettingsButtonProps {
   chart: NullableChartInstance;
 }
 
 export const ChartSettingsButton = (props: ChartSettingsButtonProps) => {
+  const t = useChartTranslate(props.chart);
   const [isModalVisible, setModalVisible] = useState(false);
+  const label = t("toolbar_chart_settings", "Chart settings");
 
   return (
     <>
       <IconButton
         themeContext="toolbar"
         onClick={() => setModalVisible(true)}
-        style={{ marginLeft: 0 }}
+        title={label}
+        ariaLabel={label}
       >
         <Settings />
       </IconButton>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
 import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "../chartExampleData";
+import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import {
   type ChartColorKey,
   type UiColorKey,
@@ -12,7 +13,6 @@ import {
   previewCandles,
   previewInstrument,
 } from "./core";
-import styles from "./ChartThemePreview.module.css";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
 
 export type ChartSceneAction = (chart: ChartInstance) => void | Promise<void>;
@@ -22,6 +22,7 @@ type ChartThemePreviewProps = {
   uiColorsByVariant: VariantPalette<UiColorKey>;
   themeVariant: ThemeVariant;
   sceneKey: string;
+  chartUiLayoutKey?: string;
   onChartReady?: ChartSceneAction;
   minHeight?: number;
   className?: string;
@@ -32,6 +33,7 @@ export default function ChartThemePreview({
   uiColorsByVariant,
   themeVariant,
   sceneKey,
+  chartUiLayoutKey,
   onChartReady,
   minHeight = 520,
   className,
@@ -40,16 +42,17 @@ export default function ChartThemePreview({
   const onChartReadyRef = useRef(onChartReady);
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [chartUiLoading, setChartUiLoading] = useState(true);
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<any> | null>(null);
 
   const chartColors = chartColorsByVariant[themeVariant];
   const runtimeTheme = useMemo(() => buildChartTheme(chartColorsByVariant), [chartColorsByVariant]);
   const uiThemes = useMemo(
     () => ({
-      dark: buildUiTheme(uiColorsByVariant.dark, "dark"),
-      light: buildUiTheme(uiColorsByVariant.light, "light"),
+      dark: buildUiTheme(uiColorsByVariant.dark, "dark", chartColorsByVariant.dark.accent),
+      light: buildUiTheme(uiColorsByVariant.light, "light", chartColorsByVariant.light.accent),
     }),
-    [uiColorsByVariant],
+    [chartColorsByVariant, uiColorsByVariant],
   );
   const activeUiTheme = uiThemes[themeVariant];
   const previewThemeKey = useMemo(
@@ -68,12 +71,14 @@ export default function ChartThemePreview({
       .then((ChartUI) => {
         if (!disposed) {
           setChartUIComponent(() => ChartUI as ComponentType<any>);
+          setChartUiLoading(false);
         }
       })
       .catch((error: unknown) => {
         console.error("Failed to load ChartUI", error);
         if (!disposed) {
           setPreviewError("Failed to load the React UI preview component.");
+          setChartUiLoading(false);
         }
       });
 
@@ -144,64 +149,26 @@ export default function ChartThemePreview({
   }, [previewThemeKey, ChartUIComponent]);
 
   const ChartUIPreview = ChartUIComponent;
+  const isChartLoading = chartUiLoading || (!!ChartUIPreview && !chart && !previewError);
 
   return (
-    <div
-      className={[styles.shell, className].filter(Boolean).join(" ")}
-      style={{
-        minHeight,
-        height: minHeight,
-        overflow: "hidden",
-        borderRadius: "var(--doc-radius-lg)",
-        border: "1px solid var(--doc-border)",
-        background: chartColors.background,
-        position: "relative",
-      }}
+    <DocChartEmbed
+      {...(className ? { className } : {})}
+      minHeight={minHeight}
+      height={minHeight}
+      background={chartColors.background}
+      padded
+      loading={isChartLoading}
+      error={previewError}
+      loadingLabel="Loading chart preview…"
     >
-      {previewError ? (
-        <div
-          style={{
-            position: "absolute",
-            inset: 16,
-            zIndex: 2,
-            padding: "12px 14px",
-            borderRadius: 12,
-            border: "1px solid rgba(209, 46, 89, 0.28)",
-            background: "rgba(209, 46, 89, 0.08)",
-            color: "var(--doc-text)",
-            fontSize: 14,
-          }}
-        >
-          {previewError}
-        </div>
-      ) : null}
-
       {ChartUIPreview ? (
-        <ChartUIPreview chart={chart} theme={activeUiTheme}>
-          <div
-            ref={containerRef}
-            style={{
-              width: "100%",
-              height: "100%",
-              minHeight: 0,
-              position: "relative",
-            }}
-          />
+        <ChartUIPreview key={chartUiLayoutKey ?? themeVariant} chart={chart} theme={activeUiTheme}>
+          <div ref={containerRef} className={docChartEmbedStyles.canvas} />
         </ChartUIPreview>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            placeItems: "center",
-            width: "100%",
-            height: "100%",
-            color: "var(--doc-text-secondary)",
-            fontSize: 14,
-          }}
-        >
-          Loading chart…
-        </div>
+        <div ref={containerRef} className={docChartEmbedStyles.canvas} />
       )}
-    </div>
+    </DocChartEmbed>
   );
 }

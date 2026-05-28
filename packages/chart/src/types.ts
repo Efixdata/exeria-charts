@@ -57,6 +57,8 @@ export type {
   ChartDrawingSettingsItem,
   ChartGridLineStyle,
   ChartGridMode,
+  ChartLineFillMode,
+  ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
   ChartSettingsTemplate,
   ChartStrategySettingsItem,
@@ -245,7 +247,10 @@ export interface ChartEventPayloads {
   INDICATOR_EDIT_REQUEST: { scriptId: string | number };
   DRAWING_EDIT_REQUEST: { objectId: string | number };
   OBJECT_SELECTION_ALLOWED_CHANGE: boolean;
+  DRAWING_MAGNET_CHANGE: { enabled: boolean };
+  DRAWINGS_LOCK_CHANGE: { allLocked: boolean };
   VALUE_AXIS_WIDTH_CHANGE: number;
+  LOCALE_CHANGE: { locale: string };
 }
 
 export interface ChartOptions {
@@ -255,6 +260,8 @@ export interface ChartOptions {
   model?: Record<string, unknown>;
   theme?: ChartTheme;
   themeVariant?: string;
+  locale?: string;
+  messages?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -281,6 +288,7 @@ export interface ChartInstance {
   getCurrency(): string | undefined;
   getInterval(): Interval | undefined;
   getScripts(): Record<string, ScriptDefinition>;
+  getChartPanels(): Array<{ id: string; label: string; main?: boolean }>;
   getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null;
   addScript(scriptKey: string, proto?: ScriptDefinition): void;
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
@@ -292,6 +300,10 @@ export interface ChartInstance {
   setChartIndicatorVisibility(scriptId: string | number, visible: boolean): void;
   setChartIndicatorPriceTagVisibility(scriptId: string | number, visible: boolean): void;
   removeChartIndicator(scriptId: string | number): void;
+  getChartFunctionSettings(): import("./chartSettings").ChartFunctionSettingsItem[];
+  setChartFunctionVisibility(scriptId: string | number, visible: boolean): void;
+  setChartFunctionPriceTagVisibility(scriptId: string | number, visible: boolean): void;
+  removeChartFunction(scriptId: string | number): void;
   getChartStrategySettings(): import("./chartSettings").ChartStrategySettingsItem[];
   setChartStrategyVisibility(scriptId: string | number, visible: boolean): void;
   removeChartStrategy(scriptId: string | number): void;
@@ -309,6 +321,10 @@ export interface ChartInstance {
   getInteractor(): ChartInteractor;
   onDownload(watermark?: string, watermarkWidth?: number, watermarkHeight?: number): void;
   translate(text: string): string;
+  getLocale(): string;
+  setLocale(locale: string, messageOverrides?: Record<string, unknown>): void;
+  getSupportedLocales(): Array<{ id: string; label: string }>;
+  getLocaleMessages(): import("./locale/messages").ChartLocaleMessages;
   subscribe<TTopic extends keyof ChartEventPayloads>(
     topic: TTopic,
     callback: (data: ChartEventPayloads[TTopic]) => void
@@ -316,5 +332,10 @@ export interface ChartInstance {
   subscribe(topic: string, callback: (data: unknown) => void): ChartSubscription | void;
   setCursor(mode: string): void;
   setObjectSelectionAllowed(isAllowed: boolean): void;
+  getDrawingMagnetEnabled(): boolean;
+  setDrawingMagnetEnabled(enabled: boolean): void;
+  getAllDrawingsLocked(): boolean;
+  lockAllDrawings(): void;
+  unlockAllDrawings(): void;
   destroy(): void;
 }

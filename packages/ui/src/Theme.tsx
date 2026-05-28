@@ -70,70 +70,74 @@ interface ThemeProps {
   theme?: ThemeInterface | undefined;
 }
 
-const violetDark = "#100c22";
-const violet = "#323b53";
-const violetBg = "#201e3e";
-const violetLight = "#7F9DCC";
-const green = "#14f7ab";
-const transparentWhite = "rgba(255, 255, 255, 0.1)";
-const buttonsTheme = {
-  color: violetLight,
-  activeColor: green,
-  hoverColor: violetLight,
-  hoverBackground: transparentWhite,
-  activeBackground: "transparent",
+const text = "#D1D4DC";
+const muted = "#787B86";
+const inputSurface = "#2A2E39";
+const chrome = "#1E222D";
+const accent = "#9598A1";
+const divider = "rgba(255, 255, 255, 0.12)";
+const hoverBackground = "rgba(255, 255, 255, 0.08)";
+
+const buttonColors = {
+  color: muted,
+  activeColor: "#FFFFFF",
+  hoverColor: text,
+  hoverBackground: "rgba(255, 255, 255, 0.12)",
+  activeBackground: inputSurface,
 };
 
 const defaultTheme: ThemeInterface = {
   border: {
-    inner: "1px solid rgba(255, 255, 255, 0.1)",
+    inner: "1px solid #434651",
+    radius: 8,
   },
-  accentColor: green,
-  buttons: buttonsTheme,
+  gap: 8,
+  accentColor: accent,
+  buttons: buttonColors,
   radioButton: {
-    buttons: buttonsTheme,
-    background: violetLight + "26",
+    buttons: buttonColors,
+    background: "rgba(255, 255, 255, 0.06)",
   },
   toolbar: {
-    buttons: buttonsTheme,
-    background: violetDark,
+    buttons: buttonColors,
+    background: chrome,
     showChartScaleSwitch: true,
     showShareChartButton: false,
     showCurrency: false,
     topMenuPosition: "right",
   },
   subMenu: {
-    buttons: buttonsTheme,
-    background: violet,
+    buttons: buttonColors,
+    background: chrome,
   },
   splitButton: {
-    openBackground: violet,
-    hoverBackground: violet,
-    openColor: violetLight,
-    hoverColor: violetLight,
-    arrowHoverBackground: transparentWhite,
-    arrowColor: violetLight,
-    arrowOpenColor: violetLight,
+    openBackground: chrome,
+    hoverBackground: chrome,
+    openColor: text,
+    hoverColor: text,
+    arrowHoverBackground: hoverBackground,
+    arrowColor: muted,
+    arrowOpenColor: text,
   },
   dialog: {
-    backgroundColor: violetBg,
-    titleColor: violetLight,
-    textColor: "white",
-    dividerColor: transparentWhite,
-    itemTitleColor: "white",
-    itemSubTitleColor: "rgba(255, 255, 255, 0.7)",
-    itemHoverBackgroundColor: transparentWhite,
+    backgroundColor: chrome,
+    titleColor: text,
+    textColor: text,
+    dividerColor: divider,
+    itemTitleColor: text,
+    itemSubTitleColor: muted,
+    itemHoverBackgroundColor: hoverBackground,
   },
   inputs: {
-    backgroundColor: "#0F0C22",
-    placeholderColor: "#c3c2cc80",
-    textColor: "white",
-    labelColor: "white",
+    backgroundColor: inputSurface,
+    placeholderColor: muted,
+    textColor: text,
+    labelColor: text,
   },
   scrollBar: {
-    trackColor: transparentWhite,
-    thumbColor: transparentWhite,
-    thumbHoverColor: "#7F9DCC",
+    trackColor: hoverBackground,
+    thumbColor: "rgba(255, 255, 255, 0.22)",
+    thumbHoverColor: "rgba(255, 255, 255, 0.34)",
   },
 };
 
