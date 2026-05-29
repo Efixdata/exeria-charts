@@ -284,7 +284,7 @@ export function applyDrawingEditSettings(
 
   if (typeof patch.text === "string" && TEXT_SUPPORTED_TYPES.has(type)) {
     object.text = patch.text;
-    if (type === "timeRange") {
+    if (type === "timeRange" || type === "textAnnotation") {
       object._textManual = true;
     }
   }

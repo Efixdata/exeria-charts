@@ -35,7 +35,12 @@ import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
 import { DialogSection } from "../../dialog/DialogSection";
 import tabStyles from "../../dialog/dialogTabs.module.css";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
-import { dialogCatalogLayoutStyle, dialogScrollBodyStyle } from "../../dialog/dialogLayout";
+import {
+  dialogCatalogLayoutStyle,
+  dialogFitLayoutStyle,
+  dialogScrollBodyStyle,
+} from "../../dialog/dialogLayout";
+import { DialogPrimaryButton } from "./DialogPrimaryButton";
 import styles from "./chartSettings.module.css";
 
 interface ChartSettingsDialogProps {
@@ -570,6 +575,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
       ariaLabelledBy={titleId}
       style={{
         ...cssVars,
+        ...dialogFitLayoutStyle,
         ...dialogCatalogLayoutStyle,
       }}
     >
@@ -936,6 +942,12 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
           </DialogSection>
         </div>
       </DialogBody>
+
+      <div className={layoutStyles.dialogPrimaryFooter}>
+        <DialogPrimaryButton onClick={props.onClose}>
+          {t("chart_settings_confirm", "OK")}
+        </DialogPrimaryButton>
+      </div>
     </DialogContainer>
   );
 };

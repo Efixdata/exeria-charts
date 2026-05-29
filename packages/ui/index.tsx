@@ -25,4 +25,5 @@ export * from "./src/Form/Form";
 export * from "./src/Theme";
 export * from "./src/Tooltip";
 export { getUILayoutCssVars, UI_FONT_SIZE, UI_INPUT, UI_RADIUS, UI_SPACE } from "./designTokens";
+export { getOverlayPortalRoot, isTooltipEnabled } from "./src/device";
 export { inputControlHeight, inputFocusVisibleStyles, inputFocusWithinStyles, menuOptionFocusVisibleStyles } from "./inputStyles";

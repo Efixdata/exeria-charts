@@ -9,6 +9,7 @@ interface TextInputProps {
   autoFocus?: boolean | undefined;
   placeholder?: string | undefined;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   type?: string | undefined;
   max?: number | undefined;
   min?: number | undefined;
@@ -65,6 +66,7 @@ export const TextInput = (props: TextInputProps) => {
       autoFocus={!!props.autoFocus}
       placeholder={props.placeholder || ""}
       onChange={props.onChange}
+      onKeyDown={props.onKeyDown}
       step={props.step}
       min={props.min}
       max={props.max}

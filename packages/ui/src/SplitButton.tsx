@@ -4,6 +4,7 @@ import styled, { ThemeProvider, useTheme } from "styled-components";
 import { splitButton } from "../theme";
 import { UI_FONT_FAMILY } from "../theme";
 import { inputFocusVisibleStyles } from "../inputStyles";
+import { getOverlayPortalRoot } from "./device";
 import { Tooltip } from "./Tooltip";
 
 const Container = styled.div`
@@ -24,15 +25,6 @@ const ButtonContainer = styled.div`
   border-radius: ${splitButton.borderRadius}px;
   box-sizing: border-box;
   overflow: visible;
-
-  &:hover {
-    background-color: ${(props) => props.theme.splitButton.hoverBackground};
-
-    path,
-    circle {
-      fill: ${(props) => props.theme.splitButton.hoverColor};
-    }
-  }
 
   .open &,
   .open:hover & {
@@ -255,6 +247,9 @@ interface SplitButtonProps {
   options: SplitButtonOptions;
   setCurrentOption?: boolean | undefined;
   activeOption?: string | undefined;
+  onMainDoubleClick?: () => void;
+  onMainClickWhileActive?: () => void;
+  onChevronClick?: () => boolean | void;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
 }
 
@@ -329,7 +324,7 @@ export const SplitButton = (props: SplitButtonProps) => {
               {renderOptions()}
             </OptionsContainer>
           </ThemeProvider>,
-          document.body,
+          getOverlayPortalRoot(),
         )
       : null;
 
@@ -349,6 +344,11 @@ export const SplitButton = (props: SplitButtonProps) => {
               aria-label={activeOptionProps.label}
               aria-pressed={props.activeOption ? true : undefined}
               onClick={() => onActiveOptionClick(activeOptionProps.callback)}
+              onDoubleClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                props.onMainDoubleClick?.();
+              }}
             />
           </Tooltip>
         </MainHitAreaSlot>
@@ -359,6 +359,9 @@ export const SplitButton = (props: SplitButtonProps) => {
           aria-expanded={isOpen}
           onClick={(event) => {
             event.stopPropagation();
+            if (props.onChevronClick?.()) {
+              return;
+            }
             setOpen(!isOpen);
           }}
         >
@@ -375,6 +378,11 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function onActiveOptionClick(callback: () => void): void {
+    if (props.activeOption && props.onMainClickWhileActive) {
+      props.onMainClickWhileActive();
+      return;
+    }
+
     if (isOpen) {
       setOpen(false);
       if (props.activeOption) {

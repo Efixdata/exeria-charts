@@ -32,10 +32,8 @@ import {
   normalizeBooleanListForDialog,
 } from "./booleanListUtils";
 import { DialogPrimaryButton } from "../ChartSettings/DialogPrimaryButton";
-import {
-  dialogCatalogLayoutStyle,
-  dialogScrollBodyStyle,
-} from "../../dialog/dialogLayout";
+import { dialogScrollBodyStyle, getDialogCatalogLayoutStyle } from "../../dialog/dialogLayout";
+import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
 import { DialogSection, dialogSectionStyles } from "../../dialog/DialogSection";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
@@ -398,6 +396,7 @@ const initializeConfig = (
 };
 
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
+  const { isCompact } = useChartEnvironment();
   const titleId = useId();
   const t = useChartTranslate(props.chart);
 
@@ -950,7 +949,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         ariaLabelledBy={titleId}
         style={{
           ...dialogThemeVars,
-          ...dialogCatalogLayoutStyle,
+          ...getDialogCatalogLayoutStyle(isCompact),
           ...props.style,
         }}
       >

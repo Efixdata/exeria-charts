@@ -240,6 +240,21 @@ export interface LongShortPositionToolOptions {
   config?: ToolVisualConfig;
 }
 
+import type {
+  ChartEnvironmentSnapshot,
+  ChartLayoutMode,
+  ChartLayoutModeOverride,
+} from "./utils/chartEnvironment";
+
+export type { ChartEnvironmentSnapshot, ChartLayoutMode, ChartLayoutModeOverride };
+
+export interface ChartLayoutOptions {
+  mode?: import("./utils/chartEnvironment").ChartLayoutModeOverride;
+  breakpoints?: {
+    compact?: number;
+  };
+}
+
 export interface ChartEventPayloads {
   AUTOSCALE: { autoScale: boolean };
   CURSOR_CHANGE: { cursor: string };
@@ -251,6 +266,7 @@ export interface ChartEventPayloads {
   DRAWINGS_LOCK_CHANGE: { allLocked: boolean };
   VALUE_AXIS_WIDTH_CHANGE: number;
   LOCALE_CHANGE: { locale: string };
+  ENVIRONMENT_CHANGE: ChartEnvironmentSnapshot;
 }
 
 export interface ChartOptions {
@@ -262,6 +278,7 @@ export interface ChartOptions {
   themeVariant?: string;
   locale?: string;
   messages?: Record<string, unknown>;
+  layout?: ChartLayoutOptions;
   [key: string]: unknown;
 }
 
@@ -326,6 +343,8 @@ export interface ChartInstance {
   setLocale(locale: string, messageOverrides?: Record<string, unknown>): void;
   getSupportedLocales(): Array<{ id: string; label: string }>;
   getLocaleMessages(): import("./locale/messages").ChartLocaleMessages;
+  getChartEnvironment(): ChartEnvironmentSnapshot;
+  setLayoutMode(mode: ChartLayoutModeOverride): void;
   subscribe<TTopic extends keyof ChartEventPayloads>(
     topic: TTopic,
     callback: (data: ChartEventPayloads[TTopic]) => void

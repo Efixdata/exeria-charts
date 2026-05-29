@@ -1,11 +1,11 @@
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { UI_RADIUS } from "../designTokens";
 import { inputFocusVisibleStyles } from "../inputStyles";
 import { Icon } from "./Icon";
 import { Tooltip, type TooltipPlacement } from "./Tooltip";
 
-const Button = styled.button<{ themeContext: string; $active?: boolean }>`
+const Button = styled.button<{ themeContext: string; $active?: boolean; $suppressHover?: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -18,6 +18,8 @@ const Button = styled.button<{ themeContext: string; $active?: boolean }>`
   padding: 0;
   margin: 0;
   border: 1px solid transparent;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   border-radius: var(--ui-radius-md, ${UI_RADIUS.md});
   background: transparent;
   color: ${(props) => {
@@ -29,15 +31,19 @@ const Button = styled.button<{ themeContext: string; $active?: boolean }>`
   }};
   cursor: pointer;
 
-  &:hover {
-    background-color: ${(props) => {
-      const parent =
-        props.themeContext === "buttons"
-          ? props.theme.buttons
-          : props.theme[props.themeContext].buttons;
-      return parent.hoverBackground;
-    }};
-  }
+  ${(props) =>
+    !props.$suppressHover &&
+    css`
+      &:hover:not(.active) {
+        background-color: ${() => {
+          const parent =
+            props.themeContext === "buttons"
+              ? props.theme.buttons
+              : props.theme[props.themeContext].buttons;
+          return parent.hoverBackground;
+        }};
+      }
+    `}
 
   &.active {
     background-color: ${(props) => {
@@ -77,7 +83,8 @@ interface IconButtonProps {
   callback?: (() => void) | undefined;
   style?: React.CSSProperties | undefined;
   iconStyle?: React.CSSProperties | undefined;
-  onClick?: (() => void) | undefined;
+  onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
+  onDoubleClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
   active?: boolean | undefined;
   id?: string | undefined;
   themeContext?: string | undefined;
@@ -87,6 +94,8 @@ interface IconButtonProps {
   ariaExpanded?: boolean | undefined;
   tooltipPlacement?: TooltipPlacement | undefined;
   tabIndex?: number;
+  /** Toggle buttons without a submenu should not show hover highlight. */
+  suppressHoverBackground?: boolean;
 }
 
 export const IconButton = (props: IconButtonProps) => {
@@ -98,9 +107,11 @@ export const IconButton = (props: IconButtonProps) => {
       type="button"
       id={props.id}
       onClick={props.onClick ?? props.callback}
+      onDoubleClick={props.onDoubleClick}
       style={props.style}
       themeContext={props.themeContext || "buttons"}
       $active={isActive}
+      $suppressHover={props.suppressHoverBackground === true}
       className={isActive ? "active" : undefined}
       aria-label={label}
       aria-pressed={props.ariaPressed ?? (isActive ? true : undefined)}

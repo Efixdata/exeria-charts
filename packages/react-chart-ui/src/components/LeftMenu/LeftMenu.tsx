@@ -21,7 +21,7 @@ const Container = styled.div`
   width: var(--ui-left-menu-width, 44px);
   height: 100%;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
 `;
 
 interface LeftMenuProps {
@@ -33,7 +33,11 @@ export const LeftMenu = (props: LeftMenuProps) => {
   const t = useChartTranslate(props.chart);
 
   return (
-    <Container style={props.style} role="toolbar" aria-label={t("toolbar_drawing_tools", "Drawing tools")}>
+    <Container
+      style={props.style}
+      role="toolbar"
+      aria-label={t("toolbar_drawing_tools", "Drawing tools")}
+    >
       <DrawingToolsProvider chart={props.chart}>
         <div className={toolbarStyles.leftMenuScroll}>
           <div className={toolbarStyles.leftMenuStack}>

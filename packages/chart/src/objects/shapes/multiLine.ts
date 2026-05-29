@@ -210,12 +210,20 @@ function MultiLineObject(this: ShapeRuntime) {
     )
       interactor.currentAnchor.selected++;
 
+    const isPrimaryClick = e.button == null || e.button === 0;
+
+    if (e.detail >= 2) {
+      o.hidden = false;
+      interactor.currentAnchor = null;
+      return true;
+    }
+
     if (
       interactor.currentAnchor !== null &&
       interactor.currentAnchor.selected != null &&
       interactor.currentAnchor.selected >= interactor.currentAnchor.anchors.length
     ) {
-      if (e.button == 0) {
+      if (isPrimaryClick) {
         var fV = LIB.getReferenceValue(o, model, seriesManager);
         var v = renderer.getPriceForYCoordinate(e._offset.offsetY - panel._offset, {
           panelHeight: panel._height,

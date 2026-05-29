@@ -38,6 +38,7 @@ export const MagnetButton = (props: MagnetButtonProps) => {
     <IconButton
       onClick={onClick}
       active={enabled}
+      suppressHoverBackground
       themeContext="toolbar"
       title={
         enabled

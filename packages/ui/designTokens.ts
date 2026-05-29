@@ -62,5 +62,6 @@ export function getUILayoutCssVars(): Record<string, string> {
     "--ui-toolbar-group-gap": UI_TOOLBAR.groupGap,
     "--ui-toolbar-icon-gap": UI_TOOLBAR.iconGap,
     "--ui-left-menu-width": UI_TOOLBAR.leftMenuWidth,
+    "--ui-mobile-breakpoint": `${UI_TOOLBAR.mobileBreakpoint}px`,
   };
 }

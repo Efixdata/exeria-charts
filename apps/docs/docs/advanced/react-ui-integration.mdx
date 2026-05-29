@@ -46,6 +46,27 @@ return (
 
 That lets you mount the wrapper immediately and hand it the live runtime instance after `createChart()`, `init()`, and `setMainSeriesData()` complete.
 
+## Mobile and responsive props
+
+For viewport meta tags, compact toolbar behavior, touch gestures, and QA expectations, read [Mobile and responsive](./mobile-and-responsive).
+
+Common props:
+
+```tsx
+<ChartUI
+  chart={chart}
+  mobileLayout="minimal"
+  compactBreakpoint={600}
+  theme={{ edgeInset: 8 }}
+>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
+
+- `mobileLayout`: `"default"` | `"minimal"` — on narrow viewports, `minimal` moves indicators into the ⋯ overflow menu.
+- `compactBreakpoint`: aligns UI with chart environment (default **600**).
+- `theme.edgeInset`: added to `safe-area-inset-*` padding on the outer shell.
+
 ## Theme prop
 
 `ChartUI` theme values style the wrapper layer, not the chart runtime itself.
@@ -180,6 +201,8 @@ Use [Next.js App Router](../getting-started/nextjs-app-router) for the client-bo
 
 ## Continue reading
 
+- [Mobile and responsive](./mobile-and-responsive)
+- [Mobile QA checklist](../guides/mobile-qa-checklist)
 - [React quickstart](../getting-started/react)
 - [Vite + React](../getting-started/vite-react)
 - [Next.js App Router](../getting-started/nextjs-app-router)

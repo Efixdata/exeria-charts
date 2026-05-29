@@ -75,7 +75,10 @@ export const ColorField = (props: ColorFieldProps) => {
       <FieldRow>
         <ColorSwatch
           value={color}
-          onChange={(event) => props.onChange(event.target.value)}
+          onChange={(event) => {
+            props.onChange(event.target.value);
+            event.currentTarget.blur();
+          }}
           aria-label={`${props.label} color`}
         />
         <HexInput

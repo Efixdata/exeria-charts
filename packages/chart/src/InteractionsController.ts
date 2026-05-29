@@ -8,7 +8,12 @@ import {
   hideFusionScriptDialog,
   showFusionScriptDialog,
 } from "./adapters/fusionUi";
-import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
+import { isSmallScreen, isTouchDevice, isTouchEnvironment, hitTolerance } from "./utils/environment";
+import {
+  dismissMobileContextMenu,
+  openMobileChartContextMenu,
+  resolvePointerClientPosition,
+} from "./utils/mobileContextMenu";
 import { createGestureManager, HAMMER_DIRECTIONS } from "./adapters/hammer";
 import {
   createPropertiesDialogContent,
@@ -135,6 +140,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.drawingMagnetEnabled = false;
 
   this.pinch = { trackedIndex: null, leftGrabbedIndex: null, rightGrabbedIndex: null };
+  this.pinchFramePending = false;
   this.swipe = {
     configuration: {
       velocity: {
@@ -191,7 +197,11 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.hammer.on("pinch pinchstart pinchend", self.onPinch);
 
       self.hammer.on("swipe", self.onHammerSwipe);
+      self.hammer.get("doubletap")?.set?.({ enable: true, taps: 2, interval: 320, posThreshold: 30 });
+      self.hammer.on("doubletap", self.onTouchDoubleTap);
     }
+
+    self.topLayer.addEventListener("dblclick", self.onDoubleClick);
 
     if (!isTouchDevice()) {
       self.topLayer.addEventListener("mousedown", self.onMouseDown);
@@ -202,7 +212,6 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.addEventListener("mousemove", self.onBodyMouseMove);
 
       self.topLayer.addEventListener("contextmenu", self.preventContextMenu);
-      self.topLayer.addEventListener("dblclick", self.onDoubleClick);
 
       self.hammer = createGestureManager(self.topLayer);
       self.hammer.on("swipe", self.onHammerSwipe);
@@ -231,8 +240,9 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.removeEventListener("mouseup", self.onBodyMouseUp);
       self.body.removeEventListener("mouseout", self.onBodyMouseOut);
       self.body.removeEventListener("mousemove", self.onBodyMouseMove);
-      self.topLayer.removeEventListener("dblclick", self.onDoubleClick);
     }
+
+    self.topLayer.removeEventListener("dblclick", self.onDoubleClick);
 
     if (isTouchDevice()) {
       self.topLayer.removeEventListener("touchstart", self.onTouchEvent);
@@ -244,6 +254,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.hammer.off("pan", self.onTouchEvent);
       self.hammer.off("pinch pinchstart pinchend", self.onPinch);
       self.hammer.off("swipe", self.onHammerSwipe);
+      self.hammer.off("doubletap", self.onTouchDoubleTap);
     } else if (self.hammer) {
       self.hammer.off("swipe", self.onHammerSwipe);
     }
@@ -261,18 +272,22 @@ var InteractionsController: CoreInteractorConstructor = function (
     let touchEvent;
 
     if (touches.length > 0) {
-      const ox = touches[0].pageX - window.scrollX;
-      const oy = touches[0].pageY - window.scrollY;
+      const activeTouch = touches[0];
+      const clientX = activeTouch.clientX ?? activeTouch.pageX - window.scrollX;
+      const clientY = activeTouch.clientY ?? activeTouch.pageY - window.scrollY;
       // identifier on ios safari has different values like -871896472
-      let which = evt.changedPointers ? evt.changedPointers[0].pointerId : touches[0].identifier;
+      let which = evt.changedPointers ? evt.changedPointers[0].pointerId : activeTouch.identifier;
 
+      const rect = self.topLayer.getBoundingClientRect();
       touchEvent = {
-        clientX: ox,
-        clientY: oy,
-        offsetX: ox,
-        offsetY: oy,
+        clientX,
+        clientY,
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
+        button: 0,
         which: which,
-        isPrimary: touches[0].isPrimary || touches[0].identifier === self.initialMouseEvent?.which,
+        isPrimary:
+          activeTouch.isPrimary || activeTouch.identifier === self.initialMouseEvent?.which,
       };
     }
 
@@ -340,6 +355,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onPinch = function (event) {
     self.body.click();
+    dismissMobileContextMenu();
     if (self.controller.isChartEmpty(self.chart)) return;
     event.preventDefault();
     if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
@@ -378,7 +394,14 @@ var InteractionsController: CoreInteractorConstructor = function (
     };
 
     if (event.type == "pinch") {
+      if (self.pinchFramePending) {
+        return;
+      }
+
+      self.pinchFramePending = true;
       self.controller.doFrame(() => {
+        self.pinchFramePending = false;
+
         const minPeriodWidth = self.getMinPeriodWidth();
         const maxPeriodWidth = self.model._width / 2;
 
@@ -405,7 +428,7 @@ var InteractionsController: CoreInteractorConstructor = function (
         )
           return;
 
-        const grabbedCandlesCount = rightGrabbedIndex - leftGrabbedIndex;
+        const grabbedCandlesCount = Math.max(1, rightGrabbedIndex - leftGrabbedIndex);
 
         const grabbedWidth = rightGrabbed.pageX - leftGrabbed.pageX;
         const newPeriodWidth = grabbedWidth / grabbedCandlesCount;
@@ -418,9 +441,6 @@ var InteractionsController: CoreInteractorConstructor = function (
         self.moveIndexToPoint(trackedIndex, trackedPoint);
 
         self.controller.rerender();
-        // this.fit();
-        // this.renderOverlay();
-        // this.render();
       });
     }
 
@@ -428,6 +448,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.pinch.trackedIndex = null;
       self.pinch.leftGrabbedIndex = null;
       self.pinch.rightGrabbedIndex = null;
+      self.pinchFramePending = false;
     }
 
     if (event.type == "pinchend") {
@@ -512,35 +533,30 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onContextMenu = function (e) {
-    return;
     self.body.click();
-    if (!isTouchDevice()) e.preventDefault();
-    if (this.model.mode == "plain") return;
-    if (this.currentStagingObject) return;
+    dismissMobileContextMenu();
 
-    if (isTouchDevice()) {
-      if (!e.pageX) {
-        var touches = e.srcEvent.changedTouches ? e.srcEvent.changedTouches : e.changedPointers;
-        e["pageX"] = touches[0].pageX;
-        e["pageY"] = touches[0].pageY;
+    if (self.controller.isChartEmpty(self.chart)) return;
+    if (self.model.mode == "plain") return;
+    if (self.currentStagingObject) return;
 
-        var rect = e.srcEvent.target.getBoundingClientRect();
-        var touch = touches[0];
-
-        var ox = touch.pageX - rect.left;
-        var oy = touch.pageY - rect.top;
-
-        e["offsetX"] = ox;
-        e["offsetY"] = oy;
-      }
+    if (!isTouchEnvironment()) {
+      if (e.preventDefault) e.preventDefault();
+      return;
     }
 
-    this.isRightButton = isTouchDevice() ? true : this.isRightMouseButton(e);
+    if (e.preventDefault) e.preventDefault();
 
-    if (this.allowContextMenu || isTouchDevice()) {
-      // this.buildContextMenu(e);
-      // this.topLayer.contextMenu({x: e.pageX, y: e.pageY});
-    } else this.allowContextMenu = true;
+    const anchor = resolvePointerClientPosition(e, self.topLayer);
+    if (!anchor) {
+      return;
+    }
+
+    openMobileChartContextMenu(
+      self.controller as unknown as Parameters<typeof openMobileChartContextMenu>[0],
+      anchor.x,
+      anchor.y,
+    );
   };
 
   // this.buildContextMenu = function(e){
@@ -1028,11 +1044,65 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
   };
 
+  this.onTouchDoubleTap = function (evt: {
+    srcEvent?: TouchEvent;
+    center?: { x: number; y: number };
+  }) {
+    const center = evt.center;
+    const touch = evt.srcEvent?.changedTouches?.[0];
+    if (!touch && !center) {
+      return;
+    }
+
+    const rect = self.topLayer.getBoundingClientRect();
+    const clientX = touch?.clientX ?? center?.x ?? 0;
+    const clientY = touch?.clientY ?? center?.y ?? 0;
+
+    self.onDoubleClick({
+      clientX,
+      clientY,
+      offsetX: clientX - rect.left,
+      offsetY: clientY - rect.top,
+      button: 0,
+      preventDefault: () => undefined,
+      stopPropagation: () => undefined,
+    } as MouseEvent);
+  };
+
   this.onDoubleClick = function (e: MouseEvent) {
     if (self.controller.isChartEmpty(self.chart)) return;
-    if (self.currentMode.symbol !== "DEFAULT") return;
 
     const eo = self.getEventOffset(e);
+    const priceAxisWidth = self.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
+
+    if (eo.offsetX >= self.model._width - priceAxisWidth) {
+      self.model._priceAxisExpanded = self.model._priceAxisExpanded !== true;
+      const mainSeries = self.fusion.getMainSeries();
+      self.controller.renderer.calculatePriceRenderingOptions(
+        mainSeries.data,
+        self.model,
+        mainSeries.instrument?.precision ?? self.controller.instrument?.precision ?? 0,
+      );
+      self.controller.fit();
+      self.controller.render();
+      self.controller.renderOverlay();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (self.currentMode.symbol === "STAGING") {
+      const staging = self.currentStagingObject;
+      if (staging?.type === "mLine" && Array.isArray(staging.anchors) && staging.anchors.length >= 2) {
+        self.completeStagingDrawing();
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+    }
+
+    if (self.currentMode.symbol !== "DEFAULT") return;
+
     const hitObject = self.getCurrentHitObject(eo.offsetX, eo.offsetY);
 
     if (!hitObject?.id || !hitObject.type) {
@@ -1587,9 +1657,21 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onKeyUp = function (e) {
     if (this.controller.isChartEmpty(this.chart)) return;
 
-    // if(WEBRCP.newChartLastFocus === this.chart) {
-    // 	if(!document.activeElement.className.startsWith("webrcp-new-chart-top-layer"))
-    // 		return;
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      if (
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement ||
+        activeElement.isContentEditable
+      ) {
+        return;
+      }
+
+      if (activeElement.closest('[role="dialog"]')) {
+        return;
+      }
+    }
 
     switch (e.key) {
       case "Backspace":
@@ -1597,6 +1679,9 @@ var InteractionsController: CoreInteractorConstructor = function (
         if (!this.currentSelectedObject) break;
 
         this.controller.onDelete(this.currentSelectedObject.id);
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
         break;
 
       case "Home":
@@ -1838,6 +1923,61 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     this.currentSelectedObject = null;
     this.controller.updateToolsOptions({ mode: "chart", interactor: this });
+  };
+
+  this.completeStagingDrawing = function () {
+    if (this.currentMode.symbol !== "STAGING" || !this.currentStagingObject) {
+      return false;
+    }
+
+    if (!this.currentPanel) {
+      const mainPanel = this.model.panels.find((panel) => panel.main === true);
+      this.currentPanel = mainPanel ?? this.model.panels[0] ?? null;
+    }
+
+    if (!this.currentPanel) {
+      return false;
+    }
+
+    const completed = this.currentStagingObject;
+    if (!Array.isArray(completed.anchors) || completed.anchors.length < 2) {
+      return false;
+    }
+
+    delete completed._isStaging;
+    completed.hidden = false;
+
+    const alreadyOnPanel = this.currentPanel.objects.some((object) => object.id === completed.id);
+    if (!alreadyOnPanel) {
+      this.currentPanel.objects.push(completed);
+    }
+
+    const completedRenderer = this.controller.renderer.objects[completed.type];
+    if (completedRenderer?.push) {
+      completedRenderer.push(
+        completed,
+        this.controller.renderer,
+        this.model,
+        this.fusion.getSeriesManager(),
+        this,
+      );
+    }
+
+    const finishCallback = (this.currentMode as { onFinished?: () => void }).onFinished;
+
+    this.currentStagingObject = null;
+    this.currentAnchor = null;
+    this.select(completed);
+    this.setMode("DEFAULT");
+    this.controller.onDrawingDone();
+    this.controller.render();
+    this.controller.renderOverlay();
+
+    if (typeof finishCallback === "function") {
+      finishCallback();
+    }
+
+    return true;
   };
 
   this.select = function (o) {
@@ -2694,6 +2834,25 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseUp = function (e) {
+    if (isTouchEnvironment()) {
+      this.finishEvent = e;
+
+      if (this.interactor.currentHitObject != null) {
+        this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseUp(
+          e,
+          this.interactor.currentHitObject,
+          this.interactor.controller.renderer,
+          this.interactor,
+          this.interactor.model,
+          this.interactor.currentPanel,
+          this.interactor.fusion.getSeriesManager()
+        );
+      }
+
+      this.interactor.controller.renderOverlay();
+      return;
+    }
+
     this.finishEvent = null;
 
     if (this.interactor.currentHitObject != null) {
@@ -2754,6 +2913,10 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseOut = function (e) {
+    if (isTouchEnvironment()) {
+      return;
+    }
+
     if (this.interactor.currentHitObject != null) {
       this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseOut(
         e,
@@ -3049,6 +3212,7 @@ function StageTool(
   this.renderer = this.interactor.controller.renderer;
   this.model = this.interactor.model;
   this.tool = this.renderer.objects[tool.type];
+  this.onFinished = onFinished;
   this.currentStep = 0;
 
   this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));

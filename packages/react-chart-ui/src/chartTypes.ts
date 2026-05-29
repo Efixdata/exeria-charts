@@ -2,6 +2,8 @@ import type { ChartInstance } from "@efixdata/exeria-chart";
 
 export type NullableChartInstance = ChartInstance | null | undefined;
 
+export type ChartUIMobileLayout = "default" | "minimal";
+
 interface ChartUIThemeButtonState {
 	color?: string;
 	activeColor?: string;

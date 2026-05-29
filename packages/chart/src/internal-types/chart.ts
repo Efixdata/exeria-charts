@@ -1,6 +1,7 @@
 import type {
   ChartConfig,
   ChartEventPayloads,
+  ChartLayoutMode,
   Interval,
   Instrument,
   ValueAxisMode,
@@ -81,6 +82,7 @@ export interface CoreChartModel extends ChartModelFragment {
   minValueTickHeight: number;
   minPanelHeight: number;
   viewportLeft: number;
+  _layoutMode?: ChartLayoutMode;
   mode?: string;
   orders: ChartObjectCollection;
   positions: ChartObjectCollection;

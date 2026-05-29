@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { ThemeContext } from "styled-components";
 import {
   DialogBody,
   DialogContainer,
@@ -25,6 +26,7 @@ import {
 import { DialogPrimaryButton } from "../ChartSettings/DialogPrimaryButton";
 import { dialogFitBodyStyle, dialogFitLayoutStyle } from "../ChartSettings/dialogLayout";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
+import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
 import tabStyles from "../../dialog/dialogTabs.module.css";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
 import styles from "../ChartSettings/chartSettings.module.css";
@@ -98,8 +100,11 @@ const toNumber = (value: string | number) => {
 
 export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
   const chart = props.chart as ChartWithDrawingActions;
+  const themeContext = useContext(ThemeContext);
+  const dialogCssVars = getChartSettingsCssVars(themeContext);
   const t = useChartTranslate(chart);
   const [settings, setSettings] = useState<ChartDrawingEditConfig | null>(null);
+  const [textDraft, setTextDraft] = useState("");
 
   useEffect(() => {
     if (!chart?.getDrawingEditConfig) {
@@ -109,6 +114,12 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
 
     setSettings(chart.getDrawingEditConfig(props.objectId));
   }, [chart, props.objectId]);
+
+  useEffect(() => {
+    if (settings?.supportsText) {
+      setTextDraft(settings.text ?? "");
+    }
+  }, [props.objectId, settings?.supportsText]);
 
   const applyPatch = (patch: ChartDrawingEditPatch) => {
     if (!chart?.applyDrawingEditSettings || !settings) {
@@ -132,9 +143,19 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
     props.onClose();
   };
 
+  const handleConfirm = () => {
+    if (settings?.supportsText) {
+      const nextText = textDraft.trim();
+      if (nextText.length > 0) {
+        applyPatch({ text: nextText });
+      }
+    }
+    props.onClose();
+  };
+
   if (!settings) {
     return (
-      <DialogContainer style={{ width: 360, maxWidth: "92vw" }}>
+      <DialogContainer style={{ ...dialogCssVars, width: 360, maxWidth: "92vw" }}>
         <DialogHeader>
           <DialogHeaderTitle>{t("drawing_settings_title", "Drawing")}</DialogHeaderTitle>
           <DialogHeaderActions>
@@ -158,7 +179,7 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
 
   return (
     <DialogContainer
-      style={{ ...dialogFitLayoutStyle, width: 400, maxWidth: "92vw" }}
+      style={{ ...dialogCssVars, ...dialogFitLayoutStyle, width: 400, maxWidth: "92vw" }}
     >
       <DialogHeader>
         <DialogHeaderTitle>{settings.label}</DialogHeaderTitle>
@@ -184,8 +205,13 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
               <div className={styles.sectionBody}>
                 <Label name={t("drawing_settings_text", "Text")}>
                   <TextInput
-                    value={settings.text}
-                    onChange={(event) => applyPatch({ text: event.target.value })}
+                    value={textDraft}
+                    onChange={(event) => setTextDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Backspace" || event.key === "Delete") {
+                        event.stopPropagation();
+                      }
+                    }}
                   />
                 </Label>
                 <Label name={t("drawing_settings_font_size", "Font size")}>
@@ -416,6 +442,10 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
                   )}
                 </p>
                 <div className={styles.pnlTable}>
+                  <div className={styles.pnlTableHeader}>
+                    <span>{t("drawing_settings_pnl_summary", "P&L summary")}</span>
+                    <span>{t("drawing_settings_pnl_value", "Value")}</span>
+                  </div>
                   <div className={styles.pnlRow}>
                     <span className={styles.pnlLabel}>
                       {t("drawing_settings_profit_at_target", "Profit at target")}
@@ -673,7 +703,7 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
       </DialogBody>
 
       <div className={layoutStyles.dialogPrimaryFooter}>
-        <DialogPrimaryButton onClick={props.onClose}>
+        <DialogPrimaryButton onClick={handleConfirm}>
           {t("drawing_settings_done", "Done")}
         </DialogPrimaryButton>
       </div>

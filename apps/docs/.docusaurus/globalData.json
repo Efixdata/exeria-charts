@@ -16,6 +16,11 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "advanced/mobile-and-responsive",
+              "path": "/docs/advanced/mobile-and-responsive",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "advanced/react-ui-integration",
               "path": "/docs/advanced/react-ui-integration",
               "sidebar": "docsSidebar"
@@ -23,6 +28,11 @@
             {
               "id": "advanced/react-ui-toolbar-and-tools",
               "path": "/docs/advanced/react-ui-toolbar-and-tools",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api-reference/chart-environment",
+              "path": "/docs/api-reference/chart-environment",
               "sidebar": "docsSidebar"
             },
             {
@@ -128,6 +138,11 @@
             {
               "id": "guides/licensing",
               "path": "/docs/guides/licensing",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/mobile-qa-checklist",
+              "path": "/docs/guides/mobile-qa-checklist",
               "sidebar": "docsSidebar"
             },
             {

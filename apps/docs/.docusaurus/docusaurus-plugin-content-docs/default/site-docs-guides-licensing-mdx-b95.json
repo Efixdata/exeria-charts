@@ -20,5 +20,9 @@
   "previous": {
     "title": "Choosing a Package",
     "permalink": "/docs/guides/choosing-a-package"
+  },
+  "next": {
+    "title": "Mobile QA Checklist",
+    "permalink": "/docs/guides/mobile-qa-checklist"
   }
 }

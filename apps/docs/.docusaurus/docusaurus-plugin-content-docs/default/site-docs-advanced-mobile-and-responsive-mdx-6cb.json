@@ -1,0 +1,28 @@
+{
+  "id": "advanced/mobile-and-responsive",
+  "title": "Mobile and Responsive",
+  "description": "Viewport setup, layout modes, compact chart metrics, ChartUI mobile props, touch gestures, and integration checklist.",
+  "source": "@site/docs/advanced/mobile-and-responsive.mdx",
+  "sourceDirName": "advanced",
+  "slug": "/advanced/mobile-and-responsive",
+  "permalink": "/docs/advanced/mobile-and-responsive",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Mobile and Responsive",
+    "description": "Viewport setup, layout modes, compact chart metrics, ChartUI mobile props, touch gestures, and integration checklist."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "React UI Toolbar and Tools",
+    "permalink": "/docs/advanced/react-ui-toolbar-and-tools"
+  },
+  "next": {
+    "title": "ChartInstance",
+    "permalink": "/docs/api-reference/chart-instance"
+  }
+}

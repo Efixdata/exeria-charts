@@ -153,9 +153,9 @@ const caseStudies = [
   },
   {
     id: "mobile-native",
-    title: "Mobile Native Experience.",
-    body: "Flawless touch interaction straight out of the box. Bring native-feeling pinch-to-zoom and swipe gestures to iOS and Android users.",
-    href: "/docs/getting-started/nextjs-app-router",
+    title: "Mobile and touch-ready charts.",
+    body: "Pan, pinch, compact layout, and dense toolbar chrome on narrow viewports. Follow the mobile integration guide for viewport, safe-area, and QA setup.",
+    href: "/docs/advanced/mobile-and-responsive",
   },
 ];
 

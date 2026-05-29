@@ -1,8 +1,12 @@
 .scrollArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-4, 16px);
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--dialog-scrollbar-thumb) var(--dialog-scrollbar-track);
 }

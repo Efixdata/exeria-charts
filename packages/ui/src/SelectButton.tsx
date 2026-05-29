@@ -1,4 +1,6 @@
-import React, { useState, useRef, ReactElement, useEffect, useCallback } from "react";
+import React, { useState, useRef, ReactElement, useEffect, useCallback, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { getOverlayPortalRoot, isTooltipEnabled } from "./device";
 import { selectButton, buttonOption } from "../theme";
 import styled from "styled-components";
 import { menuOptionFocusVisibleStyles } from "../inputStyles";
@@ -35,7 +37,12 @@ const Trigger = styled.div`
   ${menuOptionFocusVisibleStyles}
 `;
 
-const OptionsContainer = styled.div<{ $menuAlign?: "start" | "end" }>`
+const OptionsContainer = styled.div<{
+  $menuAlign?: "start" | "end";
+  $fixedTop?: number;
+  $fixedLeft?: number;
+  $fixedRight?: number;
+}>`
   box-sizing: border-box;
   border-radius: ${selectButton.borderRadius}px;
   overflow: hidden;
@@ -43,14 +50,27 @@ const OptionsContainer = styled.div<{ $menuAlign?: "start" | "end" }>`
   flex-direction: column;
   background-color: ${(props) => props.theme.subMenu.background};
   padding: 4px 0;
-  position: absolute;
-  top: calc(-${buttonOption.basePadding}px - 4px);
-  left: ${(props) => (props.$menuAlign === "end" ? "auto" : `-${buttonOption.basePadding}px`)};
-  right: ${(props) => (props.$menuAlign === "end" ? `-${buttonOption.basePadding}px` : "auto")};
+  position: ${(props) => (props.$fixedTop != null ? "fixed" : "absolute")};
+  top: ${(props) =>
+    props.$fixedTop != null ? `${props.$fixedTop}px` : `calc(100% + 4px)`};
+  left: ${(props) => {
+    if (props.$fixedLeft != null) {
+      return `${props.$fixedLeft}px`;
+    }
+    return props.$menuAlign === "end" ? "auto" : `-${buttonOption.basePadding}px`;
+  }};
+  right: ${(props) => {
+    if (props.$fixedRight != null) {
+      return `${props.$fixedRight}px`;
+    }
+    return props.$menuAlign === "end" ? `-${buttonOption.basePadding}px` : "auto";
+  }};
   width: max-content;
-  min-width: calc(100% + ${buttonOption.basePadding * 2}px);
+  min-width: ${(props) =>
+    props.$fixedTop != null ? "120px" : `calc(100% + ${buttonOption.basePadding * 2}px)`};
   white-space: nowrap;
-  z-index: 20;
+  z-index: 10020;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 `;
 
 const Option = styled.div`
@@ -114,12 +134,63 @@ interface SelectButtonProps {
 
 export const SelectButton = (props: SelectButtonProps) => {
   const myRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const [selectedOption, setSelectedOption] = useState(props.selectedOption);
   const [isOpen, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left?: number;
+    right?: number;
+  } | null>(null);
 
   const optionIds = Object.keys(props.options);
+  const useFixedMenu = !isTooltipEnabled();
+
+  const updateMenuPosition = useCallback(() => {
+    if (!useFixedMenu || !triggerRef.current) {
+      setMenuPosition(null);
+      return;
+    }
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    const viewportPadding = 8;
+
+    if (props.menuAlign === "end") {
+      setMenuPosition({
+        top: rect.bottom + 4,
+        right: Math.max(viewportPadding, window.innerWidth - rect.right),
+      });
+      return;
+    }
+
+    setMenuPosition({
+      top: rect.bottom + 4,
+      left: Math.max(viewportPadding, rect.left),
+    });
+  }, [props.menuAlign, useFixedMenu]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setMenuPosition(null);
+      return;
+    }
+
+    updateMenuPosition();
+
+    if (!useFixedMenu) {
+      return;
+    }
+
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [isOpen, updateMenuPosition, useFixedMenu]);
 
   useEffect(() => {
     setSelectedOption(props.selectedOption);
@@ -235,9 +306,11 @@ export const SelectButton = (props: SelectButtonProps) => {
   }
 
   function handleClickOutside(e: MouseEvent) {
-    if (!myRef.current?.contains(e.target as Node)) {
-      setOpen(false);
+    const target = e.target as Node;
+    if (myRef.current?.contains(target) || menuRef.current?.contains(target)) {
+      return;
     }
+    setOpen(false);
   }
 
   const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -263,11 +336,31 @@ export const SelectButton = (props: SelectButtonProps) => {
       >
         {renderSelectedOption()}
       </Trigger>
-      {isOpen ? (
-        <OptionsContainer $menuAlign={props.menuAlign} role="listbox" aria-label={props.ariaLabel}>
-          {renderOptions()}
-        </OptionsContainer>
-      ) : null}
+      {isOpen
+        ? (() => {
+            const menu = (
+              <OptionsContainer
+                ref={menuRef}
+                data-ui-select-menu="true"
+                $menuAlign={props.menuAlign}
+                $fixedTop={menuPosition?.top}
+                $fixedLeft={menuPosition?.left}
+                $fixedRight={menuPosition?.right}
+                role="listbox"
+                aria-label={props.ariaLabel}
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                {renderOptions()}
+              </OptionsContainer>
+            );
+
+            if (useFixedMenu && typeof document !== "undefined") {
+              return createPortal(menu, getOverlayPortalRoot());
+            }
+
+            return menu;
+          })()
+        : null}
     </Container>
   );
 };

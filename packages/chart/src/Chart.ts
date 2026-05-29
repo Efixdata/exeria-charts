@@ -53,7 +53,10 @@ import type {
 } from "./chartSettings";
 import type {
   ChartConfig,
+  ChartEnvironmentSnapshot,
   ChartEventPayloads,
+  ChartLayoutModeOverride,
+  ChartLayoutOptions,
   ChartOptions,
   ChartTheme,
   DrawMode,
@@ -62,6 +65,12 @@ import type {
   ScriptDefinition,
   ValueAxisMode,
 } from "./types";
+import {
+  configureChartEnvironment,
+  getChartEnvironment,
+  subscribeChartEnvironment,
+} from "./utils/chartEnvironment";
+import { applyResponsiveChartLayout } from "./utils/compactLayout";
 import type {
   ChartEventEnvelope,
   ChartMarginInfo,
@@ -99,6 +108,19 @@ import {
 import { createLocaleMessages, type ChartLocaleMessages } from "./locale/messages";
 import { createCatalogTranslator } from "./locale/catalogTranslator";
 
+/** Layout size from the container box — avoids transient getBoundingClientRect overflow on mobile. */
+function readChartContainerSize(container: HTMLElement): { width: number; height: number } {
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  if (width > 0 && height > 0) {
+    return { width, height };
+  }
+
+  const rect = container.getBoundingClientRect();
+  return { width: Math.max(0, rect.width), height: Math.max(0, rect.height) };
+}
+
 export default class Chart implements CoreChartController {
   [key: string]: any;
 
@@ -125,6 +147,10 @@ export default class Chart implements CoreChartController {
   canvasHeight = 0;
   currentAnimationFrame?: number;
   resizeObserver?: ResizeObserver;
+  private environmentUnsubscribe?: () => void;
+  private layoutOptions?: ChartLayoutOptions;
+  private layoutModeOverride: ChartLayoutModeOverride = "auto";
+  private lastEnvironmentSnapshot?: ChartEnvironmentSnapshot;
   containerPositionBeforeInit = "";
   valueConverter?: ValueConverterLike;
   private chartAppearanceTheme?: ChartTheme;
@@ -168,6 +194,12 @@ export default class Chart implements CoreChartController {
     this.messageOverrides = options.messages as Record<string, unknown> | undefined;
     this.rebuildLocaleMessages();
     this.syncContainerLocale();
+
+    this.layoutOptions = options.layout;
+    this.layoutModeOverride = options.layout?.mode ?? "auto";
+    configureChartEnvironment({
+      compactBreakpoint: options.layout?.breakpoints?.compact,
+    });
   }
 
   private syncContainerLocale(): void {
@@ -229,6 +261,12 @@ export default class Chart implements CoreChartController {
     this.overlay = document.createElement("canvas");
     this.containerPositionBeforeInit = this.container.style.position;
     this.container.style.position = "relative";
+    this.container.style.overscrollBehavior = "contain";
+    this.container.style.boxSizing = "border-box";
+    this.container.style.width = "100%";
+    this.container.style.height = "100%";
+    this.container.style.maxWidth = "100%";
+    this.container.style.overflow = "hidden";
     this.overlay.style.position = "absolute";
     this.overlay.style.inset = "0 0 0 0";
     const ctx = this.canvas.getContext("2d");
@@ -240,6 +278,7 @@ export default class Chart implements CoreChartController {
     this.topLayer = document.createElement("div");
     this.topLayer.style.position = "absolute";
     this.topLayer.style.inset = "0 0 0 0";
+    this.topLayer.style.touchAction = "none";
 
     this.container.append(this.canvas, this.overlay, this.topLayer);
 
@@ -279,6 +318,16 @@ export default class Chart implements CoreChartController {
 
     this.resizeObserver = new ResizeObserver(onSizeChange);
     this.resizeObserver.observe(this.container);
+
+    this.environmentUnsubscribe = subscribeChartEnvironment(() => {
+      this.onChartEnvironmentChange();
+    });
+    this.lastEnvironmentSnapshot = this.getChartEnvironment();
+    this.emitEvent({
+      topic: "ENVIRONMENT_CHANGE",
+      data: this.lastEnvironmentSnapshot,
+    });
+
     this.initialized = true;
   }
 
@@ -300,6 +349,9 @@ export default class Chart implements CoreChartController {
 
     this.resizeObserver?.disconnect();
     this.resizeObserver = undefined;
+
+    this.environmentUnsubscribe?.();
+    this.environmentUnsubscribe = undefined;
 
     this.interactor?.currentMode?.onCancel?.();
     this.interactor?.offDOMEvents?.();
@@ -403,10 +455,10 @@ export default class Chart implements CoreChartController {
         ratio = window.devicePixelRatio;
       }
 
-      const boundingRect = this.container.getBoundingClientRect();
+      const { width, height } = readChartContainerSize(this.container);
 
-      this.canvasWidth = boundingRect.width;
-      this.canvasHeight = boundingRect.height;
+      this.canvasWidth = width;
+      this.canvasHeight = height;
       const widthWithRatio = this.canvasWidth * ratio;
       const widthPx = this.canvasWidth + "px";
       const heightWithRatio = this.canvasHeight * ratio;
@@ -416,17 +468,23 @@ export default class Chart implements CoreChartController {
       this.canvas.height = heightWithRatio;
       this.canvas.style.width = widthPx;
       this.canvas.style.height = heightPx;
+      this.canvas.style.maxWidth = "100%";
+      this.canvas.style.maxHeight = "100%";
       this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       this.overlay.width = widthWithRatio;
       this.overlay.height = heightWithRatio;
       this.overlay.style.width = widthPx;
       this.overlay.style.height = heightPx;
+      this.overlay.style.maxWidth = "100%";
+      this.overlay.style.maxHeight = "100%";
       this.octx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       // this.model['axisGrid'] = this.mainAxisGrid;
       this.model["_width"] = this.canvasWidth;
       this.model["_height"] = this.canvasHeight;
+
+      applyResponsiveChartLayout(this.model, this.getChartEnvironment().layoutMode);
 
       this.model["_timeAxisWidth"] =
         this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
@@ -606,6 +664,7 @@ export default class Chart implements CoreChartController {
         }
 
         this.renderer.renderOverlay(this.octx, this.model, this.fusion);
+        this.renderer.renderRangeAxisGuides(this.octx, this.model, this.fusion);
 
         if (this.interactor.currentMode.renderOverlay)
           this.interactor.currentMode.renderOverlay(this.octx);
@@ -1827,5 +1886,49 @@ export default class Chart implements CoreChartController {
       topic: "DRAWINGS_LOCK_CHANGE",
       data: { allLocked: false },
     });
+  }
+
+  getChartEnvironment(): ChartEnvironmentSnapshot {
+    return getChartEnvironment(this.layoutModeOverride);
+  }
+
+  setLayoutMode(mode: ChartLayoutModeOverride): void {
+    this.layoutModeOverride = mode;
+    if (this.layoutOptions) {
+      this.layoutOptions.mode = mode;
+    } else {
+      this.layoutOptions = { mode };
+    }
+    if (this.layoutOptions?.breakpoints?.compact != null) {
+      configureChartEnvironment({
+        compactBreakpoint: this.layoutOptions.breakpoints.compact,
+      });
+    }
+    this.onChartEnvironmentChange();
+  }
+
+  private onChartEnvironmentChange(): void {
+    const next = this.getChartEnvironment();
+    const prev = this.lastEnvironmentSnapshot;
+    this.lastEnvironmentSnapshot = next;
+
+    if (!this.initialized) {
+      return;
+    }
+
+    const layoutChanged =
+      !prev ||
+      prev.layoutMode !== next.layoutMode ||
+      prev.hitTolerance !== next.hitTolerance ||
+      prev.isCompact !== next.isCompact;
+
+    if (layoutChanged) {
+      this.fit();
+      if (this.ctx && this.renderer && this.model && this.fusion) {
+        this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+        this.renderOverlay();
+      }
+      this.emitEvent({ topic: "ENVIRONMENT_CHANGE", data: next });
+    }
   }
 }

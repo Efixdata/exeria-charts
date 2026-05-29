@@ -26,14 +26,25 @@ export const FullScreenButton = (props: FullScreenButtonProps) => {
   ];
 
   React.useEffect(() => {
-    const container = props?.mainContainer?.current;
-    if (!container) return;
-    eventTypes.forEach((eventType) =>
-      container.addEventListener(eventType, () => {
-        setFullScreen(checkFullScreen());
-      })
-    );
-  }, []);
+    const syncFullscreen = () => {
+      setFullScreen(checkFullScreen());
+      requestAnimationFrame(() => {
+        props.chart?.fit?.();
+        props.chart?.render?.();
+        props.chart?.renderOverlay?.();
+      });
+    };
+
+    eventTypes.forEach((eventType) => {
+      document.addEventListener(eventType, syncFullscreen);
+    });
+
+    return () => {
+      eventTypes.forEach((eventType) => {
+        document.removeEventListener(eventType, syncFullscreen);
+      });
+    };
+  }, [props.chart]);
 
   const checkFullScreen = () => {
     const doc = document as Document & {

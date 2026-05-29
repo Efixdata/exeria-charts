@@ -53,7 +53,7 @@ interface DrawingToolsContextValue {
   containerOffset: React.ContextType<typeof ContainerOffsetContext>;
   resolveToolLabel: (toolProps: DrawingToolProps) => string;
   renderDrawingTool: (tool: DrawingTool) => React.ReactElement;
-  renderSplitButton: (ids: string[], defaultOption: string) => React.ReactElement | null;
+  renderSplitButton: (ids: string[], defaultOption: string, groupKey: string) => React.ReactElement | null;
   renderAnnotationSplitButton: () => React.ReactElement | null;
   drawingTools: Record<string, DrawingTool>;
 }
@@ -79,8 +79,9 @@ export const MainDrawingTools = () => {
   const lines = renderSplitButton(
     ["channel", "hLine", "hRay", "vLine", "vRay", "crossLine", "mLine", "trend", "trendRay"],
     "trend",
+    "lines",
   );
-  const shapes = renderSplitButton(["brush", "arrow", "ellipse", "triangle", "box"], "brush");
+  const shapes = renderSplitButton(["brush", "arrow", "ellipse", "triangle", "box"], "brush", "shapes");
   const analyticalTools = renderSplitButton(
     [
       "abcd",
@@ -96,12 +97,14 @@ export const MainDrawingTools = () => {
       "timeRange",
     ],
     "abcd",
+    "analytical",
   );
   const fibTools = renderSplitButton(
     ["fibon", "fibonExtension", "fibonTimeZone", "fibonChannel", "fibonArcs", "fibonCircles"],
     "fibon",
+    "fib",
   );
-  const positions = renderSplitButton(["longPosition", "shortPosition"], "longPosition");
+  const positions = renderSplitButton(["longPosition", "shortPosition"], "longPosition", "positions");
 
   return (
     <Container>
@@ -704,11 +707,7 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
         defaultColor: "defaultToolColor",
         width: 1,
         dash: [],
-        anchors: [
-          { stamp: 0, offset: 0, value: 0, _index: 0 },
-          { stamp: 0, offset: 0, value: 0, _index: 0 },
-          { stamp: 0, offset: 0, value: 0, _index: 0 },
-        ],
+        anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],
         order: 5,
       },
     },
@@ -954,7 +953,37 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
 
   const [selectedTool, setSelectedTool] = useState("");
   const [eraserActive, setEraserActive] = useState(false);
+  const [lastUsedToolByGroup, setLastUsedToolByGroup] = useState<Record<string, string>>({});
   const containerOffset = useContext(ContainerOffsetContext);
+
+  const toolGroups: Record<string, string[]> = {
+    lines: ["channel", "hLine", "hRay", "vLine", "vRay", "crossLine", "mLine", "trend", "trendRay"],
+    shapes: ["brush", "arrow", "ellipse", "triangle", "box"],
+    analytical: [
+      "abcd",
+      "cycle",
+      "pitchfork",
+      "regressionChannel",
+      "fixedRangeVolumeProfile",
+      "gannFan",
+      "gannGrid",
+      "gannBox",
+      "hRange",
+      "vRange",
+      "timeRange",
+    ],
+    fib: ["fibon", "fibonExtension", "fibonTimeZone", "fibonChannel", "fibonArcs", "fibonCircles"],
+    positions: ["longPosition", "shortPosition"],
+  };
+
+  const rememberLastUsedTool = (toolId: string) => {
+    for (const [groupKey, ids] of Object.entries(toolGroups)) {
+      if (ids.includes(toolId)) {
+        setLastUsedToolByGroup((previous) => ({ ...previous, [groupKey]: toolId }));
+        return;
+      }
+    }
+  };
 
   useEffect(() => {
     const subscription = chart?.subscribe("CURSOR_CHANGE", (data: { cursor: string }) => {
@@ -975,6 +1004,33 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
     if (interactor.currentMode && interactor.currentMode.onCancel) {
       interactor.currentMode.onCancel();
     }
+    setSelectedTool("");
+  }
+
+  function finishMultilineStaging() {
+    if (!chart) {
+      setSelectedTool("");
+      return;
+    }
+
+    const interactor = chart.getInteractor();
+    if (!interactor) {
+      setSelectedTool("");
+      return;
+    }
+
+    if (interactor.currentMode?.symbol === "STAGING") {
+      const staging = interactor.currentStagingObject;
+      if (staging?.type === "mLine") {
+        interactor.completeStagingDrawing?.();
+      } else {
+        const completed = interactor.completeStagingDrawing?.();
+        if (!completed) {
+          interactor.currentMode?.onCancel?.();
+        }
+      }
+    }
+
     setSelectedTool("");
   }
 
@@ -1055,7 +1111,7 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
     );
   }
 
-  function renderSplitButton(ids: string[], defaultOption: string) {
+  function renderSplitButton(ids: string[], defaultOption: string, groupKey: string) {
     const options = ids
       .map((id) => drawingTools[id])
       .filter((option): option is DrawingTool => option !== undefined);
@@ -1065,11 +1121,36 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
       {} as React.ComponentProps<typeof SplitButton>["options"],
     );
 
+    const rememberedOption = lastUsedToolByGroup[groupKey];
+    const pinnedOption =
+      rememberedOption && ids.includes(rememberedOption) ? rememberedOption : defaultOption;
+    const activeOption = ids.includes(selectedTool) ? selectedTool : pinnedOption;
+
+    const finishMultilineFromLinesTool =
+      groupKey === "lines" && selectedTool === "mLine"
+        ? () => finishMultilineStaging()
+        : undefined;
+
     return (
       <SplitButton
-        defaultOption={defaultOption}
-        // @ts-ignore
-        activeOption={ids.indexOf(selectedTool) > -1 ? selectedTool : undefined}
+        defaultOption={pinnedOption}
+        activeOption={activeOption}
+        onMainClickWhileActive={finishMultilineFromLinesTool}
+        onMainDoubleClick={() => {
+          if (selectedTool !== "mLine") {
+            return;
+          }
+
+          finishMultilineStaging();
+        }}
+        onChevronClick={() => {
+          if (selectedTool !== "mLine") {
+            return false;
+          }
+
+          finishMultilineStaging();
+          return true;
+        }}
         options={splitButtonOptions}
         containerOffset={containerOffset}
       />
@@ -1102,6 +1183,8 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
     if (interactor.currentMode && interactor.currentMode.onCancel) {
       interactor.currentMode.onCancel();
     }
+
+    rememberLastUsedTool(tool.id);
 
     if (selectedTool === tool.id) {
       setSelectedTool("");

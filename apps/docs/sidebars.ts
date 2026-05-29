@@ -52,12 +52,13 @@ const sidebars: SidebarsConfig = {
         "advanced/chart-class-runtime",
         "advanced/react-ui-integration",
         "advanced/react-ui-toolbar-and-tools",
+        "advanced/mobile-and-responsive",
       ],
     },
     {
       type: "category",
       label: "API Reference",
-      items: ["api-reference/chart-instance"],
+      items: ["api-reference/chart-instance", "api-reference/chart-environment"],
     },
     {
       type: "category",
@@ -88,7 +89,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Guides",
-      items: ["guides/choosing-a-package", "guides/licensing"],
+      items: [
+        "guides/choosing-a-package",
+        "guides/licensing",
+        "guides/mobile-qa-checklist",
+      ],
     },
   ],
 };

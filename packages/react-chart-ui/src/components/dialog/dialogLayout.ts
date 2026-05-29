@@ -18,10 +18,24 @@ export const dialogFitBodyStyle: CSSProperties = {
 
 export const dialogCatalogLayoutStyle: CSSProperties = {
   ...dialogFitLayoutStyle,
+  width: "100%",
+  maxWidth: "calc(100vw - 16px)",
+  height: "100dvh",
+  maxHeight: "100dvh",
+  minHeight: 0,
+};
+
+export const dialogCatalogLayoutStyleDesktop: CSSProperties = {
   width: 600,
   maxWidth: "calc(100vw - 32px)",
+  height: 600,
+  maxHeight: "90vh",
   minHeight: 560,
 };
+
+export function getDialogCatalogLayoutStyle(isCompact: boolean): CSSProperties {
+  return isCompact ? dialogCatalogLayoutStyle : dialogCatalogLayoutStyleDesktop;
+}
 
 export const dialogCatalogBodyStyle: CSSProperties = {
   flex: "1 1 auto",

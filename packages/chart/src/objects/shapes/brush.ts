@@ -1,18 +1,15 @@
 import WEBRCP from "../../WebRCP";
 import { isDrawingSnapEnabled } from "../../drawingWorkflow";
 import LIB from "../../utils/chartingCommons";
-import type { LegacyAnchor, LegacyShapeObject } from "../../objectRuntimeBases";
+import { Shape, type LegacyAnchor, type LegacyShapeObject } from "../../objectRuntimeBases";
 import {
   between,
   pointsDistance,
   getLinePointNearestMouse,
   findAnchorPointForXY,
+  drawAnchors,
 } from "../../utils/objects-lib";
-import {
-  createShapeAnchorOverlayDelegate,
-  createShapeMouseDownDelegate,
-  createShapeMouseOutDelegate,
-} from "./_delegates";
+import { createShapeMouseOutDelegate } from "./_delegates";
 import { resolveShapeOpacity } from "../../shapeStyle";
 import type { CoreInteractor } from "../../internal-types/interactor";
 import type {
@@ -168,6 +165,38 @@ function traceBrushPath(
   }
 }
 
+type BrushPixelPoint = { x: number; y: number };
+
+function selectBrushDisplayAnchors(points: BrushPixelPoint[]): BrushPixelPoint[] {
+  if (points.length <= 5) {
+    return points;
+  }
+
+  const lastIndex = points.length - 1;
+  return [
+    points[0],
+    points[Math.round(lastIndex * 0.25)],
+    points[Math.round(lastIndex * 0.5)],
+    points[Math.round(lastIndex * 0.75)],
+    points[lastIndex],
+  ];
+}
+
+function getBrushHandleSourceIndices(pointCount: number): number[] {
+  if (pointCount <= 5) {
+    return Array.from({ length: pointCount }, (_, index) => index);
+  }
+
+  const lastIndex = pointCount - 1;
+  return [
+    0,
+    Math.round(lastIndex * 0.25),
+    Math.round(lastIndex * 0.5),
+    Math.round(lastIndex * 0.75),
+    lastIndex,
+  ];
+}
+
 function isPointInPolygon(
   x: number,
   y: number,
@@ -221,7 +250,37 @@ function BrushObject(this: ShapeRuntime) {
     ctx.setLineDash([]);
   };
 
-  this.renderOverlay = createShapeAnchorOverlayDelegate({ drawArrowHandles: false });
+  this.renderAnchorsOverlay = function (
+    ...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs
+  ) {
+    if (o._isStaging) {
+      return;
+    }
+
+    const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+    if (!pts || pts.length === 0) {
+      return;
+    }
+
+    const displayAnchors = selectBrushDisplayAnchors(pts);
+    drawAnchors(octx, panel, displayAnchors, this.anchorPointSize, this.anchorColor, 1);
+  };
+
+  this.renderOverlay = function (
+    ...[o, octx, renderer, model, panel, seriesManager]: ShapeRenderArgs
+  ) {
+    if (o._isStaging || o.selected) {
+      return;
+    }
+
+    const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+    if (!pts || pts.length === 0 || !o._hit) {
+      return;
+    }
+
+    const displayAnchors = selectBrushDisplayAnchors(pts);
+    drawAnchors(octx, panel, displayAnchors, this.anchorPointSize, this.anchorColorHover, 0.5);
+  };
 
   this.hit = function (...[x, y, o, renderer, , model, panel, seriesManager]: ShapeHitArgs) {
     const pts = this.getPoints(o, renderer, panel, model, seriesManager);
@@ -232,15 +291,6 @@ function BrushObject(this: ShapeRuntime) {
     }
 
     const tolerance = Math.max(this.hitTolerance, (typeof o.width === "number" ? o.width : 2) / 2 + 2);
-
-    if (o.fillBg === true && pts.length >= 3 && isPointInPolygon(x, y, pts)) {
-      o._hit = true;
-      const anchor = findAnchorPointForXY(pts, x, y, this.hitTolerance);
-      if (anchor) {
-        o._hitAnchor = { x: anchor.x, y: anchor.y };
-      }
-      return true;
-    }
 
     for (let index = 1; index < pts.length; index += 1) {
       const segmentStart = pts[index - 1];
@@ -280,7 +330,46 @@ function BrushObject(this: ShapeRuntime) {
     return false;
   };
 
-  this.mouseDown = createShapeMouseDownDelegate("mouseDownWithPanelPush");
+  this.mouseDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
+    if (o._isStaging) {
+      return Shape.prototype.mouseDownWithPanelPush.call(
+        this,
+        e,
+        o,
+        renderer,
+        interactor,
+        model,
+        panel,
+        seriesManager,
+      );
+    }
+
+    interactor.pushPanel(this, o, panel);
+    const points = this.getPoints(o, renderer, panel, model, seriesManager);
+    if (!points || points.length === 0) {
+      return this.createAnchorSelection(o, null);
+    }
+
+    const displayAnchors = selectBrushDisplayAnchors(points);
+    const sourceIndices = getBrushHandleSourceIndices(points.length);
+
+    for (let index = 0; index < displayAnchors.length; index += 1) {
+      const point = displayAnchors[index];
+      if (
+        interactor.isOver(
+          e._offset.offsetX,
+          e._offset.offsetY,
+          point.x,
+          point.y,
+          this.hitTolerance,
+        )
+      ) {
+        return this.createAnchorSelection(o, sourceIndices[index]);
+      }
+    }
+
+    return this.createAnchorSelection(o, null);
+  };
   this.mouseOut = createShapeMouseOutDelegate("mouseOutKeepHits");
 
   this.stageDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {

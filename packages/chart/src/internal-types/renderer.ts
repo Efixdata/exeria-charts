@@ -313,6 +313,7 @@ export interface CoreRenderer {
   postRenderPlotPane: RendererPostRenderPlotPaneMethod;
   shouldBePanelVisible: RendererPanelVisibilityMethod;
   renderOverlay: RendererOverlayMethod;
+  renderRangeAxisGuides: RendererOverlayMethod;
   postRenderOverlay: RendererPostOverlayMethod;
   renderSelectionHandles: RendererSelectionHandlesMethod;
   renderValueAxis: RendererValueAxisMethod;

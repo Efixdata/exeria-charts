@@ -204,6 +204,33 @@ export function resolveEntryPrice(
 }
 
 /** Opposite level shares the entry-corner time (other box corner), not corner B. */
+function getStopTargetAnchorIndices(object: LegacyShapeObject): {
+  stop: number;
+  target: number;
+} {
+  const firstRole = object._firstLevelRole as LevelRole | undefined;
+  if (firstRole === "stop") {
+    return { stop: BOX_CORNER_B, target: OPPOSITE_LEVEL };
+  }
+  if (firstRole === "target") {
+    return { stop: OPPOSITE_LEVEL, target: BOX_CORNER_B };
+  }
+
+  if (!Array.isArray(object.anchors) || object.anchors.length < 3) {
+    return { stop: BOX_CORNER_B, target: OPPOSITE_LEVEL };
+  }
+
+  const stopPrice = readPrice(object.stopPrice, 0);
+  const boxPrice = readPrice(object.anchors[BOX_CORNER_B].value, 0);
+  const oppositePrice = readPrice(object.anchors[OPPOSITE_LEVEL].value, 0);
+
+  if (Math.abs(boxPrice - stopPrice) <= Math.abs(oppositePrice - stopPrice)) {
+    return { stop: BOX_CORNER_B, target: OPPOSITE_LEVEL };
+  }
+
+  return { stop: OPPOSITE_LEVEL, target: BOX_CORNER_B };
+}
+
 function tieOppositeCornerToEntryCorner(object: LegacyShapeObject): void {
   if (!Array.isArray(object.anchors) || object.anchors.length < 3) {
     return;
@@ -1245,14 +1272,30 @@ function LongShortPositionObject(this: ShapeRuntime) {
     const hitRightX = span.rightX + this.hitTolerance;
     const topY = Math.min(stopY, targetY, entryY) - this.hitTolerance;
     const bottomY = Math.max(stopY, targetY, entryY) + this.hitTolerance;
+    const levelYs = [stopY, targetY, entryY];
 
-    if (between(hitLeftX, x, hitRightX, this.hitTolerance) && between(topY, y, bottomY, this.hitTolerance)) {
-      o._hit = true;
-      const anchor = findAnchorPointForXY(pts, x, y, this.hitTolerance);
-      if (anchor) {
-        o._hitAnchor = { x: anchor.x, y: anchor.y };
+    for (const levelY of levelYs) {
+      if (
+        between(hitLeftX, x, hitRightX, this.hitTolerance) &&
+        between(levelY - this.hitTolerance, y, levelY + this.hitTolerance, this.hitTolerance)
+      ) {
+        o._hit = true;
+        return true;
       }
-      return true;
+    }
+
+    if (
+      between(hitLeftX, x, hitRightX, this.hitTolerance) &&
+      between(topY, y, bottomY, this.hitTolerance)
+    ) {
+      const onLevelLine = levelYs.some((levelY) =>
+        between(levelY - this.hitTolerance, y, levelY + this.hitTolerance, this.hitTolerance),
+      );
+
+      if (!onLevelLine) {
+        o._hit = true;
+        return true;
+      }
     }
 
     return false;
@@ -1281,6 +1324,47 @@ function LongShortPositionObject(this: ShapeRuntime) {
 
       if (arrowHandle) {
         object._hitArrow = { x: arrowHandle.x, y: arrowHandle.y };
+        return this.createAnchorSelection(object, null);
+      }
+
+      syncAnchorsFromPrices(object);
+      const pts = this.getPoints(object, renderer, panel, model, seriesManager);
+      const x = event._offset.offsetX;
+      const y = event._offset.offsetY;
+
+      for (const index of [BOX_CORNER_B, OPPOSITE_LEVEL, ENTRY_ANCHOR]) {
+        const point = pts[index];
+        if (
+          point &&
+          interactor.isOver(x, y, point.x, point.y, this.hitTolerance)
+        ) {
+          return this.createAnchorSelection(object, index);
+        }
+      }
+
+      const { stopY, targetY } = getLevelYCoordinates(
+        object,
+        renderer,
+        model,
+        panel,
+        seriesManager,
+      );
+      const { leftX, rightX } = getBoxHorizontalBounds(pts);
+      const plotRight = getPlotRight(panel, renderer);
+      const span = getRenderHorizontalSpan(object, leftX, rightX, plotRight);
+      const { stop: stopAnchor, target: targetAnchor } = getStopTargetAnchorIndices(object);
+
+      if (between(span.leftX, x, span.rightX, this.hitTolerance)) {
+        if (between(stopY - this.hitTolerance, y, stopY + this.hitTolerance, this.hitTolerance)) {
+          return this.createAnchorSelection(object, stopAnchor);
+        }
+
+        if (between(targetY - this.hitTolerance, y, targetY + this.hitTolerance, this.hitTolerance)) {
+          return this.createAnchorSelection(object, targetAnchor);
+        }
+      }
+
+      if (object._hit) {
         return this.createAnchorSelection(object, null);
       }
     }
@@ -1329,7 +1413,7 @@ function LongShortPositionObject(this: ShapeRuntime) {
     const selected = interactor.currentAnchor?.selected;
 
     if (
-      selected === OPPOSITE_LEVEL &&
+      (selected === BOX_CORNER_B || selected === OPPOSITE_LEVEL) &&
       Array.isArray(object.anchors) &&
       object.anchors.length >= 3
     ) {
@@ -1343,7 +1427,7 @@ function LongShortPositionObject(this: ShapeRuntime) {
         fV: referenceValue,
       });
 
-      object.anchors[OPPOSITE_LEVEL].value = LIB.round(
+      object.anchors[selected].value = LIB.round(
         rawValue,
         renderer.getPrecision(model, panel),
       );
@@ -1353,7 +1437,25 @@ function LongShortPositionObject(this: ShapeRuntime) {
       return;
     }
 
+    if (selected === ENTRY_ANCHOR) {
+      Shape.prototype.mouseDrag.call(this, ...args);
+      tieOppositeCornerToEntryCorner(object);
+      syncPricesFromAnchors(object);
+      return;
+    }
+
     Shape.prototype.mouseDrag.call(this, ...args);
+
+    if (!isPlacementComplete(object)) {
+      return;
+    }
+
+    if (selected == null) {
+      tieOppositeCornerToEntryCorner(object);
+      syncPricesFromAnchors(object);
+      this.wasDrag = true;
+      return;
+    }
 
     if (
       selected === ENTRY_ANCHOR ||

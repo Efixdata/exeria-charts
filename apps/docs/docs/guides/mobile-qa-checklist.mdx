@@ -1,0 +1,80 @@
+---
+sidebar_position: 3
+title: Mobile QA Checklist
+description: Manual and automated test matrix for responsive chart layout, touch gestures, and React UI chrome.
+---
+
+# Mobile QA checklist
+
+Use this matrix before shipping mobile chart experiences. It reflects the current implementation after the responsive roadmap (environment, compact layout, touch polish, `ChartUI` mobile props).
+
+## Automated checks (CI-friendly)
+
+| Check | Command | Expectation |
+|-------|---------|-------------|
+| Chart environment unit tests | `npm --prefix packages/chart test` | Breakpoint and `matchMedia` subscription tests pass |
+| Compact layout unit tests | same | Compact/desktop metrics toggle correctly |
+| Pointer position helper | same | `resolvePointerClientPosition` prefers viewport coords |
+| Chart UI safe-area helper | `npm --prefix packages/react-chart-ui test` | Padding objects include `env(safe-area-inset-*)` |
+| Mobile toolbar E2E | `npm --prefix apps/web run test:e2e` | Compact viewport shows toolbar + ⋯ control |
+
+## Device matrix (manual)
+
+Run `apps/web` (`npm --prefix apps/web run dev`) with **Mobile preview** enabled, or resize DevTools to each width.
+
+| Target | Viewport | Browser | Pass criteria |
+|--------|----------|---------|---------------|
+| Phone | 390×844 | iOS Safari | No horizontal page scroll; chart fills panel; ⋯ opens below trigger |
+| Phone | 390×844 | Chrome Android | Pinch zoom smooth; pan does not scroll the page |
+| Phone | 360×800 | Samsung Internet | Long-press menu at finger; autoscale toggle works |
+| Tablet portrait | 768×1024 | Safari | Toolbar readable; chart uses compact or touch layout as expected |
+| Desktop narrow | 580×900 | Chrome | Compact toolbar; overflow menu not clipped |
+| Desktop | 1280×800 | Chrome | Full toolbar; left menu column visible when drawing tools on |
+
+## Chart core
+
+- [ ] Resize container (or rotate device): canvas reflows without blank gaps
+- [ ] Value axis and time labels remain readable in compact mode
+- [ ] Legend text truncates instead of overlapping the plot
+- [ ] `chart.setLayoutMode("desktop")` forces desktop metrics on a narrow window
+- [ ] `chart.setLayoutMode("auto")` restores reactive behavior
+
+## Touch interactions
+
+- [ ] Pan scrolls the chart, not the document (chart area has scroll containment)
+- [ ] Pinch zoom centers on the gesture; no runaway zoom at dataset edges
+- [ ] Long press (~500ms) opens context menu **at the touch point**
+- [ ] Context menu: go to start, go to end, autoscale toggle, crosshair toggle
+- [ ] Pinch dismisses an open context menu
+- [ ] Crosshair mode: lines remain after finger up (sticky crosshair)
+- [ ] Hit targets feel usable on coarse pointer (larger tolerance)
+
+## ChartUI chrome
+
+- [ ] Pencil toggles drawing rail overlay without zooming the whole page
+- [ ] `mobileLayout="default"`: indicators visible on compact bar
+- [ ] `mobileLayout="minimal"`: indicators only under ⋯
+- [ ] Overflow: autoscale shows **On/Off** (or Wł./Wył. in PL)
+- [ ] Overflow: scale submenu (Lin / Log / %)
+- [ ] Overflow: settings dialog opens and scrolls; OK/footer visible
+- [ ] Fullscreen: chart uses full viewport; safe area respected on notched devices
+- [ ] Exit fullscreen: layout recovers (no zero-height chart)
+
+## Page integration
+
+- [ ] `viewport-fit=cover` present
+- [ ] Parent layout uses explicit height (`vh` / flex)
+- [ ] No double scrollbars (page + chart)
+- [ ] Modals and selects usable on touch (portal positioning)
+
+## Regression triggers
+
+Re-test after changes to:
+
+- `chartEnvironment.ts`, `compactLayout.ts`, `InteractionsController.ts`
+- `ChartUI.tsx`, `TopMenu.tsx`, `TopMenuOverflowMenu.tsx`
+- `DialogContainer` or toolbar CSS breakpoints
+
+## Reporting issues
+
+Include: device, OS version, browser, viewport size, `mobileLayout` prop, whether fullscreen was used, and a screen recording for gesture bugs.

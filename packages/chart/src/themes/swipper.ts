@@ -79,6 +79,12 @@ const chartTheme = {
     priceSubscript: {
       dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
+    priceCompact: {
+      dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    priceSubscriptCompact: {
+      dark: "300 9px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
     time: {
       dark: "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
@@ -87,6 +93,12 @@ const chartTheme = {
     },
     legendSubscript: {
       dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendCompact: {
+      dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendSubscriptCompact: {
+      dark: "300 9px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
     fontName: { dark: "Chivo" },
   },

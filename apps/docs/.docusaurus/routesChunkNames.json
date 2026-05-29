@@ -1,197 +1,252 @@
 {
-  "/playground-859": {
-    "__comp": "0ce74438",
+  "/__docusaurus/debug-5ff": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
     "__context": {
-      "plugin": "a7456010"
-    },
-    "config": "5e9f5e1a"
-  },
-  "/docs-1ab": {
-    "__comp": "5e95c892",
-    "__context": {
-      "plugin": "aba21aa0"
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
     }
   },
-  "/docs-4b0": {
-    "__comp": "a7bd4aaa",
-    "__props": "0058b4c6"
+  "/__docusaurus/debug/config-5ba": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
   },
-  "/docs-4c0": {
-    "__comp": "a94703ab"
+  "/__docusaurus/debug/content-a2b": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    },
+    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+  },
+  "/__docusaurus/debug/globalData-c3c": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/metadata-156": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/registry-88c": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/routes-000": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/playground-859": {
+    "__comp": "__comp---site-src-pages-playground-tsx-0-ce-144",
+    "__context": {
+      "plugin": "plugin---playgrounda-74-e4c"
+    },
+    "config": "config---playground-5-e-9-7f7"
+  },
+  "/docs-5b4": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---docsaba-d7c"
+    }
+  },
+  "/docs-fb5": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-005-788"
+  },
+  "/docs-ce7": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/docs/advanced/chart-class-runtime-45f": {
-    "__comp": "17896441",
-    "content": "cc2e60c4"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-advanced-chart-class-runtimecc-2-c0d"
+  },
+  "/docs/advanced/mobile-and-responsive-0ef": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-advanced-mobile-and-responsive-6-cb-f84"
   },
   "/docs/advanced/react-ui-integration-d2b": {
-    "__comp": "17896441",
-    "content": "c629e906"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-advanced-react-ui-integrationc-62-a77"
   },
   "/docs/advanced/react-ui-toolbar-and-tools-fc8": {
-    "__comp": "17896441",
-    "content": "e5ba56eb"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-advanced-react-ui-toolbar-and-toolse-5-b-1ef"
+  },
+  "/docs/api-reference/chart-environment-d96": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-chart-environmentd-5-c-70d"
   },
   "/docs/api-reference/chart-instance-3fb": {
-    "__comp": "17896441",
-    "content": "1237f8c2"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-reference-chart-instance-123-c75"
   },
   "/docs/chart-usage/autoscale-and-value-axis-8a0": {
-    "__comp": "17896441",
-    "content": "843b530c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-autoscale-and-value-axis-843-a55"
   },
   "/docs/chart-usage/drawing-and-interaction-37d": {
-    "__comp": "17896441",
-    "content": "78de173b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-drawing-and-interaction-78-d-9f1"
   },
   "/docs/chart-usage/loading-data-a18": {
-    "__comp": "17896441",
-    "content": "29f67bdb"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-loading-data-29-f-fde"
   },
   "/docs/chart-usage/navigation-and-viewport-3ed": {
-    "__comp": "17896441",
-    "content": "465117d9"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-navigation-and-viewport-465-f49"
   },
   "/docs/chart-usage/realtime-updates-de5": {
-    "__comp": "17896441",
-    "content": "57a44b02"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-realtime-updates-57-a-be0"
   },
   "/docs/core-concepts/chart-lifecycle-ed2": {
-    "__comp": "17896441",
-    "content": "26154ecb"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-chart-lifecycle-261-5ef"
   },
   "/docs/core-concepts/data-model-f48": {
-    "__comp": "17896441",
-    "content": "6cc246a7"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-data-model-6-cc-d16"
   },
   "/docs/core-concepts/rendering-and-scales-1aa": {
-    "__comp": "17896441",
-    "content": "f34b4cba"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-core-concepts-rendering-and-scalesf-34-062"
   },
   "/docs/drawing-tools/catalog-e53": {
-    "__comp": "17896441",
-    "content": "9090e5ce"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-catalog-909-1c7"
   },
   "/docs/drawing-tools/levels-and-channels-ecb": {
-    "__comp": "17896441",
-    "content": "37671abf"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-levels-and-channels-376-bc9"
   },
   "/docs/drawing-tools/lines-ranges-and-tags-95b": {
-    "__comp": "17896441",
-    "content": "7a7ca95b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-lines-ranges-and-tags-7-a-7-4c9"
   },
   "/docs/drawing-tools/overview-bd2": {
-    "__comp": "17896441",
-    "content": "8f3c9168"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-overview-8-f-3-323"
   },
   "/docs/drawing-tools/shapes-and-annotations-b91": {
-    "__comp": "17896441",
-    "content": "c863a6f7"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-shapes-and-annotationsc-86-db7"
   },
   "/docs/drawing-tools/trend-line-c10": {
-    "__comp": "17896441",
-    "content": "a4d89a07"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-drawing-tools-trend-linea-4-d-5b6"
   },
   "/docs/getting-started/nextjs-app-router-36d": {
-    "__comp": "17896441",
-    "content": "426fdd8c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-nextjs-app-router-426-db1"
   },
   "/docs/getting-started/react-7af": {
-    "__comp": "17896441",
-    "content": "915b85df"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-react-915-d26"
   },
   "/docs/getting-started/vanilla-cbb": {
-    "__comp": "17896441",
-    "content": "577ba503"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-vanilla-577-c6d"
   },
   "/docs/getting-started/vite-react-926": {
-    "__comp": "17896441",
-    "content": "7f6b9b06"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-vite-react-7-f-6-0fe"
   },
   "/docs/guides/choosing-a-package-838": {
-    "__comp": "17896441",
-    "content": "70902833"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-choosing-a-package-709-f8d"
   },
   "/docs/guides/licensing-c59": {
-    "__comp": "17896441",
-    "content": "b9566a94"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-licensingb-95-c36"
+  },
+  "/docs/guides/mobile-qa-checklist-da6": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-mobile-qa-checklist-243-09e"
   },
   "/docs/intro-69a": {
-    "__comp": "17896441",
-    "content": "f8409a7e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-introf-84-2b4"
   },
   "/docs/scripts/authoring-conventions-16a": {
-    "__comp": "17896441",
-    "content": "cd2ac2b9"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-authoring-conventionscd-2-8d7"
   },
   "/docs/scripts/functions/catalog-acd": {
-    "__comp": "17896441",
-    "content": "a58856c0"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-functions-cataloga-58-c13"
   },
   "/docs/scripts/functions/custom-functions-281": {
-    "__comp": "17896441",
-    "content": "3f208d16"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-functions-custom-functions-3-f-2-c2e"
   },
   "/docs/scripts/functions/key-functions-f36": {
-    "__comp": "17896441",
-    "content": "33f781c1"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-functions-key-functions-33-f-bb5"
   },
   "/docs/scripts/functions/overview-f0b": {
-    "__comp": "17896441",
-    "content": "c4c50955"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-functions-overviewc-4-c-1a3"
   },
   "/docs/scripts/indicators/catalog-46c": {
-    "__comp": "17896441",
-    "content": "73a5e65e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-indicators-catalog-73-a-d9a"
   },
   "/docs/scripts/indicators/custom-indicators-a19": {
-    "__comp": "17896441",
-    "content": "5f6b6268"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-indicators-custom-indicators-5-f-6-783"
   },
   "/docs/scripts/indicators/key-indicators-dbc": {
-    "__comp": "17896441",
-    "content": "5701513b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-indicators-key-indicators-570-7ab"
   },
   "/docs/scripts/indicators/overview-aa9": {
-    "__comp": "17896441",
-    "content": "fdd72195"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-indicators-overviewfdd-88f"
   },
   "/docs/scripts/overview-6d9": {
-    "__comp": "17896441",
-    "content": "4678045e"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-overview-467-e6c"
   },
   "/docs/scripts/programmatic-wiring-e5d": {
-    "__comp": "17896441",
-    "content": "c6aa447b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-programmatic-wiringc-6-a-726"
   },
   "/docs/scripts/strategies/catalog-e73": {
-    "__comp": "17896441",
-    "content": "1abea036"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-strategies-catalog-1-ab-f65"
   },
   "/docs/scripts/strategies/custom-strategies-efa": {
-    "__comp": "17896441",
-    "content": "47461212"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-strategies-custom-strategies-474-486"
   },
   "/docs/scripts/strategies/key-strategies-175": {
-    "__comp": "17896441",
-    "content": "0918bab9"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-strategies-key-strategies-091-012"
   },
   "/docs/scripts/strategies/overview-f7f": {
-    "__comp": "17896441",
-    "content": "c6880c13"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-scripts-strategies-overviewc-68-bcf"
   },
   "/docs/theming/live-theme-creator-a4f": {
-    "__comp": "17896441",
-    "content": "4cab1c8b"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-theming-live-theme-creator-4-ca-bd2"
   },
   "/docs/theming/overview-15c": {
-    "__comp": "17896441",
-    "content": "68612483"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-theming-overview-686-322"
   },
   "/-e5f": {
-    "__comp": "1df93b7f",
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
     "__context": {
-      "plugin": "a7456010"
+      "plugin": "plugin---playgrounda-74-e4c"
     },
-    "config": "5e9f5e1a"
+    "config": "config---playground-5-e-9-7f7"
   }
 }

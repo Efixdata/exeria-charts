@@ -2,13 +2,15 @@ import * as React from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
+  box-sizing: border-box;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 
   @media (min-width: 600px) {
-    flex-direction: column;
     width: 600px;
     max-width: 90vw;
     height: 600px;

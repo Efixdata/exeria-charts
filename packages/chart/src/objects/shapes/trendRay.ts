@@ -16,9 +16,26 @@ import {
 } from "./_delegates";
 import type { ShapeRuntime } from "./_sharedTypes";
 
+function hasRenderableTrendPoints(
+  pts: Array<{ index?: number; value?: number; x?: number; y?: number }> | undefined,
+): boolean {
+  return (
+    Array.isArray(pts) &&
+    pts.length >= 2 &&
+    Number.isFinite(pts[0]?.index) &&
+    Number.isFinite(pts[1]?.index) &&
+    Number.isFinite(pts[0]?.value) &&
+    Number.isFinite(pts[1]?.value)
+  );
+}
+
 function TrendRayObject(this: ShapeRuntime) {
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
     const pts = this.getPoints(o, renderer, panel, model, seriesManager);
+    if (!hasRenderableTrendPoints(pts)) {
+      return;
+    }
+
     const fV = LIB.getReferenceValue(o, model, seriesManager);
     const line = calcLine({ x: pts[0].index, y: pts[0].value }, { x: pts[1].index, y: pts[1].value });
 

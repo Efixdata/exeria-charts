@@ -10,17 +10,15 @@ interface CursorsProps {
   style?: React.CSSProperties;
 }
 
+const normalizeCursor = (cursor: string) => (cursor === "STAGE" ? "DEFAULT" : cursor);
+
 export const Cursors = (props: CursorsProps) => {
   const t = useChartTranslate(props.chart);
-  const [selectedCursor, setSelectedCursor] = useState("DEFAULT");
+  const [chartCursor, setChartCursor] = useState("DEFAULT");
 
   useEffect(() => {
-    const subscription = props?.chart?.subscribe("CURSOR_CHANGE", (data: { cursor: string }) => {
-      if (data.cursor === "STAGE") {
-        setSelectedCursor("DEFAULT");
-      } else {
-        setSelectedCursor(data.cursor);
-      }
+    const subscription = props.chart?.subscribe("CURSOR_CHANGE", (data: { cursor: string }) => {
+      setChartCursor(normalizeCursor(data.cursor));
     });
 
     return () => {
@@ -30,10 +28,14 @@ export const Cursors = (props: CursorsProps) => {
     };
   }, [props.chart]);
 
+  const setCursor = (id: string) => {
+    setChartCursor(id);
+    props.chart?.setCursor(id);
+  };
+
   const onCursorClick = (id: string) => {
-    const next = selectedCursor === id && id !== "DEFAULT" ? "DEFAULT" : id;
-    setSelectedCursor(next);
-    props.chart?.setCursor(next);
+    const next = chartCursor === id && id !== "DEFAULT" ? "DEFAULT" : id;
+    setCursor(next);
   };
 
   const pointerLabel = t("toolbar_cursor_pointer", "Pointer");
@@ -43,7 +45,8 @@ export const Cursors = (props: CursorsProps) => {
     <>
       <IconButton
         id="DEFAULT"
-        active={selectedCursor === "DEFAULT"}
+        active={chartCursor === "DEFAULT"}
+        suppressHoverBackground
         themeContext="toolbar"
         onClick={() => onCursorClick("DEFAULT")}
         title={pointerLabel}
@@ -54,9 +57,23 @@ export const Cursors = (props: CursorsProps) => {
       </IconButton>
       <IconButton
         id="CROSSHAIR"
-        active={selectedCursor === "CROSSHAIR"}
+        active={chartCursor === "CROSSHAIR"}
+        suppressHoverBackground
         themeContext="toolbar"
-        onClick={() => onCursorClick("CROSSHAIR")}
+        onClick={(event) => {
+          if (event.detail >= 2) {
+            return;
+          }
+          onCursorClick("CROSSHAIR");
+        }}
+        onDoubleClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setCursor("DEFAULT");
+          if (event.currentTarget instanceof HTMLButtonElement) {
+            event.currentTarget.blur();
+          }
+        }}
         title={crosshairLabel}
         ariaLabel={crosshairLabel}
         tooltipPlacement="right"

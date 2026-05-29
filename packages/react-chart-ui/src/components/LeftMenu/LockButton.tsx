@@ -45,6 +45,7 @@ export const LockButton = (props: LockButtonProps) => {
     <IconButton
       onClick={onClick}
       active={allLocked}
+      suppressHoverBackground
       themeContext="toolbar"
       title={
         allLocked
