@@ -277,6 +277,15 @@ export type RendererPrettyDateMethod = (
   hidden?: RendererHiddenDateParts,
 ) => string;
 export type RendererZeroLeadMethod = (value: number) => string;
+
+export type LegendCloseHit = {
+  scriptId: string | number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+export type RendererGetLegendHitMethod = (x: number, y: number) => LegendCloseHit | null;
 export type RendererPrecisionMethod = (
   model: CoreChartModel,
   panel: CoreChartPanel,
@@ -313,6 +322,7 @@ export interface CoreRenderer {
   renderHandler: RendererPanelMethod;
   renderLegend: RendererLegendMethod;
   renderLegendLine: RendererLegendLineMethod;
+  getLegendHit: RendererGetLegendHitMethod;
   drawPriceTag: RendererPriceTagMethod;
   drawDoublePriceTag: RendererDoublePriceTagMethod;
   drawTimeTag: RendererTimeTagMethod;

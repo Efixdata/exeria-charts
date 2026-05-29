@@ -61,7 +61,7 @@ const chartTheme = {
 
     legendLabelColor: { dark: "rgba(255,255,255,0.7)" },
     legendValueColor: { dark: white },
-    legendLineBackground: { dark: "rgba(10, 39, 56, 0.7)" },
+    legendLineBackground: { dark: "transparent" },
 
     fibonacciRetracementLine: { dark: "rgba(255, 255, 255, 0.1)" },
   },

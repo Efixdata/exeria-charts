@@ -66,16 +66,55 @@ import type {
 import type {
   CoreRenderer,
   CoreRendererConstructor,
+  LegendCloseHit,
   RendererSettings,
   ValueAxisTick,
   ValueConverterLike,
 } from "./internal-types/renderer";
+import type { CoreChartPanel } from "./internal-types/chart";
+import { hitTolerance } from "./utils/environment";
 
 type LegendRenderValue = {
   label: { text?: string; x?: number; y?: number };
   value: { text?: string; x?: number; y?: number; zerosToReduce?: number };
   separator: { text?: string; x?: number; y?: number };
 };
+
+const LEGEND_CLOSE_GAP = 8;
+const LEGEND_CLOSE_HALF = 3.5;
+
+function isLegendBackgroundVisible(color: string | null | undefined): boolean {
+  if (!color) return false;
+  const normalized = String(color).trim().toLowerCase();
+  if (normalized === "transparent") return false;
+  const rgbaMatch = normalized.match(
+    /^rgba?\(\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)(?:\s*,\s*([\d.]+%?))?\s*\)$/
+  );
+  if (rgbaMatch && rgbaMatch[4] != null) {
+    const alpha = parseFloat(rgbaMatch[4]);
+    if (!Number.isNaN(alpha) && alpha <= 0) return false;
+  }
+  return true;
+}
+
+function drawLegendCloseIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string
+): void {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.25;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x, y - LEGEND_CLOSE_HALF);
+  ctx.lineTo(x + LEGEND_CLOSE_HALF, y + LEGEND_CLOSE_HALF);
+  ctx.moveTo(x, y + LEGEND_CLOSE_HALF);
+  ctx.lineTo(x + LEGEND_CLOSE_HALF, y - LEGEND_CLOSE_HALF);
+  ctx.stroke();
+  ctx.restore();
+}
 
 type RendererRuntimeError = {
   type?: string;
@@ -1107,6 +1146,7 @@ const Renderer: CoreRendererConstructor = function (
   };
 
   this.renderLegend = function (ctx, model, panel, fusion) {
+    panel._legendHits = [];
     var legendCount = 0;
     const legendsRendered: string[] = [];
 
@@ -1296,6 +1336,21 @@ const Renderer: CoreRendererConstructor = function (
       valuesToRender.push(valueToRender);
     }
 
+    const legendBackground = WEBRCP.utils.colorManager.getColor("legendLineBackground");
+    const showLegendBackground = isLegendBackgroundVisible(legendBackground);
+    const titleColor = script
+      ? WEBRCP.utils.colorManager.getColor("legendValueColor")
+      : color || WEBRCP.utils.colorManager.getColor("text");
+    const valueColor = script
+      ? WEBRCP.utils.colorManager.getColor("legendValueColor")
+      : color || WEBRCP.utils.colorManager.getColor("text");
+
+    let closeButtonX: number | null = null;
+    if (script?.id != null) {
+      closeButtonX = x + LEGEND_CLOSE_GAP;
+      x = closeButtonX + LEGEND_CLOSE_HALF * 2 + 6;
+    }
+
     ctx.save();
     ctx.beginPath();
     ctx.rect(
@@ -1307,22 +1362,26 @@ const Renderer: CoreRendererConstructor = function (
     ctx.closePath();
     ctx.clip();
 
-    ctx.beginPath();
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("legendLineBackground");
-    const roundedContext = ctx as CanvasRenderingContext2D & {
-      roundRect?: (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        radii?: number | number[]
-      ) => void;
-    };
-    if (roundedContext.roundRect) roundedContext.roundRect(startX - 4, y - 11, x - 4, 16, [4]);
-    else ctx.rect(startX - 4, y - 11, x - 4, 16);
-    ctx.fill();
+    if (showLegendBackground) {
+      ctx.beginPath();
+      ctx.fillStyle = legendBackground;
+      const roundedContext = ctx as CanvasRenderingContext2D & {
+        roundRect?: (
+          x: number,
+          y: number,
+          width: number,
+          height: number,
+          radii?: number | number[]
+        ) => void;
+      };
+      const pillWidth = Math.max(x - startX + 4, 0);
+      if (roundedContext.roundRect)
+        roundedContext.roundRect(startX - 4, y - 11, pillWidth, 16, [4]);
+      else ctx.rect(startX - 4, y - 11, pillWidth, 16);
+      ctx.fill();
+    }
 
-    ctx.fillStyle = color || WEBRCP.utils.colorManager.getColor("text");
+    ctx.fillStyle = titleColor;
     ctx.font = WEBRCP.utils.colorManager.getFont("legend");
     ctx.fillText(objectTitle, startX, y);
 
@@ -1336,7 +1395,7 @@ const Renderer: CoreRendererConstructor = function (
         ctx.fillText(valueToRender.label.text, valueToRender.label.x, valueToRender.label.y);
       }
 
-      ctx.fillStyle = color || WEBRCP.utils.colorManager.getColor("text");
+      ctx.fillStyle = valueColor;
       renderPriceText({
         text: valueToRender.value.text,
         ctx,
@@ -1357,9 +1416,41 @@ const Renderer: CoreRendererConstructor = function (
       }
     }
 
+    if (closeButtonX != null && script?.id != null) {
+      const closeColor = WEBRCP.utils.colorManager.getColor("legendLabelColor");
+      drawLegendCloseIcon(ctx, closeButtonX, y, closeColor);
+
+      const hits = (panel._legendHits as LegendCloseHit[] | undefined) ?? [];
+      hits.push({
+        scriptId: script.id,
+        x: closeButtonX - hitTolerance,
+        y: y - 10 - hitTolerance,
+        w: LEGEND_CLOSE_HALF * 2 + 6 + hitTolerance * 2,
+        h: 16 + hitTolerance * 2,
+      });
+      panel._legendHits = hits;
+    }
+
     ctx.restore();
 
     return true;
+  };
+
+  this.getLegendHit = function (x, y) {
+    const panels = this.controller.model.panels as CoreChartPanel[];
+    for (let panelIndex = 0; panelIndex < panels.length; panelIndex += 1) {
+      const panel = panels[panelIndex];
+      const hits = panel._legendHits as LegendCloseHit[] | undefined;
+      if (!hits?.length) continue;
+
+      for (let hitIndex = 0; hitIndex < hits.length; hitIndex += 1) {
+        const hit = hits[hitIndex];
+        if (x >= hit.x && x <= hit.x + hit.w && y >= hit.y && y <= hit.y + hit.h) {
+          return hit;
+        }
+      }
+    }
+    return null;
   };
 
   //------------------------------------------------------------------------------

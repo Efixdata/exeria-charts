@@ -97,6 +97,7 @@ export interface ChartObjectsManagerApi {
   isThisSeriesOutputOfScript(dataLink?: string): { id?: string | number } | null;
   getScriptModelById(scriptId: string | number): ScriptModelConfig | undefined;
   cloneObject(object: ChartPanelObject): ChartPanelObject;
+  detachScript(scriptId?: string | number): void;
 }
 
 export interface CoreChartController {

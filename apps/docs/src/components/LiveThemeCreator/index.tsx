@@ -42,6 +42,7 @@ export default function LiveThemeCreator() {
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<any> | null>(null);
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<ChartInstance | null>(null);
 
   const chartColors = chartColorsByVariant[themeVariant];
   const uiColors = uiColorsByVariant[themeVariant];
@@ -62,9 +63,9 @@ export default function LiveThemeCreator() {
     [runtimeTheme, themeVariant, uiThemes]
   );
 
-  const previewThemeKey = useMemo(
+  const themeUpdateKey = useMemo(
     () => JSON.stringify({ runtimeTheme, themeVariant }),
-    [runtimeTheme, themeVariant]
+    [runtimeTheme, themeVariant],
   );
 
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function LiveThemeCreator() {
 
       setPreviewError(null);
       setChart(null);
+      chartRef.current = null;
 
       const chartModule = await import("@efixdata/exeria-chart");
       if (disposed) {
@@ -125,6 +127,7 @@ export default function LiveThemeCreator() {
           return;
         }
 
+        chartRef.current = chartInstance;
         setChart(chartInstance);
       } catch (error) {
         chartInstance.destroy();
@@ -145,8 +148,18 @@ export default function LiveThemeCreator() {
         currentChart?.destroy();
         return null;
       });
+      chartRef.current = null;
     };
-  }, [previewThemeKey, ChartUIComponent]);
+  }, [ChartUIComponent]);
+
+  useEffect(() => {
+    const chartInstance = chartRef.current;
+    if (!chartInstance) {
+      return;
+    }
+
+    chartInstance.applyChartTheme(runtimeTheme, themeVariant);
+  }, [themeUpdateKey, chart]);
 
   useEffect(() => {
     if (!copiedLabel) {

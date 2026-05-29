@@ -59,27 +59,14 @@ export default function Playground() {
     [activeExampleId],
   );
 
-  const sceneKey = useMemo(
-    () =>
-      JSON.stringify({
-        presetId,
-        themeVariant,
-        chartColorsByVariant,
-        uiColorsByVariant,
-        activeExampleId,
-        sceneVersion,
-      }),
-    [activeExampleId, chartColorsByVariant, presetId, sceneVersion, themeVariant, uiColorsByVariant],
+  const sceneApplyKey = useMemo(
+    () => (usePresetOnly ? null : `${activeExampleId}:${sceneVersion}`),
+    [activeExampleId, sceneVersion, usePresetOnly],
   );
 
   const chartSceneAction = useMemo(
     () => (usePresetOnly ? undefined : activeExample.applyScene),
     [activeExample, usePresetOnly],
-  );
-
-  const chartUiLayoutKey = useMemo(
-    () => JSON.stringify({ themeVariant, ui: uiColorsByVariant[themeVariant], presetId }),
-    [presetId, themeVariant, uiColorsByVariant],
   );
 
   const handlePresetChange = (nextPresetId: string) => {
@@ -89,7 +76,6 @@ export default function Playground() {
     setChartColorsByVariant(palette.chart);
     setUiColorsByVariant(palette.ui);
     setUsePresetOnly(true);
-    setSceneVersion((value) => value + 1);
   };
 
   const handleExampleSelect = (exampleId: PlaygroundExampleId) => {
@@ -337,8 +323,7 @@ export default function Playground() {
             chartColorsByVariant={chartColorsByVariant}
             uiColorsByVariant={uiColorsByVariant}
             themeVariant={themeVariant}
-            sceneKey={sceneKey}
-            chartUiLayoutKey={chartUiLayoutKey}
+            sceneApplyKey={sceneApplyKey}
             onChartReady={chartSceneAction}
             minHeight={560}
             className={styles.chartPreview}

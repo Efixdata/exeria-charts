@@ -11,6 +11,7 @@ import SubscriptionManager from "./SubscriptionManager";
 import ToolDrawer from "./ToolDrawer";
 import {
   applyChartAppearanceSettings,
+  applyChartTheme as applyChartThemeColors,
   applyChartVolumeSettings,
   exportChartSettingsTemplate,
   getChartAppearanceSettings,
@@ -1611,6 +1612,14 @@ export default class Chart implements CoreChartController {
       this.getChartSettingsHost(),
       settings,
       this.chartAppearanceTheme,
+    );
+  }
+
+  applyChartTheme(theme: import("./types").ChartTheme, themeVariant?: string): void {
+    this.chartAppearanceTheme = applyChartThemeColors(
+      this.getChartSettingsHost(),
+      theme,
+      themeVariant,
     );
   }
 

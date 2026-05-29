@@ -294,6 +294,7 @@ export interface ChartInstance {
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  applyChartTheme(theme: ChartTheme, themeVariant?: string): void;
   getChartVolumeSettings(): import("./chartSettings").ChartVolumeSettings;
   applyChartVolumeSettings(settings: import("./chartSettings").ChartVolumeSettings): void;
   getChartIndicatorSettings(): import("./chartSettings").ChartIndicatorSettingsItem[];

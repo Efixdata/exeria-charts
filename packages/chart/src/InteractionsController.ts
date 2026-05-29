@@ -991,6 +991,19 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (self.isAboveValueAxis(e)) self.valueAxisClicked = true;
     else {
       self.valueAxisClicked = false;
+
+      if (self.currentMode.symbol === "DEFAULT") {
+        const legendHit = self.renderer.getLegendHit(
+          e._offset.offsetX,
+          e._offset.offsetY,
+        );
+        if (legendHit) {
+          self.controller.objectsManager.detachScript(legendHit.scriptId);
+          self.controller.rerender();
+          return;
+        }
+      }
+
       self.currentMode.onMouseDown(e);
       self.controller.renderOverlay();
     }
@@ -2243,6 +2256,13 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           this.interactor.currentPanel,
           this.interactor.fusion.getSeriesManager()
         );
+      }
+    } else if (
+      !this.interactor.currentHitObject &&
+      this.interactor.controller.renderer.getLegendHit(eo.offsetX, eo.offsetY)
+    ) {
+      if (this.interactor.chart.style.cursor != this.cursorOverObject) {
+        this.interactor.chart.style.cursor = this.cursorOverObject;
       }
     } else if (this.interactor.chart.style.cursor != this.cursor) {
       this.interactor.chart.style.cursor = this.cursor;

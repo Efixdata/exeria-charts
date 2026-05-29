@@ -21,8 +21,8 @@ type ChartThemePreviewProps = {
   chartColorsByVariant: VariantPalette<ChartColorKey>;
   uiColorsByVariant: VariantPalette<UiColorKey>;
   themeVariant: ThemeVariant;
-  sceneKey: string;
-  chartUiLayoutKey?: string;
+  /** When this key changes, `onChartReady` runs again on the existing chart instance. */
+  sceneApplyKey?: string | null;
   onChartReady?: ChartSceneAction;
   minHeight?: number;
   className?: string;
@@ -32,13 +32,13 @@ export default function ChartThemePreview({
   chartColorsByVariant,
   uiColorsByVariant,
   themeVariant,
-  sceneKey,
-  chartUiLayoutKey,
+  sceneApplyKey,
   onChartReady,
   minHeight = 520,
   className,
 }: ChartThemePreviewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<ChartInstance | null>(null);
   const onChartReadyRef = useRef(onChartReady);
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -55,9 +55,9 @@ export default function ChartThemePreview({
     [chartColorsByVariant, uiColorsByVariant],
   );
   const activeUiTheme = uiThemes[themeVariant];
-  const previewThemeKey = useMemo(
-    () => JSON.stringify({ runtimeTheme, themeVariant, sceneKey }),
-    [runtimeTheme, themeVariant, sceneKey],
+  const themeUpdateKey = useMemo(
+    () => JSON.stringify({ runtimeTheme, themeVariant }),
+    [runtimeTheme, themeVariant],
   );
 
   useEffect(() => {
@@ -98,6 +98,7 @@ export default function ChartThemePreview({
 
       setPreviewError(null);
       setChart(null);
+      chartRef.current = null;
 
       const chartModule = await import("@efixdata/exeria-chart");
       if (disposed) {
@@ -125,6 +126,7 @@ export default function ChartThemePreview({
           return;
         }
 
+        chartRef.current = chartInstance;
         setChart(chartInstance);
       } catch (error) {
         chartInstance.destroy();
@@ -145,8 +147,31 @@ export default function ChartThemePreview({
         currentChart?.destroy();
         return null;
       });
+      chartRef.current = null;
     };
-  }, [previewThemeKey, ChartUIComponent]);
+  }, [ChartUIComponent]);
+
+  useEffect(() => {
+    const chartInstance = chartRef.current;
+    if (!chartInstance) {
+      return;
+    }
+
+    chartInstance.applyChartTheme(runtimeTheme, themeVariant);
+  }, [themeUpdateKey, chart]);
+
+  useEffect(() => {
+    if (!sceneApplyKey) {
+      return;
+    }
+
+    const chartInstance = chartRef.current;
+    if (!chartInstance || !onChartReadyRef.current) {
+      return;
+    }
+
+    void onChartReadyRef.current(chartInstance);
+  }, [sceneApplyKey]);
 
   const ChartUIPreview = ChartUIComponent;
   const isChartLoading = chartUiLoading || (!!ChartUIPreview && !chart && !previewError);
@@ -163,7 +188,7 @@ export default function ChartThemePreview({
       loadingLabel="Loading chart preview…"
     >
       {ChartUIPreview ? (
-        <ChartUIPreview key={chartUiLayoutKey ?? themeVariant} chart={chart} theme={activeUiTheme}>
+        <ChartUIPreview chart={chart} theme={activeUiTheme}>
           <div ref={containerRef} className={docChartEmbedStyles.canvas} />
         </ChartUIPreview>
       ) : (

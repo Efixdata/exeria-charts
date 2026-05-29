@@ -412,7 +412,7 @@ export function applyChartAppearanceSettings(
   patch("handlerColor", handlerColor);
   patch("legendLabelColor", mutedText);
   patch("legendValueColor", primaryText);
-  patch("legendLineBackground", isLight ? "rgba(255, 255, 255, 0.92)" : "rgba(10, 39, 56, 0.7)");
+  patch("legendLineBackground", "transparent");
 
   WEBRCP.utils.colorManager.setTheme(theme!, variant);
 
@@ -439,6 +439,29 @@ export function applyChartAppearanceSettings(
 
   chart.rerender();
   return theme!;
+}
+
+export function applyChartTheme(
+  chart: ChartSettingsHost,
+  theme: ChartTheme,
+  variant?: string,
+): ChartTheme {
+  const resolvedVariant =
+    variant === "light" || variant === "dark"
+      ? variant
+      : WEBRCP.utils.colorManager.variant;
+
+  WEBRCP.utils.colorManager.setTheme(theme, resolvedVariant);
+
+  const mainSeries = getMainSeriesObject(chart);
+  if (mainSeries) {
+    const stroke = WEBRCP.utils.colorManager.getColor("chartStroke", "chartLine");
+    mainSeries.color = stroke;
+    mainSeries.strokeStyle = stroke;
+  }
+
+  chart.rerender();
+  return theme;
 }
 
 export function getChartVolumeSettings(chart: ChartSettingsHost): ChartVolumeSettings {
