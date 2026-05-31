@@ -23,8 +23,9 @@ import tabStyles from "../../dialog/dialogTabs.module.css";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
 import {
   dialogCatalogBodyStyle,
-  dialogCatalogLayoutStyle,
+  getDialogCatalogLayoutStyle,
 } from "../../dialog/dialogLayout";
+import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
 
 export interface IndicatorDefinition {
   key: string;
@@ -55,6 +56,7 @@ const TAB_LABEL_KEYS: Record<ScriptCatalogTab, string> = {
 };
 
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
+  const { isCompact } = useChartEnvironment();
   const t = useChartTranslate(props.chart);
   const titleId = useId();
   const tabsId = useId();
@@ -221,7 +223,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
         ariaLabelledBy={titleId}
         style={{
           ...dialogThemeVars,
-          ...dialogCatalogLayoutStyle,
+          ...getDialogCatalogLayoutStyle(isCompact),
           ...props.style,
         }}
       >

@@ -50,9 +50,13 @@ const chartTheme = {
     crosshairInnerColor: { dark: blue },
     crosshairInnerTextColor: { dark: white },
 
-    tipBackground: { dark: blue },
-    tipTextColor: { dark: "rgba(255, 255, 255, 0.8)" },
-    tipUnderline: { dark: "rgba(255, 255, 255, 0.1)" },
+    tipBackground: { dark: blue, light: "#F7F9FC" },
+    tipTextColor: { dark: "rgba(255, 255, 255, 0.92)", light: "#131722" },
+    tipTitleColor: { dark: "#FFFFFF", light: "#131722" },
+    tipLabelColor: { dark: "rgba(255, 255, 255, 0.72)", light: "rgba(19, 23, 34, 0.62)" },
+    tipUnderline: { dark: "rgba(255, 255, 255, 0.12)", light: "rgba(19, 23, 34, 0.12)" },
+    tipBorder: { dark: "rgba(127, 157, 204, 0.35)", light: "rgba(19, 23, 34, 0.14)" },
+    tipShadow: { dark: "rgba(0, 0, 0, 0.38)", light: "rgba(19, 23, 34, 0.14)" },
 
     indicatorMarker: { dark: "yellow" },
     hitColor: { dark: "rgba(255, 255, 255, 0.7)" },

@@ -307,7 +307,7 @@ export interface ChartInstance {
   getScripts(): Record<string, ScriptDefinition>;
   getChartPanels(): Array<{ id: string; label: string; main?: boolean }>;
   getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null;
-  addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  addScript(scriptKey: string, proto?: ScriptDefinition): void | Promise<void>;
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
@@ -317,6 +317,8 @@ export interface ChartInstance {
   getChartIndicatorSettings(): import("./chartSettings").ChartIndicatorSettingsItem[];
   setChartIndicatorVisibility(scriptId: string | number, visible: boolean): void;
   setChartIndicatorPriceTagVisibility(scriptId: string | number, visible: boolean): void;
+  getChartIndicatorLocked(scriptId: string | number): boolean;
+  setChartIndicatorLocked(scriptId: string | number, locked: boolean): void;
   removeChartIndicator(scriptId: string | number): void;
   getChartFunctionSettings(): import("./chartSettings").ChartFunctionSettingsItem[];
   setChartFunctionVisibility(scriptId: string | number, visible: boolean): void;

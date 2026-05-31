@@ -682,15 +682,14 @@ export class Shape {
     for (const candle of candles) {
       for (const key in candle) {
         if (!this.allowedStickyKeys[key]) continue;
-        const candlePoint =
-          renderer.getYCoordinateForPrice(candle[key], {
-            panelHeight: panel._height,
-            minValue: panel.vMin,
-            maxValue: panel.vMax,
-            valueAxisMode: panel.valueAxisMode,
-            fV: referenceValue,
-          }) + panel._offset;
-        const difference = Math.abs(candlePoint - point);
+        const candleY = renderer.getYCoordinateForPrice(candle[key], {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+          fV: referenceValue,
+        });
+        const difference = Math.abs(candleY - point);
         if (difference < minDifference) {
           minDifference = difference;
           closestValue = candle[key];

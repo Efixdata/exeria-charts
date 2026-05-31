@@ -12,7 +12,7 @@ import {
   CheckboxInput,
   Form,
 } from "ui";
-import { X } from "phosphor-react";
+import { Eye, EyeSlash, Lock, LockOpen, X } from "phosphor-react";
 import { ThemeContext } from "styled-components";
 import type { NullableChartInstance } from "../../../chartTypes";
 import {
@@ -38,6 +38,7 @@ import layoutStyles from "../../dialog/dialogLayout.module.css";
 import { DialogSection, dialogSectionStyles } from "../../dialog/DialogSection";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import { getIndicatorDialogCssVars } from "../../../utils/dialogThemeVars";
+import chartSettingsStyles from "../ChartSettings/chartSettings.module.css";
 
 interface IndicatorInput {
   type: string;
@@ -101,11 +102,79 @@ const STRATEGY_PLOTTER_TYPES = new Set([
   "FractalsObject",
 ]);
 
+const LayerIconToggle = (props: {
+  active: boolean;
+  label: string;
+  onChange: (next: boolean) => void;
+  activeIcon: React.ReactNode;
+  inactiveIcon: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    aria-label={props.label}
+    onClick={() => props.onChange(!props.active)}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 32,
+      height: 32,
+      padding: 0,
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      color: "inherit",
+    }}
+  >
+    {props.active ? props.activeIcon : props.inactiveIcon}
+  </button>
+);
+
 const DEFAULT_STRATEGY_BUY_COLOR = "#3CC3AF";
 const DEFAULT_STRATEGY_SELL_COLOR = "#CE3E5B";
 
 const isStrategyPlotter = (plotter: IndicatorPlotter) =>
   plotter.type != null && STRATEGY_PLOTTER_TYPES.has(String(plotter.type));
+
+type ScriptCatalogType = "indicators" | "functions" | "strategies";
+
+const resolveScriptCatalogType = (
+  chart: NullableChartInstance,
+  indicator: IndicatorConfig,
+): ScriptCatalogType => {
+  const catalogType = chart?.getScripts?.()?.[indicator.key]?.type;
+  if (catalogType === "functions" || catalogType === "strategies") {
+    return catalogType;
+  }
+
+  return "indicators";
+};
+
+const findScriptIdByKey = (
+  chart: NullableChartInstance,
+  scriptKey: string,
+): string | number | null => {
+  if (!chart) {
+    return null;
+  }
+
+  const collections = [
+    chart.getChartIndicatorSettings?.() ?? [],
+    chart.getChartFunctionSettings?.() ?? [],
+    chart.getChartStrategySettings?.() ?? [],
+  ];
+
+  for (const collection of collections) {
+    for (let index = collection.length - 1; index >= 0; index -= 1) {
+      const entry = collection[index];
+      if (entry?.key === scriptKey && entry.scriptId != null) {
+        return entry.scriptId;
+      }
+    }
+  }
+
+  return null;
+};
 
 const getFirstSeriesReference = (seriesManager: Record<string, any> | null | undefined) => {
   if (!seriesManager) {
@@ -243,13 +312,36 @@ const buildPlotterColors = (plotters: IndicatorPlotter[]) => {
   return plotterColors;
 };
 
-const buildAddScriptPayload = (config: IndicatorConfig) => {
+type LayerSettingsPayload = {
+  visible: boolean;
+  priceTagVisible: boolean;
+};
+
+const applyLayerSettingsToPlotters = (
+  plotters: IndicatorPlotter[],
+  layerSettings: LayerSettingsPayload,
+) => {
+  for (const plotter of plotters) {
+    plotter.priceTag = layerSettings.priceTagVisible;
+    plotter.priceLine = layerSettings.priceTagVisible;
+  }
+};
+
+const buildAddScriptPayload = (
+  config: IndicatorConfig,
+  layerSettings?: LayerSettingsPayload,
+) => {
   const plotters = clonePlotters(config.plotters);
+
+  if (layerSettings) {
+    applyLayerSettingsToPlotters(plotters, layerSettings);
+  }
 
   return {
     key: config.key,
     pane: config.pane,
     newPane: config.pane === "new" || config.newPane === true,
+    visible: layerSettings?.visible ?? true,
     inputs: JSON.parse(JSON.stringify(config.inputs || {})),
     plotters,
     plotterColors: buildPlotterColors(plotters),
@@ -416,9 +508,62 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
   const [config, setConfig] = useState<IndicatorConfig>(buildInitialConfig);
 
+  const scriptType = resolveScriptCatalogType(props.chart, config);
+
+  const readLayerSettings = (indicatorConfig: IndicatorConfig) => {
+    const defaults = { visible: true, priceTagVisible: false, locked: false };
+
+    if (!props.chart || indicatorConfig.id == null) {
+      return defaults;
+    }
+
+    const scriptId = indicatorConfig.id;
+    const type = resolveScriptCatalogType(props.chart, indicatorConfig);
+
+    if (type === "functions") {
+      const item = props.chart
+        .getChartFunctionSettings?.()
+        ?.find((entry) => entry.scriptId === scriptId);
+
+      return {
+        visible: item?.visible ?? true,
+        priceTagVisible: item?.priceTagVisible ?? false,
+        locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+      };
+    }
+
+    if (type === "strategies") {
+      const item = props.chart
+        .getChartStrategySettings?.()
+        ?.find((entry) => entry.scriptId === scriptId);
+
+      return {
+        visible: item?.visible ?? true,
+        priceTagVisible: false,
+        locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+      };
+    }
+
+    const item = props.chart
+      .getChartIndicatorSettings?.()
+      ?.find((entry) => entry.scriptId === scriptId);
+
+    return {
+      visible: item?.visible ?? true,
+      priceTagVisible: item?.priceTagVisible ?? false,
+      locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+    };
+  };
+
+  const [layerSettings, setLayerSettings] = useState(() =>
+    readLayerSettings(buildInitialConfig()),
+  );
+
   useEffect(() => {
-    setConfig(buildInitialConfig());
-  }, [props.indicator, props.chart]);
+    const nextConfig = buildInitialConfig();
+    setConfig(nextConfig);
+    setLayerSettings(readLayerSettings(nextConfig));
+  }, [props.indicator, props.chart, props.indicator.key, props.indicator.id]);
 
   // styled-components in this workspace pulls a mismatched React context type
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -814,6 +959,137 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     );
   };
 
+  const applyLayerSettingsToChart = (
+    scriptId: string | number,
+    settings: { visible: boolean; priceTagVisible: boolean; locked: boolean },
+    type: ScriptCatalogType = scriptType,
+  ) => {
+    if (!props.chart) {
+      return;
+    }
+
+    if (type === "functions") {
+      props.chart.setChartFunctionVisibility?.(scriptId, settings.visible);
+      props.chart.setChartFunctionPriceTagVisibility?.(scriptId, settings.priceTagVisible);
+    } else if (type === "strategies") {
+      props.chart.setChartStrategyVisibility?.(scriptId, settings.visible);
+    } else {
+      props.chart.setChartIndicatorVisibility?.(scriptId, settings.visible);
+      props.chart.setChartIndicatorPriceTagVisibility?.(scriptId, settings.priceTagVisible);
+    }
+
+    props.chart.setChartIndicatorLocked?.(scriptId, settings.locked);
+  };
+
+  const renderLayerControls = () => {
+    const supportsScale = scriptType !== "strategies";
+    const scriptId = config.id;
+
+    const setVisible = (visible: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, visible };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    const setPriceTagVisible = (priceTagVisible: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, priceTagVisible };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    const setLocked = (locked: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, locked };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    return (
+      <DialogSection
+        title={t("indicator_settings_visibility_lock", "Visibility, scale and lock")}
+      >
+        <div className={dialogSectionStyles.fieldStack}>
+          <div className={chartSettingsStyles.toggleRow}>
+            <div>
+              <span className={chartSettingsStyles.toggleLabel}>
+                {t("drawing_settings_show_on_chart", "Show on chart")}
+              </span>
+              <span className={chartSettingsStyles.toggleHint}>
+                {t("drawing_settings_show_hint", "Hide without deleting the drawing")}
+              </span>
+            </div>
+            <LayerIconToggle
+              active={layerSettings.visible}
+              label={
+                layerSettings.visible
+                  ? t("drawing_settings_hide_drawing", "Hide drawing")
+                  : t("drawing_settings_show_drawing", "Show drawing")
+              }
+              onChange={setVisible}
+              activeIcon={<Eye size={18} weight="regular" />}
+              inactiveIcon={<EyeSlash size={18} weight="regular" />}
+            />
+          </div>
+          {supportsScale ? (
+            <div className={chartSettingsStyles.toggleRow}>
+              <div>
+                <span className={chartSettingsStyles.toggleLabel}>
+                  {t("layers_col_scale", "Scale")}
+                </span>
+                <span className={chartSettingsStyles.toggleHint}>
+                  {t("layers_hint_scale", "Show price label on the value axis")}
+                </span>
+              </div>
+              <LayerIconToggle
+                active={layerSettings.priceTagVisible}
+                label={
+                  layerSettings.priceTagVisible
+                    ? t("drawing_settings_hide_drawing", "Hide drawing")
+                    : t("drawing_settings_show_drawing", "Show drawing")
+                }
+                onChange={setPriceTagVisible}
+                activeIcon={<Eye size={18} weight="regular" />}
+                inactiveIcon={<EyeSlash size={18} weight="regular" />}
+              />
+            </div>
+          ) : null}
+          <div className={chartSettingsStyles.toggleRow}>
+            <div>
+              <span className={chartSettingsStyles.toggleLabel}>
+                {t("drawing_settings_lock_position", "Lock position")}
+              </span>
+              <span className={chartSettingsStyles.toggleHint}>
+                {t("indicator_settings_lock_hint", "Prevent opening indicator settings from the chart")}
+              </span>
+            </div>
+            <LayerIconToggle
+              active={layerSettings.locked}
+              label={
+                layerSettings.locked
+                  ? t("drawing_settings_unlock_drawing", "Unlock drawing")
+                  : t("drawing_settings_lock_drawing", "Lock drawing")
+              }
+              onChange={setLocked}
+              activeIcon={<Lock size={18} weight="regular" />}
+              inactiveIcon={<LockOpen size={18} weight="regular" />}
+            />
+          </div>
+        </div>
+      </DialogSection>
+    );
+  };
+
   const renderDialogBody = () => {
     const parameterInputs = renderParameterInputs();
     const hasParameters = parameterInputs.length > 0;
@@ -821,7 +1097,6 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       linePlotterEntries.length > 0 || strategyPlotterEntries.length > 0;
     const hasPanelSelector = props.chart != null && buildPanelOptions(props.chart, translate).length > 0;
     const showAppearanceSection = hasAppearanceFields || hasPanelSelector;
-
     return (
       <div className={dialogSectionStyles.formColumn}>
         <Form
@@ -853,6 +1128,8 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
               {renderPanelSelector()}
             </DialogSection>
           ) : null}
+
+          {renderLayerControls()}
         </Form>
       </div>
     );
@@ -906,7 +1183,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     return true;
   };
 
-  const onIndicatorAdd = () => {
+  const onIndicatorAdd = async () => {
     const seriesOptions = buildSeriesOptions();
     const normalizedConfig: IndicatorConfig = {
       ...config,
@@ -932,12 +1209,17 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
     if (!props.chart) return;
 
-    const payload = buildAddScriptPayload(normalizedConfig) as any;
+    const payload = buildAddScriptPayload(normalizedConfig, layerSettings) as any;
 
     if (config.id != null && props.chart.updateIndicator) {
       props.chart.updateIndicator(config.id, payload);
+      applyLayerSettingsToChart(config.id, layerSettings);
     } else {
-      props.chart.addScript(config.key, payload);
+      await Promise.resolve(props.chart.addScript(config.key, payload));
+      const newScriptId = findScriptIdByKey(props.chart, config.key);
+      if (newScriptId != null) {
+        applyLayerSettingsToChart(newScriptId, layerSettings);
+      }
     }
 
     props.onClose();

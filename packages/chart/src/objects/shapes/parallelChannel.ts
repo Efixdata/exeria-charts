@@ -12,6 +12,7 @@ import {
   drawAnchors,
 } from "../../utils/objects-lib";
 import { Shape, resolveToolRenderContext } from "../../objectRuntimeBases";
+import { resolveShapeOpacity } from "../../shapeStyle";
 import {
   createShapeAnchorOverlayDelegate,
   createShapeMouseDownDelegate,
@@ -53,23 +54,26 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
 
     o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
 
+    const opacity = resolveShapeOpacity(o);
+    const fillColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
+
     ctx.beginPath();
-    ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
-    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = fillColor;
+    ctx.globalAlpha = opacity * 0.2;
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
     ctx.lineTo(p4.x, p4.y);
     ctx.lineTo(p3.x, p3.y);
     ctx.lineTo(p1.x, p1.y);
     if (o.fillBg == true) ctx.fill();
-    ctx.globalAlpha = 1;
-    // }
+    ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
     ctx.moveTo(p3.x, p3.y);
     ctx.lineTo(p4.x, p4.y);
     ctx.stroke();
+    ctx.globalAlpha = 1;
   };
 
   this.renderOverlay = createShapeAnchorOverlayDelegate({ redrawAnchorsWhenSelected: true });

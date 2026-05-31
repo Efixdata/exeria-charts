@@ -373,10 +373,18 @@ function BrushObject(this: ShapeRuntime) {
   this.mouseOut = createShapeMouseOutDelegate("mouseOutKeepHits");
 
   this.stageDown = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
-    o.anchors = [createAnchorFromEvent(this, e, o, renderer, interactor, model, panel, seriesManager)];
+    const anchor = createAnchorFromEvent(this, e, o, renderer, interactor, model, panel, seriesManager);
+
+    if (!interactor.currentAnchor) {
+      o.anchors = [anchor];
+    } else {
+      appendBrushSample(this, o, anchor, renderer, panel, model, seriesManager);
+    }
+
+    const selected = interactor.currentAnchor?.selected ?? 0;
 
     return {
-      selected: 1,
+      selected: selected + 1,
       anchors: this.cloneAnchors(o.anchors),
     };
   };
@@ -405,28 +413,36 @@ function BrushObject(this: ShapeRuntime) {
   };
 
   this.stageUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
-    if (!interactor.currentAnchor?.drag) {
-      return false;
+    const endAnchor = createAnchorFromEvent(this, e, o, renderer, interactor, model, panel, seriesManager);
+
+    if (interactor.currentAnchor?.drag) {
+      if (o.anchors.length < 2) {
+        appendBrushSample(this, o, endAnchor, renderer, panel, model, seriesManager);
+      }
+
+      if (o.anchors.length < 2) {
+        return false;
+      }
+
+      interactor.currentAnchor = null;
+      return true;
     }
 
-    if (o.anchors.length < 2) {
-      appendBrushSample(
-        this,
-        o,
-        createAnchorFromEvent(this, e, o, renderer, interactor, model, panel, seriesManager),
-        renderer,
-        panel,
-        model,
-        seriesManager,
-      );
+    // Click–click: first release keeps drawing; second release saves the stroke.
+    if ((interactor.currentAnchor?.selected ?? 0) >= 2) {
+      if (o.anchors.length < 2) {
+        appendBrushSample(this, o, endAnchor, renderer, panel, model, seriesManager);
+      }
+
+      if (o.anchors.length < 2) {
+        return false;
+      }
+
+      interactor.currentAnchor = null;
+      return true;
     }
 
-    if (o.anchors.length < 2) {
-      return false;
-    }
-
-    interactor.currentAnchor = null;
-    return true;
+    return false;
   };
 
   this.stageOut = function () {};

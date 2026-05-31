@@ -136,6 +136,8 @@ const ChartArea = styled.div`
 
 interface ChartUIState {
   uiThemeOverride: Partial<ChartUITheme> | null;
+  /** Bumped when UI chrome theme changes so toolbars re-bind styled-component tokens. */
+  uiThemeRevision: number;
   isCompact: boolean;
   drawingToolsVisible: boolean;
   isFullscreen: boolean;
@@ -178,9 +180,12 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
     }));
   };
 
-  applyUiTheme = (patch: Partial<ChartUITheme>) => {
+  applyUiTheme = (patch: Partial<ChartUITheme>, options?: { replace?: boolean }) => {
     this.setState((prev) => ({
-      uiThemeOverride: mergeChartUiTheme(prev.uiThemeOverride ?? {}, patch) ?? patch,
+      uiThemeOverride: options?.replace
+        ? patch
+        : mergeChartUiTheme(prev.uiThemeOverride ?? {}, patch) ?? patch,
+      uiThemeRevision: prev.uiThemeRevision + 1,
     }));
   };
 
@@ -304,12 +309,15 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
               <ContainerOffsetContext.Provider value={this.containerOffset}>
                 <WrapperInner className="wrapperInner">
                   {useCompactDrawingRail ? (
-                    <LeftMenuOverlay>
+                    <LeftMenuOverlay key={`left-menu-${this.state.uiThemeRevision}`}>
                       <LeftMenu chart={this.props.chart} />
                     </LeftMenuOverlay>
                   ) : null}
                   {!isCompact && drawingToolsVisible ? (
-                    <LeftMenuColumn style={{ marginRight: gap }}>
+                    <LeftMenuColumn
+                      key={`left-menu-${this.state.uiThemeRevision}`}
+                      style={{ marginRight: gap }}
+                    >
                       <LeftMenu chart={this.props.chart} />
                     </LeftMenuColumn>
                   ) : null}

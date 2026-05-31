@@ -134,6 +134,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.currentSelectedObject = null;
   this.valueAxisClicked = false;
   this.currentStagingObject = null;
+  this.suppressDrawingEditDoubleClick = false;
   this.model = model;
   this.renderer = renderer;
   this.isObjectSelectionAllowed = true;
@@ -964,6 +965,9 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseDown = function (e) {
+    if (self.initialMouseEvent && !self.isMouseDown) {
+      self.initialMouseEvent = null;
+    }
     if (self.initialMouseEvent) return;
     if (self.controller.isChartEmpty(self.chart)) return;
     if (e.preventDefault) e.preventDefault();
@@ -1037,11 +1041,13 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseLeftUp = function (e) {
-    if (e.which === 2) {
-      // left mouse key
-      e.preventDefault();
-      self.onMouseUp(e);
+    const isRightButton = e.which === 3 || e.button === 2;
+    if (isRightButton) {
+      return;
     }
+
+    e.preventDefault();
+    self.onMouseUp(e);
   };
 
   this.onTouchDoubleTap = function (evt: {
@@ -1094,6 +1100,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (self.currentMode.symbol === "STAGING") {
       const staging = self.currentStagingObject;
       if (staging?.type === "mLine" && Array.isArray(staging.anchors) && staging.anchors.length >= 2) {
+        self.suppressDrawingEditDoubleClick = true;
         self.completeStagingDrawing();
         e.preventDefault();
         e.stopPropagation();
@@ -1102,6 +1109,13 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     if (self.currentMode.symbol !== "DEFAULT") return;
+
+    if (self.suppressDrawingEditDoubleClick) {
+      self.suppressDrawingEditDoubleClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
 
     const hitObject = self.getCurrentHitObject(eo.offsetX, eo.offsetY);
 
@@ -1139,6 +1153,10 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     const modelScript = self.controller.objectsManager.getScriptModelById(scriptController.id);
+    if (modelScript?.locked === true) {
+      return;
+    }
+
     const scriptKey = modelScript?.key;
     if (typeof scriptKey !== "string" || scriptKey === "VOLUME") {
       return;
@@ -1159,16 +1177,28 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onBodyMouseUp = function (evt) {
-    if (evt.which !== 2) {
-      var eventElement = evt.toElement || evt.target || evt.target;
-
-      // TODO: check if following code works properly
-      if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
-      self.onMouseUp(evt);
+    if (evt.which === 3 || evt.button === 2) {
+      return;
     }
+
+    const eventElement = evt.target as Element | null;
+    if (
+      eventElement?.closest?.(".webrcp-chart-tools, .chart-watermark")
+    ) {
+      return;
+    }
+
+    self.onMouseUp(evt);
   };
 
   this.onMouseUp = function (e, evt) {
+    const isStagingPlacement =
+      self.currentMode.symbol === "STAGING" && self.currentStagingObject != null;
+
+    if (!self.isMouseDown && !isStagingPlacement) {
+      return;
+    }
+
     if (isTouchDevice()) {
       const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
       let resume = false;
@@ -1944,6 +1974,25 @@ var InteractionsController: CoreInteractorConstructor = function (
       return false;
     }
 
+    if (completed.type === "mLine" && completed.anchors.length >= 2) {
+      const last = completed.anchors[completed.anchors.length - 1];
+      const previous = completed.anchors[completed.anchors.length - 2];
+      const panelPrecision =
+        typeof this.currentPanel?.precision === "number" ? this.currentPanel.precision : 4;
+      const epsilon = Math.pow(10, -panelPrecision);
+
+      if (
+        last._index === previous._index &&
+        Math.abs(last.value - previous.value) <= epsilon
+      ) {
+        completed.anchors.pop();
+      }
+    }
+
+    if (completed.anchors.length < 2) {
+      return false;
+    }
+
     delete completed._isStaging;
     completed.hidden = false;
 
@@ -1964,6 +2013,10 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     const finishCallback = (this.currentMode as { onFinished?: () => void }).onFinished;
+
+    if (completed.type === "mLine") {
+      this.suppressDrawingEditDoubleClick = true;
+    }
 
     this.currentStagingObject = null;
     this.currentAnchor = null;
@@ -2601,6 +2654,48 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
   };
 
+  function fillRoundedTooltipRect(
+    ctx: CanvasRenderingContext2D,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    radius: number,
+  ) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(left, top, width, height, r);
+      return;
+    }
+
+    ctx.moveTo(left + r, top);
+    ctx.lineTo(left + width - r, top);
+    ctx.quadraticCurveTo(left + width, top, left + width, top + r);
+    ctx.lineTo(left + width, top + height - r);
+    ctx.quadraticCurveTo(left + width, top + height, left + width - r, top + height);
+    ctx.lineTo(left + r, top + height);
+    ctx.quadraticCurveTo(left, top + height, left, top + height - r);
+    ctx.lineTo(left, top + r);
+    ctx.quadraticCurveTo(left, top, left + r, top);
+    ctx.closePath();
+  }
+
+  function strokeTooltipDivider(
+    ctx: CanvasRenderingContext2D,
+    startX: number,
+    y: number,
+    endX: number,
+    color: string,
+  ) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.moveTo(startX, y);
+    ctx.lineTo(endX, y);
+    ctx.stroke();
+  }
+
   function drawTip(
     tip: TooltipRenderData,
     x: number,
@@ -2687,40 +2782,53 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     //set valid position for new dimension
     calculateOffset(x, y, cfg, model);
 
-    var tipTextColor = WEBRCP.utils.colorManager.getColor("tipTextColor");
-    var tipUnderlineColor = WEBRCP.utils.colorManager.getColor("tipUnderline");
+    const colorManager = WEBRCP.utils.colorManager;
+    const tipBackground = colorManager.getColor("tipBackground");
+    const tipBorder = colorManager.getColor("tipBorder", colorManager.getColor("gridColor"));
+    const tipShadow = colorManager.getColor("tipShadow", "rgba(0, 0, 0, 0.35)");
+    const tipTitleColor = colorManager.getColor("tipTitleColor", colorManager.getColor("tipTextColor"));
+    const tipTextColor = colorManager.getColor("tipTextColor");
+    const tipLabelColor = colorManager.getColor("tipLabelColor", tipTextColor);
+    const tipUnderlineColor = colorManager.getColor("tipUnderline");
 
-    ctx.beginPath();
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("tipBackground"); //'#246FAF';
-    ctx.fillRect(x + cfg.offsetX, y + cfg.offsetY, cfg.width, cfg.height);
-    ctx.fillStyle = "white";
+    const boxX = x + cfg.offsetX;
+    const boxY = y + cfg.offsetY;
+
+    ctx.save();
+    ctx.shadowColor = tipShadow;
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 2;
+    fillRoundedTooltipRect(ctx, boxX, boxY, cfg.width, cfg.height, 6);
+    ctx.fillStyle = tipBackground;
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = tipBorder;
     ctx.lineWidth = 1;
-    ctx.strokeStyle = tipTextColor;
+    ctx.stroke();
+    ctx.restore();
 
-    var txtX = x + cfg.offsetX + cfg.margin;
-    var txtY = y + cfg.offsetY + cfg.margin + cfg.lineHeight;
+    let txtX = boxX + cfg.margin;
+    let txtY = boxY + cfg.margin + cfg.lineHeight;
+
+    ctx.font = colorManager.getFont("title");
+    ctx.fillStyle = tipTitleColor;
     ctx.fillText(tip.title, txtX, txtY);
+
+    ctx.font = colorManager.getFont("text");
     ctx.fillStyle = tipTextColor;
-    ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
     txtY += cfg.lineSpacing + cfg.lineHeight / 2;
-    ctx.moveTo(txtX, txtY);
-    ctx.strokeStyle = tipUnderlineColor;
-    ctx.lineTo(x + cfg.offsetX + cfg.width - cfg.margin, txtY);
-    ctx.stroke();
-    ctx.strokeStyle = tipTextColor;
+    strokeTooltipDivider(ctx, txtX, txtY, boxX + cfg.width - cfg.margin, tipUnderlineColor);
     txtY += cfg.lineSpacing + cfg.lineHeight;
     ctx.fillText(tip.date, txtX, txtY);
 
     txtY += cfg.lineSpacing + cfg.lineHeight / 2;
-    ctx.moveTo(txtX, txtY);
-    ctx.strokeStyle = tipUnderlineColor;
-    ctx.lineTo(x + cfg.offsetX + cfg.width - cfg.margin, txtY);
-    ctx.stroke();
-    ctx.strokeStyle = tipTextColor;
+    strokeTooltipDivider(ctx, txtX, txtY, boxX + cfg.width - cfg.margin, tipUnderlineColor);
 
     for (var i in tip.values) {
-      ctx.font = WEBRCP.utils.colorManager.getFont("text");
+      ctx.font = colorManager.getFont("text");
       txtY += cfg.lineSpacing + cfg.lineHeight;
 
       const rowValue = tip.values[i].value;
@@ -2729,10 +2837,12 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
         rowValue !== null && rowValue !== undefined && String(rowValue).length > 0;
 
       if (!hasInlineValue) {
+        ctx.fillStyle = tipLabelColor;
         ctx.fillText(String(rowLabel), txtX, txtY);
         continue;
       }
 
+      ctx.fillStyle = tipLabelColor;
       ctx.fillText(rowLabel + " : ", txtX, txtY);
       let zerosToReduce = controller.renderer.getPriceRenderingOptions().zerosToReduce;
       const precision = tip.values[i].precision;
@@ -2751,10 +2861,9 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           ctx,
           zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce,
         });
+      ctx.fillStyle = tipTextColor;
       renderPriceText({ text: v, ctx, x: valueX, y: txtY, zerosToReduce: zerosToReduce });
     }
-
-    ctx.closePath();
 
     function calculateOffset(x: number, y: number, cfg: TooltipLayout, model: CoreChartModel) {
       var dY = model._height - cfg.offsetBottomMargin - (y + cfg.offsetY + cfg.height);
@@ -3271,13 +3380,82 @@ function StageTool(
     this.interactor.setMode("DEFAULT");
   };
 
+  this.finalizeStagingPlacement = function (e) {
+    if (this.cancelled) return false;
+    if (!this.interactor.currentStagingObject) return false;
+    if (!this.tool?.stageUp) return false;
+
+    const isStageCompleted = this.tool.stageUp(
+      e,
+      this.interactor.currentStagingObject,
+      this.renderer,
+      this.interactor,
+      this.model,
+      this.interactor.currentPanel,
+      this.interactor.fusion.getSeriesManager(),
+    ) as boolean | void;
+
+    if (!isStageCompleted) return false;
+
+    const completed = this.interactor.currentStagingObject;
+    delete completed._isStaging;
+
+    const eventOffset = this.interactor.getEventOffset(e);
+    const targetPanel =
+      this.interactor.currentPanel ??
+      this.interactor.getPanel(eventOffset.offsetY) ??
+      this.interactor.getMainPanel();
+
+    if (!targetPanel) {
+      this.interactor.currentStagingObject = null;
+      this.currentStep = 0;
+      this.interactor.setMode("DEFAULT");
+      return false;
+    }
+
+    this.interactor.currentPanel = targetPanel;
+    targetPanel.objects.push(completed);
+
+    const completedRenderer = this.renderer.objects[completed.type];
+    if (completedRenderer?.push) {
+      completedRenderer.push(
+        completed,
+        this.renderer,
+        this.model,
+        this.interactor.fusion.getSeriesManager(),
+      );
+    }
+
+    if (completed.type === "mLine") {
+      this.interactor.suppressDrawingEditDoubleClick = true;
+    }
+
+    this.interactor.currentStagingObject = null;
+    this.currentAnchor = null;
+    this.currentStep = 0;
+    this.interactor.select(completed);
+    this.interactor.setMode("DEFAULT");
+    this.interactor.controller.onDrawingDone();
+
+    if (typeof this.onFinished === "function") {
+      this.onFinished();
+    }
+
+    this.interactor.controller.render();
+    this.interactor.controller.renderOverlay();
+    return true;
+  };
+
   this.onMouseDown = function (e) {
     if (this.cancelled) return;
     this.interactor.setObjectSelectionAllowed(true);
 
-    if (this.currentStep === 0) {
-      const eventOffset = this.interactor.getEventOffset(e).offsetY;
-      this.interactor.currentPanel = this.interactor.getPanel(eventOffset);
+    const eventOffset = this.interactor.getEventOffset(e);
+    const resolvedPanel =
+      this.interactor.getPanel(eventOffset.offsetY) ?? this.interactor.currentPanel;
+
+    if (resolvedPanel) {
+      this.interactor.currentPanel = resolvedPanel;
     }
 
     if (this.tool && this.tool.stageDown) {
@@ -3290,53 +3468,18 @@ function StageTool(
         this.interactor,
         this.model,
         this.interactor.currentPanel,
-        this.interactor.fusion.getSeriesManager()
+        this.interactor.fusion.getSeriesManager(),
       ) as CoreInteractor["currentAnchor"];
     }
   };
 
   this.onMouseUp = function (e) {
     if (this.cancelled) return;
+    if (!this.interactor.currentStagingObject) return;
 
     if (this.interactor.isRightMouseButton(e)) this.interactor.allowContextMenu = false;
 
-    if (this.tool && this.tool.stageUp) {
-      const isStageCompleted = this.tool.stageUp(
-        e,
-        this.interactor.currentStagingObject,
-        this.renderer,
-        this.interactor,
-        this.model,
-        this.interactor.currentPanel,
-        this.interactor.fusion.getSeriesManager()
-      ) as boolean | void;
-
-      if (isStageCompleted) {
-        const completed = this.interactor.currentStagingObject;
-        delete completed._isStaging;
-        this.interactor.currentPanel.objects.push(completed);
-
-        const completedRenderer = this.renderer.objects[completed.type];
-        if (completedRenderer?.push) {
-          completedRenderer.push(
-            completed,
-            this.renderer,
-            this.model,
-            this.interactor.fusion.getSeriesManager(),
-          );
-        }
-
-        this.interactor.currentStagingObject = null;
-        this.currentStep = 0;
-        this.interactor.select(completed);
-        this.interactor.setMode("DEFAULT");
-        this.interactor.controller.onDrawingDone();
-        if (onFinished) onFinished();
-      }
-    }
-
-    this.interactor.controller.render();
-    this.interactor.controller.renderOverlay();
+    this.finalizeStagingPlacement(e);
   };
 
   this.onMouseMove = function (e) {

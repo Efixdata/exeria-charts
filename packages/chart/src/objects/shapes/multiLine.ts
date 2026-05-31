@@ -200,6 +200,27 @@ function MultiLineObject(this: ShapeRuntime) {
     o.anchors[i].stamp = renderer.getIndexStamp(o.anchors[i]._index, model, seriesManager);
   };
 
+  const removeDuplicateTrailingAnchor = function (
+    o: ShapeLifecycleArgs[1],
+    panel: ShapeLifecycleArgs[5],
+  ) {
+    if (!Array.isArray(o.anchors) || o.anchors.length < 2) {
+      return;
+    }
+
+    const last = o.anchors[o.anchors.length - 1];
+    const previous = o.anchors[o.anchors.length - 2];
+    const precision = typeof panel?.precision === "number" ? panel.precision : 4;
+    const epsilon = Math.pow(10, -precision);
+
+    if (
+      last._index === previous._index &&
+      Math.abs(last.value - previous.value) <= epsilon
+    ) {
+      o.anchors.pop();
+    }
+  };
+
   this.stageUp = function (...[e, o, renderer, interactor, model, panel, seriesManager]: ShapeLifecycleArgs) {
     interactor.popPanel(this, o, panel);
 
@@ -213,6 +234,7 @@ function MultiLineObject(this: ShapeRuntime) {
     const isPrimaryClick = e.button == null || e.button === 0;
 
     if (e.detail >= 2) {
+      removeDuplicateTrailingAnchor(o, panel);
       o.hidden = false;
       interactor.currentAnchor = null;
       return true;

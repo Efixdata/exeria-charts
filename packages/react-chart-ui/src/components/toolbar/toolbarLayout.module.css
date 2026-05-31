@@ -131,6 +131,7 @@
   --ui-toolbar-touch: 40px;
   --ui-toolbar-icon: 20px;
   --ui-left-menu-width: 44px;
+  --ui-split-chevron-hit: 20px;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;

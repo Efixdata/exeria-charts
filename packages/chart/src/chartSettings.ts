@@ -5,6 +5,7 @@ import { Shape } from "./Objects2";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import defaultTheme from "./themes/swipper";
+import { resolveChartTipThemeColors } from "./utils/chartThemeColors";
 import type { ChartTheme } from "./types";
 import type { CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
@@ -409,10 +410,28 @@ export function applyChartAppearanceSettings(
   patch("primaryTextColor", primaryText);
   patch("disabledTextColor", mutedText);
   patch("iconColor", settings.axisTextColor);
+  patch("defaultToolColor", settings.chartLineColor);
+  patch("defaultToolTextColor", settings.axisTextColor);
   patch("handlerColor", handlerColor);
   patch("legendLabelColor", mutedText);
   patch("legendValueColor", primaryText);
   patch("legendLineBackground", "transparent");
+
+  const tipColors = resolveChartTipThemeColors({
+    backgroundColor: settings.backgroundColor,
+    axisTextColor: settings.axisTextColor,
+    crosshairColor: settings.crosshairColor,
+    gridColor: settings.gridColor,
+    isLight,
+  });
+
+  patch("tipBackground", tipColors.tipBackground);
+  patch("tipTextColor", tipColors.tipTextColor);
+  patch("tipTitleColor", tipColors.tipTitleColor);
+  patch("tipLabelColor", tipColors.tipLabelColor);
+  patch("tipUnderline", tipColors.tipUnderline);
+  patch("tipBorder", tipColors.tipBorder);
+  patch("tipShadow", tipColors.tipShadow);
 
   WEBRCP.utils.colorManager.setTheme(theme!, variant);
 
@@ -673,6 +692,29 @@ export function setChartIndicatorPriceTagVisibility(
     plotter.priceLine = visible;
   }
 
+  chart.rerender();
+}
+
+export function getChartIndicatorLocked(
+  chart: ChartSettingsHost,
+  scriptId: string | number,
+): boolean {
+  const script = chart.model.scripts.find((entry) => entry.id === scriptId);
+  return script?.locked === true;
+}
+
+export function setChartIndicatorLocked(
+  chart: ChartSettingsHost,
+  scriptId: string | number,
+  locked: boolean,
+): void {
+  const script = chart.model.scripts.find((entry) => entry.id === scriptId);
+
+  if (!script || script.permHide) {
+    return;
+  }
+
+  script.locked = locked;
   chart.rerender();
 }
 

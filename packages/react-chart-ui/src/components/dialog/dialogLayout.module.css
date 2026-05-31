@@ -1,7 +1,8 @@
 .scrollArea {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
   padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
   display: flex;
   flex-direction: column;

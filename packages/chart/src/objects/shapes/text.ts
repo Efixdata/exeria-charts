@@ -15,6 +15,9 @@ import type {
 } from "./_sharedTypes";
 
 function TextObject(this: ShapeRuntime) {
+  this.push = function () {};
+  this.pop = function () {};
+
   this.cfg = {
     offsetX: 0,
     offsetY: 0,
@@ -34,7 +37,7 @@ function TextObject(this: ShapeRuntime) {
 
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
     if (!panel) return [];
-    if (!o.anchors[1].dragged) {
+    if (o.anchors[1].dragged) {
       var fV = LIB.getReferenceValue(o, model, seriesManager);
       var p0 = renderer.getYCoordinateForPrice(o.anchors[0].value, {
         panelHeight: panel._height,
@@ -73,13 +76,7 @@ function TextObject(this: ShapeRuntime) {
         fontSize: 12,
       };
 
-    o._width = cfg.widthMin;
-    o._height = cfg.heightMin;
-    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
     const text = o.text ?? "";
-
-    var x = pts[0].x;
-    var y = pts[0].y;
 
     const resolvedFontSize =
       typeof o.fontSize === "number" && o.fontSize > 0
@@ -101,6 +98,10 @@ function TextObject(this: ShapeRuntime) {
     var wrapped = wrap(text, cfg.widthMax - 2 * cfg.margin, ctx);
     o._width = wrapped.width + 2 * cfg.margin;
     o._height = wrapped.text.length * lineHeight + cfg.margin * 1.5;
+
+    var pts = this.getPoints(o, renderer, panel, model, seriesManager);
+    var x = pts[0].x;
+    var y = pts[0].y;
 
     if (o.fillBg) {
       ctx.beginPath();

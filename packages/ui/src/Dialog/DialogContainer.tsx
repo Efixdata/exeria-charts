@@ -13,7 +13,7 @@ const Container = styled.div`
   @media (min-width: 600px) {
     width: 600px;
     max-width: 90vw;
-    height: 600px;
+    height: auto;
     max-height: 90vh;
     border-radius: var(--ui-radius-md, 6px);
   }

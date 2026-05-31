@@ -4,22 +4,22 @@ import styled, { ThemeProvider, useTheme } from "styled-components";
 import { splitButton } from "../theme";
 import { UI_FONT_FAMILY } from "../theme";
 import { inputFocusVisibleStyles } from "../inputStyles";
+import { toolbarIconSvgStyles } from "./toolbarIconStyles";
 import { getOverlayPortalRoot } from "./device";
 import { Tooltip } from "./Tooltip";
 
 const Container = styled.div`
   position: relative;
-  display: inline-flex;
+  display: block;
   flex-shrink: 0;
   overflow: visible;
   width: var(--ui-toolbar-touch, ${splitButton.buttonSize}px);
   height: var(--ui-toolbar-touch, ${splitButton.buttonSize}px);
+  margin-inline: auto;
 `;
 
 const ButtonContainer = styled.div`
   position: relative;
-  display: grid;
-  grid-template-areas: "main";
   width: 100%;
   height: 100%;
   border-radius: ${splitButton.borderRadius}px;
@@ -38,9 +38,8 @@ const ButtonContainer = styled.div`
 `;
 
 const IconSlot = styled.div`
-  grid-area: main;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,32 +47,21 @@ const IconSlot = styled.div`
   z-index: 1;
   color: ${(props) => props.theme.toolbar.buttons.color};
 
-  ${Container}.active & {
+  ${Container}.pressed & {
     color: ${(props) => props.theme.toolbar.buttons.activeColor};
   }
 
-  svg {
-    width: var(--ui-toolbar-icon, 20px);
-    height: var(--ui-toolbar-icon, 20px);
-  }
-
-  path,
-  circle {
-    fill: currentColor;
-  }
-
-  path[fill="none"],
-  circle[fill="none"] {
-    fill: none;
-    stroke: currentColor;
-  }
+  ${toolbarIconSvgStyles}
 `;
 
 const MainHitAreaSlot = styled.span`
-  grid-area: main;
-  justify-self: start;
-  align-self: stretch;
-  width: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(
+    var(--ui-toolbar-touch, ${splitButton.buttonSize}px) - var(--ui-split-chevron-hit, 20px) +
+      (var(--ui-left-menu-width, ${splitButton.buttonSize}px) - var(--ui-toolbar-touch, ${splitButton.buttonSize}px)) / 2
+  );
   height: 100%;
   z-index: 2;
 
@@ -98,18 +86,19 @@ const MainHitArea = styled.button`
 `;
 
 const ChevronHitArea = styled.button`
-  grid-area: main;
-  align-self: stretch;
-  justify-self: end;
-  width: 50%;
+  position: absolute;
+  top: 0;
+  right: calc(
+    (var(--ui-toolbar-touch, ${splitButton.buttonSize}px) - var(--ui-left-menu-width, ${splitButton.buttonSize}px)) / 2
+  );
+  width: var(--ui-split-chevron-hit, 20px);
   height: 100%;
   margin: 0;
-  padding: 0 1px 4px 0;
+  padding: 0 0 4px 0;
   border: none;
   background: transparent;
   cursor: pointer;
   z-index: 3;
-  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -177,16 +166,7 @@ const OptionIcon = styled.span`
     height: ${splitButton.menuIconSize}px;
   }
 
-  path,
-  circle {
-    fill: currentColor;
-  }
-
-  path[fill="none"],
-  circle[fill="none"] {
-    fill: none;
-    stroke: currentColor;
-  }
+  ${toolbarIconSvgStyles}
 `;
 
 const OptionLabel = styled.span`
@@ -330,7 +310,7 @@ export const SplitButton = (props: SplitButtonProps) => {
 
   return (
     <Container
-      className={[isOpen ? "open" : undefined, props.activeOption ? "active" : undefined]
+      className={[isOpen ? "open" : undefined, props.pressed ? "pressed" : undefined]
         .filter(Boolean)
         .join(" ") || undefined}
       ref={myRef}
@@ -378,21 +358,16 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function onActiveOptionClick(callback: () => void): void {
+    if (isOpen) {
+      setOpen(false);
+    }
+
     if (props.activeOption && props.onMainClickWhileActive) {
       props.onMainClickWhileActive();
       return;
     }
 
-    if (isOpen) {
-      setOpen(false);
-      if (props.activeOption) {
-        onOptionClick.call(null, callback);
-      }
-    } else if (props.activeOption) {
-      setOpen(true);
-    } else {
-      onOptionClick.call(null, callback);
-    }
+    callback();
   }
 
   function renderOptions() {

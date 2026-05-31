@@ -28,6 +28,7 @@ import {
   setChartDrawingVisibility,
   setChartFunctionPriceTagVisibility,
   setChartFunctionVisibility,
+  setChartIndicatorLocked,
   setChartIndicatorPriceTagVisibility,
   setChartIndicatorVisibility,
   setChartStrategyVisibility,
@@ -200,6 +201,20 @@ export default class Chart implements CoreChartController {
     configureChartEnvironment({
       compactBreakpoint: options.layout?.breakpoints?.compact,
     });
+    this.model._priceAxisExpanded = !getChartEnvironment(this.layoutModeOverride).isCompact;
+  }
+
+  private syncPriceAxisRenderingOptions(): void {
+    const mainSeries = this.fusion?.getMainSeries?.();
+    if (!mainSeries?.data?.length) {
+      return;
+    }
+
+    this.renderer.calculatePriceRenderingOptions(
+      mainSeries.data,
+      this.model,
+      mainSeries.instrument?.precision ?? this.instrument?.precision ?? 0,
+    );
   }
 
   private syncContainerLocale(): void {
@@ -485,6 +500,7 @@ export default class Chart implements CoreChartController {
       this.model["_height"] = this.canvasHeight;
 
       applyResponsiveChartLayout(this.model, this.getChartEnvironment().layoutMode);
+      this.syncPriceAxisRenderingOptions();
 
       this.model["_timeAxisWidth"] =
         this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
@@ -855,8 +871,9 @@ export default class Chart implements CoreChartController {
 
   addScript(scriptKey: string): void;
   addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  addScript(scriptKey: string, proto?: ScriptDefinition): Promise<void>;
   addScript(scriptKey: string, proto?: ScriptDefinition) {
-    this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
+    return this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
   }
 
   private resolveScriptProto(scriptKey: string, proto?: ScriptDefinition): RuntimeScriptDefinition {
@@ -949,6 +966,14 @@ export default class Chart implements CoreChartController {
     if (fieldKey && plotterDashes?.[fieldKey]) {
       plotter.dash = [...plotterDashes[fieldKey]];
     }
+
+    if (typeof source?.priceTag === "boolean") {
+      plotter.priceTag = source.priceTag;
+    }
+
+    if (typeof source?.priceLine === "boolean") {
+      plotter.priceLine = source.priceLine;
+    }
   }
 
   private updateScriptPlotterStyles(config: RuntimeScriptConfig) {
@@ -995,6 +1020,8 @@ export default class Chart implements CoreChartController {
 
   createScriptConfig(scriptKey: string, proto?: ScriptDefinition) {
     const resolvedProto = this.resolveScriptProto(scriptKey, proto);
+    const protoVisible = (proto as { visible?: boolean } | undefined)?.visible;
+
     const scriptCfg: RuntimeScriptConfig = {
       id: undefined,
       inputs: {},
@@ -1002,7 +1029,7 @@ export default class Chart implements CoreChartController {
       key: scriptKey,
       pane: this.resolveScriptPane(scriptKey, resolvedProto, proto),
       userName: scriptKey,
-      visible: true,
+      visible: typeof protoVisible === "boolean" ? protoVisible : true,
     };
 
     const getDefaultSeries = (input: RuntimeScriptDefinition["inputs"][string]) => {
@@ -1694,6 +1721,15 @@ export default class Chart implements CoreChartController {
     setChartIndicatorPriceTagVisibility(this.getChartSettingsHost(), scriptId, visible);
   }
 
+  getChartIndicatorLocked(scriptId: string | number): boolean {
+    const script = this.model.scripts.find((entry) => entry.id === scriptId);
+    return script?.locked === true;
+  }
+
+  setChartIndicatorLocked(scriptId: string | number, locked: boolean): void {
+    setChartIndicatorLocked(this.getChartSettingsHost(), scriptId, locked);
+  }
+
   removeChartIndicator(scriptId: string | number): void {
     removeChartIndicator(this.getChartSettingsHost(), scriptId);
   }
@@ -1923,6 +1959,9 @@ export default class Chart implements CoreChartController {
       prev.isCompact !== next.isCompact;
 
     if (layoutChanged) {
+      if (prev && prev.isCompact !== next.isCompact) {
+        this.model._priceAxisExpanded = !next.isCompact;
+      }
       this.fit();
       if (this.ctx && this.renderer && this.model && this.fusion) {
         this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);

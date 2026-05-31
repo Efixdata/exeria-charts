@@ -1643,10 +1643,12 @@ const Renderer: CoreRendererConstructor = function (
         var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
         const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth;
         const axisInnerWidth = valueAxisWidth - model.valueAxisPadding * 2;
+        const axisExpanded = model._priceAxisExpanded === true;
+        const tagZerosToReduce = axisExpanded ? 0 : this.priceRenderingOptions.zerosToReduce;
         const labelWidth = measurePriceTextWidth({
           text: vs,
           ctx,
-          zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+          zerosToReduce: tagZerosToReduce,
         });
         const labelX =
           model._width -
@@ -1659,8 +1661,8 @@ const Renderer: CoreRendererConstructor = function (
           text: vs,
           ctx,
           x: labelX,
-          y: Math.round(y),
-          zerosToReduce: this.priceRenderingOptions.zerosToReduce,
+          y: Math.round(tagTop + tagHeight / 2),
+          zerosToReduce: tagZerosToReduce,
         });
         ctx.textBaseline = previousBaseline;
       }
@@ -2344,8 +2346,12 @@ const Renderer: CoreRendererConstructor = function (
 
     valueAxisWidth = maxLabelWidth + model.valueAxisPadding * 2;
 
-    if (compactAxis) {
+    if (compactAxis && !expanded) {
       valueAxisWidth = Math.min(valueAxisWidth, model.valueAxisWidth);
+    }
+
+    if (expanded) {
+      valueAxisWidth = Math.max(valueAxisWidth, maxLabelWidth + model.valueAxisPadding * 2);
     }
 
     this.priceRenderingOptions = {

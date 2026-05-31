@@ -6,6 +6,7 @@ import {
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
+import { resolveShapeOpacity } from "../../shapeStyle";
 import type { LegacyShapeObject } from "../../objectRuntimeBases";
 import {
   createShapeMouseDownDelegate,
@@ -24,19 +25,21 @@ var TriangleObject = function (this: ShapeRuntime) {
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.lineWidth = o.width;
     ctx.setLineDash(o.dash ? o.dash : []);
-    ctx.globalAlpha = 1;
+    const opacity = resolveShapeOpacity(o);
+    const fillColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.moveTo(pts[0].x, pts[0].y);
     ctx.lineTo(pts[1].x, pts[1].y);
     ctx.lineTo(pts[2].x, pts[2].y);
     ctx.lineTo(pts[0].x, pts[0].y);
     if (o.fillBg == true) {
-      ctx.globalAlpha = 0.2;
-      ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
+      ctx.globalAlpha = opacity * 0.2;
+      ctx.fillStyle = fillColor;
       ctx.fill();
     }
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = opacity;
     ctx.closePath();
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.closePath();
   };
 

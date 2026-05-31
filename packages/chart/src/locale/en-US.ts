@@ -924,6 +924,8 @@ const locale: Record<string, unknown> = {
   catalog_dialog_title: "Add Indicator To Chart",
   indicator_settings_parameters: "Parameters",
   indicator_settings_confirm: "OK",
+  indicator_settings_visibility_lock: "Visibility, scale and lock",
+  indicator_settings_lock_hint: "Prevent opening indicator settings from the chart",
   catalog_tab_indicator: "Indicator",
   catalog_tab_function: "Function",
   catalog_tab_strategy: "Strategy",

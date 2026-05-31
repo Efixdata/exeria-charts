@@ -29,7 +29,9 @@ import type { NullableChartInstance } from "../../../chartTypes";
 import { DialogSelect, type DialogSelectOption } from "../Indicators/DialogSelect";
 import { useChartUiSettings } from "../../../contexts/ChartUiSettingsContext";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
-import { CHART_SETTINGS_PRESETS } from "./chartSettingsPresets";
+import { CHART_SETTINGS_PRESETS, DEFAULT_CHART_UI_THEME } from "./chartSettingsPresets";
+import { mergeChartUiTheme } from "../../../utils/mergeChartUiTheme";
+import { deriveChartUiThemeFromAppearance } from "../../../utils/deriveChartUiThemeFromAppearance";
 import { ColorField } from "./ColorField";
 import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
 import { DialogSection } from "../../dialog/DialogSection";
@@ -254,6 +256,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     const next = { ...appearance, ...patch };
     setAppearance(next);
     chart.applyChartAppearanceSettings(next);
+    applyUiTheme?.(deriveChartUiThemeFromAppearance(next));
   };
 
   const applyVolume = (patch: Partial<ChartVolumeSettings>) => {
@@ -274,7 +277,9 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     }
 
     chart.importChartSettingsTemplate(preset.template);
-    applyUiTheme?.(preset.uiTheme);
+    applyUiTheme?.(mergeChartUiTheme(DEFAULT_CHART_UI_THEME, preset.uiTheme) ?? preset.uiTheme, {
+      replace: true,
+    });
     setActivePresetId(presetId);
     refreshFromChart();
   };

@@ -615,10 +615,57 @@ class ValueConverter implements AxisValueConverter {
   }
 }
 
+function getPanelPrimarySeriesField(
+  panel: { main?: boolean; objects?: ChartPanelObject[] },
+  seriesManager: SeriesManager,
+): { dataLink: string; dataField: string } | null {
+  if (panel.main === true || !Array.isArray(panel.objects)) {
+    return null;
+  }
+
+  for (const panelObject of panel.objects) {
+    const dataLink = panelObject.dataLink ? String(panelObject.dataLink) : "";
+    const dataField = panelObject.dataField ? String(panelObject.dataField) : "";
+
+    if (
+      (panelObject.type === "SeriesObject" || panelObject.type === "IndicatorObject") &&
+      dataLink &&
+      dataField &&
+      seriesManager[dataLink]?.data?.length
+    ) {
+      return { dataLink, dataField };
+    }
+  }
+
+  return null;
+}
+
+function getPanelReferenceValue(
+  panel: { main?: boolean; objects?: ChartPanelObject[] },
+  model: Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">,
+  seriesManager: SeriesManager,
+): number | null {
+  const primarySeries = getPanelPrimarySeriesField(panel, seriesManager);
+
+  if (!primarySeries) {
+    return null;
+  }
+
+  try {
+    return getFirstAvailableValue(
+      model,
+      seriesManager[primarySeries.dataLink].data as DataPoint[],
+      primarySeries.dataField,
+    );
+  } catch (_error) {
+    return null;
+  }
+}
+
 function getReferenceValue(
   o: ChartPanelObject,
   model: Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">,
-  seriesManager: SeriesManager
+  seriesManager: SeriesManager,
 ): number | null {
   let link = o.dataLink;
   let field = o.dataField;
@@ -857,6 +904,8 @@ const LIB = {
   _converterPerc: converterPerc,
   ValueConverter,
   getReferenceValue,
+  getPanelPrimarySeriesField,
+  getPanelReferenceValue,
   getFirstAvailableValue,
   synchronizeArraysByObjId,
   capitalizeFirstLetter,

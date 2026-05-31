@@ -36,6 +36,8 @@ export const UI_TOOLBAR = {
   iconGap: "8px",
   mobileBreakpoint: "600px",
   leftMenuWidth: "44px",
+  /** Chevron hit strip on split drawing-tool buttons (half of touch target). */
+  splitChevronHit: "20px",
 } as const;
 
 export function getUILayoutCssVars(): Record<string, string> {
@@ -62,6 +64,7 @@ export function getUILayoutCssVars(): Record<string, string> {
     "--ui-toolbar-group-gap": UI_TOOLBAR.groupGap,
     "--ui-toolbar-icon-gap": UI_TOOLBAR.iconGap,
     "--ui-left-menu-width": UI_TOOLBAR.leftMenuWidth,
+    "--ui-split-chevron-hit": UI_TOOLBAR.splitChevronHit,
     "--ui-mobile-breakpoint": `${UI_TOOLBAR.mobileBreakpoint}px`,
   };
 }

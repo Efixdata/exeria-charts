@@ -1,6 +1,7 @@
 import { Shape } from "./Objects2";
 import type { CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
+import LIB from "./utils/chartingCommons";
 
 export interface DrawingWorkflowHost {
   model: {
@@ -22,6 +23,71 @@ export function isDrawingSnapEnabled(
   interactor?: DrawingSnapInteractor | null,
 ): boolean {
   return object.sticky === true || interactor?.drawingMagnetEnabled === true;
+}
+
+export interface DrawingSnapShapeRuntime {
+  stickToCandleValue(
+    point: number,
+    candles: Record<string, unknown>[],
+    panel: Record<string, unknown>,
+    renderer: Record<string, unknown>,
+    referenceValue: unknown,
+  ): unknown;
+  getCurrentCandles(
+    index: number,
+    model: Record<string, unknown>,
+    seriesManager: Record<string, unknown>,
+  ): Record<string, unknown>[];
+}
+
+/** Same OHLC snap path as drawing tools when the magnet (or per-tool sticky) is active. */
+export function resolveMagnetAnchorValue(
+  shape: DrawingSnapShapeRuntime,
+  object: { sticky?: boolean },
+  interactor: DrawingSnapInteractor | null | undefined,
+  offsetX: number,
+  offsetY: number,
+  renderer: {
+    getPointIndex: (x: number, model: Record<string, unknown>) => number;
+    getPriceForYCoordinate: (y: number, options: Record<string, unknown>) => number;
+  },
+  model: Record<string, unknown>,
+  panel: {
+    _height: number;
+    _offset: number;
+    vMin: number;
+    vMax: number;
+    valueAxisMode: unknown;
+    main?: boolean;
+  },
+  seriesManager: Record<string, unknown>,
+): number {
+  const referenceValue = LIB.getReferenceValue(object, model, seriesManager);
+  const index = renderer.getPointIndex(offsetX, model);
+  const yValue = offsetY - panel._offset;
+
+  if (isDrawingSnapEnabled(object, interactor)) {
+    return shape.stickToCandleValue(
+      yValue,
+      shape.getCurrentCandles(index, model, seriesManager),
+      panel,
+      renderer,
+      referenceValue,
+    ) as number;
+  }
+
+  const panelReference =
+    panel.main === true
+      ? referenceValue
+      : (LIB.getPanelReferenceValue(panel, model, seriesManager) ?? referenceValue);
+
+  return renderer.getPriceForYCoordinate(yValue, {
+    panelHeight: panel._height,
+    minValue: panel.vMin,
+    maxValue: panel.vMax,
+    valueAxisMode: panel.valueAxisMode,
+    fV: panelReference,
+  });
 }
 
 function isDrawingShapeObject(chart: DrawingWorkflowHost, object: ChartPanelObject): boolean {

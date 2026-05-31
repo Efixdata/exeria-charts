@@ -28,9 +28,9 @@ export const dialogCatalogLayoutStyle: CSSProperties = {
 export const dialogCatalogLayoutStyleDesktop: CSSProperties = {
   width: 600,
   maxWidth: "calc(100vw - 32px)",
-  height: 600,
-  maxHeight: "90vh",
-  minHeight: 560,
+  height: "auto",
+  maxHeight: "min(90vh, 720px)",
+  minHeight: 0,
 };
 
 export function getDialogCatalogLayoutStyle(isCompact: boolean): CSSProperties {

@@ -548,7 +548,7 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
                 <NumberInput
                   value={settings.width}
                   min={1}
-                  max={8}
+                  max={100}
                   step={1}
                   onChange={(width) => {
                     const parsed = toNumber(width);

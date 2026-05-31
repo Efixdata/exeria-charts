@@ -2,6 +2,7 @@ import * as React from "react";
 import styled, { css } from "styled-components";
 import { UI_RADIUS } from "../designTokens";
 import { inputFocusVisibleStyles } from "../inputStyles";
+import { toolbarIconSvgStyles } from "./toolbarIconStyles";
 import { Icon } from "./Icon";
 import { Tooltip, type TooltipPlacement } from "./Tooltip";
 
@@ -64,15 +65,7 @@ const Button = styled.button<{ themeContext: string; $active?: boolean; $suppres
 
   ${inputFocusVisibleStyles}
 
-  svg {
-    width: var(--ui-toolbar-icon, 20px);
-    height: var(--ui-toolbar-icon, 20px);
-  }
-
-  svg path[fill="none"],
-  svg circle[fill="none"] {
-    stroke: currentColor;
-  }
+  ${toolbarIconSvgStyles}
 `;
 
 interface IconButtonProps {

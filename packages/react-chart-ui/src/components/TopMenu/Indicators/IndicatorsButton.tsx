@@ -145,7 +145,7 @@ export const IndicatorsButton = (props: IndicatorsButtonProps) => {
 
   return (
     <>
-      <TextButton themeContext="toolbar" onClick={onClick} title={t("toolbar_indicators", "Indicators")}>
+      <TextButton themeContext="toolbar" onClick={onClick}>
         <Icon themeContext="toolbar">
           <Indicators />
         </Icon>

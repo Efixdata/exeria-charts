@@ -193,6 +193,8 @@ const locale: Record<string, unknown> = {
   catalog_dialog_title: "Dodaj wskaźnik do wykresu",
   indicator_settings_parameters: "Parametry",
   indicator_settings_confirm: "OK",
+  indicator_settings_visibility_lock: "Widoczność, skala i blokada",
+  indicator_settings_lock_hint: "Zablokuj otwieranie ustawień wskaźnika z wykresu",
   catalog_tab_indicator: "Wskaźnik",
   catalog_tab_function: "Funkcja",
   catalog_tab_strategy: "Strategia",

@@ -951,9 +951,22 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
     },
   };
 
+  const ANNOTATION_TOOL_STORAGE_KEY = "exeria-chart-last-annotation-tool";
+
+  const readStoredAnnotationTool = (): string => {
+    if (typeof window === "undefined") {
+      return "textAnnotation";
+    }
+
+    const stored = window.localStorage.getItem(ANNOTATION_TOOL_STORAGE_KEY);
+    return stored === "priceTag" || stored === "textAnnotation" ? stored : "textAnnotation";
+  };
+
   const [selectedTool, setSelectedTool] = useState("");
   const [eraserActive, setEraserActive] = useState(false);
-  const [lastUsedToolByGroup, setLastUsedToolByGroup] = useState<Record<string, string>>({});
+  const [lastUsedToolByGroup, setLastUsedToolByGroup] = useState<Record<string, string>>(() => ({
+    annotations: readStoredAnnotationTool(),
+  }));
   const containerOffset = useContext(ContainerOffsetContext);
 
   const toolGroups: Record<string, string[]> = {
@@ -974,6 +987,7 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
     ],
     fib: ["fibon", "fibonExtension", "fibonTimeZone", "fibonChannel", "fibonArcs", "fibonCircles"],
     positions: ["longPosition", "shortPosition"],
+    annotations: ["textAnnotation", "priceTag"],
   };
 
   const rememberLastUsedTool = (toolId: string) => {
@@ -1076,16 +1090,25 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
       },
     };
 
+    const rememberedAnnotation = lastUsedToolByGroup.annotations;
+    const pinnedOption =
+      rememberedAnnotation === "textAnnotation" || rememberedAnnotation === "priceTag"
+        ? rememberedAnnotation
+        : "textAnnotation";
     const activeOption = eraserActive
       ? "eraser"
       : selectedTool === "textAnnotation" || selectedTool === "priceTag"
         ? selectedTool
-        : undefined;
+        : pinnedOption;
+
+    const annotationPressed =
+      eraserActive || selectedTool === "textAnnotation" || selectedTool === "priceTag";
 
     return (
       <SplitButton
-        defaultOption="eraser"
+        defaultOption={pinnedOption}
         activeOption={activeOption}
+        pressed={annotationPressed}
         options={options}
         containerOffset={containerOffset}
       />
@@ -1135,6 +1158,7 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
       <SplitButton
         defaultOption={pinnedOption}
         activeOption={activeOption}
+        pressed={ids.includes(selectedTool)}
         onMainClickWhileActive={finishMultilineFromLinesTool}
         onMainDoubleClick={() => {
           if (selectedTool !== "mLine") {
@@ -1176,7 +1200,6 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
   function onSelectTool(tool: DrawingToolProps) {
     if (!chart) return;
 
-    chart.setCursor?.("DEFAULT");
     setEraserActive(false);
 
     const interactor = chart.getInteractor();
@@ -1184,16 +1207,51 @@ function useDrawingToolsState(chart: NullableChartInstance): DrawingToolsContext
       interactor.currentMode.onCancel();
     }
 
-    rememberLastUsedTool(tool.id);
+    if (tool.id === "textAnnotation" || tool.id === "priceTag") {
+      setLastUsedToolByGroup((previous) => {
+        const next = { ...previous, annotations: tool.id };
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(ANNOTATION_TOOL_STORAGE_KEY, tool.id);
+        }
+        return next;
+      });
+    } else {
+      rememberLastUsedTool(tool.id);
+    }
+
+    const stageTool = { ...tool };
+
+    const onStageFinished = () => {
+      if (tool.id === "textAnnotation") {
+        setSelectedTool(tool.id);
+        queueMicrotask(() => {
+          if (!chart) return;
+          const activeInteractor = chart.getInteractor();
+          if (activeInteractor.currentMode?.symbol === "STAGING") {
+            return;
+          }
+          activeInteractor.setMode("STAGE", stageTool, onStageFinished);
+        });
+        return;
+      }
+
+      setSelectedTool("");
+    };
 
     if (selectedTool === tool.id) {
-      setSelectedTool("");
-    } else {
-      interactor.setMode("STAGE", { ...tool }, () => {
+      if (interactor.currentMode?.symbol === "STAGING") {
         setSelectedTool("");
-      });
+        interactor.currentMode.onCancel?.();
+        return;
+      }
+
+      interactor.setMode("STAGE", stageTool, onStageFinished);
       setSelectedTool(tool.id);
+      return;
     }
+
+    interactor.setMode("STAGE", stageTool, onStageFinished);
+    setSelectedTool(tool.id);
   }
 
   return {
