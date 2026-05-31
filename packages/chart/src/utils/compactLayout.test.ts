@@ -5,6 +5,7 @@ import {
   COMPACT_CHART_LAYOUT,
   DESKTOP_CHART_LAYOUT,
   getLegendLayoutMetrics,
+  getPriceAxisFontKeys,
   isModelCompactLayout,
   truncateCanvasText,
 } from "./compactLayout";
@@ -59,6 +60,16 @@ describe("compactLayout", () => {
     expect(compact.startX).toBeLessThan(desktop.startX);
     expect(compact.lineHeight).toBeLessThan(desktop.lineHeight);
     expect(compact.legendFontKey).toBe("legendCompact");
+  });
+
+  it("uses compact price font on mobile even when axis is expanded", () => {
+    const model = createModel();
+    applyResponsiveChartLayout(model, "compact");
+    model._priceAxisExpanded = true;
+
+    const keys = getPriceAxisFontKeys(model);
+    expect(keys.priceFontKey).toBe("priceCompact");
+    expect(keys.compactCollapsed).toBe(false);
   });
 
   it("truncates overflowing canvas text with ellipsis", () => {

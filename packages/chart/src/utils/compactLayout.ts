@@ -91,6 +91,27 @@ export function isModelCompactLayout(model: { _layoutMode?: ChartLayoutMode }): 
   return model._layoutMode === "compact";
 }
 
+/** Font keys shared by the value axis and price tags (must stay in sync). */
+export function getPriceAxisFontKeys(model: {
+  _layoutMode?: ChartLayoutMode;
+  _priceAxisExpanded?: boolean;
+}): {
+  layoutIsCompact: boolean;
+  compactCollapsed: boolean;
+  priceFontKey: "priceCompact" | "price";
+  subscriptFontKey: "priceSubscriptCompact" | "priceSubscript";
+} {
+  const layoutIsCompact = isModelCompactLayout(model);
+  const compactCollapsed = layoutIsCompact && model._priceAxisExpanded !== true;
+
+  return {
+    layoutIsCompact,
+    compactCollapsed,
+    priceFontKey: layoutIsCompact ? "priceCompact" : "price",
+    subscriptFontKey: layoutIsCompact ? "priceSubscriptCompact" : "priceSubscript",
+  };
+}
+
 export function applyResponsiveChartLayout(
   model: CoreChartModel,
   layoutMode: ChartLayoutMode,

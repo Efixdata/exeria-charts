@@ -628,7 +628,11 @@ export default class Chart implements CoreChartController {
         }
 
         extremesOffset = extremes.max - extremes.min;
-        extremesMargin = extremesOffset * this.model.extremesMargin;
+        const percentMargin = extremesOffset * this.model.extremesMargin;
+        const verticalPaddingPx = this.model.priceAxisVerticalPaddingPx ?? 8;
+        const pixelMargin =
+          panel._height > 0 ? (verticalPaddingPx / panel._height) * extremesOffset : 0;
+        extremesMargin = Math.max(percentMargin, pixelMargin);
 
         if (panel.centerZero == true) {
           var range = Math.abs(extremes.max + extremesMargin);

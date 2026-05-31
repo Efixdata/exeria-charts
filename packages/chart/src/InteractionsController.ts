@@ -20,6 +20,7 @@ import {
   showPropertiesDialog,
 } from "./adapters/propertiesDialog";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
+import { logChartInteraction } from "./utils/interactionDebug";
 import { runWithChartLocale } from "./chartLocaleRuntime";
 import type { ChartConfig } from "./types";
 import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
@@ -134,6 +135,8 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.currentSelectedObject = null;
   this.valueAxisClicked = false;
   this.priceAxisTapToggleTimer = null;
+  this.touchGestureMoved = false;
+  this.lastDragWasChartPan = false;
   this.currentStagingObject = null;
   this.suppressDrawingEditDoubleClick = false;
   this.model = model;
@@ -148,6 +151,8 @@ var InteractionsController: CoreInteractorConstructor = function (
       velocity: {
         multiplier: 20,
         minValue: 0.01,
+        /** Matches Hammer SwipeRecognizer default — flick below this does not coast. */
+        trigger: 0.3,
         dampingFactor: 0.03,
       },
     },
@@ -181,9 +186,10 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
     if (isTouchDevice()) {
-      self.topLayer.addEventListener("touchstart", self.onTouchEvent);
-      self.topLayer.addEventListener("touchend", self.onTouchEvent);
-      self.topLayer.addEventListener("touchcancel", self.onTouchEvent);
+      const touchListenerOptions = { passive: false } as AddEventListenerOptions;
+      self.topLayer.addEventListener("touchstart", self.onTouchEvent, touchListenerOptions);
+      self.topLayer.addEventListener("touchend", self.onTouchEvent, touchListenerOptions);
+      self.topLayer.addEventListener("touchcancel", self.onTouchEvent, touchListenerOptions);
 
       self.hammer = createGestureManager(self.topLayer);
 
@@ -267,8 +273,35 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.hammer = null;
   };
 
+  this.resetPointerGestureState = function () {
+    self.clearPriceAxisTapToggleTimer();
+    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+    self.isMouseDown = false;
+    self.initialMouseEvent = null;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
+    self.lastDragWasChartPan = false;
+    self.isRightButton = false;
+    self.isRightButtonDrag = false;
+  };
+
+  this.touchPointerIdMatches = function (
+    storedId: number | undefined,
+    touch: { pointerId?: number; identifier?: number },
+  ) {
+    if (storedId == null) return false;
+    const pointerId = touch.pointerId;
+    const identifier = touch.identifier;
+    return storedId === pointerId || storedId === identifier;
+  };
+
   this.onTouchEvent = function (evt) {
     self.body.click();
+
+    if (evt.type === "touchcancel" || evt.type === "pancancel") {
+      self.resetPointerGestureState();
+      logChartInteraction(`${evt.type} — interaction state reset`);
+    }
 
     const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
     let touchEvent;
@@ -277,8 +310,8 @@ var InteractionsController: CoreInteractorConstructor = function (
       const activeTouch = touches[0];
       const clientX = activeTouch.clientX ?? activeTouch.pageX - window.scrollX;
       const clientY = activeTouch.clientY ?? activeTouch.pageY - window.scrollY;
-      // identifier on ios safari has different values like -871896472
-      let which = evt.changedPointers ? evt.changedPointers[0].pointerId : activeTouch.identifier;
+      // Native Touch uses identifier; Hammer pointer events use pointerId — store the one we get.
+      const which = activeTouch.identifier ?? activeTouch.pointerId ?? 0;
 
       const rect = self.topLayer.getBoundingClientRect();
       touchEvent = {
@@ -289,7 +322,8 @@ var InteractionsController: CoreInteractorConstructor = function (
         button: 0,
         which: which,
         isPrimary:
-          activeTouch.isPrimary || activeTouch.identifier === self.initialMouseEvent?.which,
+          activeTouch.isPrimary !== false ||
+          self.touchPointerIdMatches(self.initialMouseEvent?.which, activeTouch),
       };
     }
 
@@ -297,14 +331,20 @@ var InteractionsController: CoreInteractorConstructor = function (
       case "touchstart": // previously mousedown
         self.onMouseDown(touchEvent);
         break;
-      case "pan": // previously mousemove
+      case "pan": // previously mousemove (Hammer also emits panmove)
+      case "panmove":
         self.onMouseMove(touchEvent, evt);
         break;
       case "touchend": // previously mouseup
+      case "panend":
         self.onMouseUp(touchEvent, evt);
         self.body.click();
+        if (evt.type === "panend") {
+          self.tryStartPanEndMomentum(evt);
+        }
         break;
       case "touchcancel": // previously mouseout
+      case "pancancel":
         self.onMouseOut(touchEvent);
         break;
     }
@@ -459,27 +499,20 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
   };
 
-  this.onSwipe = function (event) {
-    self.body.click();
-    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
+  this.startHorizontalSwipeMomentum = function (velocityX: number, initialPageX: number) {
+    if (!this.currentMode.allowSwipe || this.model.periodWidth < 2) return;
+    if (Math.abs(velocityX) < this.swipe.configuration.velocity.trigger) return;
 
-    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
-    self.isMouseDown = false;
-    self.deselectAll();
-    self.initialMouseEvent = null;
-    self.startEvent = null;
+    if (this.swipe.hook != null) clearInterval(this.swipe.hook);
 
-    if (!self.currentMode.allowSwipe || self.model.periodWidth < 2) return;
+    this.currentViewportLeft = this.model.viewportLeft;
 
-    self.currentViewportLeft = self.model.viewportLeft;
+    const initialX = initialPageX;
+    let currentX = initialX + this.swipe.configuration.velocity.multiplier * velocityX;
+    let momentumVelocityX = velocityX;
+    const self = this;
 
-    var pointer = event.pointers[0];
-
-    var initialX = pointer.pageX;
-    var velocityX = event.velocityX;
-    var currentX = calculateOffset(initialX, velocityX);
-
-    self.swipe.hook = setInterval(frame, 50);
+    this.swipe.hook = setInterval(frame, 50);
     function frame() {
       var seriesLength = 0;
       if (
@@ -493,11 +526,12 @@ var InteractionsController: CoreInteractorConstructor = function (
 
       if (
         seriesLength == 0 ||
-        Math.abs(velocityX) < self.swipe.configuration.velocity.minValue ||
+        Math.abs(momentumVelocityX) < self.swipe.configuration.velocity.minValue ||
         self.model._leftIndex <= 0 ||
         self.model._leftIndex >= seriesLength - 2
       ) {
         if (self.swipe.hook) clearInterval(self.swipe.hook);
+        self.swipe.hook = null;
       } else {
         var currentOffset = currentX - initialX;
         var offset = 0;
@@ -510,20 +544,50 @@ var InteractionsController: CoreInteractorConstructor = function (
           self.model.viewportLeft = self.currentViewportLeft - offset;
         }
 
-        recalculateVelocity();
-        currentX = calculateOffset(currentX, velocityX);
+        momentumVelocityX *= 1.0 - self.swipe.configuration.velocity.dampingFactor;
+        currentX += self.swipe.configuration.velocity.multiplier * momentumVelocityX;
 
         self.controller.fitAndRepaint();
       }
     }
 
-    function calculateOffset(xPos: number, xVelocity: number) {
-      return xPos + self.swipe.configuration.velocity.multiplier * xVelocity;
-    }
+    logChartInteraction("horizontal swipe momentum started", { velocityX });
+  };
 
-    function recalculateVelocity() {
-      velocityX *= 1.0 - self.swipe.configuration.velocity.dampingFactor;
-    }
+  this.tryStartPanEndMomentum = function (evt: {
+    velocityX?: number;
+    velocityY?: number;
+    pointers?: Array<{ pageX?: number }>;
+  }) {
+    if (!isTouchDevice()) return;
+    if (!this.lastDragWasChartPan || !this.touchGestureMoved) return;
+    if (!this.currentMode.allowSwipe || this.model.periodWidth < 2) return;
+
+    const velocityX = evt.velocityX ?? 0;
+    const velocityY = evt.velocityY ?? 0;
+    if (Math.abs(velocityX) < this.swipe.configuration.velocity.trigger) return;
+    if (Math.abs(velocityX) < Math.abs(velocityY)) return;
+
+    const pointer = evt.pointers?.[0];
+    if (pointer == null || typeof pointer.pageX !== "number") return;
+
+    this.startHorizontalSwipeMomentum(velocityX, pointer.pageX);
+  };
+
+  this.onSwipe = function (event) {
+    self.body.click();
+    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
+
+    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+    self.isMouseDown = false;
+    self.deselectAll();
+    self.initialMouseEvent = null;
+    self.startEvent = null;
+
+    const pointer = event.pointers?.[0];
+    if (!pointer || typeof pointer.pageX !== "number") return;
+
+    self.startHorizontalSwipeMomentum(event.velocityX ?? 0, pointer.pageX);
   };
 
   this.moveIndexToPoint = function (index, x) {
@@ -969,7 +1033,14 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (self.initialMouseEvent && !self.isMouseDown) {
       self.initialMouseEvent = null;
     }
-    if (self.initialMouseEvent) return;
+    if (self.initialMouseEvent) {
+      if (isTouchDevice() && self.isMouseDown) {
+        logChartInteraction("touchstart with stale pointer-down — resetting");
+        self.resetPointerGestureState();
+      } else {
+        return;
+      }
+    }
     if (self.controller.isChartEmpty(self.chart)) return;
     if (e.preventDefault) e.preventDefault();
 
@@ -993,6 +1064,8 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     self.isMouseDown = true;
     self.isRightButton = self.isRightMouseButton(e);
+    self.touchGestureMoved = false;
+    self.lastDragWasChartPan = false;
 
     self.initialMouseEvent = e;
     self.currentViewportLeft = self.model.viewportLeft;
@@ -1009,25 +1082,31 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     if (self.controller) self.controller.chartStructureChanged();
 
-    if (self.isAboveValueAxis(e)) self.valueAxisClicked = true;
-    else {
+    if (self.isAboveValueAxis(e)) {
+      self.valueAxisClicked = true;
+      self.currentHitObject = null;
+      logChartInteraction("pointer-down on value axis", {
+        x: e._offset.offsetX,
+        autoScale: self.model.autoScale,
+      });
+    } else {
       self.valueAxisClicked = false;
-
-      if (self.currentMode.symbol === "DEFAULT") {
-        const legendHit = self.renderer.getLegendHit(
-          e._offset.offsetX,
-          e._offset.offsetY,
-        );
-        if (legendHit) {
-          self.controller.objectsManager.detachScript(legendHit.scriptId);
-          self.controller.rerender();
-          return;
-        }
-      }
-
-      self.currentMode.onMouseDown(e);
-      self.controller.renderOverlay();
     }
+
+    if (self.currentMode.symbol === "DEFAULT") {
+      const legendHit = self.renderer.getLegendHit(e._offset.offsetX, e._offset.offsetY);
+      if (!self.valueAxisClicked && legendHit) {
+        self.controller.objectsManager.detachScript(legendHit.scriptId);
+        self.controller.rerender();
+        return;
+      }
+    }
+
+    if (!self.valueAxisClicked || self.currentMode.symbol === "DEFAULT") {
+      self.currentMode.onMouseDown(e);
+    }
+
+    self.controller.renderOverlay();
   };
 
   this.isRightMouseButton = function (e) {
@@ -1085,7 +1164,14 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.togglePriceAxisExpanded = function () {
     self.clearPriceAxisTapToggleTimer();
+    self.isMouseDown = false;
+    self.initialMouseEvent = null;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
     self.model._priceAxisExpanded = self.model._priceAxisExpanded !== true;
+    logChartInteraction("price axis expand toggled", {
+      expanded: self.model._priceAxisExpanded,
+    });
     const mainSeries = self.fusion.getMainSeries();
     self.controller.renderer.calculatePriceRenderingOptions(
       mainSeries.data,
@@ -1222,19 +1308,28 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     if (isTouchDevice() && sourceEvent) {
-      const touches = sourceEvent.changedTouches
-        ? sourceEvent.changedTouches
-        : sourceEvent.changedPointers;
+      const changedTouches = sourceEvent.changedTouches ?? sourceEvent.changedPointers;
+      const remainingTouches = sourceEvent.touches?.length ?? 0;
 
-      if (touches && touches.length > 0) {
+      if (changedTouches && changedTouches.length > 0) {
         let resume = false;
+        const storedId = self.initialMouseEvent?.which;
 
-        for (let i = 0; i < touches.length; ++i) {
-          const which = touches[i].pointerId || touches[i].identifier || 0;
-          if (self.initialMouseEvent && self.initialMouseEvent?.which == which) resume = true;
+        for (let i = 0; i < changedTouches.length; ++i) {
+          if (self.touchPointerIdMatches(storedId, changedTouches[i])) {
+            resume = true;
+            break;
+          }
         }
 
-        if (!resume) return;
+        // Ignore unrelated lift only while another finger is still down (e.g. pinch).
+        if (!resume && remainingTouches > 0) {
+          logChartInteraction("touchend ignored — other touches still active", {
+            remainingTouches,
+            storedId,
+          });
+          return;
+        }
       }
     }
     if (self.controller.isChartEmpty(self.chart)) return;
@@ -1253,15 +1348,25 @@ var InteractionsController: CoreInteractorConstructor = function (
     const isValueAxisTap =
       self.valueAxisClicked &&
       isTouchDevice() &&
+      !self.touchGestureMoved &&
       initialEvent &&
       Math.abs(e._offset.offsetX - initialEvent.offsetX) < 12 &&
       Math.abs(e._offset.offsetY - initialEvent.offsetY) < 12;
 
     if (isValueAxisTap && self.isAboveValueAxis(e)) {
       self.schedulePriceAxisTapToggle();
+      logChartInteraction("value-axis tap → toggle scheduled");
     }
 
+    logChartInteraction("pointer-up", {
+      valueAxisClicked: self.valueAxisClicked,
+      touchGestureMoved: self.touchGestureMoved,
+      isMouseDown: self.isMouseDown,
+      viewportLeft: self.model.viewportLeft,
+    });
+
     self.initialMouseEvent = null;
+    self.touchGestureMoved = false;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
     self.isMouseDown = false;
@@ -1295,6 +1400,9 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.isMouseDown = false;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
+    self.clearPriceAxisTapToggleTimer();
 
     //if(self.controller)
     //	self.controller.loadOrdersAndPositions();
@@ -1312,7 +1420,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseMove = function (e, evt) {
-    if (e.isPrimary === false) return;
+    if (!isTouchDevice() && e.isPrimary === false) return;
     if (this.controller.isChartEmpty(this.chart)) {
       this.chart.repaint();
       return;
@@ -1343,6 +1451,20 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onMouseDrag = function (e) {
     if (this.controller.isChartEmpty(this.chart)) return;
+    this.clearPriceAxisTapToggleTimer();
+
+    const initialEvent = this.initialMouseEvent;
+    if (initialEvent) {
+      const io = this.getEventOffset(initialEvent);
+      const eo = this.getEventOffset(e);
+      if (
+        Math.abs(eo.offsetX - io.offsetX) >= 12 ||
+        Math.abs(eo.offsetY - io.offsetY) >= 12
+      ) {
+        this.touchGestureMoved = true;
+      }
+    }
+
     this.currentMode.onMouseDrag(e);
     this.controller.renderOverlay();
   };
@@ -1383,8 +1505,11 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onPan = function (event, initialEvent, initialXValue, currentXValue) {
-    if (event.isPrimary === false) return;
+    if (!isTouchDevice() && event.isPrimary === false) return;
     if (!this.initialMouseEvent) return;
+    this.clearPriceAxisTapToggleTimer();
+    this.touchGestureMoved = true;
+    this.lastDragWasChartPan = true;
     if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
       this.chart.style.cursor = this.currentMode.cursorOnDrag ?? "default";
     }
@@ -1410,6 +1535,10 @@ var InteractionsController: CoreInteractorConstructor = function (
           this.model.viewportLeft = 0;
         } else if (this.model.viewportLeft !== newOffset) {
           this.model.viewportLeft = newOffset;
+          logChartInteraction("pan horizontal", {
+            viewportLeft: newOffset,
+            valueAxisClicked: this.valueAxisClicked,
+          });
         }
       }
 
@@ -1441,9 +1570,17 @@ var InteractionsController: CoreInteractorConstructor = function (
             );
           }
 
+          const axisDragDeltaX = Math.abs(eo.offsetX - io.offsetX);
+          const axisDragDeltaY = Math.abs(eo.offsetY - io.offsetY);
+          const isVerticalAxisDrag =
+            isAboveValueAxis &&
+            this.valueAxisClicked &&
+            axisDragDeltaY > axisDragDeltaX &&
+            axisDragDeltaY >= 3;
+
           if (
             (this.isMouseDown && this.isRightButton === true) ||
-            (isAboveValueAxis && this.valueAxisClicked)
+            isVerticalAxisDrag
           ) {
             const valueY1 = this.initialMinMax.value;
             const valueY2 = this.renderer.getPriceForYCoordinate(

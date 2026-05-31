@@ -54,6 +54,7 @@ export interface InteractorSwipeState {
     velocity: {
       multiplier: number;
       minValue: number;
+      trigger: number;
       dampingFactor: number;
     };
   };

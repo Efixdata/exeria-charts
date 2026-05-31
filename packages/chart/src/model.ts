@@ -38,6 +38,7 @@ const model2 = {
   viewportLeft: 0, // view model
   endMargin: 100, // configuration settings
   extremesMargin: 0.1, // configuration settings
+  priceAxisVerticalPaddingPx: 8,
   minPanelHeight: 24, // configuration settings
   mode: "normal", // configuration settings
   scripts: [],

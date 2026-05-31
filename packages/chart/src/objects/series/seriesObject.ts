@@ -1217,20 +1217,9 @@ var SeriesObject = function (this: SeriesRuntime) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
     if (!linkedSeries) return;
 
-    // var dfH = o.highDataField ? o.highDataField : o.dataField;
-    // var dfL = o.lowDataField ? o.lowDataField : o.dataField;
-    var dfH, dfL;
-    var dfO = o.openDataField ? o.openDataField : o.dataField;
-    var dfC = o.closeDataField ? o.closeDataField : o.dataField;
-    if (!dfO || !dfC) return;
-
-    if (dfO >= dfC) {
-      dfH = dfO;
-      dfL = dfC;
-    } else {
-      dfH = dfC;
-      dfL = dfO;
-    }
+    const dfH = o.highDataField ? o.highDataField : o.dataField;
+    const dfL = o.lowDataField ? o.lowDataField : o.dataField;
+    if (!dfH || !dfL) return;
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
       if (i > linkedSeries.data.length - 1) return;

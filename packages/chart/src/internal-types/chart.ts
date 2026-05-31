@@ -74,6 +74,7 @@ export interface CoreChartModel extends ChartModelFragment {
   autoScale: boolean;
   endMargin: number;
   extremesMargin: number;
+  priceAxisVerticalPaddingPx?: number;
   periodWidth: number;
   timeAxisHeight: number;
   valueAxisWidth: number;

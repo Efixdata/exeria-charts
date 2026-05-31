@@ -72,6 +72,9 @@ export interface PriceRenderingOptions {
   zerosToReduce: number;
   axisLabelPrefix: string;
   axisUsePrefixHeader: boolean;
+  ledgerSuffixRightX?: number;
+  ledgerColumnSplitX?: number;
+  ledgerTickSuffixTexts?: string[];
   [key: string]: unknown;
 }
 

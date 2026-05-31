@@ -75,6 +75,7 @@ import type { CoreChartPanel } from "./internal-types/chart";
 import { hitTolerance } from "./utils/environment";
 import {
   getLegendLayoutMetrics,
+  getPriceAxisFontKeys,
   isModelCompactLayout,
   truncateCanvasText,
 } from "./utils/compactLayout";
@@ -82,11 +83,20 @@ import {
   formatFullAxisPrice,
   formatValueAxisPriceLabel,
   layoutValueAxisLabels,
+  deriveCompactAxisHeadPrefix,
+  splitCompactAxisByHead,
+  PRICE_AXIS_PREFIX_MIN_LENGTH,
+  valuesShareCompactHead,
 } from "./utils/formatPriceLabel";
 import {
+  drawLedgerAxisAnchorRow,
   drawPriceAxisExpandHint,
+  getCollapsedLedgerDividerX,
   getPriceAxisChromeLayout,
   getPriceAxisExpandHintLayout,
+  drawLedgerPriceTagLabel,
+  getValueAxisLedgerGeometry,
+  layoutLedgerAxisColumn,
   layoutPriceTag,
 } from "./utils/priceAxisLayout";
 
@@ -504,7 +514,7 @@ const Renderer: CoreRendererConstructor = function (
     if (panel.vGrid) this.renderVGrid(ctx, model, panel, this.timeTicks);
 
     this.renderPlotPane(ctx, model, panel, seriesManager, omitObject);
-    this.renderValueAxis(ctx, model, panel, valueTick);
+    this.renderValueAxis(ctx, model, panel, valueTick, fusion);
 
     if (model.mode === "normal") {
       try {
@@ -1029,7 +1039,7 @@ const Renderer: CoreRendererConstructor = function (
     }
   };
 
-  this.renderValueAxis = function (ctx, model, panel, tick) {
+  this.renderValueAxis = function (ctx, model, panel, tick, fusion) {
     const mode = panel.valueAxisMode;
 
     try {
@@ -1066,31 +1076,93 @@ const Renderer: CoreRendererConstructor = function (
         tickEntries.push({ value, y: tickPoint + 2 });
       }
 
-      const prefixSampleValues = tickEntries.map((entry) => entry.value);
-      if (Number.isFinite(panel.vMin) && Number.isFinite(panel.vMax)) {
-        prefixSampleValues.push(panel.vMin, panel.vMax, (panel.vMin + panel.vMax) / 2);
+      const tickValues = tickEntries.map((entry) => entry.value);
+      const layoutReferencePrices = [...tickValues];
+
+      if (!usePercent && !expanded) {
+        let refMin = panel.vMin;
+        let refMax = panel.vMax;
+        if (mode == "log") {
+          refMin = logConverter.axisToReal?.(panel.vMin, 1) ?? panel.vMin;
+          refMax = logConverter.axisToReal?.(panel.vMax, 1) ?? panel.vMax;
+        }
+        if (Number.isFinite(refMin)) layoutReferencePrices.push(refMin);
+        if (Number.isFinite(refMax)) layoutReferencePrices.push(refMax);
+
+        if (panel.main === true && fusion) {
+          const seriesData = fusion.getMainSeries()?.data;
+          if (seriesData?.length) {
+            const lastIndex = Math.min(
+              fusion.getMainSeriesLastIndex(),
+              Math.max(0, model._rightIndex - 1),
+            );
+            const left = Math.max(0, model._leftIndex);
+            const right = Math.min(model._rightIndex, seriesData.length);
+            for (let i = left; i < right; i++) {
+              const bar = seriesData[i];
+              if (typeof bar?.h === "number") layoutReferencePrices.push(bar.h);
+              if (typeof bar?.l === "number") layoutReferencePrices.push(bar.l);
+            }
+            const lastBar = seriesData[lastIndex];
+            if (typeof lastBar?.c === "number") layoutReferencePrices.push(lastBar.c);
+          }
+        }
       }
 
-      const axisLayout =
+      this.priceRenderingOptions.axisLabelPrefix = "";
+      this.priceRenderingOptions.axisUsePrefixHeader = false;
+      this.priceRenderingOptions.ledgerSuffixRightX = undefined;
+      this.priceRenderingOptions.ledgerColumnSplitX = undefined;
+      this.priceRenderingOptions.ledgerTickSuffixTexts = undefined;
+
+      let axisLayout =
         usePercent || expanded
           ? { prefix: "", usePrefixHeader: false }
-          : layoutValueAxisLabels(prefixSampleValues, precision, false);
+          : layoutValueAxisLabels(layoutReferencePrices, precision, false);
 
       const showExpandHint = !expanded && panel.main === true;
       const compactAxis = isModelCompactLayout(model);
+      const compactCollapsed = compactAxis && !expanded && !usePercent;
+
+      if (compactCollapsed && !axisLayout.usePrefixHeader) {
+        const forcedPrefix = deriveCompactAxisHeadPrefix(layoutReferencePrices, precision);
+        if (
+          forcedPrefix.length >= PRICE_AXIS_PREFIX_MIN_LENGTH &&
+          valuesShareCompactHead(layoutReferencePrices, precision, forcedPrefix)
+        ) {
+          axisLayout = { prefix: forcedPrefix, usePrefixHeader: true };
+        }
+      }
+
+      const useLedgerColumn = axisLayout.usePrefixHeader && compactCollapsed;
+
       const chromeLayout = expanded
         ? null
-        : getPriceAxisChromeLayout(panel._offset, compactAxis, {
-            usePrefixHeader: axisLayout.usePrefixHeader,
+        : getPriceAxisChromeLayout(panel._offset, panel._height, compactAxis, {
+            useLedgerColumn,
             showExpandHint,
           });
+
+      const anchorEntry =
+        useLedgerColumn && tickEntries.length > 0
+          ? tickEntries[Math.floor(tickEntries.length / 2)]
+          : null;
+
+      const anchorParts =
+        useLedgerColumn && anchorEntry
+          ? splitCompactAxisByHead(anchorEntry.value, precision, axisLayout.prefix)
+          : { head: "", suffix: "" };
 
       if (!expanded && axisLayout.usePrefixHeader) {
         this.priceRenderingOptions.axisLabelPrefix = axisLayout.prefix;
         this.priceRenderingOptions.axisUsePrefixHeader = true;
+      } else {
+        this.priceRenderingOptions.axisLabelPrefix = "";
+        this.priceRenderingOptions.axisUsePrefixHeader = false;
       }
 
       const minTickY = chromeLayout?.minTickY ?? panel._offset;
+      const maxTickY = chromeLayout?.maxTickY ?? panel._offset + panel._height;
 
       for (const entry of tickEntries) {
         let text = formatValueAxisPriceLabel(entry.value, precision, {
@@ -1102,7 +1174,7 @@ const Renderer: CoreRendererConstructor = function (
           text += "%";
         }
 
-        if (entry.y >= minTickY) {
+        if (entry.y >= minTickY && entry.y <= maxTickY) {
           texts.push({
             text,
             ctx,
@@ -1122,31 +1194,84 @@ const Renderer: CoreRendererConstructor = function (
       ctx.fill();
 
       ctx.fillStyle = WEBRCP.utils.colorManager.getColor("handlerColor"); // handlerColor
-      ctx.fillRect(panelWidth - valueAxisWidth, panel._offset, 1, panel._height);
+      const dividerX = compactCollapsed
+        ? getCollapsedLedgerDividerX(panelStartX)
+        : panelStartX;
+      ctx.fillRect(dividerX, panel._offset, 1, panel._height);
 
       ctx.clip();
 
-      const priceFont = WEBRCP.utils.colorManager.getFont(compactAxis ? "priceCompact" : "price");
-      const subscriptFont = WEBRCP.utils.colorManager.getFont(
-        compactAxis ? "priceSubscriptCompact" : "priceSubscript",
-      );
+      const axisFontKeys = getPriceAxisFontKeys(model);
+      const priceFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.priceFontKey);
+      const subscriptFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.subscriptFontKey);
       const axisInnerWidth = valueAxisWidth - model.valueAxisPadding * 2;
       const axisZerosToReduce = expanded ? 0 : this.priceRenderingOptions.zerosToReduce;
 
-      if (axisLayout.usePrefixHeader && chromeLayout) {
-        ctx.save();
-        ctx.font = priceFont;
-        ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
-        ctx.globalAlpha = 0.92;
-        ctx.textBaseline = "middle";
-        const prefixText = axisLayout.prefix;
-        const prefixWidth = ctx.measureText(prefixText).width;
-        const prefixX =
-          panelStartX + model.valueAxisPadding + Math.max(0, (axisInnerWidth - prefixWidth) / 2);
-        ctx.fillText(prefixText, prefixX, chromeLayout.prefixY);
-        ctx.textBaseline = "alphabetic";
-        ctx.restore();
+      ctx.font = priceFont;
+
+      const suffixTexts = texts.map((item) => item.text ?? "");
+      const columnLayout =
+        compactCollapsed && suffixTexts.length > 0
+          ? layoutLedgerAxisColumn(
+              ctx,
+              useLedgerColumn ? anchorParts.head : "",
+              suffixTexts,
+              useLedgerColumn
+                ? anchorParts.suffix
+                : (suffixTexts[Math.floor(suffixTexts.length / 2)] ?? ""),
+              panelStartX,
+              valueAxisWidth,
+              model.valueAxisPadding,
+            )
+          : null;
+
+      if (columnLayout) {
+        this.priceRenderingOptions.ledgerSuffixRightX = columnLayout.suffixRightX;
+        this.priceRenderingOptions.ledgerColumnSplitX = columnLayout.columnSplitX;
+        this.priceRenderingOptions.ledgerTickSuffixTexts = suffixTexts;
       }
+
+      if (useLedgerColumn && chromeLayout && columnLayout) {
+        const axisTextColor = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
+        drawLedgerAxisAnchorRow(ctx, columnLayout, anchorParts.head, anchorParts.suffix, chromeLayout.anchorRowY, {
+          text: axisTextColor,
+          divider: axisTextColor,
+        });
+      }
+
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
+
+      texts.forEach((options) => {
+        const labelWidth = measurePriceTextWidth({
+          text: options.text ?? "",
+          ctx,
+          zerosToReduce: axisZerosToReduce,
+          priceFont,
+          subscriptFont,
+          mode,
+        });
+
+        let labelX =
+          panelStartX + model.valueAxisPadding + Math.max(0, (axisInnerWidth - labelWidth) / 2);
+        let textAlign: CanvasTextAlign = "left";
+
+        if (columnLayout) {
+          labelX = columnLayout.suffixRightX;
+          textAlign = "right";
+        }
+
+        const previousAlign = ctx.textAlign;
+        ctx.textAlign = textAlign;
+        renderPriceText.call(this, {
+          ...options,
+          x: labelX,
+          zerosToReduce: axisZerosToReduce,
+          mode,
+          priceFont,
+          subscriptFont,
+        });
+        ctx.textAlign = previousAlign;
+      });
 
       if (showExpandHint && chromeLayout) {
         const colorManager = WEBRCP.utils.colorManager;
@@ -1161,30 +1286,6 @@ const Renderer: CoreRendererConstructor = function (
           { accent: colorManager.getColor("accent") },
         );
       }
-
-      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
-
-      texts.forEach((options) => {
-        const labelWidth = measurePriceTextWidth({
-          text: options.text ?? "",
-          ctx,
-          zerosToReduce: axisZerosToReduce,
-          priceFont,
-          subscriptFont,
-          mode,
-        });
-        const labelX =
-          panelStartX + model.valueAxisPadding + Math.max(0, (axisInnerWidth - labelWidth) / 2);
-
-        renderPriceText.call(this, {
-          ...options,
-          x: labelX,
-          zerosToReduce: axisZerosToReduce,
-          mode,
-          priceFont,
-          subscriptFont,
-        });
-      });
 
     } catch (error: any) {
       console.error(error, error.stack);
@@ -1680,7 +1781,8 @@ const Renderer: CoreRendererConstructor = function (
       const axisLeft = model._width - valueAxisWidth;
 
       ctx.fillStyle = color;
-      const priceFont = WEBRCP.utils.colorManager.getFont("price");
+      const axisFontKeys = getPriceAxisFontKeys(model);
+      const priceFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.priceFontKey);
       ctx.font = priceFont;
 
       var v = value;
@@ -1692,13 +1794,51 @@ const Renderer: CoreRendererConstructor = function (
         v = logConverter.axisToReal?.(v, 1) ?? v;
       }
 
-      const vs = formatFullAxisPrice(v, this.getPrecision(model, panel));
-      const labelWidth = measurePriceTextWidth({
-        text: vs,
-        ctx,
-        zerosToReduce: 0,
-      });
-      const tagLayout = layoutPriceTag(model, { valueAxisWidth }, labelWidth, y);
+      const precision = this.getPrecision(model, panel);
+      const vs = formatFullAxisPrice(v, precision);
+      const expanded = model._priceAxisExpanded === true;
+      const axisZerosToReduce = expanded ? 0 : this.priceRenderingOptions.zerosToReduce;
+      const subscriptFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.subscriptFontKey);
+      const mode = panel.valueAxisMode;
+
+      let headPrefix = this.priceRenderingOptions.axisLabelPrefix ?? "";
+      if (
+        axisFontKeys.compactCollapsed &&
+        headPrefix.length < PRICE_AXIS_PREFIX_MIN_LENGTH
+      ) {
+        headPrefix = deriveCompactAxisHeadPrefix([v], precision);
+      }
+
+      const useLedgerTag =
+        axisFontKeys.compactCollapsed &&
+        headPrefix.length >= PRICE_AXIS_PREFIX_MIN_LENGTH;
+      const ledgerParts = useLedgerTag
+        ? splitCompactAxisByHead(v, precision, headPrefix)
+        : null;
+
+      const ledgerGeometry = getValueAxisLedgerGeometry(model, panel, valueAxisWidth);
+      const ledgerSuffixRightX = ledgerGeometry.suffixRightX;
+
+      const labelWidth = useLedgerTag
+        ? (() => {
+            const headWidth = ledgerParts?.head ? ctx.measureText(ledgerParts.head).width : 0;
+            const suffixWidth = ledgerParts?.suffix ? ctx.measureText(ledgerParts.suffix).width : 0;
+            return headWidth + suffixWidth + (headWidth > 0 && suffixWidth > 0 ? 4 : 0);
+          })()
+        : measurePriceTextWidth({
+            text: vs,
+            ctx,
+            zerosToReduce: axisZerosToReduce,
+            priceFont,
+            subscriptFont,
+            mode,
+          });
+      const tagLayout = layoutPriceTag(
+        model,
+        { valueAxisWidth, suffixRightX: ledgerSuffixRightX },
+        labelWidth,
+        y,
+      );
 
       ctx.save();
       ctx.beginPath();
@@ -1721,19 +1861,53 @@ const Renderer: CoreRendererConstructor = function (
       }
 
       ctx.fillStyle = textColor;
-      const previousAlign = ctx.textAlign;
-      const previousBaseline = ctx.textBaseline;
-      ctx.textAlign = tagLayout.textAlign;
-      ctx.textBaseline = "middle";
-      renderPriceText({
-        text: vs,
-        ctx,
-        x: tagLayout.labelX,
-        y: Math.round(tagLayout.tagTop + tagLayout.tagHeight / 2),
-        zerosToReduce: tagLayout.zerosToReduce,
-      });
-      ctx.textAlign = previousAlign;
-      ctx.textBaseline = previousBaseline;
+      const labelY = Math.round(tagLayout.tagTop + tagLayout.tagHeight / 2);
+
+      if (useLedgerTag && ledgerParts) {
+        const tickSuffixes = this.priceRenderingOptions.ledgerTickSuffixTexts ?? [];
+        const ledgerColumn = layoutLedgerAxisColumn(
+          ctx,
+          ledgerParts.head,
+          [...tickSuffixes, ledgerParts.suffix],
+          ledgerParts.suffix,
+          ledgerGeometry.panelStartX,
+          ledgerGeometry.axisWidth,
+          model.valueAxisPadding,
+        );
+        drawLedgerPriceTagLabel(
+          ctx,
+          {
+            suffixRightX: ledgerColumn.suffixRightX,
+            columnSplitX: ledgerColumn.columnSplitX,
+            head: ledgerParts.head,
+            suffix: ledgerParts.suffix,
+          },
+          labelY,
+          {
+            zerosToReduce: axisZerosToReduce,
+            mode,
+            priceFont,
+            subscriptFont,
+          },
+        );
+      } else {
+        const previousAlign = ctx.textAlign;
+        const previousBaseline = ctx.textBaseline;
+        ctx.textAlign = tagLayout.textAlign;
+        ctx.textBaseline = "middle";
+        renderPriceText({
+          text: vs,
+          ctx,
+          x: tagLayout.labelX,
+          y: labelY,
+          zerosToReduce: axisZerosToReduce,
+          priceFont,
+          subscriptFont,
+          mode,
+        });
+        ctx.textAlign = previousAlign;
+        ctx.textBaseline = previousBaseline;
+      }
     } catch (error: unknown) {
       if (isRendererRuntimeError(error)) {
         console.error(error, error.stack);
@@ -2352,11 +2526,9 @@ const Renderer: CoreRendererConstructor = function (
         : 0;
 
     const expanded = model._priceAxisExpanded === true;
-    const compactAxis = isModelCompactLayout(model);
-    const priceFont = WEBRCP.utils.colorManager.getFont(compactAxis ? "priceCompact" : "price");
-    const subscriptFont = WEBRCP.utils.colorManager.getFont(
-      compactAxis ? "priceSubscriptCompact" : "priceSubscript",
-    );
+    const axisFontKeys = getPriceAxisFontKeys(model);
+    const priceFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.priceFontKey);
+    const subscriptFont = WEBRCP.utils.colorManager.getFont(axisFontKeys.subscriptFontKey);
 
     let maxLabelWidth = 0;
     let axisLabelPrefix = "";
@@ -2406,10 +2578,28 @@ const Renderer: CoreRendererConstructor = function (
 
     if (samplePrices.length > 0) {
       if (axisUsePrefixHeader && this.context) {
+        const midPrice = samplePrices[Math.floor(samplePrices.length / 2)];
+        const anchorParts = splitCompactAxisByHead(midPrice, precision, axisLabelPrefix);
+        const suffixSamples = samplePrices.map((samplePrice) =>
+          formatValueAxisPriceLabel(samplePrice, precision, { prefix: axisLabelPrefix }),
+        );
+
         this.context.font = priceFont;
+        const ledgerLayout = layoutLedgerAxisColumn(
+          this.context,
+          anchorParts.head,
+          suffixSamples,
+          anchorParts.suffix,
+          0,
+          9999,
+          model.valueAxisPadding,
+        );
+        const headWidth = anchorParts.head
+          ? Math.ceil(this.context.measureText(anchorParts.head).width)
+          : 0;
         maxLabelWidth = Math.max(
           maxLabelWidth,
-          Math.ceil(this.context.measureText(axisLabelPrefix).width),
+          headWidth + Math.ceil(ledgerLayout.maxSuffixWidth),
         );
       }
 
@@ -2433,7 +2623,7 @@ const Renderer: CoreRendererConstructor = function (
 
     valueAxisWidth = maxLabelWidth + model.valueAxisPadding * 2;
 
-    if (compactAxis && !expanded) {
+    if (axisFontKeys.layoutIsCompact && !expanded) {
       valueAxisWidth = Math.min(valueAxisWidth, model.valueAxisWidth);
     }
 
