@@ -78,7 +78,17 @@ import {
   isModelCompactLayout,
   truncateCanvasText,
 } from "./utils/compactLayout";
-import { formatValueAxisPriceLabel } from "./utils/formatPriceLabel";
+import {
+  formatFullAxisPrice,
+  formatValueAxisPriceLabel,
+  layoutValueAxisLabels,
+} from "./utils/formatPriceLabel";
+import {
+  drawPriceAxisExpandHint,
+  getPriceAxisChromeLayout,
+  getPriceAxisExpandHintLayout,
+  layoutPriceTag,
+} from "./utils/priceAxisLayout";
 
 type LegendRenderValue = {
   label: { text?: string; x?: number; y?: number };
@@ -278,6 +288,8 @@ const Renderer: CoreRendererConstructor = function (
     valueAxisWidth: 0,
     magnitude: 1,
     zerosToReduce: 0,
+    axisLabelPrefix: "",
+    axisUsePrefixHeader: false,
   };
   this.volumePrecision = 2;
   this.timeTicks = [];
@@ -1022,7 +1034,8 @@ const Renderer: CoreRendererConstructor = function (
 
     try {
       let tickValue = tick.niceMin;
-      const texts = [];
+      const tickEntries: Array<{ value: number; y: number }> = [];
+      const texts: Array<{ text: string; ctx: CanvasRenderingContext2D; y: number }> = [];
       let tickPoint = 0;
       let precision = this.getPrecision(model, panel);
 
@@ -1030,8 +1043,10 @@ const Renderer: CoreRendererConstructor = function (
         precision = 2;
       }
 
+      const expanded = model._priceAxisExpanded === true;
+      const usePercent = panel.valueAxisMode == "perc";
+
       while (tickValue < tick.niceMax) {
-        //drawTickValue
         tickValue += tick.tickSpacing;
         tickPoint =
           this.getYCoordinateForPrice(tickValue, {
@@ -1048,18 +1063,52 @@ const Renderer: CoreRendererConstructor = function (
           value = logConverter.axisToReal?.(tickValue, 1) ?? tickValue;
         }
 
-        const expanded = model._priceAxisExpanded === true;
-        let text = formatValueAxisPriceLabel(value, precision, { expanded });
+        tickEntries.push({ value, y: tickPoint + 2 });
+      }
 
-        if (panel.valueAxisMode == "perc") {
+      const prefixSampleValues = tickEntries.map((entry) => entry.value);
+      if (Number.isFinite(panel.vMin) && Number.isFinite(panel.vMax)) {
+        prefixSampleValues.push(panel.vMin, panel.vMax, (panel.vMin + panel.vMax) / 2);
+      }
+
+      const axisLayout =
+        usePercent || expanded
+          ? { prefix: "", usePrefixHeader: false }
+          : layoutValueAxisLabels(prefixSampleValues, precision, false);
+
+      const showExpandHint = !expanded && panel.main === true;
+      const compactAxis = isModelCompactLayout(model);
+      const chromeLayout = expanded
+        ? null
+        : getPriceAxisChromeLayout(panel._offset, compactAxis, {
+            usePrefixHeader: axisLayout.usePrefixHeader,
+            showExpandHint,
+          });
+
+      if (!expanded && axisLayout.usePrefixHeader) {
+        this.priceRenderingOptions.axisLabelPrefix = axisLayout.prefix;
+        this.priceRenderingOptions.axisUsePrefixHeader = true;
+      }
+
+      const minTickY = chromeLayout?.minTickY ?? panel._offset;
+
+      for (const entry of tickEntries) {
+        let text = formatValueAxisPriceLabel(entry.value, precision, {
+          expanded,
+          prefix: axisLayout.usePrefixHeader ? axisLayout.prefix : undefined,
+        });
+
+        if (usePercent) {
           text += "%";
         }
 
-        texts.push({
-          text,
-          ctx,
-          y: tickPoint + 2,
-        });
+        if (entry.y >= minTickY) {
+          texts.push({
+            text,
+            ctx,
+            y: entry.y,
+          });
+        }
       }
 
       const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth + 1;
@@ -1077,16 +1126,43 @@ const Renderer: CoreRendererConstructor = function (
 
       ctx.clip();
 
-      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
-
-      const compactAxis = isModelCompactLayout(model);
       const priceFont = WEBRCP.utils.colorManager.getFont(compactAxis ? "priceCompact" : "price");
       const subscriptFont = WEBRCP.utils.colorManager.getFont(
         compactAxis ? "priceSubscriptCompact" : "priceSubscript",
       );
-      const expanded = model._priceAxisExpanded === true;
       const axisInnerWidth = valueAxisWidth - model.valueAxisPadding * 2;
       const axisZerosToReduce = expanded ? 0 : this.priceRenderingOptions.zerosToReduce;
+
+      if (axisLayout.usePrefixHeader && chromeLayout) {
+        ctx.save();
+        ctx.font = priceFont;
+        ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
+        ctx.globalAlpha = 0.92;
+        ctx.textBaseline = "middle";
+        const prefixText = axisLayout.prefix;
+        const prefixWidth = ctx.measureText(prefixText).width;
+        const prefixX =
+          panelStartX + model.valueAxisPadding + Math.max(0, (axisInnerWidth - prefixWidth) / 2);
+        ctx.fillText(prefixText, prefixX, chromeLayout.prefixY);
+        ctx.textBaseline = "alphabetic";
+        ctx.restore();
+      }
+
+      if (showExpandHint && chromeLayout) {
+        const colorManager = WEBRCP.utils.colorManager;
+        drawPriceAxisExpandHint(
+          ctx,
+          getPriceAxisExpandHintLayout(
+            panelStartX,
+            valueAxisWidth,
+            chromeLayout.hintCenterY,
+            expanded,
+          ),
+          { accent: colorManager.getColor("accent") },
+        );
+      }
+
+      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("priceAxisTextColor");
 
       texts.forEach((options) => {
         const labelWidth = measurePriceTextWidth({
@@ -1109,6 +1185,7 @@ const Renderer: CoreRendererConstructor = function (
           subscriptFont,
         });
       });
+
     } catch (error: any) {
       console.error(error, error.stack);
     } finally {
@@ -1599,73 +1676,64 @@ const Renderer: CoreRendererConstructor = function (
     style = "RECTANGLE"
   ) {
     try {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(
-        model._width - this.priceRenderingOptions.valueAxisWidth,
-        panel._offset,
-        this.priceRenderingOptions.valueAxisWidth,
-        panel._height
-      );
-      ctx.clip();
+      const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth;
+      const axisLeft = model._width - valueAxisWidth;
 
       ctx.fillStyle = color;
       const priceFont = WEBRCP.utils.colorManager.getFont("price");
       ctx.font = priceFont;
-      const tagHeight = 18;
-      const tagTop = Math.round(y - tagHeight / 2);
 
-      if (style === "ARROW") {
+      var v = value;
+      if (typeof v !== "number") {
+        return;
+      }
+
+      if (panel.valueAxisMode == "log" && valueType != "real") {
+        v = logConverter.axisToReal?.(v, 1) ?? v;
+      }
+
+      const vs = formatFullAxisPrice(v, this.getPrecision(model, panel));
+      const labelWidth = measurePriceTextWidth({
+        text: vs,
+        ctx,
+        zerosToReduce: 0,
+      });
+      const tagLayout = layoutPriceTag(model, { valueAxisWidth }, labelWidth, y);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(tagLayout.tagLeft, panel._offset, tagLayout.tagWidth, panel._height);
+      ctx.clip();
+
+      const useArrowStyle = style === "ARROW" && !tagLayout.allowOverflowLeft;
+
+      if (useArrowStyle) {
         ctx.beginPath();
-        ctx.moveTo(model._width - this.priceRenderingOptions.valueAxisWidth, y);
-        ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y - 10);
+        ctx.moveTo(axisLeft, y);
+        ctx.lineTo(axisLeft + 5, y - 10);
         ctx.lineTo(model._width, y - 10);
         ctx.lineTo(model._width, y + 10);
-        ctx.lineTo(model._width - this.priceRenderingOptions.valueAxisWidth + 5, y + 10);
+        ctx.lineTo(axisLeft + 5, y + 10);
         ctx.closePath();
         ctx.fill();
       } else {
-        ctx.fillRect(
-          model._width - this.priceRenderingOptions.valueAxisWidth,
-          tagTop,
-          this.priceRenderingOptions.valueAxisWidth,
-          tagHeight
-        );
+        ctx.fillRect(tagLayout.tagLeft, tagLayout.tagTop, tagLayout.tagWidth, tagLayout.tagHeight);
       }
 
       ctx.fillStyle = textColor;
-
-      var v = value;
-      if (typeof v === "number") {
-        if (panel.valueAxisMode == "log" && valueType != "real") {
-          v = logConverter.axisToReal?.(v, 1) ?? v;
-        }
-        var vs = LIB.nFormatter(v, this.getPrecision(model, panel));
-        const valueAxisWidth = this.priceRenderingOptions.valueAxisWidth;
-        const axisInnerWidth = valueAxisWidth - model.valueAxisPadding * 2;
-        const axisExpanded = model._priceAxisExpanded === true;
-        const tagZerosToReduce = axisExpanded ? 0 : this.priceRenderingOptions.zerosToReduce;
-        const labelWidth = measurePriceTextWidth({
-          text: vs,
-          ctx,
-          zerosToReduce: tagZerosToReduce,
-        });
-        const labelX =
-          model._width -
-          valueAxisWidth +
-          model.valueAxisPadding +
-          Math.max(0, (axisInnerWidth - labelWidth) / 2);
-        const previousBaseline = ctx.textBaseline;
-        ctx.textBaseline = "middle";
-        renderPriceText({
-          text: vs,
-          ctx,
-          x: labelX,
-          y: Math.round(tagTop + tagHeight / 2),
-          zerosToReduce: tagZerosToReduce,
-        });
-        ctx.textBaseline = previousBaseline;
-      }
+      const previousAlign = ctx.textAlign;
+      const previousBaseline = ctx.textBaseline;
+      ctx.textAlign = tagLayout.textAlign;
+      ctx.textBaseline = "middle";
+      renderPriceText({
+        text: vs,
+        ctx,
+        x: tagLayout.labelX,
+        y: Math.round(tagLayout.tagTop + tagLayout.tagHeight / 2),
+        zerosToReduce: tagLayout.zerosToReduce,
+      });
+      ctx.textAlign = previousAlign;
+      ctx.textBaseline = previousBaseline;
     } catch (error: unknown) {
       if (isRendererRuntimeError(error)) {
         console.error(error, error.stack);
@@ -2291,6 +2359,8 @@ const Renderer: CoreRendererConstructor = function (
     );
 
     let maxLabelWidth = 0;
+    let axisLabelPrefix = "";
+    let axisUsePrefixHeader = false;
     const samplePrices: number[] = [];
 
     if (data.length > 0) {
@@ -2304,6 +2374,12 @@ const Renderer: CoreRendererConstructor = function (
       }
 
       samplePrices.push(minPrice, (minPrice + maxPrice) / 2, maxPrice);
+
+      if (!expanded) {
+        const axisLayout = layoutValueAxisLabels(samplePrices, precision, false);
+        axisLabelPrefix = axisLayout.prefix;
+        axisUsePrefixHeader = axisLayout.usePrefixHeader;
+      }
     } else {
       let fallbackText = "";
       for (let i = 0; i < magnitude; i++) {
@@ -2329,8 +2405,19 @@ const Renderer: CoreRendererConstructor = function (
     }
 
     if (samplePrices.length > 0) {
+      if (axisUsePrefixHeader && this.context) {
+        this.context.font = priceFont;
+        maxLabelWidth = Math.max(
+          maxLabelWidth,
+          Math.ceil(this.context.measureText(axisLabelPrefix).width),
+        );
+      }
+
       for (const samplePrice of samplePrices) {
-        const label = formatValueAxisPriceLabel(samplePrice, precision, { expanded });
+        const label = formatValueAxisPriceLabel(samplePrice, precision, {
+          expanded,
+          prefix: axisUsePrefixHeader ? axisLabelPrefix : undefined,
+        });
         maxLabelWidth = Math.max(
           maxLabelWidth,
           measurePriceTextWidth({
@@ -2358,6 +2445,8 @@ const Renderer: CoreRendererConstructor = function (
       magnitude,
       zerosToReduce,
       valueAxisWidth,
+      axisLabelPrefix,
+      axisUsePrefixHeader,
     };
 
     function getGreater(current: number, proposal: number) {

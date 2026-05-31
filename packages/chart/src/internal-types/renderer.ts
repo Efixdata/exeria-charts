@@ -70,6 +70,8 @@ export interface PriceRenderingOptions {
   valueAxisWidth: number;
   magnitude: number;
   zerosToReduce: number;
+  axisLabelPrefix: string;
+  axisUsePrefixHeader: boolean;
   [key: string]: unknown;
 }
 

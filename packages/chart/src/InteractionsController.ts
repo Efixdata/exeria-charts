@@ -133,6 +133,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.currentAnchor = null;
   this.currentSelectedObject = null;
   this.valueAxisClicked = false;
+  this.priceAxisTapToggleTimer = null;
   this.currentStagingObject = null;
   this.suppressDrawingEditDoubleClick = false;
   this.model = model;
@@ -1075,6 +1076,35 @@ var InteractionsController: CoreInteractorConstructor = function (
     } as MouseEvent);
   };
 
+  this.clearPriceAxisTapToggleTimer = function () {
+    if (self.priceAxisTapToggleTimer != null) {
+      clearTimeout(self.priceAxisTapToggleTimer);
+      self.priceAxisTapToggleTimer = null;
+    }
+  };
+
+  this.togglePriceAxisExpanded = function () {
+    self.clearPriceAxisTapToggleTimer();
+    self.model._priceAxisExpanded = self.model._priceAxisExpanded !== true;
+    const mainSeries = self.fusion.getMainSeries();
+    self.controller.renderer.calculatePriceRenderingOptions(
+      mainSeries.data,
+      self.model,
+      mainSeries.instrument?.precision ?? self.controller.instrument?.precision ?? 0,
+    );
+    self.controller.fit();
+    self.controller.render();
+    self.controller.renderOverlay();
+  };
+
+  this.schedulePriceAxisTapToggle = function () {
+    self.clearPriceAxisTapToggleTimer();
+    self.priceAxisTapToggleTimer = setTimeout(() => {
+      self.priceAxisTapToggleTimer = null;
+      self.togglePriceAxisExpanded();
+    }, 280);
+  };
+
   this.onDoubleClick = function (e: MouseEvent) {
     if (self.controller.isChartEmpty(self.chart)) return;
 
@@ -1082,16 +1112,7 @@ var InteractionsController: CoreInteractorConstructor = function (
     const priceAxisWidth = self.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
 
     if (eo.offsetX >= self.model._width - priceAxisWidth) {
-      self.model._priceAxisExpanded = self.model._priceAxisExpanded !== true;
-      const mainSeries = self.fusion.getMainSeries();
-      self.controller.renderer.calculatePriceRenderingOptions(
-        mainSeries.data,
-        self.model,
-        mainSeries.instrument?.precision ?? self.controller.instrument?.precision ?? 0,
-      );
-      self.controller.fit();
-      self.controller.render();
-      self.controller.renderOverlay();
+      self.togglePriceAxisExpanded();
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -1192,6 +1213,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseUp = function (e, evt) {
+    const sourceEvent = evt ?? e;
     const isStagingPlacement =
       self.currentMode.symbol === "STAGING" && self.currentStagingObject != null;
 
@@ -1199,16 +1221,21 @@ var InteractionsController: CoreInteractorConstructor = function (
       return;
     }
 
-    if (isTouchDevice()) {
-      const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
-      let resume = false;
+    if (isTouchDevice() && sourceEvent) {
+      const touches = sourceEvent.changedTouches
+        ? sourceEvent.changedTouches
+        : sourceEvent.changedPointers;
 
-      for (let i = 0; i < touches.length; ++i) {
-        const which = touches[i].pointerId || touches[i].identifier || 0;
-        if (self.initialMouseEvent && self.initialMouseEvent?.which == which) resume = true;
+      if (touches && touches.length > 0) {
+        let resume = false;
+
+        for (let i = 0; i < touches.length; ++i) {
+          const which = touches[i].pointerId || touches[i].identifier || 0;
+          if (self.initialMouseEvent && self.initialMouseEvent?.which == which) resume = true;
+        }
+
+        if (!resume) return;
       }
-
-      if (!resume) return;
     }
     if (self.controller.isChartEmpty(self.chart)) return;
     if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
@@ -1222,10 +1249,23 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     e._offset = self.getEventOffset(e);
 
+    const initialEvent = self.initialMouseEvent;
+    const isValueAxisTap =
+      self.valueAxisClicked &&
+      isTouchDevice() &&
+      initialEvent &&
+      Math.abs(e._offset.offsetX - initialEvent.offsetX) < 12 &&
+      Math.abs(e._offset.offsetY - initialEvent.offsetY) < 12;
+
+    if (isValueAxisTap && self.isAboveValueAxis(e)) {
+      self.schedulePriceAxisTapToggle();
+    }
+
     self.initialMouseEvent = null;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
     self.isMouseDown = false;
+    self.valueAxisClicked = false;
 
     self.currentMode.onMouseUp(e);
     self.controller.renderOverlay();
