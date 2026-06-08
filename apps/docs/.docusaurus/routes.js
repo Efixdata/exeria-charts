@@ -3,20 +3,66 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
+    path: '/__docusaurus/debug',
+    component: ComponentCreator('/__docusaurus/debug', '5ff'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/config',
+    component: ComponentCreator('/__docusaurus/debug/config', '5ba'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/content',
+    component: ComponentCreator('/__docusaurus/debug/content', 'a2b'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/globalData',
+    component: ComponentCreator('/__docusaurus/debug/globalData', 'c3c'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/metadata',
+    component: ComponentCreator('/__docusaurus/debug/metadata', '156'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/registry',
+    component: ComponentCreator('/__docusaurus/debug/registry', '88c'),
+    exact: true
+  },
+  {
+    path: '/__docusaurus/debug/routes',
+    component: ComponentCreator('/__docusaurus/debug/routes', '000'),
+    exact: true
+  },
+  {
+    path: '/playground',
+    component: ComponentCreator('/playground', '859'),
+    exact: true
+  },
+  {
     path: '/docs',
-    component: ComponentCreator('/docs', '1ab'),
+    component: ComponentCreator('/docs', '5b4'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', '4b0'),
+        component: ComponentCreator('/docs', 'fb5'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', '4c0'),
+            component: ComponentCreator('/docs', 'ce7'),
             routes: [
               {
                 path: '/docs/advanced/chart-class-runtime',
                 component: ComponentCreator('/docs/advanced/chart-class-runtime', '45f'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/advanced/mobile-and-responsive',
+                component: ComponentCreator('/docs/advanced/mobile-and-responsive', '0ef'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -29,6 +75,12 @@ export default [
               {
                 path: '/docs/advanced/react-ui-toolbar-and-tools',
                 component: ComponentCreator('/docs/advanced/react-ui-toolbar-and-tools', 'fc8'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/api-reference/chart-environment',
+                component: ComponentCreator('/docs/api-reference/chart-environment', 'd96'),
                 exact: true,
                 sidebar: "docsSidebar"
               },
@@ -155,6 +207,12 @@ export default [
               {
                 path: '/docs/guides/licensing',
                 component: ComponentCreator('/docs/guides/licensing', 'c59'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/guides/mobile-qa-checklist',
+                component: ComponentCreator('/docs/guides/mobile-qa-checklist', 'da6'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

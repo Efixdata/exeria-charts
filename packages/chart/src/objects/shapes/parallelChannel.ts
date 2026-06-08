@@ -11,7 +11,8 @@ import {
   findAnchorPointArrowForXY,
   drawAnchors,
 } from "../../utils/objects-lib";
-import { Shape } from "../../objectRuntimeBases";
+import { Shape, resolveToolRenderContext } from "../../objectRuntimeBases";
+import { resolveShapeOpacity } from "../../shapeStyle";
 import {
   createShapeAnchorOverlayDelegate,
   createShapeMouseDownDelegate,
@@ -32,19 +33,20 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
     ctx.lineWidth = o.width;
     ctx.setLineDash(o.dash ? o.dash : []);
 
-    var line1 = calcLine(pts[0], pts[1]);
-  let p1 = { x: pts[0].x, y: pts[0].y, expanded: pts[0].expanded };
-  let p2 = { x: pts[1].x, y: pts[1].y, expanded: pts[1].expanded };
-  let p3 = { x: pts[0].x, y: pts[0].y + h, expanded: pts[0].expanded };
-  let p4 = { x: pts[1].x, y: pts[1].y + h, expanded: pts[1].expanded };
+    const isVerticalSpan = Math.abs(pts[0].x - pts[1].x) < 0.5;
+    var line1 = isVerticalSpan ? { a: 0, b: pts[0].y } : calcLine(pts[0], pts[1]);
+    let p1 = { x: pts[0].x, y: pts[0].y, expanded: pts[0].expanded };
+    let p2 = { x: pts[1].x, y: pts[1].y, expanded: pts[1].expanded };
+    let p3 = { x: pts[0].x, y: pts[0].y + h, expanded: pts[0].expanded };
+    let p4 = { x: pts[1].x, y: pts[1].y + h, expanded: pts[1].expanded };
 
-    if (p1.expanded == true) {
+    if (!isVerticalSpan && p1.expanded == true) {
       var d = p2.x > p1.x ? -panel._width : panel._width;
       p1 = { ...movePointByDistance(p1, d, line1), expanded: p1.expanded };
       p3 = { ...movePointByDistance(p3, d, line1), expanded: p3.expanded };
     }
 
-    if (p2.expanded == true) {
+    if (!isVerticalSpan && p2.expanded == true) {
       var d = p2.x > p1.x ? panel._width : -panel._width;
       p2 = { ...movePointByDistance(p2, d, line1), expanded: p2.expanded };
       p4 = { ...movePointByDistance(p4, d, line1), expanded: p4.expanded };
@@ -52,39 +54,36 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
 
     o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
 
+    const opacity = resolveShapeOpacity(o);
+    const fillColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
+
     ctx.beginPath();
-    ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
-    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = fillColor;
+    ctx.globalAlpha = opacity * 0.2;
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
     ctx.lineTo(p4.x, p4.y);
     ctx.lineTo(p3.x, p3.y);
     ctx.lineTo(p1.x, p1.y);
     if (o.fillBg == true) ctx.fill();
-    ctx.globalAlpha = 1;
-    // }
+    ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
     ctx.lineTo(p2.x, p2.y);
     ctx.moveTo(p3.x, p3.y);
     ctx.lineTo(p4.x, p4.y);
     ctx.stroke();
+    ctx.globalAlpha = 1;
   };
 
   this.renderOverlay = createShapeAnchorOverlayDelegate({ redrawAnchorsWhenSelected: true });
 
   this.getPoints = function (o, renderer, panel, model, seriesManager) {
-    var pts = ParallelChannelObject.prototype.getPoints.call(
-      this,
-      o,
-      renderer,
-      panel,
-      model,
-      seriesManager
-    );
+    const runtime = resolveToolRenderContext(renderer, panel, model, seriesManager);
+    var pts = Shape.prototype.getPoints.call(this, o, runtime);
     if (!pts || pts.length < 3) return pts;
     var idx = Math.round((pts[0].index + pts[1].index) / 2);
-    var x = renderer.getIndexPoint(idx, model) + model._midOffset;
+    var x = runtime.renderer.getIndexPoint(idx, runtime.model) + runtime.model._midOffset;
     pts[2].index = idx;
     pts[2].x = x;
     return pts;
@@ -144,7 +143,6 @@ var ParallelChannelObject = function (this: ShapeRuntime) {
       }
 
       if (hitResult) {
-        drawAnchors(interactor.octx, panel, pts, self.anchorPointSize, this.anchorColor, 0.5);
         var p = findAnchorPointForXY(pts, x, y, self.hitTolerance);
         if (p) {
           o._hitAnchor = { x: p.x, y: p.y };

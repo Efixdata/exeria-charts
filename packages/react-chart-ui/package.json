@@ -20,7 +20,7 @@
     "README.md",
     "LICENSE"
   ],
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "AGPL-3.0-or-later",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -35,6 +35,8 @@
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --mode production && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "webpack --mode development --watch"
   },
   "dependencies": {
@@ -53,16 +55,19 @@
     "babel-loader": "^8.2.5",
     "clean-webpack-plugin": "^4.0.0",
     "core-js": "^3.25.5",
+    "css-loader": "^6.11.0",
     "eslint": "^7.32.0",
     "eslint-config-custom": "*",
     "file-loader": "^6.2.0",
     "react": "17.0.2",
     "regenerator-runtime": "^0.13.10",
+    "style-loader": "^3.3.4",
     "styled-components": "^5.3.5",
     "ts-loader": "^9.4.1",
     "tsconfig": "*",
     "typescript": "^4.5.2",
     "ui": "*",
+    "vitest": "^3.2.4",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },

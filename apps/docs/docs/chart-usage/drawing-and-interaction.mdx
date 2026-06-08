@@ -92,6 +92,19 @@ The React UI left menu currently exposes drawing types such as `trendLine`, `par
 
 If you need the current visible `ChartUI` menu coverage, cursor controls, or share and toolbar integration around these tools, continue with [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools).
 
+## Touch gestures (mobile)
+
+On coarse pointers the chart interaction layer handles:
+
+- **Pan** — scroll along the time axis (`touch-action: none` on the interaction surface)
+- **Pinch** — zoom the viewport (throttled per animation frame)
+- **Swipe** — inertial scroll after release
+- **Long press** — context menu at the touch location (go to start/end, toggle autoscale, toggle crosshair)
+
+Crosshair mode keeps the last position after finger lift. Pinch dismisses an open context menu.
+
+Integration notes (viewport meta, safe area, compact toolbar) are in [Mobile and responsive](../advanced/mobile-and-responsive).
+
 ## Change interaction mode
 
 Access the interactor with `getInteractor()`.

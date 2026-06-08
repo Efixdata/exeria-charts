@@ -1,0 +1,79 @@
+.menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+  background: var(--doc-bg);
+}
+
+.linkList {
+  list-style: none;
+  margin: 0;
+  padding: 16px 12px;
+  flex: 1;
+}
+
+.linkItem {
+  margin: 0;
+  padding: 0;
+}
+
+.linkItem :global(.menu__link),
+.linkItem :global(.navbar__link) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--doc-radius-sm);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--doc-text-secondary);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.linkItem :global(.menu__link:hover),
+.linkItem :global(.menu__link:focus-visible),
+.linkItem :global(.navbar__link:hover),
+.linkItem :global(.navbar__link:focus-visible) {
+  color: var(--doc-text);
+  background: var(--doc-surface);
+  text-decoration: none;
+}
+
+.linkItem :global(.menu__link--active) {
+  color: var(--doc-text);
+  background: var(--doc-surface-elevated);
+  border: 1px solid var(--doc-border);
+  font-weight: 500;
+}
+
+.footer {
+  padding: 20px;
+  border-top: 1px solid var(--doc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--doc-surface);
+}
+
+.footerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footerLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--doc-text-secondary);
+}
+
+.footerThemeToggle {
+  flex-shrink: 0;
+}
+
+.footerGithub {
+  width: 100%;
+}

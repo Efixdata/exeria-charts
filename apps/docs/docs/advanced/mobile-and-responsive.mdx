@@ -1,0 +1,196 @@
+---
+sidebar_position: 3
+title: Mobile and Responsive
+description: Viewport setup, layout modes, compact chart metrics, ChartUI mobile props, touch gestures, and integration checklist.
+---
+
+# Mobile and responsive charts
+
+Exeria Charts scales with its **container** (`ResizeObserver` + `fit()`). Mobile support layers three concerns on top of that foundation:
+
+1. **Environment** — reactive breakpoints and pointer capabilities (`getChartEnvironment`).
+2. **Compact layout** — narrower axes, legends, and fonts when the viewport is below 600px (by default).
+3. **React UI chrome** — dense toolbar, overflow menu, optional `minimal` layout, and safe-area padding.
+
+This page describes the public API and what you should configure in your app shell.
+
+## Required viewport meta tag
+
+For notched phones and home-indicator insets, use `viewport-fit=cover` together with a standard width device-width tag:
+
+```html
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover"
+/>
+```
+
+In Next.js, add the meta tag in `pages/_app` via `next/head` (not `_document`, which Next.js discourages for viewport). `ChartUI` applies `env(safe-area-inset-*)` on its outer container; the meta tag is what makes those insets non-zero on iOS.
+
+## Container sizing
+
+The chart canvas follows the **child** you mount inside `ChartUI` or your own wrapper:
+
+```tsx
+<div style={{ width: "100%", height: "min(70vh, 560px)", minHeight: 320 }}>
+  <ChartUI chart={chart}>
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+  </ChartUI>
+</div>
+```
+
+Rules that prevent common mobile issues:
+
+- Give the outer frame a **non-zero height** (`vh`, `dvh`, or flex `flex: 1` with `min-height: 0` on parents).
+- Avoid horizontal page scroll around the chart (`overflow-x: clip` or `hidden` on the page or panel).
+- Prefer `touch-action: manipulation` on page chrome; the chart interaction layer uses `touch-action: none` internally while panning or pinching.
+
+## Chart runtime layout API
+
+Pass `layout` when creating the chart:
+
+```ts
+import { createChart, CHART_COMPACT_BREAKPOINT_PX } from "@efixdata/exeria-chart";
+
+const chart = createChart({
+  container: el,
+  layout: {
+    mode: "auto", // "auto" | "desktop" | "compact" | "touch"
+    breakpoints: {
+      compact: CHART_COMPACT_BREAKPOINT_PX, // default 600
+    },
+  },
+});
+```
+
+### Layout modes
+
+| Mode | When (with `mode: "auto"`) |
+|------|----------------------------|
+| `desktop` | Wide viewport, fine pointer |
+| `compact` | Viewport width ≤ compact breakpoint (default 600px) |
+| `touch` | Coarse pointer on a wide viewport (e.g. tablet) |
+
+Override per instance:
+
+```ts
+chart.setLayoutMode("desktop"); // force desktop metrics
+chart.setLayoutMode("auto");      // follow media queries again
+```
+
+`fit()` applies **compact axis metrics** when the effective mode is `compact` (narrower value axis, shorter time-axis ticks, smaller legend spacing). Subscribe to environment changes:
+
+```ts
+chart.subscribe("ENVIRONMENT_CHANGE", (env) => {
+  console.log(env.layoutMode, env.isCompact);
+});
+```
+
+### Global environment (advanced)
+
+`configureChartEnvironment({ compactBreakpoint: 640 })` updates the shared breakpoint used before any chart instance reads the environment. Prefer `layout.breakpoints.compact` on `createChart` when you only need per-chart settings.
+
+React hook in the UI package:
+
+```tsx
+import { useChartEnvironment } from "@efixdata/exeria-chart-ui-react";
+
+function Toolbar() {
+  const { isCompact, layoutMode, isTouch } = useChartEnvironment();
+  // ...
+}
+```
+
+See [Chart environment reference](../api-reference/chart-environment) for exported helpers and types.
+
+## ChartUI mobile props
+
+```tsx
+import {
+  ChartUI,
+  type ChartUIMobileLayout,
+  applyChartUiEnvironmentOptions,
+} from "@efixdata/exeria-chart-ui-react";
+
+applyChartUiEnvironmentOptions({ compactBreakpoint: 600 });
+
+<ChartUI
+  chart={chart}
+  mobileLayout="minimal"
+  compactBreakpoint={600}
+  theme={{ edgeInset: 8 }}
+>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
+
+| Prop | Description |
+|------|-------------|
+| `mobileLayout` | `"default"` — full compact toolbar. `"minimal"` — hides the indicators group from the compact bar; indicators move to the ⋯ overflow menu. |
+| `compactBreakpoint` | Syncs the UI breakpoint with `configureChartEnvironment` (default **600**, aligned with `--ui-mobile-breakpoint`). |
+| `theme.edgeInset` | Extra padding added on top of `safe-area-inset-*` on the `ChartUI` container. |
+
+`ChartUI` calls `chart.setLayoutMode("auto")` on mount and when the chart instance or breakpoint changes, then `fit()` / `render()` so canvas layout stays in sync with the toolbar.
+
+### Compact toolbar behavior (≤ breakpoint)
+
+- **Pencil** toggles a drawing-tools rail overlaid on the chart edge (no page-width reflow).
+- **Type**, **interval**, **fullscreen**, and **⋯** stay on the top row.
+- **⋯ overflow** includes autoscale (with on/off state), price scale, settings, share (when enabled), and currency.
+- With `mobileLayout="minimal"`, **indicators** appear only under ⋯.
+
+### Fullscreen
+
+Fullscreen targets the `ChartUI` container. Safe-area padding and `min-height: 100dvh` apply while fullscreen is active. Layout is re-synced after enter/exit (including `visualViewport` resize on mobile browsers).
+
+## Touch gestures (chart surface)
+
+On touch devices the interaction controller provides:
+
+| Gesture | Behavior |
+|---------|----------|
+| Pan | Scroll the viewport along the time axis |
+| Pinch | Zoom (throttled per animation frame) |
+| Swipe | Inertial scroll after release |
+| Long press | Context menu at the touch point (go to start/end, toggle autoscale, toggle crosshair) |
+
+Crosshair mode keeps the last crosshair position after finger lift (**sticky crosshair**). Tooltips on coarse pointers are suppressed in shared UI components to avoid stuck hover labels.
+
+Pinch and pan dismiss an open long-press menu. Context menu position uses **viewport** coordinates (`clientX` / `clientY`), not `pageX` / `pageY`, so the menu stays under the finger when the page scrolls.
+
+## CSS tokens
+
+`ui` design tokens expose:
+
+```css
+--ui-mobile-breakpoint: 600px;
+--ui-toolbar-touch: 40px;
+```
+
+Use the same 600px value in your own media queries when aligning custom chrome with the built-in toolbar.
+
+## What “mobile-ready” means today
+
+Supported out of the box:
+
+- Container-driven resizing and device pixel ratio
+- Reactive compact layout in the chart core
+- Touch pan, pinch, swipe, and long-press menu
+- Compact React toolbar with overflow and optional `minimal` layout
+- Safe-area-aware `ChartUI` shell and fullscreen handling
+
+You still own:
+
+- Page-level viewport meta and scroll containment
+- Fetching data and interval changes on slow networks
+- Custom chrome outside `ChartUI` (headers, tabs, native WebView bridges)
+
+For manual and automated QA expectations, use [Mobile QA checklist](../guides/mobile-qa-checklist).
+
+## Continue reading
+
+- [React UI integration](./react-ui-integration)
+- [React UI toolbar and tools](./react-ui-toolbar-and-tools)
+- [Drawing and interaction](../chart-usage/drawing-and-interaction)
+- [Navigation and viewport](../chart-usage/navigation-and-viewport)
+- [Chart environment reference](../api-reference/chart-environment)

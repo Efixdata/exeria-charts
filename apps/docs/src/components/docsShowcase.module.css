@@ -1,0 +1,30 @@
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--doc-accent-muted-bg);
+  border: 1px solid var(--doc-accent-muted-border);
+  color: var(--doc-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.warningChip {
+  background: var(--doc-warning-muted-bg);
+  border-color: var(--doc-warning-muted-border);
+}
+
+.codeHint {
+  padding: 12px 14px;
+  border-radius: var(--doc-radius-sm);
+  border: 1px solid var(--doc-border);
+  background: var(--doc-code-bg);
+  color: var(--doc-code-text);
+  font-size: 13px;
+  font-family: var(--ifm-font-family-monospace);
+  line-height: 1.6;
+  overflow-x: auto;
+}

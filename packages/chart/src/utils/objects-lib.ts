@@ -176,28 +176,48 @@ export function findAnchorPointArrowForXY(
   return result;
 }
 
+function isAnchorPointVisible(
+  panel: PanelLike,
+  point: PointLike,
+  plotRight?: number,
+  margin = 32,
+): boolean {
+  const right = plotRight ?? panel._width;
+  return (
+    between(-margin, point.x, right + margin) &&
+    between(panel._offset - margin, point.y, panel._offset + panel._height + margin)
+  );
+}
+
 export function drawAnchor(
   ctx: CanvasRenderingContext2D,
   panel: PanelLike,
   point: PointLike,
   radius: number,
   color: string,
-  alpha: number
+  alpha: number,
+  options?: { plotRight?: number; strokeColor?: string; hollow?: boolean }
 ): void {
-  if (
-    !between(0, point.x, panel._width) ||
-    !between(panel._offset, point.y, panel._offset + panel._height)
-  ) {
+  if (!isAnchorPointVisible(panel, point, options?.plotRight)) {
     return;
   }
 
-  ctx.fillStyle = color;
+  const hollow = options?.hollow !== false;
+  const strokeColor = options?.strokeColor ?? color;
+
+  ctx.save();
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = hollow ? 1.5 : 2;
   ctx.globalAlpha = alpha;
   ctx.beginPath();
   ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI, false);
-  ctx.fill();
+  if (!hollow) {
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  ctx.stroke();
   ctx.closePath();
-  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 export function drawAnchors(
@@ -206,23 +226,11 @@ export function drawAnchors(
   points: PointLike[],
   radius: number,
   color: string,
-  alpha: number
+  alpha: number,
+  options?: { plotRight?: number; strokeColor?: string }
 ): void {
   for (const point of points) {
-    if (
-      !between(0, point.x, panel._width) ||
-      !between(panel._offset, point.y, panel._offset + panel._height)
-    ) {
-      continue;
-    }
-
-    ctx.fillStyle = color;
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI, false);
-    ctx.fill();
-    ctx.closePath();
-    ctx.globalAlpha = 1;
+    drawAnchor(ctx, panel, point, radius, color, alpha, options);
   }
 }
 
@@ -261,13 +269,11 @@ export function drawAnchorsArrow(
   size: number,
   distance: number,
   color: string,
-  alpha: number
+  alpha: number,
+  options?: { plotRight?: number }
 ): void {
   for (const point of points) {
-    if (
-      !between(0, point.x, panel._width) ||
-      !between(panel._offset, point.y, panel._offset + panel._height)
-    ) {
+    if (!isAnchorPointVisible(panel, point, options?.plotRight)) {
       continue;
     }
 

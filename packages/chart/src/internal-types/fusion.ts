@@ -164,6 +164,10 @@ export interface CoreFusionRuntime {
   isLoaded(): boolean;
   areAllSeriesEmpty(): boolean;
   getEmptyInstrumentSeries(): Record<string, FusionSeriesRuntime>;
+  getScriptOutputSeriesIds(): Set<string>;
+  hasDerivedSeriesLengthMismatch(): boolean;
+  isDerivedSeriesOutOfSync(): boolean;
+  resyncDerivedSeriesToMain(): void;
   [key: string]: unknown;
 }
 

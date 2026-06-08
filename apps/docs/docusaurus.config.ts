@@ -20,6 +20,7 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [require("./chartUiMonorepoPlugin")],
   presets: [
     [
       "classic",
@@ -44,13 +45,17 @@ const config: Config = {
     image: "img/social-card.jpg",
     navbar: {
       logo: {
-        alt: "Exeria Charts",
+        alt: "Exeria",
         src: "img/exeria.svg",
         srcDark: "img/exeria-dark.svg",
-        width: 111,
-        height: 32,
+        height: 28,
       },
       items: [
+        {
+          to: "/docs/getting-started/vanilla",
+          label: "Getting started",
+          position: "left",
+        },
         {
           type: "docSidebar",
           sidebarId: "docsSidebar",
@@ -58,60 +63,78 @@ const config: Config = {
           label: "Docs",
         },
         {
-          to: "/docs/getting-started/vanilla",
-          label: "Getting Started",
+          to: "/#features",
+          label: "Features",
           position: "left",
         },
         {
-          href: "https://github.com/Efixdata/exeria-charts",
-          label: "GitHub",
-          position: "right",
+          to: "/#case-studies",
+          label: "Case studies",
+          position: "left",
+        },
+        {
+          to: "/playground",
+          label: "Playground",
+          position: "left",
         },
       ],
     },
     footer: {
       style: "dark",
       logo: {
-        alt: "Exeria Charts",
+        alt: "Exeria",
         src: "img/exeria.svg",
         srcDark: "img/exeria-dark.svg",
         href: "/",
-        width: 124,
-        height: 36,
+        width: 111,
+        height: 28,
       },
       links: [
         {
-          title: "Docs",
+          title: "Product",
           items: [
+            { label: "Overview", to: "/" },
             {
-              label: "Overview",
-              to: "/docs/intro",
+              label: "GitHub Repo",
+              href: "https://github.com/Efixdata/exeria-charts",
             },
+            { label: "Pro Plugins", to: "/#pricing" },
+            { label: "Case studies", to: "/#case-studies" },
+            { label: "Playground", to: "/playground" },
+          ],
+        },
+        {
+          title: "Resources",
+          items: [
+            { label: "Documentation", to: "/docs/intro" },
+            { label: "Vanilla Quickstart", to: "/docs/getting-started/vanilla" },
+            { label: "React Quickstart", to: "/docs/getting-started/react" },
             {
-              label: "Vanilla Quickstart",
-              to: "/docs/getting-started/vanilla",
-            },
-            {
-              label: "React Quickstart",
-              to: "/docs/getting-started/react",
+              label: "NPM Package",
+              href: "https://www.npmjs.com/package/@efixdata/exeria-chart",
             },
           ],
         },
         {
-          title: "Project",
+          title: "Legal",
           items: [
+            { label: "Contact Us", to: "/docs/guides/licensing#commercial-license" },
             {
-              label: "License",
-              to: "/docs/guides/licensing",
+              label: "AGPL v3 License",
+              href: "https://www.gnu.org/licenses/agpl-3.0.html",
             },
             {
-              label: "GitHub",
-              href: "https://github.com/Efixdata/exeria-charts",
+              label: "Commercial EULA",
+              href: "https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md",
+            },
+            {
+              label: "Privacy Policy",
+              href: "https://exeriacharts.dev/privacy-policy",
             },
           ],
         },
       ],
-      copyright: `Copyright ${new Date().getFullYear()} Efix Data Sp. z o. o.`,
+      copyright: "Copyright © 2026 Exeria. Built for developers.",
     },
     prism: {
       theme: prismThemes.github,

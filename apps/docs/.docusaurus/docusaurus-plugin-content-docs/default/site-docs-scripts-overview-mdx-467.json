@@ -18,8 +18,8 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "ChartInstance",
-    "permalink": "/docs/api-reference/chart-instance"
+    "title": "Chart Environment and Layout",
+    "permalink": "/docs/api-reference/chart-environment"
   },
   "next": {
     "title": "Programmatic Wiring",

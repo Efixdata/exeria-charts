@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { resolveChartLocaleMessage } from "../../chartLocaleRuntime";
 import LIB from "../../utils/chartingCommons";
 import { TradeObjectClass } from "./tradeObject";
 import type {
@@ -22,7 +23,7 @@ var StopLimitObject = class StopLimitObject extends TradeObjectClass {
   }
 
   getOperationTitle(operation: string) {
-    return WEBRCP.locale.fusion.getMessage(operation, operation);
+    return resolveChartLocaleMessage(operation, operation);
   }
 
   render(

@@ -141,7 +141,9 @@ class ColorManager {
       return color.bw;
     }
 
-    return color?.[this.variant] ?? fallback ?? colorName;
+    return (
+      color?.[this.variant] ?? color?.dark ?? color?.light ?? fallback ?? colorName
+    );
   }
 
   getFont(key: string, fallback?: string): string {
@@ -154,7 +156,7 @@ class ColorManager {
       return font.bw;
     }
 
-    return font?.[this.variant] ?? fallback ?? key;
+    return font?.[this.variant] ?? font?.dark ?? font?.light ?? fallback ?? key;
   }
 }
 

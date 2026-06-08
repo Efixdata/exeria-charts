@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+import { ChartUI, type ChartUIMobileLayout } from "@efixdata/exeria-chart-ui-react";
 import Chart from "@efixdata/exeria-chart";
 import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import {
@@ -106,6 +106,8 @@ export default function WebChartComponent(_props: Record<string, never>) {
     presetId: initialPreset.id,
     intervalSymbol: initialPreset.defaultIntervalSymbol,
   });
+  const [mobilePreview, setMobilePreview] = useState(false);
+  const [mobileLayout, setMobileLayout] = useState<ChartUIMobileLayout>("default");
 
   const activePreset = useMemo<ReviewPreset>(() => getPresetById(viewState.presetId), [viewState.presetId]);
   const activeInterval = useMemo<IntervalFixture>(
@@ -273,6 +275,35 @@ export default function WebChartComponent(_props: Record<string, never>) {
             </li>
           </ul>
         </div>
+
+        <div className="reviewPanel">
+          <div className="reviewSectionHeader">
+            <h2>Mobile preview</h2>
+            <span>390px frame</span>
+          </div>
+          <div className="reviewMobileControls">
+            <label className="reviewToggle">
+              <input
+                type="checkbox"
+                checked={mobilePreview}
+                onChange={(event) => setMobilePreview(event.target.checked)}
+              />
+              <span>Constrain chart panel to phone width</span>
+            </label>
+            <label className="reviewToggle">
+              <span>ChartUI layout</span>
+              <select
+                value={mobileLayout}
+                onChange={(event) =>
+                  setMobileLayout(event.target.value as ChartUIMobileLayout)
+                }
+              >
+                <option value="default">default</option>
+                <option value="minimal">minimal</option>
+              </select>
+            </label>
+          </div>
+        </div>
       </section>
 
       <section className="reviewStage">
@@ -317,10 +348,13 @@ export default function WebChartComponent(_props: Record<string, never>) {
           </div>
         </div>
 
-        <div className="reviewPanel reviewChartPanel">
+        <div
+          className={`reviewPanel reviewChartPanel${mobilePreview ? " reviewChartPanel--mobilePreview" : ""}`}
+        >
           <ChartUI
             key={chartUiKey}
             chart={chart}
+            mobileLayout={mobileLayout}
             onIntervalChange={handleIntervalChange}
             theme={activeUiTheme}
           >

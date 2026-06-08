@@ -12,6 +12,15 @@ export type ModalProps = {
 
 const { useEffect, useRef } = React;
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    (element) => element.tabIndex !== -1 && !element.hasAttribute("disabled"),
+  );
+}
+
 const Container = styled.div`
   position: fixed;
   z-index: 10000;
@@ -51,7 +60,8 @@ const InnerPaper = styled.div`
 `;
 
 export const Modal = (props: ModalProps) => {
-  const ref: any = useRef();
+  const ref = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (props.visible) {
@@ -62,13 +72,78 @@ export const Modal = (props: ModalProps) => {
     };
   }, [props.visible]);
 
+  useEffect(() => {
+    if (!props.visible) {
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+      return;
+    }
+
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    const frame = window.requestAnimationFrame(() => {
+      const container = ref.current;
+      if (!container) {
+        return;
+      }
+
+      const focusable = getFocusableElements(container);
+      (focusable[0] ?? container).focus();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [props.visible]);
+
+  useEffect(() => {
+    if (!props.visible) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        props.onClose?.();
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const container = ref.current;
+      if (!container) {
+        return;
+      }
+
+      const focusable = getFocusableElements(container);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [props.onClose, props.visible]);
+
   useOnClick(ref, () => (props.onCloseOutsideClick && props.onClose ? props.onClose() : undefined));
 
   return props.visible ? (
     <Container role="presentation">
       <BackDrop aria-hidden="true"></BackDrop>
       <InnerContainer role="none presentation" tabIndex={-1}>
-        <InnerPaper className={props.className} ref={ref}>
+        <InnerPaper className={props.className} ref={ref} tabIndex={-1}>
           {props.children}
         </InnerPaper>
       </InnerContainer>

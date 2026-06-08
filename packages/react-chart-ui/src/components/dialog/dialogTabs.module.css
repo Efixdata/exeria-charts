@@ -1,0 +1,35 @@
+.tabBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2, 8px);
+  padding: var(--ui-space-3, 12px) var(--ui-space-5, 20px) 0;
+}
+
+.tabBarInset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-2, 8px);
+  margin-bottom: var(--ui-space-1, 4px);
+}
+
+.tab {
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  font-size: var(--ui-font-label, 12px);
+  border: 1px solid var(--dialog-tab-border, rgba(255, 255, 255, 0.14));
+  border-radius: var(--ui-radius-md, 6px);
+  background: transparent;
+  color: var(--dialog-tab-color, rgba(255, 255, 255, 0.7));
+  cursor: pointer;
+}
+
+.tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ui-focus-ring-width, 2px) var(--ifm-color-primary, #2962ff);
+}
+
+.tabActive {
+  border-color: var(--dialog-tab-active-border, #434651);
+  color: var(--dialog-tab-active-color, #d1d4dc);
+  background: var(--dialog-tab-active-bg, #2a2e39);
+  font-weight: 500;
+}

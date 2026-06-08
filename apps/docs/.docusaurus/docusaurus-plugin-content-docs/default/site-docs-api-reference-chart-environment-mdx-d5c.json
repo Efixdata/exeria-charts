@@ -1,0 +1,28 @@
+{
+  "id": "api-reference/chart-environment",
+  "title": "Chart Environment and Layout",
+  "description": "Breakpoints, layout modes, compact metrics, and environment subscriptions from @efixdata/exeria-chart.",
+  "source": "@site/docs/api-reference/chart-environment.mdx",
+  "sourceDirName": "api-reference",
+  "slug": "/api-reference/chart-environment",
+  "permalink": "/docs/api-reference/chart-environment",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Chart Environment and Layout",
+    "description": "Breakpoints, layout modes, compact metrics, and environment subscriptions from @efixdata/exeria-chart."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "ChartInstance",
+    "permalink": "/docs/api-reference/chart-instance"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/docs/scripts/overview"
+  }
+}

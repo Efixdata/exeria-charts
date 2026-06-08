@@ -1,0 +1,129 @@
+---
+sidebar_position: 2
+title: Chart Environment and Layout
+description: Breakpoints, layout modes, compact metrics, and environment subscriptions from @efixdata/exeria-chart.
+---
+
+# Chart environment and layout
+
+The `@efixdata/exeria-chart` package exposes a reactive **chart environment** used by compact layout, hit tolerance, and React UI breakpoints.
+
+## Constants
+
+```ts
+import { CHART_COMPACT_BREAKPOINT_PX } from "@efixdata/exeria-chart";
+// 600 — aligned with UI_TOOLBAR.mobileBreakpoint
+```
+
+## Types
+
+```ts
+type ChartLayoutMode = "desktop" | "compact" | "touch";
+type ChartLayoutModeOverride = "auto" | ChartLayoutMode;
+
+interface ChartEnvironmentSnapshot {
+  layoutMode: ChartLayoutMode;
+  isCompact: boolean;
+  isTouch: boolean;
+  isCoarsePointer: boolean;
+  isNarrowViewport: boolean;
+  hitTolerance: number;
+  compactBreakpoint: number;
+}
+
+interface ChartLayoutOptions {
+  mode?: ChartLayoutModeOverride;
+  breakpoints?: { compact?: number };
+}
+```
+
+`ChartOptions.layout` accepts `ChartLayoutOptions`.
+
+## `createChart` layout option
+
+```ts
+const chart = createChart({
+  container,
+  layout: {
+    mode: "auto",
+    breakpoints: { compact: 600 },
+  },
+});
+```
+
+On each `fit()`, the chart applies `applyResponsiveChartLayout(model, layoutMode)` when the effective mode is `compact`.
+
+## Instance methods
+
+```ts
+const env = chart.getChartEnvironment();
+chart.setLayoutMode("auto");
+```
+
+`setLayoutMode` updates the per-instance override and re-runs layout when the effective mode changes.
+
+## Global configuration
+
+```ts
+import {
+  configureChartEnvironment,
+  getChartEnvironment,
+  subscribeChartEnvironment,
+} from "@efixdata/exeria-chart";
+
+configureChartEnvironment({ compactBreakpoint: 640 });
+
+const snapshot = getChartEnvironment();
+const unsubscribe = subscribeChartEnvironment(() => {
+  console.log(getChartEnvironment());
+});
+```
+
+`getChartEnvironment(override?)` accepts an optional per-call override (used internally by `Chart.getChartEnvironment()`).
+
+## Events
+
+```ts
+chart.subscribe("ENVIRONMENT_CHANGE", (env: ChartEnvironmentSnapshot) => {
+  // env.layoutMode, env.isCompact, ...
+});
+```
+
+## Compact layout exports
+
+```ts
+import {
+  applyResponsiveChartLayout,
+  COMPACT_CHART_LAYOUT,
+  DESKTOP_CHART_LAYOUT,
+  getLegendLayoutMetrics,
+  isModelCompactLayout,
+} from "@efixdata/exeria-chart";
+```
+
+`COMPACT_CHART_LAYOUT` and `DESKTOP_CHART_LAYOUT` document the axis and margin values applied in each mode.
+
+## Legacy helpers
+
+These remain for backward compatibility; prefer `getChartEnvironment()`:
+
+- `isTouchDevice()` / `isTouchEnvironment()`
+- `isSmallScreen()` — cached media query; avoid for new code
+- `hitTolerance` / `getHitTolerance()` — synced from environment
+
+## React UI helpers
+
+From `@efixdata/exeria-chart-ui-react`:
+
+```ts
+import {
+  useChartEnvironment,
+  applyChartUiEnvironmentOptions,
+  getChartUiSafeAreaPadding,
+  syncChartInstanceLayout,
+  isChartUiFullscreenElement,
+  type ChartUIMobileLayout,
+} from "@efixdata/exeria-chart-ui-react";
+```
+
+See [Mobile and responsive](../advanced/mobile-and-responsive) for integration patterns.

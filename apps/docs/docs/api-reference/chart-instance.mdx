@@ -44,6 +44,33 @@ const chart = createChart({ container });
 
 Operational behavior, mode values, and related events are documented in [Autoscale and value axis](../chart-usage/autoscale-and-value-axis).
 
+## Layout and environment
+
+- `getChartEnvironment(): ChartEnvironmentSnapshot`
+- `setLayoutMode(mode): void` — `mode` is `"auto" | "desktop" | "compact" | "touch"`
+
+Pass `layout` in `createChart` options:
+
+```ts
+createChart({
+  container,
+  layout: {
+    mode: "auto",
+    breakpoints: { compact: 600 },
+  },
+});
+```
+
+Subscribe to layout changes:
+
+```ts
+chart.subscribe("ENVIRONMENT_CHANGE", (env) => {
+  console.log(env.layoutMode, env.isCompact);
+});
+```
+
+Full reference: [Chart environment and layout](./chart-environment) and [Mobile and responsive](../advanced/mobile-and-responsive).
+
 ## Scripts and data access
 
 - `getScripts(): Record<string, ScriptDefinition>`

@@ -5,20 +5,73 @@ import FUSION from "./fusion";
 import InteractionsController from "./InteractionsController";
 import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
+import { runWithChartLocale } from "./chartLocaleRuntime";
 import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
-import englishLocale from "./locale/en-US";
 import ToolDrawer from "./ToolDrawer";
+import {
+  applyChartAppearanceSettings,
+  applyChartTheme as applyChartThemeColors,
+  applyChartVolumeSettings,
+  exportChartSettingsTemplate,
+  getChartAppearanceSettings,
+  getChartDrawingSettings,
+  getChartIndicatorSettings,
+  getChartFunctionSettings,
+  getChartStrategySettings,
+  getChartVolumeSettings,
+  importChartSettingsTemplate,
+  removeChartDrawing,
+  removeChartFunction,
+  removeChartIndicator,
+  removeChartStrategy,
+  setChartDrawingVisibility,
+  setChartFunctionPriceTagVisibility,
+  setChartFunctionVisibility,
+  setChartIndicatorLocked,
+  setChartIndicatorPriceTagVisibility,
+  setChartIndicatorVisibility,
+  setChartStrategyVisibility,
+} from "./chartSettings";
+import {
+  applyDrawingEditSettings,
+  getDrawingEditConfig,
+  type ChartDrawingEditConfig,
+  type ChartDrawingEditPatch,
+} from "./drawingEdit";
+import {
+  getAllDrawingsLocked,
+  setAllDrawingsLocked,
+} from "./drawingWorkflow";
+import type {
+  ChartAppearanceSettings,
+  ChartDrawingSettingsItem,
+  ChartFunctionSettingsItem,
+  ChartIndicatorSettingsItem,
+  ChartSettingsTemplate,
+  ChartStrategySettingsItem,
+  ChartVolumeSettings,
+} from "./chartSettings";
 import type {
   ChartConfig,
+  ChartEnvironmentSnapshot,
   ChartEventPayloads,
+  ChartLayoutModeOverride,
+  ChartLayoutOptions,
   ChartOptions,
+  ChartTheme,
   DrawMode,
   Instrument,
   Interval,
   ScriptDefinition,
   ValueAxisMode,
 } from "./types";
+import {
+  configureChartEnvironment,
+  getChartEnvironment,
+  subscribeChartEnvironment,
+} from "./utils/chartEnvironment";
+import { applyResponsiveChartLayout } from "./utils/compactLayout";
 import type {
   ChartEventEnvelope,
   ChartMarginInfo,
@@ -28,16 +81,46 @@ import type {
   CoreChartPanel,
 } from "./internal-types/chart";
 import type { CoreFusionRuntime } from "./internal-types/fusion";
-import type { CoreInteractor, CoreInteractorConstructor } from "./internal-types/interactor";
+import type {
+  CoreInteractor,
+  CoreInteractorConstructor,
+  InteractorChartHost,
+} from "./internal-types/interactor";
 import type { ChartRuntimeObject } from "./internal-types/objects";
 import type {
   CoreRenderer,
   CoreRendererConstructor,
   ValueConverterLike,
 } from "./internal-types/renderer";
-import type { RuntimeScriptConfig, RuntimeScriptDefinition } from "./internal-types/scripts";
+import type {
+  RuntimeScriptConfig,
+  RuntimeScriptDefinition,
+  RuntimeScriptInput,
+} from "./internal-types/scripts";
 import type { OhlcvCandle, TickLike } from "./internal-types/series";
 import type { UnknownFn } from "./internal-types/shared";
+import {
+  DEFAULT_LOCALE_ID,
+  LOCALE_STORAGE_KEY,
+  SUPPORTED_LOCALES,
+  normalizeLocaleId,
+  type LocaleId,
+} from "./locale";
+import { createLocaleMessages, type ChartLocaleMessages } from "./locale/messages";
+import { createCatalogTranslator } from "./locale/catalogTranslator";
+
+/** Layout size from the container box — avoids transient getBoundingClientRect overflow on mobile. */
+function readChartContainerSize(container: HTMLElement): { width: number; height: number } {
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  if (width > 0 && height > 0) {
+    return { width, height };
+  }
+
+  const rect = container.getBoundingClientRect();
+  return { width: Math.max(0, rect.width), height: Math.max(0, rect.height) };
+}
 
 export default class Chart implements CoreChartController {
   [key: string]: any;
@@ -65,8 +148,21 @@ export default class Chart implements CoreChartController {
   canvasHeight = 0;
   currentAnimationFrame?: number;
   resizeObserver?: ResizeObserver;
+  private environmentUnsubscribe?: () => void;
+  private layoutOptions?: ChartLayoutOptions;
+  private layoutModeOverride: ChartLayoutModeOverride = "auto";
+  private lastEnvironmentSnapshot?: ChartEnvironmentSnapshot;
   containerPositionBeforeInit = "";
   valueConverter?: ValueConverterLike;
+  private chartAppearanceTheme?: ChartTheme;
+  private localeId: LocaleId = DEFAULT_LOCALE_ID;
+  private messageOverrides?: Record<string, unknown>;
+  private localeMessages: ChartLocaleMessages = createLocaleMessages(DEFAULT_LOCALE_ID);
+  private englishLocaleMessages: ChartLocaleMessages = createLocaleMessages(DEFAULT_LOCALE_ID);
+  private catalogTranslator = createCatalogTranslator(
+    createLocaleMessages(DEFAULT_LOCALE_ID),
+    createLocaleMessages(DEFAULT_LOCALE_ID),
+  );
 
   constructor(options: ChartOptions) {
     if (typeof window === "undefined") return;
@@ -88,7 +184,87 @@ export default class Chart implements CoreChartController {
     this.toolDrawer = new ToolDrawer(this);
 
     if (options.theme) {
+      this.chartAppearanceTheme = options.theme as ChartTheme;
       WEBRCP.utils.colorManager.setTheme(options.theme, options?.themeVariant);
+    }
+
+    const storedLocale =
+      typeof localStorage !== "undefined" ? localStorage.getItem(LOCALE_STORAGE_KEY) : null;
+    const initialLocale = options.locale ?? storedLocale ?? DEFAULT_LOCALE_ID;
+    this.localeId = normalizeLocaleId(initialLocale);
+    this.messageOverrides = options.messages as Record<string, unknown> | undefined;
+    this.rebuildLocaleMessages();
+    this.syncContainerLocale();
+
+    this.layoutOptions = options.layout;
+    this.layoutModeOverride = options.layout?.mode ?? "auto";
+    configureChartEnvironment({
+      compactBreakpoint: options.layout?.breakpoints?.compact,
+    });
+    this.model._priceAxisExpanded = !getChartEnvironment(this.layoutModeOverride).isCompact;
+  }
+
+  private syncPriceAxisRenderingOptions(): void {
+    const mainSeries = this.fusion?.getMainSeries?.();
+    if (!mainSeries?.data?.length) {
+      return;
+    }
+
+    this.renderer.calculatePriceRenderingOptions(
+      mainSeries.data,
+      this.model,
+      mainSeries.instrument?.precision ?? this.instrument?.precision ?? 0,
+    );
+  }
+
+  private syncContainerLocale(): void {
+    if (!this.container) {
+      return;
+    }
+
+    const host = this.container as InteractorChartHost;
+    const noop = () => {};
+
+    if (!host.options) {
+      host.options = {
+        locale: { getMessage: () => "" },
+        doClosePositionCallback: noop,
+        doDeleteOrderCallback: noop,
+        doModifyOrderCallback: noop,
+        doAddRelatedOrder: noop,
+        openAddSLWidget: noop,
+        openAddTPWidget: noop,
+      };
+    }
+
+    const messages = this.localeMessages;
+    host.options.locale = {
+      getMessage: (key: string, fallback?: string): string => {
+        const translated = messages.getMessage(key, fallback ?? key);
+        return typeof translated === "string" ? translated : String(fallback ?? key);
+      },
+    };
+  }
+
+  private rebuildLocaleMessages(): void {
+    this.localeMessages = createLocaleMessages(this.localeId, this.messageOverrides);
+    this.englishLocaleMessages = createLocaleMessages("en-US");
+    this.catalogTranslator = createCatalogTranslator(
+      this.localeMessages,
+      this.englishLocaleMessages,
+    );
+    this.syncContainerLocale();
+  }
+
+  private persistLocalePreference(): void {
+    if (typeof localStorage === "undefined") {
+      return;
+    }
+
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, this.localeId);
+    } catch {
+      // Ignore storage failures (private mode, quota, etc.).
     }
   }
 
@@ -100,6 +276,12 @@ export default class Chart implements CoreChartController {
     this.overlay = document.createElement("canvas");
     this.containerPositionBeforeInit = this.container.style.position;
     this.container.style.position = "relative";
+    this.container.style.overscrollBehavior = "contain";
+    this.container.style.boxSizing = "border-box";
+    this.container.style.width = "100%";
+    this.container.style.height = "100%";
+    this.container.style.maxWidth = "100%";
+    this.container.style.overflow = "hidden";
     this.overlay.style.position = "absolute";
     this.overlay.style.inset = "0 0 0 0";
     const ctx = this.canvas.getContext("2d");
@@ -111,6 +293,7 @@ export default class Chart implements CoreChartController {
     this.topLayer = document.createElement("div");
     this.topLayer.style.position = "absolute";
     this.topLayer.style.inset = "0 0 0 0";
+    this.topLayer.style.touchAction = "none";
 
     this.container.append(this.canvas, this.overlay, this.topLayer);
 
@@ -150,6 +333,16 @@ export default class Chart implements CoreChartController {
 
     this.resizeObserver = new ResizeObserver(onSizeChange);
     this.resizeObserver.observe(this.container);
+
+    this.environmentUnsubscribe = subscribeChartEnvironment(() => {
+      this.onChartEnvironmentChange();
+    });
+    this.lastEnvironmentSnapshot = this.getChartEnvironment();
+    this.emitEvent({
+      topic: "ENVIRONMENT_CHANGE",
+      data: this.lastEnvironmentSnapshot,
+    });
+
     this.initialized = true;
   }
 
@@ -171,6 +364,9 @@ export default class Chart implements CoreChartController {
 
     this.resizeObserver?.disconnect();
     this.resizeObserver = undefined;
+
+    this.environmentUnsubscribe?.();
+    this.environmentUnsubscribe = undefined;
 
     this.interactor?.currentMode?.onCancel?.();
     this.interactor?.offDOMEvents?.();
@@ -225,21 +421,14 @@ export default class Chart implements CoreChartController {
     if (this.canvasWidth == 0 || this.canvasHeight == 0) {
       return; //chart not visibled
     }
-    // TODO: handle invisible wrapper
-    // else if(this.options.controller && this.options.controller.wrapper) {
-    // 	if (this.options.controller.wrapper.element[0].style.display=='none') {return;}
-    // }
 
-    if (!this.isChartEmpty()) {
-      this.renderer.render(this.ctx, this.model, this.fusion, false, objectOnlyOnOverlay);
-    } else this.renderEmpty();
-
-    // if (this.options.loadableHistory) {
-    // 	if (this.model._leftIndex < 40)
-    // 		this.loadHistoryButton.addClass('visible').removeClass('invisible');
-    // 	else
-    // 		this.loadHistoryButton.addClass('invisible').removeClass('visible');
-    // }
+    runWithChartLocale(this, () => {
+      if (!this.isChartEmpty()) {
+        this.renderer.render(this.ctx, this.model, this.fusion, false, objectOnlyOnOverlay);
+      } else {
+        this.renderEmpty();
+      }
+    });
 
     // this.thumbnail = this.canvas.toDataURL();
   }
@@ -281,10 +470,10 @@ export default class Chart implements CoreChartController {
         ratio = window.devicePixelRatio;
       }
 
-      const boundingRect = this.container.getBoundingClientRect();
+      const { width, height } = readChartContainerSize(this.container);
 
-      this.canvasWidth = boundingRect.width;
-      this.canvasHeight = boundingRect.height;
+      this.canvasWidth = width;
+      this.canvasHeight = height;
       const widthWithRatio = this.canvasWidth * ratio;
       const widthPx = this.canvasWidth + "px";
       const heightWithRatio = this.canvasHeight * ratio;
@@ -294,17 +483,24 @@ export default class Chart implements CoreChartController {
       this.canvas.height = heightWithRatio;
       this.canvas.style.width = widthPx;
       this.canvas.style.height = heightPx;
-      this.ctx.scale(ratio, ratio);
+      this.canvas.style.maxWidth = "100%";
+      this.canvas.style.maxHeight = "100%";
+      this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       this.overlay.width = widthWithRatio;
       this.overlay.height = heightWithRatio;
       this.overlay.style.width = widthPx;
       this.overlay.style.height = heightPx;
-      this.octx.scale(ratio, ratio);
+      this.overlay.style.maxWidth = "100%";
+      this.overlay.style.maxHeight = "100%";
+      this.octx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       // this.model['axisGrid'] = this.mainAxisGrid;
       this.model["_width"] = this.canvasWidth;
       this.model["_height"] = this.canvasHeight;
+
+      applyResponsiveChartLayout(this.model, this.getChartEnvironment().layoutMode);
+      this.syncPriceAxisRenderingOptions();
 
       this.model["_timeAxisWidth"] =
         this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
@@ -322,10 +518,25 @@ export default class Chart implements CoreChartController {
       this.interactor.hideEmptyPanels();
       this.interactor.basisToHeights();
 
+      let lastVisiblePanelIndex = -1;
+      for (var panelIndex = 0; panelIndex < this.model.panels.length; panelIndex++) {
+        if (this.model.panels[panelIndex]._visible) {
+          lastVisiblePanelIndex = panelIndex;
+        }
+      }
+
       for (var i = 0; i < this.model.panels.length; i++) {
         panel = this.model.panels[i];
         if (this.model.panels[i]._visible) {
-          offset += this.fitPanel(panel, i, offset);
+          offset += this.fitPanel(panel, i, offset, lastVisiblePanelIndex);
+        }
+      }
+
+      if (this.fusion.isDerivedSeriesOutOfSync()) {
+        const needRecalculate = this.fusion.hasDerivedSeriesLengthMismatch();
+        this.fusion.resyncDerivedSeriesToMain();
+        if (needRecalculate) {
+          this.fusion.calculateAll();
         }
       }
     }
@@ -345,7 +556,7 @@ export default class Chart implements CoreChartController {
     });
   }
 
-  fitPanel(panel: CoreChartPanel, index: number, offset: number) {
+  fitPanel(panel: CoreChartPanel, index: number, offset: number, lastVisiblePanelIndex = -1) {
     if (!this.valueConverter || this.valueConverter.mode !== panel.valueAxisMode)
       this.valueConverter = new LIB.ValueConverter(panel.valueAxisMode);
 
@@ -357,8 +568,13 @@ export default class Chart implements CoreChartController {
     //panel['_height'] = parseInt ((panel.basis * panelsHeight)/100);
     panel["_offset"] = offset;
 
-    if (index == this.model.panels.length - 1) {
-      panel._height = this.model._height - this.model.timeAxisHeight - panel._offset;
+    const timeAxisHeight = this.model.timeAxisHeight > 0 ? this.model.timeAxisHeight : 24;
+    const bottomPanelIndex =
+      lastVisiblePanelIndex >= 0 ? lastVisiblePanelIndex : this.model.panels.length - 1;
+
+    if (index === bottomPanelIndex) {
+      const remainingHeight = this.model._height - timeAxisHeight - panel._offset;
+      panel._height = Math.max(this.model.minPanelHeight || 24, remainingHeight);
     }
 
     if (panel.objects.length > 0) {
@@ -412,7 +628,11 @@ export default class Chart implements CoreChartController {
         }
 
         extremesOffset = extremes.max - extremes.min;
-        extremesMargin = extremesOffset * this.model.extremesMargin;
+        const percentMargin = extremesOffset * this.model.extremesMargin;
+        const verticalPaddingPx = this.model.priceAxisVerticalPaddingPx ?? 8;
+        const pixelMargin =
+          panel._height > 0 ? (verticalPaddingPx / panel._height) * extremesOffset : 0;
+        extremesMargin = Math.max(percentMargin, pixelMargin);
 
         if (panel.centerZero == true) {
           var range = Math.abs(extremes.max + extremesMargin);
@@ -447,16 +667,35 @@ export default class Chart implements CoreChartController {
       return; //chart not visible
     }
 
-    if (!this.isChartEmpty()) {
-      this.interactor.clearOverlay();
+    runWithChartLocale(this, () => {
+      if (!this.isChartEmpty()) {
+        this.interactor.clearOverlay();
 
-      this.renderer.renderOverlay(this.octx, this.model, this.fusion);
+        const selected = this.interactor.currentSelectedObject as ChartRuntimeObject | null;
+        if (selected?.id) {
+          selected.selected = true;
+          for (const panel of this.model.panels) {
+            for (const object of panel.objects) {
+              if (object.id === selected.id) {
+                object.selected = true;
+              }
+            }
+          }
+        }
 
-      if (this.interactor.currentMode.renderOverlay)
-        this.interactor.currentMode.renderOverlay(this.octx);
+        this.renderer.renderOverlay(this.octx, this.model, this.fusion);
+        this.renderer.renderRangeAxisGuides(this.octx, this.model, this.fusion);
 
-      this.renderer.postRenderOverlay(this.octx, this.model, this.fusion.getSeriesManager());
-    }
+        if (this.interactor.currentMode.renderOverlay)
+          this.interactor.currentMode.renderOverlay(this.octx);
+
+        this.renderer.postRenderOverlay(this.octx, this.model, this.fusion.getSeriesManager());
+
+        if (selected?.id) {
+          this.renderer.renderSelectionHandles(this.octx, this.model, this.fusion, selected);
+        }
+      }
+    });
   }
 
   calculateAll() {
@@ -636,22 +875,165 @@ export default class Chart implements CoreChartController {
 
   addScript(scriptKey: string): void;
   addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  addScript(scriptKey: string, proto?: ScriptDefinition): Promise<void>;
   addScript(scriptKey: string, proto?: ScriptDefinition) {
-    this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
+    return this.onScriptEditorApply(this.createScriptConfig(scriptKey, proto));
+  }
+
+  private resolveScriptProto(scriptKey: string, proto?: ScriptDefinition): RuntimeScriptDefinition {
+    const template = FUSION.getScript(scriptKey) as RuntimeScriptDefinition;
+    if (!proto) {
+      return template;
+    }
+
+    const protoPlotters = (proto as RuntimeScriptDefinition).plotters;
+    const mergedInputs: Record<string, RuntimeScriptInput> = {};
+
+    for (const key of Object.keys(template.inputs)) {
+      const templateInput = template.inputs[key];
+      const protoInput = proto.inputs?.[key] as RuntimeScriptInput | undefined;
+      const protoValue = protoInput?.value;
+
+      mergedInputs[key] = {
+        ...templateInput,
+        ...protoInput,
+        value:
+          protoValue !== undefined && protoValue !== null ? protoValue : templateInput.value,
+      };
+    }
+
+    const sanitizedProto = Object.fromEntries(
+      Object.entries(proto).filter(([, value]) => value !== undefined),
+    ) as ScriptDefinition;
+
+    return {
+      ...template,
+      ...sanitizedProto,
+      inputs: mergedInputs,
+      plotters: Array.isArray(protoPlotters) ? protoPlotters : template.plotters,
+    };
+  }
+
+  private resolveScriptPane(
+    scriptKey: string,
+    resolvedProto: RuntimeScriptDefinition,
+    proto?: ScriptDefinition,
+  ) {
+    const explicitPane = (proto as RuntimeScriptConfig | undefined)?.pane;
+    if (explicitPane != null && explicitPane !== "") {
+      return String(explicitPane);
+    }
+
+    const template = FUSION.getScript(scriptKey) as RuntimeScriptDefinition;
+    const useNewPane = resolvedProto.newPane ?? template.newPane ?? false;
+
+    if (useNewPane) {
+      return "new";
+    }
+
+    const mainPanel = this.interactor.getMainPanel();
+    return mainPanel?.id != null ? String(mainPanel.id) : "1";
+  }
+
+  private applyPlotterStyleOverrides(
+    plotter: ChartRuntimeObject,
+    sourcePlotters: ChartRuntimeObject[],
+    sourceIndex: number,
+    plotterColors?: Record<string, string>,
+    plotterDashes?: Record<string, number[]>,
+  ) {
+    const source =
+      sourcePlotters[sourceIndex] ??
+      sourcePlotters.find((candidate) => candidate.dataField === plotter.dataField);
+
+    if (typeof source?.color === "string" && source.color.length > 0) {
+      plotter.color = source.color;
+    }
+
+    if (Array.isArray(source?.dash)) {
+      plotter.dash = [...source.dash];
+    }
+
+    if (typeof source?.buyColor === "string" && source.buyColor.length > 0) {
+      plotter.buyColor = source.buyColor;
+    }
+
+    if (typeof source?.sellColor === "string" && source.sellColor.length > 0) {
+      plotter.sellColor = source.sellColor;
+    }
+
+    const fieldKey = plotter.dataField ? String(plotter.dataField) : undefined;
+    if (fieldKey && plotterColors?.[fieldKey]) {
+      plotter.color = plotterColors[fieldKey];
+    }
+
+    if (fieldKey && plotterDashes?.[fieldKey]) {
+      plotter.dash = [...plotterDashes[fieldKey]];
+    }
+
+    if (typeof source?.priceTag === "boolean") {
+      plotter.priceTag = source.priceTag;
+    }
+
+    if (typeof source?.priceLine === "boolean") {
+      plotter.priceLine = source.priceLine;
+    }
+  }
+
+  private updateScriptPlotterStyles(config: RuntimeScriptConfig) {
+    const sourcePlotters = Array.isArray(config.plotters)
+      ? (config.plotters as ChartRuntimeObject[])
+      : [];
+    const plotterColors = config.plotterColors as Record<string, string> | undefined;
+    const plotterDashes = config.plotterDashes as Record<string, number[]> | undefined;
+    const outputIds = new Set(Object.values(config.outputs || {}));
+    const strategyPlotterTypes = new Set([
+      "StrategyObject",
+      "CandlestickPatternStrategyObject",
+      "FractalsObject",
+    ]);
+
+    for (const panel of this.model.panels) {
+      for (const object of panel.objects) {
+        if (!object.dataLink || !outputIds.has(String(object.dataLink))) {
+          continue;
+        }
+
+        const isSeriesPlotter = object.type === "SeriesObject";
+        const isStrategyPlotter =
+          object.type != null && strategyPlotterTypes.has(String(object.type));
+
+        if (!isSeriesPlotter && !isStrategyPlotter) {
+          continue;
+        }
+
+        const sourceIndex = sourcePlotters.findIndex(
+          (candidate) => candidate.dataField === object.dataField,
+        );
+
+        this.applyPlotterStyleOverrides(
+          object,
+          sourcePlotters,
+          sourceIndex >= 0 ? sourceIndex : 0,
+          plotterColors,
+          plotterDashes,
+        );
+      }
+    }
   }
 
   createScriptConfig(scriptKey: string, proto?: ScriptDefinition) {
-    const resolvedProto =
-      (proto as RuntimeScriptDefinition | undefined) ??
-      FUSION.getScript(scriptKey);
+    const resolvedProto = this.resolveScriptProto(scriptKey, proto);
+    const protoVisible = (proto as { visible?: boolean } | undefined)?.visible;
+
     const scriptCfg: RuntimeScriptConfig = {
       id: undefined,
       inputs: {},
       outputs: {},
       key: scriptKey,
-      pane: resolvedProto.newPane ? "new" : "1",
+      pane: this.resolveScriptPane(scriptKey, resolvedProto, proto),
       userName: scriptKey,
-      visible: true,
+      visible: typeof protoVisible === "boolean" ? protoVisible : true,
     };
 
     const getDefaultSeries = (input: RuntimeScriptDefinition["inputs"][string]) => {
@@ -678,9 +1060,280 @@ export default class Chart implements CoreChartController {
       }
     });
 
-    this.fusion.configureScript(scriptCfg);
+    if (Array.isArray(resolvedProto.plotters)) {
+      scriptCfg.plotters = JSON.parse(JSON.stringify(resolvedProto.plotters));
+    }
+
+    const plotterColors = (proto as { plotterColors?: Record<string, string> } | undefined)
+      ?.plotterColors;
+    if (plotterColors) {
+      scriptCfg.plotterColors = { ...plotterColors };
+    }
+
+    const plotterDashes = (proto as { plotterDashes?: Record<string, number[]> } | undefined)
+      ?.plotterDashes;
+    if (plotterDashes) {
+      scriptCfg.plotterDashes = JSON.parse(JSON.stringify(plotterDashes));
+    }
 
     return scriptCfg;
+  }
+
+  getChartPanels() {
+    return this.model.panels.map((panel, index) => ({
+      id: String(panel.id),
+      label: panel.main
+        ? this.translate("mainChartPanel")
+        : `${this.translate("fusion_dialog_panel_selector_panel")} ${index + 1}`,
+      main: panel.main === true,
+    }));
+  }
+
+  private resolvePlotterColorForUi(color: unknown): string | undefined {
+    if (typeof color !== "string" || color.length === 0) {
+      return undefined;
+    }
+
+    if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
+      return color.toUpperCase();
+    }
+
+    return WEBRCP.utils.colorManager.getColor(color, color);
+  }
+
+  getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null {
+    const modelScript = this.objectsManager.getScriptModelById(scriptId) as
+      | RuntimeScriptConfig
+      | undefined;
+    if (!modelScript?.key || modelScript.key === "VOLUME") {
+      return null;
+    }
+
+    const template = FUSION.getScript(modelScript.key) as RuntimeScriptDefinition;
+    if (!template || !["indicators", "functions", "strategies"].includes(String(template.type))) {
+      return null;
+    }
+
+    const catalog = this.getScripts();
+    const catalogEntry = catalog[modelScript.key];
+    const panePlotters = LIB.getPlottersForScriptByScriptId(this.model, scriptId);
+    const templatePlotters = Array.isArray(template.plotters) ? template.plotters : [];
+    const plotters: ChartRuntimeObject[] = [];
+    const scriptOutputs = modelScript.outputs || {};
+
+    const findPanePlotter = (
+      symbolicDataLink: string | undefined,
+      dataField: string | undefined,
+    ): ChartRuntimeObject | undefined => {
+      const runtimeDataLink = symbolicDataLink ? scriptOutputs[symbolicDataLink] : undefined;
+
+      if (runtimeDataLink && dataField) {
+        const byLinkAndField = panePlotters.find(
+          (candidate) =>
+            candidate.dataLink === runtimeDataLink && candidate.dataField === dataField,
+        );
+        if (byLinkAndField) {
+          return byLinkAndField as ChartRuntimeObject;
+        }
+      }
+
+      if (dataField) {
+        const byField = panePlotters.find((candidate) => candidate.dataField === dataField);
+        return byField ? (byField as ChartRuntimeObject) : undefined;
+      }
+
+      if (runtimeDataLink) {
+        const byLink = panePlotters.find((candidate) => candidate.dataLink === runtimeDataLink);
+        return byLink ? (byLink as ChartRuntimeObject) : undefined;
+      }
+
+      return undefined;
+    };
+
+    const pushPlotterFromSources = (
+      templatePlotter: ChartRuntimeObject,
+      paneObject?: ChartRuntimeObject,
+    ) => {
+      const resolvedColor =
+        this.resolvePlotterColorForUi(paneObject?.color) ??
+        this.resolvePlotterColorForUi(templatePlotter.color) ??
+        this.resolvePlotterColorForUi("chartLine");
+      const resolvedBuyColor =
+        this.resolvePlotterColorForUi(paneObject?.buyColor) ??
+        this.resolvePlotterColorForUi(templatePlotter.buyColor) ??
+        this.resolvePlotterColorForUi("buyColor");
+      const resolvedSellColor =
+        this.resolvePlotterColorForUi(paneObject?.sellColor) ??
+        this.resolvePlotterColorForUi(templatePlotter.sellColor) ??
+        this.resolvePlotterColorForUi("sellColor");
+
+      plotters.push({
+        ...JSON.parse(JSON.stringify(templatePlotter)),
+        type: paneObject?.type ?? templatePlotter.type,
+        dataLink: templatePlotter.dataLink,
+        dataField: templatePlotter.dataField ?? paneObject?.dataField,
+        color: resolvedColor,
+        buyColor: resolvedBuyColor,
+        sellColor: resolvedSellColor,
+        dash: Array.isArray(paneObject?.dash)
+          ? [...(paneObject?.dash as number[])]
+          : Array.isArray(templatePlotter.dash)
+            ? [...templatePlotter.dash]
+            : [],
+        width: paneObject?.width ?? templatePlotter.width,
+        renderAs: paneObject?.renderAs ?? templatePlotter.renderAs,
+      } as ChartRuntimeObject);
+    };
+
+    if (templatePlotters.length > 0) {
+      for (const templatePlotter of templatePlotters) {
+        const symbolicDataLink =
+          typeof templatePlotter.dataLink === "string" ? templatePlotter.dataLink : undefined;
+        const dataField =
+          typeof templatePlotter.dataField === "string" ? templatePlotter.dataField : undefined;
+        pushPlotterFromSources(templatePlotter, findPanePlotter(symbolicDataLink, dataField));
+      }
+    } else {
+      for (const paneObject of panePlotters) {
+        let symbolicDataLink: string | undefined;
+        for (const outputKey of Object.keys(scriptOutputs)) {
+          if (scriptOutputs[outputKey] === paneObject.dataLink) {
+            symbolicDataLink = outputKey;
+            break;
+          }
+        }
+
+        pushPlotterFromSources(
+          {
+            type: paneObject.type,
+            dataLink: symbolicDataLink,
+            dataField: paneObject.dataField,
+            color: paneObject.color,
+            buyColor: paneObject.buyColor,
+            sellColor: paneObject.sellColor,
+            dash: paneObject.dash,
+            width: paneObject.width,
+            renderAs: paneObject.renderAs,
+          } as ChartRuntimeObject,
+          paneObject as ChartRuntimeObject,
+        );
+      }
+    }
+
+    const inputs: Record<string, RuntimeScriptInput> = {};
+    for (const inputKey of Object.keys(template.inputs)) {
+      const templateInput = template.inputs[inputKey];
+      const modelValue = modelScript.inputs[inputKey];
+
+      inputs[inputKey] = {
+        ...JSON.parse(JSON.stringify(templateInput)),
+        value:
+          modelValue !== undefined && modelValue !== null ? modelValue : templateInput.value,
+      };
+    }
+
+    return {
+      key: modelScript.key,
+      title: catalogEntry?.title || modelScript.key,
+      id: scriptId,
+      pane: modelScript.pane,
+      inputs,
+      plotters,
+      outputs: template.outputs,
+    } as ScriptDefinition;
+  }
+
+  updateIndicator(scriptId: string | number, proto?: ScriptDefinition) {
+    const existing = this.objectsManager.getScriptModelById(scriptId) as
+      | RuntimeScriptConfig
+      | undefined;
+    if (!existing?.key) {
+      return;
+    }
+
+    const resolvedProto = this.resolveScriptProto(existing.key, proto);
+    const explicitPane = (proto as RuntimeScriptConfig | undefined)?.pane;
+    const config: RuntimeScriptConfig = {
+      id: scriptId,
+      key: existing.key,
+      outputs: { ...(existing.outputs as Record<string, string>) },
+      pane:
+        explicitPane != null && explicitPane !== ""
+          ? String(explicitPane)
+          : existing.pane,
+      userName: existing.userName ?? existing.key,
+      visible:
+        typeof (proto as { visible?: boolean } | undefined)?.visible === "boolean"
+          ? Boolean((proto as { visible?: boolean }).visible)
+          : existing.visible !== false,
+      inputs: {},
+    };
+
+    for (const inputKey of Object.keys(resolvedProto.inputs)) {
+      const input = resolvedProto.inputs[inputKey];
+      const value = input.value;
+
+      config.inputs[inputKey] =
+        value !== undefined && value !== null ? value : existing.inputs[inputKey];
+    }
+
+    if (Array.isArray(resolvedProto.plotters)) {
+      config.plotters = JSON.parse(JSON.stringify(resolvedProto.plotters));
+    }
+
+    const plotterColors = (proto as { plotterColors?: Record<string, string> } | undefined)
+      ?.plotterColors;
+    if (plotterColors) {
+      config.plotterColors = { ...plotterColors };
+    }
+
+    const plotterDashes = (proto as { plotterDashes?: Record<string, number[]> } | undefined)
+      ?.plotterDashes;
+    if (plotterDashes) {
+      config.plotterDashes = JSON.parse(JSON.stringify(plotterDashes));
+    }
+
+    void this.onScriptEditorApply(config);
+  }
+
+  private relocateScriptToPane(config: RuntimeScriptConfig, proto: RuntimeScriptDefinition) {
+    if (!config.id || config.pane == null || config.pane === "") {
+      return;
+    }
+
+    const plotters = LIB.getPlottersForScriptByScriptId(this.model, config.id);
+    if (plotters.length === 0) {
+      return;
+    }
+
+    const currentPanel = this.objectsManager.getPanelForObject(plotters[0] as ChartRuntimeObject);
+    let targetPaneId = String(config.pane);
+
+    if (targetPaneId === "new") {
+      const newPanel = this.addPanelToModel();
+      if (proto.centerZero === true) {
+        newPanel.centerZero = true;
+      } else {
+        newPanel.centerZero = false;
+      }
+      targetPaneId = String(newPanel.id);
+      config.pane = targetPaneId;
+    }
+
+    if (currentPanel?.id != null && String(currentPanel.id) === targetPaneId) {
+      return;
+    }
+
+    const targetPanel = this.objectsManager.getPanelById(targetPaneId);
+    if (!targetPanel) {
+      return;
+    }
+
+    for (const plotter of plotters) {
+      this.objectsManager.moveObjectToPanel(plotter as ChartRuntimeObject, targetPaneId);
+    }
+
+    this.objectsManager.removeEmptyPanels();
   }
 
   async onScriptEditorApply(config: RuntimeScriptConfig) {
@@ -688,6 +1341,10 @@ export default class Chart implements CoreChartController {
 
     if (config.id) {
       await this.fusion.modifyScript(config);
+      this.relocateScriptToPane(config, proto);
+      if (config.plotters || config.plotterColors || config.plotterDashes) {
+        this.updateScriptPlotterStyles(config);
+      }
     } else {
       await this.fusion.addScript(config);
 
@@ -708,10 +1365,23 @@ export default class Chart implements CoreChartController {
         }
       }
 
-      const plotters = proto.plotters ?? [];
+      const sourcePlotters = Array.isArray(config.plotters)
+        ? (config.plotters as ChartRuntimeObject[])
+        : [];
+      const plotters =
+        sourcePlotters.length > 0 ? sourcePlotters : proto.plotters ?? [];
+      const plotterColors = config.plotterColors as Record<string, string> | undefined;
+      const plotterDashes = config.plotterDashes as Record<string, number[]> | undefined;
 
       for (var i = 0; i < plotters.length; i++) {
         const plotter = JSON.parse(JSON.stringify(plotters[i])) as ChartRuntimeObject;
+        this.applyPlotterStyleOverrides(
+          plotter,
+          sourcePlotters,
+          i,
+          plotterColors,
+          plotterDashes,
+        );
         plotter["id"] = FUSION.uniqueId();
         var link = plotter.dataLink;
         plotter.dataLink = config.outputs[link as string];
@@ -1019,47 +1689,184 @@ export default class Chart implements CoreChartController {
     return this.model.interval;
   }
 
+  private getChartSettingsHost() {
+    return this as unknown as Parameters<typeof getChartAppearanceSettings>[0];
+  }
+
+  getChartAppearanceSettings(): ChartAppearanceSettings {
+    return getChartAppearanceSettings(this.getChartSettingsHost(), this.chartAppearanceTheme);
+  }
+
+  applyChartAppearanceSettings(settings: ChartAppearanceSettings): void {
+    this.chartAppearanceTheme = applyChartAppearanceSettings(
+      this.getChartSettingsHost(),
+      settings,
+      this.chartAppearanceTheme,
+    );
+  }
+
+  applyChartTheme(theme: import("./types").ChartTheme, themeVariant?: string): void {
+    this.chartAppearanceTheme = applyChartThemeColors(
+      this.getChartSettingsHost(),
+      theme,
+      themeVariant,
+    );
+  }
+
+  getChartIndicatorSettings(): ChartIndicatorSettingsItem[] {
+    return getChartIndicatorSettings(this.getChartSettingsHost());
+  }
+
+  setChartIndicatorVisibility(scriptId: string | number, visible: boolean): void {
+    setChartIndicatorVisibility(this.getChartSettingsHost(), scriptId, visible);
+  }
+
+  setChartIndicatorPriceTagVisibility(scriptId: string | number, visible: boolean): void {
+    setChartIndicatorPriceTagVisibility(this.getChartSettingsHost(), scriptId, visible);
+  }
+
+  getChartIndicatorLocked(scriptId: string | number): boolean {
+    const script = this.model.scripts.find((entry) => entry.id === scriptId);
+    return script?.locked === true;
+  }
+
+  setChartIndicatorLocked(scriptId: string | number, locked: boolean): void {
+    setChartIndicatorLocked(this.getChartSettingsHost(), scriptId, locked);
+  }
+
+  removeChartIndicator(scriptId: string | number): void {
+    removeChartIndicator(this.getChartSettingsHost(), scriptId);
+  }
+
+  getChartFunctionSettings(): ChartFunctionSettingsItem[] {
+    return getChartFunctionSettings(this.getChartSettingsHost());
+  }
+
+  setChartFunctionVisibility(scriptId: string | number, visible: boolean): void {
+    setChartFunctionVisibility(this.getChartSettingsHost(), scriptId, visible);
+  }
+
+  setChartFunctionPriceTagVisibility(scriptId: string | number, visible: boolean): void {
+    setChartFunctionPriceTagVisibility(this.getChartSettingsHost(), scriptId, visible);
+  }
+
+  removeChartFunction(scriptId: string | number): void {
+    removeChartFunction(this.getChartSettingsHost(), scriptId);
+  }
+
+  getChartDrawingSettings(): ChartDrawingSettingsItem[] {
+    return getChartDrawingSettings(this.getChartSettingsHost());
+  }
+
+  setChartDrawingVisibility(objectId: string | number, visible: boolean): void {
+    setChartDrawingVisibility(this.getChartSettingsHost(), objectId, visible);
+  }
+
+  removeChartDrawing(objectId: string | number): void {
+    removeChartDrawing(this.getChartSettingsHost(), objectId);
+  }
+
+  getDrawingEditConfig(objectId: string | number): ChartDrawingEditConfig | null {
+    return getDrawingEditConfig(this.getChartSettingsHost(), objectId);
+  }
+
+  applyDrawingEditSettings(objectId: string | number, patch: ChartDrawingEditPatch): void {
+    applyDrawingEditSettings(this.getChartSettingsHost(), objectId, patch);
+
+    if (typeof patch.locked === "boolean") {
+      this.emitEvent({
+        topic: "DRAWINGS_LOCK_CHANGE",
+        data: { allLocked: this.getAllDrawingsLocked() },
+      });
+    }
+  }
+
+  getChartVolumeSettings(): ChartVolumeSettings {
+    return getChartVolumeSettings(this.getChartSettingsHost());
+  }
+
+  applyChartVolumeSettings(settings: ChartVolumeSettings): void {
+    applyChartVolumeSettings(this.getChartSettingsHost(), settings);
+  }
+
+  getChartStrategySettings(): ChartStrategySettingsItem[] {
+    return getChartStrategySettings(this.getChartSettingsHost());
+  }
+
+  setChartStrategyVisibility(scriptId: string | number, visible: boolean): void {
+    setChartStrategyVisibility(this.getChartSettingsHost(), scriptId, visible);
+  }
+
+  removeChartStrategy(scriptId: string | number): void {
+    removeChartStrategy(this.getChartSettingsHost(), scriptId);
+  }
+
+  exportChartSettingsTemplate(name?: string): ChartSettingsTemplate {
+    return exportChartSettingsTemplate(
+      this.getChartSettingsHost(),
+      this.chartAppearanceTheme,
+      name,
+    );
+  }
+
+  importChartSettingsTemplate(template: ChartSettingsTemplate): void {
+    this.chartAppearanceTheme = importChartSettingsTemplate(
+      this.getChartSettingsHost(),
+      template,
+      this.chartAppearanceTheme,
+    );
+  }
+
   getScripts() {
-    const scripts = FUSION.getFreeScripts();
-    const translator = WEBRCP.utils.getMessages(englishLocale);
+    const scripts = JSON.parse(JSON.stringify(FUSION.getFreeScripts())) as Record<
+      string,
+      RuntimeScriptDefinition
+    >;
 
-    for (let key in scripts) {
-      const script = scripts[key];
-
-      script.title = translator.getMessage(script.title, script.title);
-      script.description = translator.getMessage(script.description, script.title);
-
-      for (let inputKey in script.inputs) {
-        const input = script.inputs[inputKey];
-        input.name = translator.getMessage(input.name, input.name);
-      }
-
-      for (let outputKey in script.outputs) {
-        const output = script.outputs[outputKey];
-
-        if (output.type === "series" && output.series) {
-          const series = output.series;
-          series.title = translator.getMessage(series.title, series.title);
-
-          if (output.labels) {
-            const seriesLabels = (series.labels ?? {}) as Record<string, string>;
-            for (let labelKey in output.labels) {
-              const label = seriesLabels[labelKey];
-              if (label !== undefined) {
-                seriesLabels[labelKey] = translator.getMessage(label, label);
-              }
-            }
-            series.labels = seriesLabels;
-          }
-        }
-      }
+    for (const key in scripts) {
+      scripts[key] = this.catalogTranslator.translateCatalogScript(scripts[key]);
     }
 
     return scripts;
   }
 
   translate(text: string) {
-    return WEBRCP.locale.fusion.getMessage(text, text);
+    return this.localeMessages.getMessage(text, text);
+  }
+
+  translateCatalog(text: string, catalogType?: string) {
+    return this.catalogTranslator.translateCatalogMessage(text, catalogType, text);
+  }
+
+  getLocaleMessages(): ChartLocaleMessages {
+    return this.localeMessages;
+  }
+
+  getLocale(): string {
+    return this.localeId;
+  }
+
+  setLocale(locale: string, messageOverrides?: Record<string, unknown>): void {
+    this.localeId = normalizeLocaleId(locale);
+
+    if (messageOverrides) {
+      this.messageOverrides = {
+        ...(this.messageOverrides ?? {}),
+        ...messageOverrides,
+      };
+    }
+
+    this.rebuildLocaleMessages();
+    this.persistLocalePreference();
+    this.emitEvent({ topic: "LOCALE_CHANGE", data: { locale: this.localeId } });
+    this.rerender();
+  }
+
+  getSupportedLocales(): Array<{ id: string; label: string }> {
+    return SUPPORTED_LOCALES.map(({ id, labelKey }) => ({
+      id,
+      label: this.translate(labelKey),
+    }));
   }
 
   removePanelFromModel(panel: CoreChartPanel) {
@@ -1085,5 +1892,86 @@ export default class Chart implements CoreChartController {
 
   setObjectSelectionAllowed(isAllowed: boolean) {
     this.interactor.setObjectSelectionAllowed(isAllowed);
+  }
+
+  getDrawingMagnetEnabled(): boolean {
+    return this.interactor.drawingMagnetEnabled === true;
+  }
+
+  setDrawingMagnetEnabled(enabled: boolean) {
+    if (this.interactor.drawingMagnetEnabled === enabled) return;
+
+    this.interactor.drawingMagnetEnabled = enabled;
+    this.emitEvent({
+      topic: "DRAWING_MAGNET_CHANGE",
+      data: { enabled },
+    });
+  }
+
+  getAllDrawingsLocked(): boolean {
+    return getAllDrawingsLocked(this.getChartSettingsHost());
+  }
+
+  lockAllDrawings() {
+    setAllDrawingsLocked(this.getChartSettingsHost(), true);
+    this.emitEvent({
+      topic: "DRAWINGS_LOCK_CHANGE",
+      data: { allLocked: true },
+    });
+  }
+
+  unlockAllDrawings() {
+    setAllDrawingsLocked(this.getChartSettingsHost(), false);
+    this.emitEvent({
+      topic: "DRAWINGS_LOCK_CHANGE",
+      data: { allLocked: false },
+    });
+  }
+
+  getChartEnvironment(): ChartEnvironmentSnapshot {
+    return getChartEnvironment(this.layoutModeOverride);
+  }
+
+  setLayoutMode(mode: ChartLayoutModeOverride): void {
+    this.layoutModeOverride = mode;
+    if (this.layoutOptions) {
+      this.layoutOptions.mode = mode;
+    } else {
+      this.layoutOptions = { mode };
+    }
+    if (this.layoutOptions?.breakpoints?.compact != null) {
+      configureChartEnvironment({
+        compactBreakpoint: this.layoutOptions.breakpoints.compact,
+      });
+    }
+    this.onChartEnvironmentChange();
+  }
+
+  private onChartEnvironmentChange(): void {
+    const next = this.getChartEnvironment();
+    const prev = this.lastEnvironmentSnapshot;
+    this.lastEnvironmentSnapshot = next;
+
+    if (!this.initialized) {
+      return;
+    }
+
+    const layoutChanged =
+      !prev ||
+      prev.layoutMode !== next.layoutMode ||
+      prev.hitTolerance !== next.hitTolerance ||
+      prev.isCompact !== next.isCompact;
+
+    if (layoutChanged) {
+      if (prev && prev.isCompact !== next.isCompact) {
+        this.model._priceAxisExpanded = !next.isCompact;
+      }
+      this.fit();
+      if (this.ctx && this.renderer && this.model && this.fusion) {
+        this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+        this.renderOverlay();
+      }
+      this.emitEvent({ topic: "ENVIRONMENT_CHANGE", data: next });
+    }
   }
 }

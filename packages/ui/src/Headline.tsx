@@ -7,12 +7,12 @@ const Container = styled.div`
 `;
 
 const Title = styled.div`
-  font-size: 14px;
+  font-size: var(--ui-font-title, 14px);
   font-weight: 600;
 `;
 
 const Subtitle = styled.div`
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   opacity: 0.7;
 `;
 

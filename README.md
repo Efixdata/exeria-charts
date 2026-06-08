@@ -112,11 +112,11 @@ npm run verify:release
 
 ## Licensing
 
-This repository is source-available under the Exeria Charts Source Available License 1.0.
+The core packages are open source under the **GNU Affero General Public License v3.0 (AGPL v3)**.
 
-- Personal use is allowed.
-- Educational use is allowed.
-- Qualifying open source and qualifying small-scale commercial use are allowed under the Additional Use Grant.
-- Other commercial use requires a separate commercial license from Efix Data Sp. z o. o.
+- Use the core for free when your product complies with AGPL (including source obligations for distributed or network-facing use).
+- **Closed-source products** require a **commercial license** from Efix Data Sp. z o. o.
+- **Plugins** (advanced indicators, drawing tools, data bridges) are licensed **per project** under separate terms.
+- **Startup-friendly pricing** is available for qualifying commercial licenses.
 
-This is not an OSI-approved open source license. Read `LICENSE` and `LICENSING.md` before using the packages in a production or commercial setting.
+Read `LICENSE`, `LICENSING.md`, and the [licensing guide](https://github.com/Efixdata/exeria-charts/tree/main/apps/docs/docs/guides/licensing.mdx) before shipping to production.

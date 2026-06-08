@@ -77,8 +77,7 @@ Start with `@efixdata/exeria-chart` alone if you want the smallest possible inte
 
 ## License
 
-This package is source-available under the Exeria Charts Source Available License 1.0.
-Personal use, education, qualifying open source projects, and qualifying small-scale use are
-allowed under the Additional Use Grant. Other commercial use requires a separate commercial
-license from Efix Data Sp. z o. o. See the bundled `LICENSE` file and the repository
-`LICENSING.md` for the full legal terms and usage summary.
+This package is open source under the GNU Affero General Public License v3.0 (AGPL v3).
+Closed-source products require a separate commercial license from Efix Data Sp. z o. o.
+Paid plugins are licensed per project under separate terms. See the bundled `LICENSE` file
+and the repository `LICENSING.md` for the full legal terms and usage summary.

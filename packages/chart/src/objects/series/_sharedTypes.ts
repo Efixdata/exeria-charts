@@ -1,4 +1,5 @@
-import WEBRCP from "../../WebRCP";
+import { resolveChartLocaleMessage, resolveCatalogLocaleMessage } from "../../chartLocaleRuntime";
+import { getCatalogTypeForScriptKey } from "../../locale/catalogTranslator";
 import { Series } from "../../objectRuntimeBases";
 import type { LegacySeriesObject } from "../../objectRuntimeBases";
 import type { CoreChartModel, CoreChartPanel } from "../../internal-types/chart";
@@ -196,6 +197,7 @@ type SeriesRuntimeState = {
   tmpIndex: number;
   tmpPoint: number;
   tmpValue: number | string;
+  _activeStrategyObject?: LegacySeriesObject | null;
 };
 
 type BaseSeriesRuntime = Omit<
@@ -559,6 +561,7 @@ type SeriesRuntime = BaseSeriesRuntime & {
   getStartIndex: SeriesIndexFinderMethod;
   getEndIndex: SeriesIndexFinderMethod;
   renderAsLine: SeriesExtendedRenderMethod;
+  renderLineAreaFill: SeriesExtendedRenderMethod;
   renderAsOHLC: SeriesRenderMethod;
   renderAsBars: SeriesRenderMethod;
   renderAsChartShape: SeriesExtendedRenderMethod;
@@ -615,7 +618,7 @@ export function getScriptTitle(
   seriesManager: SeriesManagerContext,
   scriptManager: SeriesScriptManagerContext,
 ) {
-  function findRelatedScriptName(
+  function findRelatedScriptConfig(
     object: LegacySeriesObject & { dataLink?: string },
     currentModel: SeriesModelContext,
     runtimeScripts: SeriesScriptManagerContext,
@@ -639,23 +642,34 @@ export function getScriptTitle(
 
     if (scriptInstance) {
       for (const k in currentModel.scripts) {
-        const scriptConfig = currentModel.scripts[k] as ScriptModelConfig & { userName?: unknown };
+        const scriptConfig = currentModel.scripts[k] as ScriptModelConfig & {
+          userName?: unknown;
+          key?: unknown;
+        };
         if (scriptConfig.id == scriptInstance.id && typeof scriptConfig.userName === "string") {
-          return scriptConfig.userName;
+          return {
+            userName: scriptConfig.userName,
+            key: typeof scriptConfig.key === "string" ? scriptConfig.key : null,
+          };
         }
       }
     }
     return null;
   }
 
-  const userName = findRelatedScriptName(o, model, scriptManager);
+  const scriptConfig = findRelatedScriptConfig(o, model, scriptManager);
+  const userName = scriptConfig?.userName ?? null;
+  const scriptKey = scriptConfig?.key ?? null;
+  const catalogType = getCatalogTypeForScriptKey(scriptKey ?? undefined);
   if (!o.dataLink || !seriesManager[o.dataLink]) return "";
 
   const name = seriesManager[o.dataLink].title;
+  const translatedName = resolveCatalogLocaleMessage(name, catalogType, name, true);
+  const hasCustomUserName =
+    userName && userName !== name && userName !== scriptKey && userName !== translatedName;
 
-  const title =
-    userName && userName !== name
-      ? WEBRCP.locale.fusion.getMessage(name, name) + " (" + userName + ")"
-      : WEBRCP.locale.fusion.getMessage(name, name, true);
-  return WEBRCP.locale.fusion.getMessage(title, title, true);
+  const title = hasCustomUserName
+    ? resolveCatalogLocaleMessage(name, catalogType, name) + " (" + userName + ")"
+    : translatedName;
+  return resolveCatalogLocaleMessage(title, catalogType, title, true);
 }

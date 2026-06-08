@@ -2,14 +2,21 @@ import * as React from "react";
 import { IconButton } from "ui";
 import { Fullscreen, ExitFullscreen } from "../../img/icons";
 import { useState } from "react";
+import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface FullScreenButtonProps {
   mainContainer: React.RefObject<HTMLElement>;
+  chart?: NullableChartInstance;
 }
 
 export const FullScreenButton = (props: FullScreenButtonProps) => {
+  const t = useChartTranslate(props.chart);
   const [isInFullScreen, setFullScreen] = useState(false);
   const icon = isInFullScreen ? <ExitFullscreen /> : <Fullscreen />;
+  const label = isInFullScreen
+    ? t("toolbar_fullscreen_exit", "Exit full screen")
+    : t("toolbar_fullscreen_enter", "Full screen");
 
   const eventTypes = [
     "fullscreenchange",
@@ -19,14 +26,25 @@ export const FullScreenButton = (props: FullScreenButtonProps) => {
   ];
 
   React.useEffect(() => {
-    const container = props?.mainContainer?.current;
-    if (!container) return;
-    eventTypes.forEach((eventType) =>
-      container.addEventListener(eventType, () => {
-        setFullScreen(checkFullScreen());
-      })
-    );
-  }, []);
+    const syncFullscreen = () => {
+      setFullScreen(checkFullScreen());
+      requestAnimationFrame(() => {
+        props.chart?.fit?.();
+        props.chart?.render?.();
+        props.chart?.renderOverlay?.();
+      });
+    };
+
+    eventTypes.forEach((eventType) => {
+      document.addEventListener(eventType, syncFullscreen);
+    });
+
+    return () => {
+      eventTypes.forEach((eventType) => {
+        document.removeEventListener(eventType, syncFullscreen);
+      });
+    };
+  }, [props.chart]);
 
   const checkFullScreen = () => {
     const doc = document as Document & {
@@ -72,7 +90,6 @@ export const FullScreenButton = (props: FullScreenButtonProps) => {
     };
 
     if (!isInFullScreen) {
-      // setIcon(exitFullScreenImage.src);
       if (mainContainerElement.requestFullscreen) {
         mainContainerElement.requestFullscreen();
       } else if (mainContainerElement.mozRequestFullScreen) {
@@ -83,7 +100,6 @@ export const FullScreenButton = (props: FullScreenButtonProps) => {
         mainContainerElement.msRequestFullscreen();
       }
     } else {
-      // setIcon(fullScreenImage.src);
       if (doc.exitFullscreen) {
         doc.exitFullscreen();
       } else if (doc.webkitExitFullscreen) {
@@ -98,7 +114,13 @@ export const FullScreenButton = (props: FullScreenButtonProps) => {
 
   if (isFullScreenAvailable()) {
     return (
-      <IconButton onClick={onClick} themeContext="toolbar">
+      <IconButton
+        onClick={onClick}
+        themeContext="toolbar"
+        title={label}
+        ariaLabel={label}
+        ariaPressed={isInFullScreen}
+      >
         {icon}
       </IconButton>
     );

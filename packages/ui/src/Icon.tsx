@@ -2,40 +2,45 @@ import * as React from "react";
 import styled from "styled-components";
 import { iconButton } from "../theme";
 
-const IconContainer = styled.div<{ themeContext: string }>`
-  display: flex;
+const IconContainer = styled.span<{ themeContext: string }>`
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   background-color: transparent;
   border: none;
   outline: none;
   margin: 0;
   padding: 0;
-  width: ${iconButton.buttonSize}px;
-  height: ${iconButton.buttonSize}px;
-  border-radius: ${iconButton.borderRadius}px;
+  width: var(--ui-toolbar-icon, ${iconButton.iconSize}px);
+  height: var(--ui-toolbar-icon, ${iconButton.iconSize}px);
+  color: ${(props) => {
+    const parent =
+      props.themeContext === "buttons"
+        ? props.theme.buttons
+        : props.theme[props.themeContext].buttons;
+    return parent["color"];
+  }};
 
   path,
   circle {
-    fill: ${(props) => {
+    fill: currentColor;
+  }
+
+  path[fill="none"],
+  circle[fill="none"] {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  &.active {
+    color: ${(props) => {
       const parent =
         props.themeContext === "buttons"
           ? props.theme.buttons
           : props.theme[props.themeContext].buttons;
-      return parent["color"];
+      return parent["activeColor"];
     }};
-  }
-
-  &.active {
-    path,
-    circle {
-      fill: ${(props) => {
-        const parent =
-          props.themeContext === "buttons"
-            ? props.theme.buttons
-            : props.theme[props.themeContext].buttons;
-        return parent["activeColor"];
-      }};
-    }
   }
 
   picture {
@@ -44,8 +49,8 @@ const IconContainer = styled.div<{ themeContext: string }>`
 
   img,
   svg {
-    width: ${iconButton.iconSize}px;
-    height: ${iconButton.iconSize}px;
+    width: var(--ui-toolbar-icon, ${iconButton.iconSize}px);
+    height: var(--ui-toolbar-icon, ${iconButton.iconSize}px);
     margin: 0 auto;
   }
 `;

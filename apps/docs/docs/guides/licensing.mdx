@@ -1,26 +1,77 @@
 ---
 sidebar_position: 2
 title: Licensing
-description: Understand the source-available license and when commercial terms apply.
+description: Understand the AGPL v3 core license, plugin licenses, and when a commercial license is required.
 ---
 
 # Licensing
 
-Exeria Charts is source-available under the Exeria Charts Source Available License 1.0.
+The Exeria Charts **core** (`@efixdata/exeria-chart` and `@efixdata/exeria-chart-ui-react`) is open source under the **GNU Affero General Public License v3.0 (AGPL v3)**.
+
+Paid **plugins** are licensed separately, per project. A **commercial license** is required when you ship a **closed-source** product that uses the core and cannot comply with AGPL obligations.
 
 ## The practical summary
 
-- personal use is allowed
-- educational use is allowed
-- qualifying open source projects are allowed
-- qualifying small-scale use is allowed under the Additional Use Grant
-- broader commercial use requires a separate commercial license from Efix Data Sp. z o. o.
+- **Open source projects** can use the core for free under AGPL v3, provided you meet AGPL requirements (including source availability for users of your app when you distribute or offer network access).
+- **Closed-source or proprietary products** need a **commercial license** for the core so you are not required to open your application code.
+- **Plugins** are optional add-ons (advanced indicators, drawing tools, data bridges). Each plugin is sold as a **perpetual license for one named app or codebase**, whether that project is open source or proprietary.
+- **Startups and small companies** can obtain commercial terms at **startup-friendly pricing**—contact us for details.
+
+## Core license (AGPL v3)
+
+AGPL v3 is a strong copyleft license. In practice, that means:
+
+- You may use, modify, and redistribute the core in compliance with AGPL.
+- If you distribute a product that incorporates the core, or offer it as a network service where users interact with it, you generally must provide corresponding source code and license your derivative under AGPL-compatible terms.
+- If you cannot or do not want to release your product’s source under those terms, you need a **commercial license** instead of relying on AGPL alone.
+
+Full legal text: see the repository [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) file and [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html).
+
+## Commercial license {#commercial-license}
+
+A **commercial license** from Efix Data Sp. z o. o. is for teams that ship a **proprietary (closed-source)** application built on Exeria Charts.
+
+It typically covers:
+
+- Use of the core in closed-source products without AGPL copyleft applying to your entire application (as defined in your agreement).
+- Predictable terms for production and customer-facing deployments.
+- **Startup-friendly pricing** for qualifying small teams—contact us rather than assuming enterprise-only pricing.
+
+Commercial licenses do **not** automatically replace **plugin** licenses unless your agreement explicitly bundles them (for example, an Enterprise plan that includes all premium plugins).
+
+## Plugin licenses {#plugin-licenses}
+
+Plugins are **not** included in the AGPL grant for the core. They are sold under **separate terms**, usually as a **one-time, perpetual license for a single project** (one app, product, or codebase).
+
+### How this works in practice
+
+| Your product | Core | Plugin you bought |
+| --- | --- | --- |
+| **Open source** (AGPL-compatible, you comply with AGPL for the core) | Free under AGPL v3 | Plugin license is tied to **that one project**. You may use the plugin there like any other dependency, subject to the plugin’s license terms. |
+| **Closed source** (proprietary app) | **Commercial license required** for the core | Plugin license is tied to **that one proprietary project**. You still need a valid commercial license for the core. |
+
+**Example:** You buy a plugin for $20 for your open-source chart app released under AGPL. The purchase grants use of that plugin in **that repository/product only**—not in every future app your company builds. Another product needs its own plugin license.
+
+**Example:** You buy the same plugin for a proprietary SaaS dashboard. You need **both** a commercial core license **and** the per-project plugin license.
+
+Plugins may include advanced indicators, advanced drawing and annotation tools, and data bridge integrations. Plugin licenses include **updates for a defined period** (for example, one year); they do not include dedicated email support unless stated in the offer.
+
+## Enterprise
+
+Enterprise agreements usually combine:
+
+- A commercial core license for closed-source use.
+- All premium plugins included.
+- Advanced indicators, drawing tools, and **enterprise data bridges**.
+- Integration and onboarding support as agreed in the contract.
+
+Contact us for Enterprise and startup commercial pricing.
 
 ## Before you ship
 
-Review the full legal terms in the repository:
+Review:
 
-- `LICENSE`
-- `LICENSING.md`
+- [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) — AGPL v3 for the core
+- [`LICENSING.md`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md) — overview and links
 
-If your use case is commercial, revenue-generating, or customer-facing at scale, do not treat the Additional Use Grant as a substitute for a commercial agreement.
+If you are unsure whether your use is AGPL-compliant or needs a commercial or plugin license, contact Efix Data before production launch.

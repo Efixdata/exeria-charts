@@ -18,11 +18,11 @@
   },
   "sidebar": "docsSidebar",
   "previous": {
-    "title": "React UI Toolbar and Tools",
-    "permalink": "/docs/advanced/react-ui-toolbar-and-tools"
+    "title": "Mobile and Responsive",
+    "permalink": "/docs/advanced/mobile-and-responsive"
   },
   "next": {
-    "title": "Overview",
-    "permalink": "/docs/scripts/overview"
+    "title": "Chart Environment and Layout",
+    "permalink": "/docs/api-reference/chart-environment"
   }
 }

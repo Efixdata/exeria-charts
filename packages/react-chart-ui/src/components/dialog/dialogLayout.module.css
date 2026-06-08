@@ -1,0 +1,117 @@
+.scrollArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4, 16px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dialog-scrollbar-thumb) var(--dialog-scrollbar-track);
+}
+
+.scrollArea::-webkit-scrollbar,
+.listBody::-webkit-scrollbar {
+  width: var(--dialog-scrollbar-width, 8px);
+}
+
+.scrollArea::-webkit-scrollbar-track,
+.listBody::-webkit-scrollbar-track {
+  background: var(--dialog-scrollbar-track, rgba(255, 255, 255, 0.04));
+  border-radius: var(--ui-radius-md, 6px);
+}
+
+.scrollArea::-webkit-scrollbar-thumb,
+.listBody::-webkit-scrollbar-thumb {
+  background: var(--dialog-scrollbar-thumb, rgba(255, 255, 255, 0.22));
+  border-radius: var(--ui-radius-md, 6px);
+}
+
+.scrollArea::-webkit-scrollbar-thumb:hover,
+.listBody::-webkit-scrollbar-thumb:hover {
+  background: var(--dialog-scrollbar-thumb-hover, rgba(255, 255, 255, 0.34));
+}
+
+.listBody {
+  padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
+  max-height: min(50vh, 440px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dialog-scrollbar-thumb) var(--dialog-scrollbar-track);
+}
+
+/* Fixed-height catalog list — prevents modal jump when search filters results */
+.catalogListPanel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: min(50vh, 440px);
+  min-height: min(50vh, 440px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dialog-scrollbar-thumb) var(--dialog-scrollbar-track);
+}
+
+.catalogListPanel::-webkit-scrollbar {
+  width: var(--dialog-scrollbar-width, 8px);
+}
+
+.catalogListPanel::-webkit-scrollbar-track {
+  background: var(--dialog-scrollbar-track, rgba(255, 255, 255, 0.04));
+  border-radius: var(--ui-radius-md, 6px);
+}
+
+.catalogListPanel::-webkit-scrollbar-thumb {
+  background: var(--dialog-scrollbar-thumb, rgba(255, 255, 255, 0.22));
+  border-radius: var(--ui-radius-md, 6px);
+}
+
+.catalogListPanel::-webkit-scrollbar-thumb:hover {
+  background: var(--dialog-scrollbar-thumb-hover, rgba(255, 255, 255, 0.34));
+}
+
+.catalogListInner {
+  padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
+  flex: 1;
+  min-height: 0;
+}
+
+.searchBar {
+  position: relative;
+  padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px);
+  border-bottom: 1px solid var(--dialog-border, rgba(255, 255, 255, 0.12));
+}
+
+.searchIcon {
+  position: absolute;
+  right: calc(var(--ui-space-5, 20px) + var(--ui-space-3, 12px));
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.55;
+  color: var(--dialog-muted, rgba(255, 255, 255, 0.55));
+}
+
+.emptyState {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--ui-space-6, 24px) var(--ui-space-5, 20px);
+  text-align: center;
+  font-size: var(--ui-font-body, 13px);
+  color: var(--dialog-muted, rgba(255, 255, 255, 0.55));
+}
+
+.dialogPrimaryFooter {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: var(--ui-space-4, 16px) var(--ui-space-5, 20px) var(--ui-space-5, 20px);
+  border-top: 1px solid var(--dialog-border, rgba(255, 255, 255, 0.12));
+  background: transparent;
+}

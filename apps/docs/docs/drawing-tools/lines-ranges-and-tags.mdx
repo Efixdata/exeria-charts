@@ -13,13 +13,13 @@ This group covers single-axis markers, span tools, and the helper overlays that 
 ## Live examples
 
 <DrawingToolShowcase
-  visiblePresets={["hLine", "timeRange", "timeBet", "priceTag"]}
+  visiblePresets={["hLine", "hRay", "vRay", "crossLine", "trendRay", "timeRange", "timeBet", "priceTag"]}
   initialPreset="hLine"
 />
 
 ## Horizontal and vertical lines
 
-Use `hLine` for a price level and `vLine` for a time marker.
+Use `hLine` for a price level and `vLine` for a time marker. Use `hRay`, `vRay`, and `crossLine` when you want a ray or crosshair that stops at the plot edge instead of spanning the full panel.
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -55,6 +55,10 @@ Use `mLine` when you want a custom three-anchor line structure.
 ## Horizontal and vertical ranges
 
 `hRange` and `vRange` use two anchors and support extra runtime fields such as `text` and `flipped`.
+
+## Time range
+
+`timeRange` highlights a window on the time axis with a shaded panel and optional label. Draw it from the left toolbar (**Ranges → Time range**) with two clicks or click-and-drag, or create it programmatically with `drawTimeRange()`.
 
 ```ts
 chart.toolDrawer.drawTool({

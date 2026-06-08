@@ -1,38 +1,30 @@
-import React, { useState, ReactElement, useEffect, useRef } from "react";
-import styled from "styled-components";
-import { splitButton, buttonOption as buttonOption } from "../theme";
-import { ChevronRight } from "./img/icons";
+import React, { useState, ReactElement, useEffect, useLayoutEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import styled, { ThemeProvider, useTheme } from "styled-components";
+import { splitButton } from "../theme";
+import { UI_FONT_FAMILY } from "../theme";
+import { inputFocusVisibleStyles } from "../inputStyles";
+import { toolbarIconSvgStyles } from "./toolbarIconStyles";
+import { getOverlayPortalRoot } from "./device";
+import { Tooltip } from "./Tooltip";
 
 const Container = styled.div`
   position: relative;
-
-  &:hover .chevron,
-  &.open .chevron {
-    width: ${splitButton.buttonSize}px;
-    height: ${splitButton.buttonSize}px;
-    left: 0;
-  }
-
-  &:hover .chevron svg,
-  &.open .chevron svg {
-    transform: scale(1);
-  }
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+  width: var(--ui-toolbar-touch, ${splitButton.buttonSize}px);
+  height: var(--ui-toolbar-touch, ${splitButton.buttonSize}px);
+  margin-inline: auto;
 `;
 
 const ButtonContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
   border-radius: ${splitButton.borderRadius}px;
-  overflow: hidden;
   box-sizing: border-box;
-  display: flex;
-
-  &:hover {
-    background-color: ${(props) => props.theme.splitButton.hoverBackground};
-
-    path,
-    circle {
-      fill: ${(props) => props.theme.splitButton.hoverColor};
-    }
-  }
+  overflow: visible;
 
   .open &,
   .open:hover & {
@@ -45,84 +37,188 @@ const ButtonContainer = styled.div`
   }
 `;
 
-const ChevronContainer = styled.div`
-  position: relative;
-  left: -${splitButton.menuPadding}px;
+const IconSlot = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 100ms ease-in-out;
-  cursor: pointer;
-  padding: 2px;
-  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 1;
+  color: ${(props) => props.theme.toolbar.buttons.color};
 
-  &:hover {
-    background-color: ${(props) => props.theme.splitButton.arrowHoverBackground};
+  ${Container}.pressed & {
+    color: ${(props) => props.theme.toolbar.buttons.activeColor};
   }
 
-  svg {
-    transform: scale(0.5);
-    transition: all 100ms ease-in-out;
-  }
+  ${toolbarIconSvgStyles}
+`;
 
-  path,
-  circle {
-    fill: ${(props) => props.theme.splitButton.arrowColor};
+const MainHitAreaSlot = styled.span`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(
+    var(--ui-toolbar-touch, ${splitButton.buttonSize}px) - var(--ui-split-chevron-hit, 20px) +
+      (var(--ui-left-menu-width, ${splitButton.buttonSize}px) - var(--ui-toolbar-touch, ${splitButton.buttonSize}px)) / 2
+  );
+  height: 100%;
+  z-index: 2;
+
+  > span {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 `;
 
-const OptionsContainer = styled.div<{ top: number }>`
+const MainHitArea = styled.button`
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: inherit;
+
+  ${inputFocusVisibleStyles}
+`;
+
+const ChevronHitArea = styled.button`
+  position: absolute;
+  top: 0;
+  right: calc(
+    (var(--ui-toolbar-touch, ${splitButton.buttonSize}px) - var(--ui-left-menu-width, ${splitButton.buttonSize}px)) / 2
+  );
+  width: var(--ui-split-chevron-hit, 20px);
+  height: 100%;
+  margin: 0;
+  padding: 0 0 4px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  color: ${(props) => props.theme.splitButton.arrowColor};
+
+  &:hover {
+    color: ${(props) => props.theme.splitButton.arrowOpenColor ?? props.theme.splitButton.openColor};
+  }
+
+  ${inputFocusVisibleStyles}
+`;
+
+const ChevronMark = styled.span`
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 0 1px 1px 0;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  pointer-events: none;
+`;
+
+const OptionsContainer = styled.div<{ $top: number; $left: number; $maxHeight: number }>`
   box-sizing: border-box;
   border-radius: ${splitButton.borderRadius}px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background-color: ${(props) => props.theme.subMenu.background};
   padding: ${splitButton.menuPadding}px 0;
-  position: absolute;
-  left: ${splitButton.buttonSize}px;
-  top: ${(props) => props.top}px;
-  z-index: 1;
+  position: fixed;
+  left: ${(props) => props.$left}px;
+  top: ${(props) => props.$top}px;
+  z-index: 10001;
+  min-width: 180px;
+  max-height: ${(props) => props.$maxHeight}px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(127, 157, 204, 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(127, 157, 204, 0.35);
+    border-radius: 4px;
+  }
+`;
+
+const OptionIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: ${splitButton.menuOptionHeight}px;
+  height: ${splitButton.menuOptionHeight}px;
+  flex-shrink: 0;
+  color: ${(props) => props.theme.subMenu.buttons.color};
+
+  svg {
+    width: ${splitButton.menuIconSize}px;
+    height: ${splitButton.menuIconSize}px;
+  }
+
+  ${toolbarIconSvgStyles}
+`;
+
+const OptionLabel = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ${UI_FONT_FAMILY};
+  font-size: var(--ui-font-body, 13px);
+  line-height: 1.2;
+  color: ${(props) => props.theme.subMenu.buttons.color};
 `;
 
 const Option = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: ${splitButton.menuOptionHeight}px 1fr;
+  align-items: center;
+  column-gap: 8px;
   cursor: pointer;
-  padding-left: ${buttonOption.basePadding}px;
-  padding-top: ${buttonOption.basePadding}px;
-  padding-right: ${buttonOption.basePadding * 4}px;
-  padding-bottom: ${buttonOption.basePadding}px;
+  min-height: ${splitButton.menuOptionHeight}px;
+  padding: 0 12px 0 8px;
+  flex-shrink: 0;
 
   &:hover {
     background-color: ${(props) => props.theme.subMenu.buttons.hoverBackground};
-
-    button > div,
-    button {
-      background-color: transparent !important;
-    }
   }
 
   &.active {
     background-color: ${(props) => props.theme.subMenu.buttons.activeBackground};
 
-    button {
+    ${OptionIcon} {
       color: ${(props) => props.theme.subMenu.buttons.activeColor};
     }
-    path,
-    circle {
-      fill: ${(props) => props.theme.subMenu.buttons.activeColor};
+
+    ${OptionLabel} {
+      color: ${(props) => props.theme.subMenu.buttons.activeColor};
     }
   }
 `;
 
-interface SplitButtonOption {
-  text?: ReactElement;
+function MenuExpandChevron() {
+  return <ChevronMark aria-hidden />;
+}
+
+export interface SplitButtonOption {
+  label: string;
   icon: ReactElement;
   callback: () => void;
   id: string;
 }
 
-interface SplitButtonOptions {
+export interface SplitButtonOptions {
   [index: string]: SplitButtonOption;
 }
 
@@ -130,15 +226,29 @@ interface SplitButtonProps {
   defaultOption: string;
   options: SplitButtonOptions;
   setCurrentOption?: boolean | undefined;
-  activeOption: string;
+  activeOption?: string | undefined;
+  onMainDoubleClick?: () => void;
+  onMainClickWhileActive?: () => void;
+  onChevronClick?: () => boolean | void;
   containerOffset: { offsetTop?: number; offsetBottom?: number };
 }
 
+interface MenuPosition {
+  top: number;
+  left: number;
+  maxHeight: number;
+}
+
 export const SplitButton = (props: SplitButtonProps) => {
+  const theme = useTheme();
   const myRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState(-buttonOption.basePadding);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition>({
+    top: 0,
+    left: 0,
+    maxHeight: 480,
+  });
 
   const activeOptionProps: SplitButtonOption | undefined =
     props.options[props.activeOption || props.defaultOption];
@@ -147,33 +257,98 @@ export const SplitButton = (props: SplitButtonProps) => {
     return null;
   }
 
-  const currentButton = React.cloneElement(activeOptionProps.icon, {
-    style: { borderRadius: 0 },
-    onClick: () => onActiveOptionClick(activeOptionProps.callback),
-    active: !!props.activeOption,
-    themeContext: "toolbar",
-  });
-
   useEffect(() => {
-    setMenuPosition(calculateMenuPosition());
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const updateMenuPosition = () => {
+      setMenuPosition(calculateMenuPosition());
+    };
+
+    updateMenuPosition();
+    const frame = window.requestAnimationFrame(updateMenuPosition);
+
+    const scrollRoot =
+      myRef.current?.closest(".leftMenuScroll") ??
+      myRef.current?.closest(".wrapperInner");
+
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+    scrollRoot?.addEventListener("scroll", updateMenuPosition, { passive: true });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+      scrollRoot?.removeEventListener("scroll", updateMenuPosition);
+    };
+  }, [isOpen, props.containerOffset.offsetBottom, props.containerOffset.offsetTop]);
+
+  const menuPortal =
+    isOpen && typeof document !== "undefined"
+      ? createPortal(
+          <ThemeProvider theme={theme}>
+            <OptionsContainer
+              ref={menuRef}
+              data-split-button-menu="true"
+              $top={menuPosition.top}
+              $left={menuPosition.left}
+              $maxHeight={menuPosition.maxHeight}
+            >
+              {renderOptions()}
+            </OptionsContainer>
+          </ThemeProvider>,
+          getOverlayPortalRoot(),
+        )
+      : null;
 
   return (
-    <Container className={isOpen ? "open" : undefined} ref={myRef}>
-      <ButtonContainer ref={buttonRef}>
-        {currentButton}
-        <ChevronContainer
+    <Container
+      className={[isOpen ? "open" : undefined, props.pressed ? "pressed" : undefined]
+        .filter(Boolean)
+        .join(" ") || undefined}
+      ref={myRef}
+    >
+      <ButtonContainer>
+        <IconSlot aria-hidden>{activeOptionProps.icon}</IconSlot>
+        <MainHitAreaSlot>
+          <Tooltip label={activeOptionProps.label} placement="right">
+            <MainHitArea
+              type="button"
+              aria-label={activeOptionProps.label}
+              aria-pressed={props.activeOption ? true : undefined}
+              onClick={() => onActiveOptionClick(activeOptionProps.callback)}
+              onDoubleClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                props.onMainDoubleClick?.();
+              }}
+            />
+          </Tooltip>
+        </MainHitAreaSlot>
+        <ChevronHitArea
+          type="button"
           className="chevron"
-          onClick={() => {
+          aria-label="Show more tools"
+          aria-expanded={isOpen}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (props.onChevronClick?.()) {
+              return;
+            }
             setOpen(!isOpen);
           }}
         >
-          <ChevronRight />
-        </ChevronContainer>
+          <MenuExpandChevron />
+        </ChevronHitArea>
       </ButtonContainer>
-      {isOpen && <OptionsContainer top={menuPosition}>{renderOptions()}</OptionsContainer>}
+      {menuPortal}
     </Container>
   );
 
@@ -184,19 +359,15 @@ export const SplitButton = (props: SplitButtonProps) => {
 
   function onActiveOptionClick(callback: () => void): void {
     if (isOpen) {
-      // otwarte
-      setOpen(false); // zamknąć
-      if (props.activeOption) {
-        // otwarte i aktywne
-        onOptionClick.call(null, callback); // wyłączyć defaultowe
-      }
-    } else if (props.activeOption) {
-      // zamknięte i aktywne
-      setOpen(true); // otworzyć
-    } else {
-      // zamknięte i nieaktywne
-      onOptionClick.call(null, callback); // włączyć
+      setOpen(false);
     }
+
+    if (props.activeOption && props.onMainClickWhileActive) {
+      props.onMainClickWhileActive();
+      return;
+    }
+
+    callback();
   }
 
   function renderOptions() {
@@ -213,9 +384,9 @@ export const SplitButton = (props: SplitButtonProps) => {
           key={o}
           className={props.activeOption === o ? "active" : undefined}
         >
-          {option.icon && option.icon}
-          {option.text}
-        </Option>
+          <OptionIcon aria-hidden>{option.icon}</OptionIcon>
+          <OptionLabel>{option.label}</OptionLabel>
+        </Option>,
       );
     }
 
@@ -223,32 +394,78 @@ export const SplitButton = (props: SplitButtonProps) => {
   }
 
   function handleClickOutside(e: MouseEvent) {
-    if (!myRef.current?.contains(e.target as Node)) {
-      setOpen(false);
+    const target = e.target as Node;
+    if (myRef.current?.contains(target) || menuRef.current?.contains(target)) {
+      return;
     }
+
+    setOpen(false);
   }
 
-  function calculateMenuPosition() {
-    const buttonOffset = buttonRef.current?.getBoundingClientRect().top;
+  function getClipBounds() {
+    const chartRow =
+      myRef.current?.closest("[data-chart-area]")?.parentElement ??
+      myRef.current?.closest(".wrapperInner") ??
+      myRef.current?.closest(".wrapperOuter");
+    const chartRowRect = chartRow?.getBoundingClientRect();
     const containerOffset = props.containerOffset;
-    let topMenuPosition = -buttonOption.basePadding;
 
-    if (buttonOffset && containerOffset.offsetBottom) {
-      const fromBottomToButton = containerOffset.offsetBottom - buttonOffset;
-      const menuHeight = calculateMenuHeight();
+    return {
+      top: chartRowRect?.top ?? containerOffset.offsetTop ?? 0,
+      bottom: chartRowRect?.bottom ?? containerOffset.offsetBottom ?? window.innerHeight,
+    };
+  }
 
-      if (fromBottomToButton < menuHeight) {
-        topMenuPosition -= menuHeight - fromBottomToButton;
-      }
+  function calculateMenuPosition(): MenuPosition {
+    const containerRect = myRef.current?.getBoundingClientRect();
+    const menuHeight = calculateMenuHeight();
+    const rowHeight = splitButton.menuOptionHeight;
+    const buttonWidth = containerRect?.width ?? splitButton.buttonSize;
+    const clip = getClipBounds();
+    const clipTop = clip.top + 4;
+    const clipBottom = clip.bottom - 4;
+    const chartHeight = Math.max(rowHeight, clipBottom - clipTop);
+
+    if (!containerRect) {
+      return { top: clipTop, left: 0, maxHeight: Math.min(menuHeight, chartHeight) };
     }
 
-    return topMenuPosition;
+    const left = containerRect.left + buttonWidth;
+    const spaceBelow = clipBottom - containerRect.bottom;
+    const spaceAbove = containerRect.top - clipTop;
+
+    let top = containerRect.top;
+    let maxHeight = menuHeight;
+
+    if (menuHeight > spaceBelow && spaceAbove >= spaceBelow) {
+      top = containerRect.bottom - menuHeight;
+    }
+
+    if (top + menuHeight > clipBottom) {
+      top = clipBottom - menuHeight;
+    }
+
+    if (top < clipTop) {
+      top = clipTop;
+      maxHeight = chartHeight;
+    } else {
+      maxHeight = Math.min(menuHeight, clipBottom - top);
+    }
+
+    top = Math.max(clipTop, Math.min(top, clipBottom - maxHeight));
+
+    if (maxHeight < menuHeight) {
+      const visibleRows = Math.max(1, Math.floor(maxHeight / rowHeight));
+      maxHeight = visibleRows * rowHeight + 2 * splitButton.menuPadding;
+      maxHeight = Math.min(maxHeight, clipBottom - top);
+    }
+
+    return { top, left, maxHeight };
   }
 
   function calculateMenuHeight() {
-    const optionHeight = buttonOption.basePadding * 2 + splitButton.buttonSize;
     const optionsAmount = Object.keys(props.options).length;
 
-    return optionsAmount * optionHeight + 2 * splitButton.menuPadding;
+    return optionsAmount * splitButton.menuOptionHeight + 2 * splitButton.menuPadding;
   }
 };

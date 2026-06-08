@@ -9,9 +9,11 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "dev:docs": "npm --prefix apps/docs run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "verify:release": "node scripts/verify-release-packages.mjs",
+    "test:mobile": "npm --prefix packages/chart test && npm --prefix packages/react-chart-ui test",
     "typecheck:packages": "npm --prefix packages/chart run typecheck && npm --prefix packages/react-chart-ui run typecheck && npm --prefix apps/web run typecheck && npm --prefix apps/docs run typecheck",
     "check:ts-suppressions": "node scripts/check-ts-suppressions.mjs",
     "typecheck:stage1": "npm run typecheck:packages && npm --prefix packages/chart run build:types && npm --prefix packages/react-chart-ui run build:types && npm run check:ts-suppressions",

@@ -70,6 +70,11 @@ export interface PriceRenderingOptions {
   valueAxisWidth: number;
   magnitude: number;
   zerosToReduce: number;
+  axisLabelPrefix: string;
+  axisUsePrefixHeader: boolean;
+  ledgerSuffixRightX?: number;
+  ledgerColumnSplitX?: number;
+  ledgerTickSuffixTexts?: string[];
   [key: string]: unknown;
 }
 
@@ -144,6 +149,12 @@ export type RendererPostOverlayMethod = (
   context: CanvasRenderingContext2D,
   model: CoreChartModel,
   seriesManager: SeriesManager,
+) => void;
+export type RendererSelectionHandlesMethod = (
+  context: CanvasRenderingContext2D,
+  model: CoreChartModel,
+  fusion: CoreFusionRuntime,
+  selectedObject: ChartRuntimeObject,
 ) => void;
 export type RendererValueAxisMethod = (
   context: CanvasRenderingContext2D,
@@ -256,6 +267,11 @@ export type RendererTimeTicksMethod = (
   model: CoreChartModel,
   seriesManager?: SeriesManager,
 ) => number[];
+export type RendererFallbackTimeTicksMethod = (
+  model: CoreChartModel,
+  lastIndex: number,
+  plotWidth: number,
+) => number[];
 export type RendererNiceTickMethod = (
   model: CoreChartModel,
   panel: CoreChartPanel,
@@ -266,6 +282,15 @@ export type RendererPrettyDateMethod = (
   hidden?: RendererHiddenDateParts,
 ) => string;
 export type RendererZeroLeadMethod = (value: number) => string;
+
+export type LegendCloseHit = {
+  scriptId: string | number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+export type RendererGetLegendHitMethod = (x: number, y: number) => LegendCloseHit | null;
 export type RendererPrecisionMethod = (
   model: CoreChartModel,
   panel: CoreChartPanel,
@@ -293,7 +318,9 @@ export interface CoreRenderer {
   postRenderPlotPane: RendererPostRenderPlotPaneMethod;
   shouldBePanelVisible: RendererPanelVisibilityMethod;
   renderOverlay: RendererOverlayMethod;
+  renderRangeAxisGuides: RendererOverlayMethod;
   postRenderOverlay: RendererPostOverlayMethod;
+  renderSelectionHandles: RendererSelectionHandlesMethod;
   renderValueAxis: RendererValueAxisMethod;
   renderHGrid: RendererHGridMethod;
   renderVGrid: RendererVGridMethod;
@@ -301,6 +328,7 @@ export interface CoreRenderer {
   renderHandler: RendererPanelMethod;
   renderLegend: RendererLegendMethod;
   renderLegendLine: RendererLegendLineMethod;
+  getLegendHit: RendererGetLegendHitMethod;
   drawPriceTag: RendererPriceTagMethod;
   drawDoublePriceTag: RendererDoublePriceTagMethod;
   drawTimeTag: RendererTimeTagMethod;
@@ -313,6 +341,7 @@ export interface CoreRenderer {
   getYCoordinateForPrice: RendererPriceCoordinateMethod;
   getPriceForYCoordinate: RendererPriceCoordinateMethod;
   calculateTimeTicks: RendererTimeTicksMethod;
+  buildFallbackTimeTicks: RendererFallbackTimeTicksMethod;
   calculateNiceTick: RendererNiceTickMethod;
   niceNum: RendererNiceNumberMethod;
   getPrettyDate: RendererPrettyDateMethod;

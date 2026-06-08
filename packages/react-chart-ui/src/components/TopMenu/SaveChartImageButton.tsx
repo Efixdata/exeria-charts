@@ -8,6 +8,7 @@ import useGenerateWatermark, {
 } from "../../hooks/useGenerateWatermark";
 import useShareChartImage, { ActionEnum } from "../../hooks/useShareChartImage";
 import type { NullableChartInstance } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 import { Camera, Download, Copy } from "../../img/icons";
 
@@ -53,6 +54,7 @@ const OptionValue = styled.span`
 `;
 
 export const SaveChartImageButton = (props: SaveChartImageButtonProps) => {
+  const t = useChartTranslate(props.chart);
   const { waterMark64 } = useGenerateWatermark();
   const { shareImage, actionLoading } = useShareChartImage(props.chart);
 
@@ -84,11 +86,11 @@ export const SaveChartImageButton = (props: SaveChartImageButtonProps) => {
         <OptionsContainer>
           <OptionValue onClick={() => shareImage("copyImage", ActionEnum.copy)}>
             {actionLoading.copyImage ? <Loading /> : <Copy />}
-            Copy chart image
+            {t("save_copy_chart_image", "Copy chart image")}
           </OptionValue>
           <OptionValue onClick={onClick}>
             <Download />
-            Save chart image
+            {t("save_chart_image", "Save chart image")}
           </OptionValue>
         </OptionsContainer>
       )}

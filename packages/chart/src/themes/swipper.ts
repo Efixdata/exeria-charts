@@ -35,6 +35,7 @@ const chartTheme = {
     chartRedStroke: { dark: redDark },
     chartGreenStroke: { dark: green },
     chartFill: { dark: blueLight },
+    chartFillGradient: { dark: blueLight },
     chartStroke: { dark: blueLight },
 
     buyColor: { dark: greenLight },
@@ -49,9 +50,13 @@ const chartTheme = {
     crosshairInnerColor: { dark: blue },
     crosshairInnerTextColor: { dark: white },
 
-    tipBackground: { dark: blue },
-    tipTextColor: { dark: "rgba(255, 255, 255, 0.8)" },
-    tipUnderline: { dark: "rgba(255, 255, 255, 0.1)" },
+    tipBackground: { dark: blue, light: "#F7F9FC" },
+    tipTextColor: { dark: "rgba(255, 255, 255, 0.92)", light: "#131722" },
+    tipTitleColor: { dark: "#FFFFFF", light: "#131722" },
+    tipLabelColor: { dark: "rgba(255, 255, 255, 0.72)", light: "rgba(19, 23, 34, 0.62)" },
+    tipUnderline: { dark: "rgba(255, 255, 255, 0.12)", light: "rgba(19, 23, 34, 0.12)" },
+    tipBorder: { dark: "rgba(127, 157, 204, 0.35)", light: "rgba(19, 23, 34, 0.14)" },
+    tipShadow: { dark: "rgba(0, 0, 0, 0.38)", light: "rgba(19, 23, 34, 0.14)" },
 
     indicatorMarker: { dark: "yellow" },
     hitColor: { dark: "rgba(255, 255, 255, 0.7)" },
@@ -60,7 +65,7 @@ const chartTheme = {
 
     legendLabelColor: { dark: "rgba(255,255,255,0.7)" },
     legendValueColor: { dark: white },
-    legendLineBackground: { dark: "rgba(10, 39, 56, 0.7)" },
+    legendLineBackground: { dark: "transparent" },
 
     fibonacciRetracementLine: { dark: "rgba(255, 255, 255, 0.1)" },
   },
@@ -78,6 +83,12 @@ const chartTheme = {
     priceSubscript: {
       dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
+    priceCompact: {
+      dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    priceSubscriptCompact: {
+      dark: "300 9px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
     time: {
       dark: "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
@@ -86,6 +97,12 @@ const chartTheme = {
     },
     legendSubscript: {
       dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendCompact: {
+      dark: "300 10px Chivo, Roboto, Tahoma, Arial, sans-serif",
+    },
+    legendSubscriptCompact: {
+      dark: "300 9px Chivo, Roboto, Tahoma, Arial, sans-serif",
     },
     fontName: { dark: "Chivo" },
   },

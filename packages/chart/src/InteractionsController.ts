@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import FUSION from "./fusion";
 import LIB from "./utils/chartingCommons";
 import { Shape } from "./Objects2";
 import { Series } from "./Objects";
@@ -7,13 +8,20 @@ import {
   hideFusionScriptDialog,
   showFusionScriptDialog,
 } from "./adapters/fusionUi";
-import { isSmallScreen, isTouchDevice, hitTolerance } from "./utils/environment";
+import { isSmallScreen, isTouchDevice, isTouchEnvironment, hitTolerance } from "./utils/environment";
+import {
+  dismissMobileContextMenu,
+  openMobileChartContextMenu,
+  resolvePointerClientPosition,
+} from "./utils/mobileContextMenu";
 import { createGestureManager, HAMMER_DIRECTIONS } from "./adapters/hammer";
 import {
   createPropertiesDialogContent,
   showPropertiesDialog,
 } from "./adapters/propertiesDialog";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
+import { logChartInteraction } from "./utils/interactionDebug";
+import { runWithChartLocale } from "./chartLocaleRuntime";
 import type { ChartConfig } from "./types";
 import type { CoreChartController, CoreChartModel } from "./internal-types/chart";
 import type { CoreFusionRuntime } from "./internal-types/fusion";
@@ -126,17 +134,25 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.currentAnchor = null;
   this.currentSelectedObject = null;
   this.valueAxisClicked = false;
+  this.priceAxisTapToggleTimer = null;
+  this.touchGestureMoved = false;
+  this.lastDragWasChartPan = false;
   this.currentStagingObject = null;
+  this.suppressDrawingEditDoubleClick = false;
   this.model = model;
   this.renderer = renderer;
   this.isObjectSelectionAllowed = true;
+  this.drawingMagnetEnabled = false;
 
   this.pinch = { trackedIndex: null, leftGrabbedIndex: null, rightGrabbedIndex: null };
+  this.pinchFramePending = false;
   this.swipe = {
     configuration: {
       velocity: {
         multiplier: 20,
         minValue: 0.01,
+        /** Matches Hammer SwipeRecognizer default — flick below this does not coast. */
+        trigger: 0.3,
         dampingFactor: 0.03,
       },
     },
@@ -170,9 +186,10 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
 
     if (isTouchDevice()) {
-      self.topLayer.addEventListener("touchstart", self.onTouchEvent);
-      self.topLayer.addEventListener("touchend", self.onTouchEvent);
-      self.topLayer.addEventListener("touchcancel", self.onTouchEvent);
+      const touchListenerOptions = { passive: false } as AddEventListenerOptions;
+      self.topLayer.addEventListener("touchstart", self.onTouchEvent, touchListenerOptions);
+      self.topLayer.addEventListener("touchend", self.onTouchEvent, touchListenerOptions);
+      self.topLayer.addEventListener("touchcancel", self.onTouchEvent, touchListenerOptions);
 
       self.hammer = createGestureManager(self.topLayer);
 
@@ -188,7 +205,11 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.hammer.on("pinch pinchstart pinchend", self.onPinch);
 
       self.hammer.on("swipe", self.onHammerSwipe);
+      self.hammer.get("doubletap")?.set?.({ enable: true, taps: 2, interval: 320, posThreshold: 30 });
+      self.hammer.on("doubletap", self.onTouchDoubleTap);
     }
+
+    self.topLayer.addEventListener("dblclick", self.onDoubleClick);
 
     if (!isTouchDevice()) {
       self.topLayer.addEventListener("mousedown", self.onMouseDown);
@@ -229,6 +250,8 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.removeEventListener("mousemove", self.onBodyMouseMove);
     }
 
+    self.topLayer.removeEventListener("dblclick", self.onDoubleClick);
+
     if (isTouchDevice()) {
       self.topLayer.removeEventListener("touchstart", self.onTouchEvent);
       self.topLayer.removeEventListener("touchend", self.onTouchEvent);
@@ -239,6 +262,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.hammer.off("pan", self.onTouchEvent);
       self.hammer.off("pinch pinchstart pinchend", self.onPinch);
       self.hammer.off("swipe", self.onHammerSwipe);
+      self.hammer.off("doubletap", self.onTouchDoubleTap);
     } else if (self.hammer) {
       self.hammer.off("swipe", self.onHammerSwipe);
     }
@@ -249,25 +273,57 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.hammer = null;
   };
 
+  this.resetPointerGestureState = function () {
+    self.clearPriceAxisTapToggleTimer();
+    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+    self.isMouseDown = false;
+    self.initialMouseEvent = null;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
+    self.lastDragWasChartPan = false;
+    self.isRightButton = false;
+    self.isRightButtonDrag = false;
+  };
+
+  this.touchPointerIdMatches = function (
+    storedId: number | undefined,
+    touch: { pointerId?: number; identifier?: number },
+  ) {
+    if (storedId == null) return false;
+    const pointerId = touch.pointerId;
+    const identifier = touch.identifier;
+    return storedId === pointerId || storedId === identifier;
+  };
+
   this.onTouchEvent = function (evt) {
     self.body.click();
+
+    if (evt.type === "touchcancel" || evt.type === "pancancel") {
+      self.resetPointerGestureState();
+      logChartInteraction(`${evt.type} — interaction state reset`);
+    }
 
     const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
     let touchEvent;
 
     if (touches.length > 0) {
-      const ox = touches[0].pageX - window.scrollX;
-      const oy = touches[0].pageY - window.scrollY;
-      // identifier on ios safari has different values like -871896472
-      let which = evt.changedPointers ? evt.changedPointers[0].pointerId : touches[0].identifier;
+      const activeTouch = touches[0];
+      const clientX = activeTouch.clientX ?? activeTouch.pageX - window.scrollX;
+      const clientY = activeTouch.clientY ?? activeTouch.pageY - window.scrollY;
+      // Native Touch uses identifier; Hammer pointer events use pointerId — store the one we get.
+      const which = activeTouch.identifier ?? activeTouch.pointerId ?? 0;
 
+      const rect = self.topLayer.getBoundingClientRect();
       touchEvent = {
-        clientX: ox,
-        clientY: oy,
-        offsetX: ox,
-        offsetY: oy,
+        clientX,
+        clientY,
+        offsetX: clientX - rect.left,
+        offsetY: clientY - rect.top,
+        button: 0,
         which: which,
-        isPrimary: touches[0].isPrimary || touches[0].identifier === self.initialMouseEvent?.which,
+        isPrimary:
+          activeTouch.isPrimary !== false ||
+          self.touchPointerIdMatches(self.initialMouseEvent?.which, activeTouch),
       };
     }
 
@@ -275,14 +331,20 @@ var InteractionsController: CoreInteractorConstructor = function (
       case "touchstart": // previously mousedown
         self.onMouseDown(touchEvent);
         break;
-      case "pan": // previously mousemove
+      case "pan": // previously mousemove (Hammer also emits panmove)
+      case "panmove":
         self.onMouseMove(touchEvent, evt);
         break;
       case "touchend": // previously mouseup
+      case "panend":
         self.onMouseUp(touchEvent, evt);
         self.body.click();
+        if (evt.type === "panend") {
+          self.tryStartPanEndMomentum(evt);
+        }
         break;
       case "touchcancel": // previously mouseout
+      case "pancancel":
         self.onMouseOut(touchEvent);
         break;
     }
@@ -302,7 +364,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       this.fusion,
       panels,
       os,
-      WEBRCP.locale.fusion
+      this.chart.getLocaleMessages?.() ?? WEBRCP.locale.fusion,
     );
     function onCancel() {
       hideFusionScriptDialog();
@@ -335,6 +397,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onPinch = function (event) {
     self.body.click();
+    dismissMobileContextMenu();
     if (self.controller.isChartEmpty(self.chart)) return;
     event.preventDefault();
     if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
@@ -373,7 +436,14 @@ var InteractionsController: CoreInteractorConstructor = function (
     };
 
     if (event.type == "pinch") {
+      if (self.pinchFramePending) {
+        return;
+      }
+
+      self.pinchFramePending = true;
       self.controller.doFrame(() => {
+        self.pinchFramePending = false;
+
         const minPeriodWidth = self.getMinPeriodWidth();
         const maxPeriodWidth = self.model._width / 2;
 
@@ -400,7 +470,7 @@ var InteractionsController: CoreInteractorConstructor = function (
         )
           return;
 
-        const grabbedCandlesCount = rightGrabbedIndex - leftGrabbedIndex;
+        const grabbedCandlesCount = Math.max(1, rightGrabbedIndex - leftGrabbedIndex);
 
         const grabbedWidth = rightGrabbed.pageX - leftGrabbed.pageX;
         const newPeriodWidth = grabbedWidth / grabbedCandlesCount;
@@ -413,9 +483,6 @@ var InteractionsController: CoreInteractorConstructor = function (
         self.moveIndexToPoint(trackedIndex, trackedPoint);
 
         self.controller.rerender();
-        // this.fit();
-        // this.renderOverlay();
-        // this.render();
       });
     }
 
@@ -423,6 +490,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.pinch.trackedIndex = null;
       self.pinch.leftGrabbedIndex = null;
       self.pinch.rightGrabbedIndex = null;
+      self.pinchFramePending = false;
     }
 
     if (event.type == "pinchend") {
@@ -431,27 +499,20 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
   };
 
-  this.onSwipe = function (event) {
-    self.body.click();
-    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
+  this.startHorizontalSwipeMomentum = function (velocityX: number, initialPageX: number) {
+    if (!this.currentMode.allowSwipe || this.model.periodWidth < 2) return;
+    if (Math.abs(velocityX) < this.swipe.configuration.velocity.trigger) return;
 
-    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
-    self.isMouseDown = false;
-    self.deselectAll();
-    self.initialMouseEvent = null;
-    self.startEvent = null;
+    if (this.swipe.hook != null) clearInterval(this.swipe.hook);
 
-    if (!self.currentMode.allowSwipe || self.model.periodWidth < 2) return;
+    this.currentViewportLeft = this.model.viewportLeft;
 
-    self.currentViewportLeft = self.model.viewportLeft;
+    const initialX = initialPageX;
+    let currentX = initialX + this.swipe.configuration.velocity.multiplier * velocityX;
+    let momentumVelocityX = velocityX;
+    const self = this;
 
-    var pointer = event.pointers[0];
-
-    var initialX = pointer.pageX;
-    var velocityX = event.velocityX;
-    var currentX = calculateOffset(initialX, velocityX);
-
-    self.swipe.hook = setInterval(frame, 50);
+    this.swipe.hook = setInterval(frame, 50);
     function frame() {
       var seriesLength = 0;
       if (
@@ -465,11 +526,12 @@ var InteractionsController: CoreInteractorConstructor = function (
 
       if (
         seriesLength == 0 ||
-        Math.abs(velocityX) < self.swipe.configuration.velocity.minValue ||
+        Math.abs(momentumVelocityX) < self.swipe.configuration.velocity.minValue ||
         self.model._leftIndex <= 0 ||
         self.model._leftIndex >= seriesLength - 2
       ) {
         if (self.swipe.hook) clearInterval(self.swipe.hook);
+        self.swipe.hook = null;
       } else {
         var currentOffset = currentX - initialX;
         var offset = 0;
@@ -482,20 +544,50 @@ var InteractionsController: CoreInteractorConstructor = function (
           self.model.viewportLeft = self.currentViewportLeft - offset;
         }
 
-        recalculateVelocity();
-        currentX = calculateOffset(currentX, velocityX);
+        momentumVelocityX *= 1.0 - self.swipe.configuration.velocity.dampingFactor;
+        currentX += self.swipe.configuration.velocity.multiplier * momentumVelocityX;
 
         self.controller.fitAndRepaint();
       }
     }
 
-    function calculateOffset(xPos: number, xVelocity: number) {
-      return xPos + self.swipe.configuration.velocity.multiplier * xVelocity;
-    }
+    logChartInteraction("horizontal swipe momentum started", { velocityX });
+  };
 
-    function recalculateVelocity() {
-      velocityX *= 1.0 - self.swipe.configuration.velocity.dampingFactor;
-    }
+  this.tryStartPanEndMomentum = function (evt: {
+    velocityX?: number;
+    velocityY?: number;
+    pointers?: Array<{ pageX?: number }>;
+  }) {
+    if (!isTouchDevice()) return;
+    if (!this.lastDragWasChartPan || !this.touchGestureMoved) return;
+    if (!this.currentMode.allowSwipe || this.model.periodWidth < 2) return;
+
+    const velocityX = evt.velocityX ?? 0;
+    const velocityY = evt.velocityY ?? 0;
+    if (Math.abs(velocityX) < this.swipe.configuration.velocity.trigger) return;
+    if (Math.abs(velocityX) < Math.abs(velocityY)) return;
+
+    const pointer = evt.pointers?.[0];
+    if (pointer == null || typeof pointer.pageX !== "number") return;
+
+    this.startHorizontalSwipeMomentum(velocityX, pointer.pageX);
+  };
+
+  this.onSwipe = function (event) {
+    self.body.click();
+    if (self.swipe.hook != null) clearInterval(self.swipe.hook);
+
+    if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
+    self.isMouseDown = false;
+    self.deselectAll();
+    self.initialMouseEvent = null;
+    self.startEvent = null;
+
+    const pointer = event.pointers?.[0];
+    if (!pointer || typeof pointer.pageX !== "number") return;
+
+    self.startHorizontalSwipeMomentum(event.velocityX ?? 0, pointer.pageX);
   };
 
   this.moveIndexToPoint = function (index, x) {
@@ -507,35 +599,30 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onContextMenu = function (e) {
-    return;
     self.body.click();
-    if (!isTouchDevice()) e.preventDefault();
-    if (this.model.mode == "plain") return;
-    if (this.currentStagingObject) return;
+    dismissMobileContextMenu();
 
-    if (isTouchDevice()) {
-      if (!e.pageX) {
-        var touches = e.srcEvent.changedTouches ? e.srcEvent.changedTouches : e.changedPointers;
-        e["pageX"] = touches[0].pageX;
-        e["pageY"] = touches[0].pageY;
+    if (self.controller.isChartEmpty(self.chart)) return;
+    if (self.model.mode == "plain") return;
+    if (self.currentStagingObject) return;
 
-        var rect = e.srcEvent.target.getBoundingClientRect();
-        var touch = touches[0];
-
-        var ox = touch.pageX - rect.left;
-        var oy = touch.pageY - rect.top;
-
-        e["offsetX"] = ox;
-        e["offsetY"] = oy;
-      }
+    if (!isTouchEnvironment()) {
+      if (e.preventDefault) e.preventDefault();
+      return;
     }
 
-    this.isRightButton = isTouchDevice() ? true : this.isRightMouseButton(e);
+    if (e.preventDefault) e.preventDefault();
 
-    if (this.allowContextMenu || isTouchDevice()) {
-      // this.buildContextMenu(e);
-      // this.topLayer.contextMenu({x: e.pageX, y: e.pageY});
-    } else this.allowContextMenu = true;
+    const anchor = resolvePointerClientPosition(e, self.topLayer);
+    if (!anchor) {
+      return;
+    }
+
+    openMobileChartContextMenu(
+      self.controller as unknown as Parameters<typeof openMobileChartContextMenu>[0],
+      anchor.x,
+      anchor.y,
+    );
   };
 
   // this.buildContextMenu = function(e){
@@ -943,7 +1030,17 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseDown = function (e) {
-    if (self.initialMouseEvent) return;
+    if (self.initialMouseEvent && !self.isMouseDown) {
+      self.initialMouseEvent = null;
+    }
+    if (self.initialMouseEvent) {
+      if (isTouchDevice() && self.isMouseDown) {
+        logChartInteraction("touchstart with stale pointer-down — resetting");
+        self.resetPointerGestureState();
+      } else {
+        return;
+      }
+    }
     if (self.controller.isChartEmpty(self.chart)) return;
     if (e.preventDefault) e.preventDefault();
 
@@ -967,6 +1064,8 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     self.isMouseDown = true;
     self.isRightButton = self.isRightMouseButton(e);
+    self.touchGestureMoved = false;
+    self.lastDragWasChartPan = false;
 
     self.initialMouseEvent = e;
     self.currentViewportLeft = self.model.viewportLeft;
@@ -983,12 +1082,31 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     if (self.controller) self.controller.chartStructureChanged();
 
-    if (self.isAboveValueAxis(e)) self.valueAxisClicked = true;
-    else {
+    if (self.isAboveValueAxis(e)) {
+      self.valueAxisClicked = true;
+      self.currentHitObject = null;
+      logChartInteraction("pointer-down on value axis", {
+        x: e._offset.offsetX,
+        autoScale: self.model.autoScale,
+      });
+    } else {
       self.valueAxisClicked = false;
-      self.currentMode.onMouseDown(e);
-      self.controller.renderOverlay();
     }
+
+    if (self.currentMode.symbol === "DEFAULT") {
+      const legendHit = self.renderer.getLegendHit(e._offset.offsetX, e._offset.offsetY);
+      if (!self.valueAxisClicked && legendHit) {
+        self.controller.objectsManager.detachScript(legendHit.scriptId);
+        self.controller.rerender();
+        return;
+      }
+    }
+
+    if (!self.valueAxisClicked || self.currentMode.symbol === "DEFAULT") {
+      self.currentMode.onMouseDown(e);
+    }
+
+    self.controller.renderOverlay();
   };
 
   this.isRightMouseButton = function (e) {
@@ -1003,34 +1121,216 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseLeftUp = function (e) {
-    if (e.which === 2) {
-      // left mouse key
-      e.preventDefault();
-      self.onMouseUp(e);
+    const isRightButton = e.which === 3 || e.button === 2;
+    if (isRightButton) {
+      return;
     }
+
+    e.preventDefault();
+    self.onMouseUp(e);
+  };
+
+  this.onTouchDoubleTap = function (evt: {
+    srcEvent?: TouchEvent;
+    center?: { x: number; y: number };
+  }) {
+    const center = evt.center;
+    const touch = evt.srcEvent?.changedTouches?.[0];
+    if (!touch && !center) {
+      return;
+    }
+
+    const rect = self.topLayer.getBoundingClientRect();
+    const clientX = touch?.clientX ?? center?.x ?? 0;
+    const clientY = touch?.clientY ?? center?.y ?? 0;
+
+    self.onDoubleClick({
+      clientX,
+      clientY,
+      offsetX: clientX - rect.left,
+      offsetY: clientY - rect.top,
+      button: 0,
+      preventDefault: () => undefined,
+      stopPropagation: () => undefined,
+    } as MouseEvent);
+  };
+
+  this.clearPriceAxisTapToggleTimer = function () {
+    if (self.priceAxisTapToggleTimer != null) {
+      clearTimeout(self.priceAxisTapToggleTimer);
+      self.priceAxisTapToggleTimer = null;
+    }
+  };
+
+  this.togglePriceAxisExpanded = function () {
+    self.clearPriceAxisTapToggleTimer();
+    self.isMouseDown = false;
+    self.initialMouseEvent = null;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
+    self.model._priceAxisExpanded = self.model._priceAxisExpanded !== true;
+    logChartInteraction("price axis expand toggled", {
+      expanded: self.model._priceAxisExpanded,
+    });
+    const mainSeries = self.fusion.getMainSeries();
+    self.controller.renderer.calculatePriceRenderingOptions(
+      mainSeries.data,
+      self.model,
+      mainSeries.instrument?.precision ?? self.controller.instrument?.precision ?? 0,
+    );
+    self.controller.fit();
+    self.controller.render();
+    self.controller.renderOverlay();
+  };
+
+  this.schedulePriceAxisTapToggle = function () {
+    self.clearPriceAxisTapToggleTimer();
+    self.priceAxisTapToggleTimer = setTimeout(() => {
+      self.priceAxisTapToggleTimer = null;
+      self.togglePriceAxisExpanded();
+    }, 280);
+  };
+
+  this.onDoubleClick = function (e: MouseEvent) {
+    if (self.controller.isChartEmpty(self.chart)) return;
+
+    const eo = self.getEventOffset(e);
+    const priceAxisWidth = self.controller.renderer.getPriceRenderingOptions().valueAxisWidth;
+
+    if (eo.offsetX >= self.model._width - priceAxisWidth) {
+      self.togglePriceAxisExpanded();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (self.currentMode.symbol === "STAGING") {
+      const staging = self.currentStagingObject;
+      if (staging?.type === "mLine" && Array.isArray(staging.anchors) && staging.anchors.length >= 2) {
+        self.suppressDrawingEditDoubleClick = true;
+        self.completeStagingDrawing();
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+    }
+
+    if (self.currentMode.symbol !== "DEFAULT") return;
+
+    if (self.suppressDrawingEditDoubleClick) {
+      self.suppressDrawingEditDoubleClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    const hitObject = self.getCurrentHitObject(eo.offsetX, eo.offsetY);
+
+    if (!hitObject?.id || !hitObject.type) {
+      return;
+    }
+
+    const shapeRenderer = self.controller.renderer.objects[hitObject.type];
+    if (shapeRenderer && typeof shapeRenderer.renderAnchorsOverlay === "function") {
+      self.controller.emitEvent({
+        topic: "DRAWING_EDIT_REQUEST",
+        data: { objectId: hitObject.id },
+      });
+
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    const scriptPlotterTypes = [
+      "SeriesObject",
+      "StrategyObject",
+      "CandlestickPatternStrategyObject",
+      "FractalsObject",
+    ];
+    if (!hitObject.dataLink || !scriptPlotterTypes.includes(String(hitObject.type))) {
+      return;
+    }
+
+    const scriptController = self.controller.objectsManager.isThisSeriesOutputOfScript(
+      String(hitObject.dataLink),
+    );
+    if (!scriptController?.id) {
+      return;
+    }
+
+    const modelScript = self.controller.objectsManager.getScriptModelById(scriptController.id);
+    if (modelScript?.locked === true) {
+      return;
+    }
+
+    const scriptKey = modelScript?.key;
+    if (typeof scriptKey !== "string" || scriptKey === "VOLUME") {
+      return;
+    }
+
+    const template = FUSION.getScript(scriptKey);
+    if (!template || !["indicators", "functions", "strategies"].includes(String(template.type))) {
+      return;
+    }
+
+    self.controller.emitEvent({
+      topic: "INDICATOR_EDIT_REQUEST",
+      data: { scriptId: scriptController.id },
+    });
+
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   this.onBodyMouseUp = function (evt) {
-    if (evt.which !== 2) {
-      var eventElement = evt.toElement || evt.target || evt.target;
-
-      // TODO: check if following code works properly
-      if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
-      self.onMouseUp(evt);
+    if (evt.which === 3 || evt.button === 2) {
+      return;
     }
+
+    const eventElement = evt.target as Element | null;
+    if (
+      eventElement?.closest?.(".webrcp-chart-tools, .chart-watermark")
+    ) {
+      return;
+    }
+
+    self.onMouseUp(evt);
   };
 
   this.onMouseUp = function (e, evt) {
-    if (isTouchDevice()) {
-      const touches = evt.changedTouches ? evt.changedTouches : evt.changedPointers;
-      let resume = false;
+    const sourceEvent = evt ?? e;
+    const isStagingPlacement =
+      self.currentMode.symbol === "STAGING" && self.currentStagingObject != null;
 
-      for (let i = 0; i < touches.length; ++i) {
-        const which = touches[i].pointerId || touches[i].identifier || 0;
-        if (self.initialMouseEvent && self.initialMouseEvent?.which == which) resume = true;
+    if (!self.isMouseDown && !isStagingPlacement) {
+      return;
+    }
+
+    if (isTouchDevice() && sourceEvent) {
+      const changedTouches = sourceEvent.changedTouches ?? sourceEvent.changedPointers;
+      const remainingTouches = sourceEvent.touches?.length ?? 0;
+
+      if (changedTouches && changedTouches.length > 0) {
+        let resume = false;
+        const storedId = self.initialMouseEvent?.which;
+
+        for (let i = 0; i < changedTouches.length; ++i) {
+          if (self.touchPointerIdMatches(storedId, changedTouches[i])) {
+            resume = true;
+            break;
+          }
+        }
+
+        // Ignore unrelated lift only while another finger is still down (e.g. pinch).
+        if (!resume && remainingTouches > 0) {
+          logChartInteraction("touchend ignored — other touches still active", {
+            remainingTouches,
+            storedId,
+          });
+          return;
+        }
       }
-
-      if (!resume) return;
     }
     if (self.controller.isChartEmpty(self.chart)) return;
     if (self.currentHitObject) self.currentHitObject.isBeingDragged = false;
@@ -1044,10 +1344,33 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     e._offset = self.getEventOffset(e);
 
+    const initialEvent = self.initialMouseEvent;
+    const isValueAxisTap =
+      self.valueAxisClicked &&
+      isTouchDevice() &&
+      !self.touchGestureMoved &&
+      initialEvent &&
+      Math.abs(e._offset.offsetX - initialEvent.offsetX) < 12 &&
+      Math.abs(e._offset.offsetY - initialEvent.offsetY) < 12;
+
+    if (isValueAxisTap && self.isAboveValueAxis(e)) {
+      self.schedulePriceAxisTapToggle();
+      logChartInteraction("value-axis tap → toggle scheduled");
+    }
+
+    logChartInteraction("pointer-up", {
+      valueAxisClicked: self.valueAxisClicked,
+      touchGestureMoved: self.touchGestureMoved,
+      isMouseDown: self.isMouseDown,
+      viewportLeft: self.model.viewportLeft,
+    });
+
     self.initialMouseEvent = null;
+    self.touchGestureMoved = false;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
     self.isMouseDown = false;
+    self.valueAxisClicked = false;
 
     self.currentMode.onMouseUp(e);
     self.controller.renderOverlay();
@@ -1077,6 +1400,9 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.isMouseDown = false;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
+    self.valueAxisClicked = false;
+    self.touchGestureMoved = false;
+    self.clearPriceAxisTapToggleTimer();
 
     //if(self.controller)
     //	self.controller.loadOrdersAndPositions();
@@ -1094,7 +1420,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onMouseMove = function (e, evt) {
-    if (e.isPrimary === false) return;
+    if (!isTouchDevice() && e.isPrimary === false) return;
     if (this.controller.isChartEmpty(this.chart)) {
       this.chart.repaint();
       return;
@@ -1125,6 +1451,20 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onMouseDrag = function (e) {
     if (this.controller.isChartEmpty(this.chart)) return;
+    this.clearPriceAxisTapToggleTimer();
+
+    const initialEvent = this.initialMouseEvent;
+    if (initialEvent) {
+      const io = this.getEventOffset(initialEvent);
+      const eo = this.getEventOffset(e);
+      if (
+        Math.abs(eo.offsetX - io.offsetX) >= 12 ||
+        Math.abs(eo.offsetY - io.offsetY) >= 12
+      ) {
+        this.touchGestureMoved = true;
+      }
+    }
+
     this.currentMode.onMouseDrag(e);
     this.controller.renderOverlay();
   };
@@ -1150,6 +1490,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onDragObject = function (e) {
     const object = this.currentHitObject;
     if (!object) return;
+    if (object.locked === true) return;
     object.isBeingDragged = true;
 
     this.renderer.objects[object.type].mouseDrag(
@@ -1164,8 +1505,11 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onPan = function (event, initialEvent, initialXValue, currentXValue) {
-    if (event.isPrimary === false) return;
+    if (!isTouchDevice() && event.isPrimary === false) return;
     if (!this.initialMouseEvent) return;
+    this.clearPriceAxisTapToggleTimer();
+    this.touchGestureMoved = true;
+    this.lastDragWasChartPan = true;
     if (this.chart.style.cursor != this.currentMode.cursorOnDrag) {
       this.chart.style.cursor = this.currentMode.cursorOnDrag ?? "default";
     }
@@ -1191,6 +1535,10 @@ var InteractionsController: CoreInteractorConstructor = function (
           this.model.viewportLeft = 0;
         } else if (this.model.viewportLeft !== newOffset) {
           this.model.viewportLeft = newOffset;
+          logChartInteraction("pan horizontal", {
+            viewportLeft: newOffset,
+            valueAxisClicked: this.valueAxisClicked,
+          });
         }
       }
 
@@ -1222,9 +1570,17 @@ var InteractionsController: CoreInteractorConstructor = function (
             );
           }
 
+          const axisDragDeltaX = Math.abs(eo.offsetX - io.offsetX);
+          const axisDragDeltaY = Math.abs(eo.offsetY - io.offsetY);
+          const isVerticalAxisDrag =
+            isAboveValueAxis &&
+            this.valueAxisClicked &&
+            axisDragDeltaY > axisDragDeltaX &&
+            axisDragDeltaY >= 3;
+
           if (
             (this.isMouseDown && this.isRightButton === true) ||
-            (isAboveValueAxis && this.valueAxisClicked)
+            isVerticalAxisDrag
           ) {
             const valueY1 = this.initialMinMax.value;
             const valueY2 = this.renderer.getPriceForYCoordinate(
@@ -1508,9 +1864,21 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onKeyUp = function (e) {
     if (this.controller.isChartEmpty(this.chart)) return;
 
-    // if(WEBRCP.newChartLastFocus === this.chart) {
-    // 	if(!document.activeElement.className.startsWith("webrcp-new-chart-top-layer"))
-    // 		return;
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      if (
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement ||
+        activeElement.isContentEditable
+      ) {
+        return;
+      }
+
+      if (activeElement.closest('[role="dialog"]')) {
+        return;
+      }
+    }
 
     switch (e.key) {
       case "Backspace":
@@ -1518,6 +1886,9 @@ var InteractionsController: CoreInteractorConstructor = function (
         if (!this.currentSelectedObject) break;
 
         this.controller.onDelete(this.currentSelectedObject.id);
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
         break;
 
       case "Home":
@@ -1761,6 +2132,84 @@ var InteractionsController: CoreInteractorConstructor = function (
     this.controller.updateToolsOptions({ mode: "chart", interactor: this });
   };
 
+  this.completeStagingDrawing = function () {
+    if (this.currentMode.symbol !== "STAGING" || !this.currentStagingObject) {
+      return false;
+    }
+
+    if (!this.currentPanel) {
+      const mainPanel = this.model.panels.find((panel) => panel.main === true);
+      this.currentPanel = mainPanel ?? this.model.panels[0] ?? null;
+    }
+
+    if (!this.currentPanel) {
+      return false;
+    }
+
+    const completed = this.currentStagingObject;
+    if (!Array.isArray(completed.anchors) || completed.anchors.length < 2) {
+      return false;
+    }
+
+    if (completed.type === "mLine" && completed.anchors.length >= 2) {
+      const last = completed.anchors[completed.anchors.length - 1];
+      const previous = completed.anchors[completed.anchors.length - 2];
+      const panelPrecision =
+        typeof this.currentPanel?.precision === "number" ? this.currentPanel.precision : 4;
+      const epsilon = Math.pow(10, -panelPrecision);
+
+      if (
+        last._index === previous._index &&
+        Math.abs(last.value - previous.value) <= epsilon
+      ) {
+        completed.anchors.pop();
+      }
+    }
+
+    if (completed.anchors.length < 2) {
+      return false;
+    }
+
+    delete completed._isStaging;
+    completed.hidden = false;
+
+    const alreadyOnPanel = this.currentPanel.objects.some((object) => object.id === completed.id);
+    if (!alreadyOnPanel) {
+      this.currentPanel.objects.push(completed);
+    }
+
+    const completedRenderer = this.controller.renderer.objects[completed.type];
+    if (completedRenderer?.push) {
+      completedRenderer.push(
+        completed,
+        this.controller.renderer,
+        this.model,
+        this.fusion.getSeriesManager(),
+        this,
+      );
+    }
+
+    const finishCallback = (this.currentMode as { onFinished?: () => void }).onFinished;
+
+    if (completed.type === "mLine") {
+      this.suppressDrawingEditDoubleClick = true;
+    }
+
+    this.currentStagingObject = null;
+    this.currentAnchor = null;
+    this.select(completed);
+    this.setMode("DEFAULT");
+    this.controller.onDrawingDone();
+    this.controller.render();
+    this.controller.renderOverlay();
+
+    if (typeof finishCallback === "function") {
+      finishCallback();
+    }
+
+    return true;
+  };
+
   this.select = function (o) {
     var self = this;
     this.deselectAll();
@@ -1768,7 +2217,16 @@ var InteractionsController: CoreInteractorConstructor = function (
     selectOrderPosition();
     this.currentSelectedObject = o;
 
-    if (this.renderer.objects[o.type] instanceof Shape) {
+    const shapeRenderer = this.renderer.objects[o.type] as unknown as Shape | undefined;
+    if (
+      o._isStaging !== true &&
+      shapeRenderer &&
+      typeof shapeRenderer.pop === "function"
+    ) {
+      shapeRenderer.pop(o, this.renderer, this.model, this.fusion.getSeriesManager(), this);
+    }
+
+    if (shapeRenderer && typeof shapeRenderer.renderAnchorsOverlay === "function") {
       this.controller.updateToolsOptions({ mode: "object", interactor: this, object: o });
     } else if (
       this.renderer.objects[o.type] instanceof Series &&
@@ -1813,6 +2271,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       }
     }
 
+    this.controller.renderOverlay();
   };
 
   this.pushPanel = function (r, o, panel) {
@@ -2070,22 +2529,29 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.finishEvent = null;
     this.copyMode = false;
 
+    const eventOffset = this.interactor.getEventOffset(e);
+    if (!this.interactor.isAboveValueAxis(e)) {
+      this.interactor.currentHitObject = this.interactor.getCurrentHitObject(
+        eventOffset.offsetX,
+        eventOffset.offsetY,
+      );
+    }
+
     if (this.interactor.currentHitObject != null) {
-      if (e.ctrlKey && this.canBeCloned?.(this.interactor.currentHitObject)) {
+      const hitObject = this.interactor.currentHitObject;
+      this.interactor.select(hitObject);
+
+      if (hitObject.locked === true) {
+        return;
+      }
+
+      if (e.ctrlKey && this.canBeCloned?.(hitObject)) {
         this.copyMode = true;
-        var clone = this.interactor.chart.objectsManager.cloneObject(
-          this.interactor.currentHitObject
-        );
+        var clone = this.interactor.controller.objectsManager.cloneObject(hitObject);
         this.interactor.currentHitObject = clone;
       }
 
-      this.interactor.pushPanel(
-        this,
-        this.interactor.currentHitObject,
-        this.interactor.currentPanel
-      );
-
-      this.interactor.select(this.interactor.currentHitObject);
+      this.interactor.pushPanel(this, this.interactor.currentHitObject, this.interactor.currentPanel);
 
       this.interactor.currentAnchor = this.interactor.controller.renderer.objects[
         this.interactor.currentHitObject.type
@@ -2161,6 +2627,13 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           this.interactor.fusion.getSeriesManager()
         );
       }
+    } else if (
+      !this.interactor.currentHitObject &&
+      this.interactor.controller.renderer.getLegendHit(eo.offsetX, eo.offsetY)
+    ) {
+      if (this.interactor.chart.style.cursor != this.cursorOverObject) {
+        this.interactor.chart.style.cursor = this.cursorOverObject;
+      }
     } else if (this.interactor.chart.style.cursor != this.cursor) {
       this.interactor.chart.style.cursor = this.cursor;
     }
@@ -2177,6 +2650,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     const hitObject = interactor.currentHitObject;
     if (
       hitObject != null &&
+      hitObject.locked !== true &&
       interactor.controller.renderer.objects[hitObject.type].isDraggable !== false
     )
       return interactor.onDragObject(e);
@@ -2287,62 +2761,68 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
 
     if (this.interactor.currentHitObject) {
-      if (this.tipTimeOut) clearTimeout(this.tipTimeout);
+      if (this.tipTimeout) clearTimeout(this.tipTimeout);
 
       if (this.currentTip) showTip();
       else this.tipTimeout = setTimeout(showTip, this.toolTipShowDelay);
 
       function showTip() {
-        var hitObject = self.interactor.currentHitObject;
+        runWithChartLocale(self.interactor.controller, () => {
+          var hitObject = self.interactor.currentHitObject;
 
-        if (
-          hitObject &&
-          hitObject._hit &&
-          hitObject._hit.x &&
-          hitObject._hit.y &&
-          hitObject.dataLink &&
-          self.interactor.fusion.getSeriesManager()[hitObject.dataLink]
-        ) {
-          var object = self.interactor.controller.renderer.objects[hitObject.type];
-          var index = self.interactor.controller.renderer.getPointIndex(
-            hitObject._hit.x,
-            self.interactor.model
-          );
-
-          if (index > self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length - 1)
-            return;
-
-          if (!object.getToolTip) return;
-
-          var tip = object.getToolTip(
-            self.interactor.currentHitObject,
-            index,
-            self.interactor.model,
-            self.interactor.fusion.getSeriesManager(),
-            self.interactor.fusion.getScriptsManager()
-          );
-
-          try {
-            octx.save();
-            // octx.translate (0.5, 0.5);
-            tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
-            tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision;
-            self.currentTip = tip;
-            drawTip(
-              tip,
+          if (
+            hitObject &&
+            hitObject._hit &&
+            hitObject._hit.x &&
+            hitObject._hit.y &&
+            hitObject.dataLink &&
+            self.interactor.fusion.getSeriesManager()[hitObject.dataLink]
+          ) {
+            var object = self.interactor.controller.renderer.objects[hitObject.type];
+            var index = self.interactor.controller.renderer.getPointIndex(
               hitObject._hit.x,
-              hitObject._hit.y,
-              octx,
-              self.interactor.model,
-              self.interactor.controller
+              self.interactor.model
             );
-          } catch (e: any) {
-            console.error(e, e.stack);
-          } finally {
-            // octx.translate (-0.5, -0.5);
-            octx.restore();
+
+            if (
+              index >
+              self.interactor.fusion.getSeriesManager()[hitObject.dataLink].data.length - 1
+            ) {
+              return;
+            }
+
+            if (!object.getToolTip) return;
+
+            var tip = object.getToolTip(
+              self.interactor.currentHitObject,
+              index,
+              self.interactor.model,
+              self.interactor.fusion.getSeriesManager(),
+              self.interactor.fusion.getScriptsManager()
+            );
+
+            try {
+              octx.save();
+              // octx.translate (0.5, 0.5);
+              tip.date = WEBRCP.utils.dateTimeFormatter.stamp(tip.stamp).toDateTimeString();
+              tip.precision = self.interactor.model.instrumentsSeries[0].instrument.precision;
+              self.currentTip = tip;
+              drawTip(
+                tip,
+                hitObject._hit.x,
+                hitObject._hit.y,
+                octx,
+                self.interactor.model,
+                self.interactor.controller
+              );
+            } catch (e: any) {
+              console.error(e, e.stack);
+            } finally {
+              // octx.translate (-0.5, -0.5);
+              octx.restore();
+            }
           }
-        }
+        });
       }
     } else {
       clearTimeout(this.tipTimeout);
@@ -2350,6 +2830,48 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
       this.tipTimeout = null;
     }
   };
+
+  function fillRoundedTooltipRect(
+    ctx: CanvasRenderingContext2D,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    radius: number,
+  ) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(left, top, width, height, r);
+      return;
+    }
+
+    ctx.moveTo(left + r, top);
+    ctx.lineTo(left + width - r, top);
+    ctx.quadraticCurveTo(left + width, top, left + width, top + r);
+    ctx.lineTo(left + width, top + height - r);
+    ctx.quadraticCurveTo(left + width, top + height, left + width - r, top + height);
+    ctx.lineTo(left + r, top + height);
+    ctx.quadraticCurveTo(left, top + height, left, top + height - r);
+    ctx.lineTo(left, top + r);
+    ctx.quadraticCurveTo(left, top, left + r, top);
+    ctx.closePath();
+  }
+
+  function strokeTooltipDivider(
+    ctx: CanvasRenderingContext2D,
+    startX: number,
+    y: number,
+    endX: number,
+    color: string,
+  ) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.moveTo(startX, y);
+    ctx.lineTo(endX, y);
+    ctx.stroke();
+  }
 
   function drawTip(
     tip: TooltipRenderData,
@@ -2408,9 +2930,19 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     var lw = 0;
     var vw = 0;
     for (var i in tip.values) {
+      const rowValue = tip.values[i].value;
+      const hasInlineValue =
+        rowValue !== null && rowValue !== undefined && String(rowValue).length > 0;
+
+      if (!hasInlineValue) {
+        const inlineWidth = ctx.measureText(String(tip.values[i].label)).width;
+        lw = inlineWidth > lw ? inlineWidth : lw;
+        continue;
+      }
+
       var _lw = ctx.measureText(tip.values[i].label).width;
       lw = _lw > lw ? _lw : lw;
-      var v = getValue(tip.values[i].value, tip.values[i].precision);
+      var v = getValue(rowValue, tip.values[i].precision);
 
       var _vw = measurePriceTextWidth({
         text: v,
@@ -2419,7 +2951,7 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
       });
       vw = _vw > vw ? _vw : vw;
     }
-    var valueWidth = lw + ctx.measureText(" : ").width + vw;
+    var valueWidth = vw > 0 ? lw + ctx.measureText(" : ").width + vw : lw;
     cfg.width = newSize(valueWidth + 2 * cfg.margin, cfg.width, cfg.widthMax);
     cfg.valueOffset = lw + ctx.measureText(" : ").width;
     //cfg.valueOffset = cfg.valueOffset < (cfg.width/2-cfg.margin) ? cfg.width/2-cfg.margin :  cfg.valueOffset;
@@ -2427,42 +2959,68 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     //set valid position for new dimension
     calculateOffset(x, y, cfg, model);
 
-    var tipTextColor = WEBRCP.utils.colorManager.getColor("tipTextColor");
-    var tipUnderlineColor = WEBRCP.utils.colorManager.getColor("tipUnderline");
+    const colorManager = WEBRCP.utils.colorManager;
+    const tipBackground = colorManager.getColor("tipBackground");
+    const tipBorder = colorManager.getColor("tipBorder", colorManager.getColor("gridColor"));
+    const tipShadow = colorManager.getColor("tipShadow", "rgba(0, 0, 0, 0.35)");
+    const tipTitleColor = colorManager.getColor("tipTitleColor", colorManager.getColor("tipTextColor"));
+    const tipTextColor = colorManager.getColor("tipTextColor");
+    const tipLabelColor = colorManager.getColor("tipLabelColor", tipTextColor);
+    const tipUnderlineColor = colorManager.getColor("tipUnderline");
 
-    ctx.beginPath();
-    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("tipBackground"); //'#246FAF';
-    ctx.fillRect(x + cfg.offsetX, y + cfg.offsetY, cfg.width, cfg.height);
-    ctx.fillStyle = "white";
+    const boxX = x + cfg.offsetX;
+    const boxY = y + cfg.offsetY;
+
+    ctx.save();
+    ctx.shadowColor = tipShadow;
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 2;
+    fillRoundedTooltipRect(ctx, boxX, boxY, cfg.width, cfg.height, 6);
+    ctx.fillStyle = tipBackground;
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = tipBorder;
     ctx.lineWidth = 1;
-    ctx.strokeStyle = tipTextColor;
+    ctx.stroke();
+    ctx.restore();
 
-    var txtX = x + cfg.offsetX + cfg.margin;
-    var txtY = y + cfg.offsetY + cfg.margin + cfg.lineHeight;
+    let txtX = boxX + cfg.margin;
+    let txtY = boxY + cfg.margin + cfg.lineHeight;
+
+    ctx.font = colorManager.getFont("title");
+    ctx.fillStyle = tipTitleColor;
     ctx.fillText(tip.title, txtX, txtY);
+
+    ctx.font = colorManager.getFont("text");
     ctx.fillStyle = tipTextColor;
-    ctx.font = WEBRCP.utils.colorManager.getFont("text");
 
     txtY += cfg.lineSpacing + cfg.lineHeight / 2;
-    ctx.moveTo(txtX, txtY);
-    ctx.strokeStyle = tipUnderlineColor;
-    ctx.lineTo(x + cfg.offsetX + cfg.width - cfg.margin, txtY);
-    ctx.stroke();
-    ctx.strokeStyle = tipTextColor;
+    strokeTooltipDivider(ctx, txtX, txtY, boxX + cfg.width - cfg.margin, tipUnderlineColor);
     txtY += cfg.lineSpacing + cfg.lineHeight;
     ctx.fillText(tip.date, txtX, txtY);
 
     txtY += cfg.lineSpacing + cfg.lineHeight / 2;
-    ctx.moveTo(txtX, txtY);
-    ctx.strokeStyle = tipUnderlineColor;
-    ctx.lineTo(x + cfg.offsetX + cfg.width - cfg.margin, txtY);
-    ctx.stroke();
-    ctx.strokeStyle = tipTextColor;
+    strokeTooltipDivider(ctx, txtX, txtY, boxX + cfg.width - cfg.margin, tipUnderlineColor);
 
     for (var i in tip.values) {
-      ctx.font = WEBRCP.utils.colorManager.getFont("text");
+      ctx.font = colorManager.getFont("text");
       txtY += cfg.lineSpacing + cfg.lineHeight;
-      ctx.fillText(tip.values[i].label + " : ", txtX, txtY);
+
+      const rowValue = tip.values[i].value;
+      const rowLabel = tip.values[i].label;
+      const hasInlineValue =
+        rowValue !== null && rowValue !== undefined && String(rowValue).length > 0;
+
+      if (!hasInlineValue) {
+        ctx.fillStyle = tipLabelColor;
+        ctx.fillText(String(rowLabel), txtX, txtY);
+        continue;
+      }
+
+      ctx.fillStyle = tipLabelColor;
+      ctx.fillText(rowLabel + " : ", txtX, txtY);
       let zerosToReduce = controller.renderer.getPriceRenderingOptions().zerosToReduce;
       const precision = tip.values[i].precision;
 
@@ -2470,8 +3028,8 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
         zerosToReduce = 0;
       }
 
-      var v = getValue(tip.values[i].value, precision);
-      var x =
+      var v = getValue(rowValue, precision);
+      var valueX =
         txtX +
         cfg.width -
         2 * cfg.margin -
@@ -2480,10 +3038,9 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
           ctx,
           zerosToReduce: controller.renderer.getPriceRenderingOptions().zerosToReduce,
         });
-      renderPriceText({ text: v, ctx, x, y: txtY, zerosToReduce: zerosToReduce });
+      ctx.fillStyle = tipTextColor;
+      renderPriceText({ text: v, ctx, x: valueX, y: txtY, zerosToReduce: zerosToReduce });
     }
-
-    ctx.closePath();
 
     function calculateOffset(x: number, y: number, cfg: TooltipLayout, model: CoreChartModel) {
       var dY = model._height - cfg.offsetBottomMargin - (y + cfg.offsetY + cfg.height);
@@ -2532,6 +3089,14 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.startEvent = e;
     this.finishEvent = null;
 
+    const eventOffset = this.interactor.getEventOffset(e);
+    if (!this.interactor.isAboveValueAxis(e)) {
+      this.interactor.currentHitObject = this.interactor.getCurrentHitObject(
+        eventOffset.offsetX,
+        eventOffset.offsetY,
+      );
+    }
+
     if (this.interactor.currentHitObject != null) {
       this.interactor.select(this.interactor.currentHitObject);
       this.interactor.currentAnchor = this.interactor.controller.renderer.objects[
@@ -2555,6 +3120,25 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseUp = function (e) {
+    if (isTouchEnvironment()) {
+      this.finishEvent = e;
+
+      if (this.interactor.currentHitObject != null) {
+        this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseUp(
+          e,
+          this.interactor.currentHitObject,
+          this.interactor.controller.renderer,
+          this.interactor,
+          this.interactor.model,
+          this.interactor.currentPanel,
+          this.interactor.fusion.getSeriesManager()
+        );
+      }
+
+      this.interactor.controller.renderOverlay();
+      return;
+    }
+
     this.finishEvent = null;
 
     if (this.interactor.currentHitObject != null) {
@@ -2615,6 +3199,10 @@ function CrosshairTool(this: CoreInteractionMode, interactor: CoreInteractor) {
   };
 
   this.onMouseOut = function (e) {
+    if (isTouchEnvironment()) {
+      return;
+    }
+
     if (this.interactor.currentHitObject != null) {
       this.interactor.controller.renderer.objects[this.interactor.currentHitObject.type].mouseOut(
         e,
@@ -2910,12 +3498,53 @@ function StageTool(
   this.renderer = this.interactor.controller.renderer;
   this.model = this.interactor.model;
   this.tool = this.renderer.objects[tool.type];
+  this.onFinished = onFinished;
   this.currentStep = 0;
 
   this.interactor.currentStagingObject = JSON.parse(JSON.stringify(tool));
   this.interactor.currentStagingObject.id = createFusionUniqueId();
+  if (this.interactor.currentStagingObject.type === "longShortPosition") {
+    const staging = this.interactor.currentStagingObject;
+    staging._placementStep = 0;
+    if (!Array.isArray(staging.anchors)) {
+      staging.anchors = [];
+    }
+    const anchorDefaults = [
+      { stamp: 0, offset: 0, value: 0, _index: 0 },
+      {
+        stamp: 0,
+        offset: 0,
+        value: 0,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "right",
+      },
+      {
+        stamp: 0,
+        offset: 0,
+        value: 0,
+        _index: 0,
+        expandable: true,
+        defaultDirection: "left",
+      },
+    ];
+    for (let index = 0; index < 3; index += 1) {
+      if (!staging.anchors[index]) {
+        staging.anchors[index] = anchorDefaults[index];
+      }
+    }
+  }
+  this.interactor.currentStagingObject._isStaging = true;
   this.interactor.currentAnchor = null;
-  this.interactor.select(this.interactor.currentStagingObject);
+  this.interactor.deselectAll();
+  this.interactor.currentSelectedObject = this.interactor.currentStagingObject;
+  this.interactor.currentStagingObject.selected = true;
+
+  if (tool.type === "brush") {
+    this.cursor = "crosshair";
+    this.cursorOverObject = "crosshair";
+    this.cursorOnDrag = "crosshair";
+  }
 
   // ************************************************** //
 
@@ -2928,13 +3557,82 @@ function StageTool(
     this.interactor.setMode("DEFAULT");
   };
 
+  this.finalizeStagingPlacement = function (e) {
+    if (this.cancelled) return false;
+    if (!this.interactor.currentStagingObject) return false;
+    if (!this.tool?.stageUp) return false;
+
+    const isStageCompleted = this.tool.stageUp(
+      e,
+      this.interactor.currentStagingObject,
+      this.renderer,
+      this.interactor,
+      this.model,
+      this.interactor.currentPanel,
+      this.interactor.fusion.getSeriesManager(),
+    ) as boolean | void;
+
+    if (!isStageCompleted) return false;
+
+    const completed = this.interactor.currentStagingObject;
+    delete completed._isStaging;
+
+    const eventOffset = this.interactor.getEventOffset(e);
+    const targetPanel =
+      this.interactor.currentPanel ??
+      this.interactor.getPanel(eventOffset.offsetY) ??
+      this.interactor.getMainPanel();
+
+    if (!targetPanel) {
+      this.interactor.currentStagingObject = null;
+      this.currentStep = 0;
+      this.interactor.setMode("DEFAULT");
+      return false;
+    }
+
+    this.interactor.currentPanel = targetPanel;
+    targetPanel.objects.push(completed);
+
+    const completedRenderer = this.renderer.objects[completed.type];
+    if (completedRenderer?.push) {
+      completedRenderer.push(
+        completed,
+        this.renderer,
+        this.model,
+        this.interactor.fusion.getSeriesManager(),
+      );
+    }
+
+    if (completed.type === "mLine") {
+      this.interactor.suppressDrawingEditDoubleClick = true;
+    }
+
+    this.interactor.currentStagingObject = null;
+    this.currentAnchor = null;
+    this.currentStep = 0;
+    this.interactor.select(completed);
+    this.interactor.setMode("DEFAULT");
+    this.interactor.controller.onDrawingDone();
+
+    if (typeof this.onFinished === "function") {
+      this.onFinished();
+    }
+
+    this.interactor.controller.render();
+    this.interactor.controller.renderOverlay();
+    return true;
+  };
+
   this.onMouseDown = function (e) {
     if (this.cancelled) return;
     this.interactor.setObjectSelectionAllowed(true);
 
-    if (this.currentStep === 0) {
-      const eventOffset = this.interactor.getEventOffset(e).offsetY;
-      this.interactor.currentPanel = this.interactor.getPanel(eventOffset);
+    const eventOffset = this.interactor.getEventOffset(e);
+    const resolvedPanel =
+      this.interactor.getPanel(eventOffset.offsetY) ?? this.interactor.currentPanel;
+
+    if (resolvedPanel) {
+      this.interactor.currentPanel = resolvedPanel;
     }
 
     if (this.tool && this.tool.stageDown) {
@@ -2947,38 +3645,18 @@ function StageTool(
         this.interactor,
         this.model,
         this.interactor.currentPanel,
-        this.interactor.fusion.getSeriesManager()
+        this.interactor.fusion.getSeriesManager(),
       ) as CoreInteractor["currentAnchor"];
     }
   };
 
   this.onMouseUp = function (e) {
     if (this.cancelled) return;
+    if (!this.interactor.currentStagingObject) return;
 
     if (this.interactor.isRightMouseButton(e)) this.interactor.allowContextMenu = false;
 
-    if (this.tool && this.tool.stageUp) {
-      const isStageCompleted = this.tool.stageUp(
-        e,
-        this.interactor.currentStagingObject,
-        this.renderer,
-        this.interactor,
-        this.model,
-        this.interactor.currentPanel,
-        this.interactor.fusion.getSeriesManager()
-      ) as boolean | void;
-
-      if (isStageCompleted) {
-        this.interactor.currentPanel.objects.push(this.interactor.currentStagingObject);
-        this.interactor.currentStagingObject = null;
-        this.currentStep = 0;
-        this.interactor.setMode("DEFAULT");
-        this.interactor.controller.onDrawingDone();
-        if (onFinished) onFinished();
-      }
-    }
-
-    this.interactor.controller.render();
+    this.finalizeStagingPlacement(e);
   };
 
   this.onMouseMove = function (e) {
@@ -3030,15 +3708,24 @@ function StageTool(
   };
 
   this.renderOverlay = function (context) {
-    if (!this.tool) return;
-    this.tool.render(
-      this.interactor.currentStagingObject,
-      context,
-      this.renderer,
-      this.model,
-      this.interactor.currentPanel,
-      this.interactor.fusion.getSeriesManager()
-    );
+    if (!this.tool || !this.interactor.currentStagingObject) return;
+
+    const stagingObject = this.interactor.currentStagingObject;
+    const panel = this.interactor.currentPanel;
+    const seriesManager = this.interactor.fusion.getSeriesManager();
+
+    this.tool.render(stagingObject, context, this.renderer, this.model, panel, seriesManager);
+
+    if (this.tool.renderOverlay) {
+      this.tool.renderOverlay(
+        stagingObject,
+        context,
+        this.renderer,
+        this.model,
+        panel,
+        seriesManager,
+      );
+    }
   };
 
   this.keyDown = function (key) {
