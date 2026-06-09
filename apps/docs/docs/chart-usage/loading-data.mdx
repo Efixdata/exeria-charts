@@ -59,3 +59,41 @@ await chart.setMainSeriesData([...history, ...current], interval);
 ```
 
 If you are working directly against the `Chart` class and plan to rely on runtime-only methods, read [Chart runtime access](../advanced/chart-class-runtime) first.
+
+## Loading data with adapters
+
+When you connect an external data source through a [data adapter](../adapters/overview), use `loadData()` instead of fetching candles yourself:
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efix-data/adapter-binance";
+
+const adapter = new BinanceAdapter();
+const chart = createChart({ container, dataAdapter: adapter });
+chart.init();
+
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 1000,
+});
+```
+
+`loadData()` calls the adapter's `getHistoricalData()` method, converts the result into chart candles, and applies the interval you pass in `LoadDataOptions`.
+
+### LoadDataOptions
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `interval` | Yes | Interval symbol (for example `"1h"`, `"1d"`, `"1w"`) |
+| `from` | No | Start of the date range |
+| `to` | No | End of the date range |
+| `limit` | No | Maximum number of candles to fetch |
+
+When `from` and `to` are omitted, adapters typically return the most recent candles up to `limit` (Binance caps this at 1,000 per request).
+
+### Learn more
+
+- [Binance Adapter demo](/binance-example) — interactive live chart with real-time data
+- [Data Adapters Overview](../adapters/overview) — concepts, lifecycle, and custom adapters
+- [Binance Adapter](../adapters/binance-adapter) — cryptocurrency data without an API key
+- [Data Adapters API Reference](../api-reference/data-adapters) — `DataAdapter` interface and types

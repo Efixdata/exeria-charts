@@ -287,6 +287,7 @@ export interface ChartOptions {
   locale?: string;
   messages?: Record<string, unknown>;
   layout?: ChartLayoutOptions;
+  dataAdapter?: import("./dataAdapter").DataAdapter;
   [key: string]: unknown;
 }
 
@@ -301,6 +302,14 @@ export interface ChartInstance {
   setInstrument(instrument: Instrument): void;
   getInstrument(): Instrument | undefined;
   setMainSeriesData(data: Candle[], interval?: Interval, moveToEnd?: boolean): Promise<void>;
+  setDataAdapter(adapter: import("./dataAdapter").DataAdapter): void;
+  loadData(symbol: string, options: import("./dataAdapter").LoadDataOptions): Promise<void>;
+  subscribeToUpdates(
+    symbol: string,
+    callback?: (update: Tick) => void,
+  ): void;
+  unsubscribeFromUpdates(): void;
+  getCurrentPrice(): Tick | null;
   appendMainSeriesData(data: Candle[]): void;
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;

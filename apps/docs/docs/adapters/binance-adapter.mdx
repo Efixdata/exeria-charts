@@ -1,0 +1,335 @@
+---
+sidebar_position: 2
+title: Binance Adapter
+description: Use the Binance adapter to display cryptocurrency price charts with real-time data.
+---
+
+# Binance Data Adapter
+
+The Binance adapter provides real-time and historical cryptocurrency price data from Binance, one of the world's largest cryptocurrency exchanges.
+
+:::tip Live demo
+See the adapter in action on the [Binance Adapter demo](/binance-example) page — a live chart with symbol and timeframe switching, real-time prices, and sample code.
+:::
+
+## Key Features
+
+- **No API Key Required** — Uses Binance public API
+- **Real-Time Updates** — WebSocket streams for live price feeds
+- **Multiple Timeframes** — From 1-minute to monthly candles
+- **100+ Trading Pairs** — Bitcoin, Ethereum, altcoins, and more
+- **Automatic Reconnection** — Handles network interruptions gracefully
+
+## Installation
+
+```bash
+npm install @efix-data/adapter-binance
+```
+
+## Basic Example
+
+```typescript
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efix-data/adapter-binance";
+
+const adapter = new BinanceAdapter();
+
+const chart = createChart({
+  container: "#chart",
+  dataAdapter: adapter,
+});
+
+chart.init();
+
+// Load the most recent 1,000 daily candles
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  limit: 1000,
+});
+
+// Start receiving real-time price updates
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log(tick.price ?? tick.c);
+});
+
+// Clean up when done
+chart.unsubscribeFromUpdates();
+await adapter.disconnect();
+```
+
+## Supported Symbols
+
+Binance has 100+ trading pairs. Common examples:
+
+| Symbol | Pair | Current Use |
+|--------|------|------------|
+| BTCUSDT | Bitcoin/USDT | Most liquid BTC pair |
+| ETHUSDT | Ethereum/USDT | Most liquid ETH pair |
+| BNBUSDT | Binance Coin/USDT | Exchange native token |
+| ADAUSDT | Cardano/USDT | Popular altcoin |
+| SOLUSDT | Solana/USDT | Popular altcoin |
+| XRPUSDT | Ripple/USDT | Popular altcoin |
+| DOGEUSDT | Dogecoin/USDT | Meme coin |
+
+## Supported Timeframes
+
+Pass an interval symbol that matches a [Binance kline interval](https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data):
+
+```typescript
+"1m"  // 1-minute
+"1h"  // 1-hour
+"1d"  // Daily (most common)
+"1w"  // Weekly
+"1M"  // Monthly
+```
+
+## Configuration
+
+### Default Configuration
+
+```typescript
+const adapter = new BinanceAdapter();
+```
+
+This uses Binance's public endpoints with sensible defaults.
+
+### Custom Configuration
+
+```typescript
+const adapter = new BinanceAdapter({
+  // Use data-api.binance.vision for more reliable historical data
+  baseUrl: "https://data-api.binance.vision",
+
+  // Request timeout in milliseconds
+  requestTimeout: 10000,
+
+  // Number of retries for failed requests
+  maxRetries: 5,
+
+  // Delay between retries in milliseconds
+  retryDelay: 2000,
+});
+```
+
+## Usage Examples
+
+### Display Bitcoin price chart
+
+```typescript
+async function displayBitcoinChart() {
+  const adapter = new BinanceAdapter();
+  const chart = createChart({
+    container: "#chart",
+    dataAdapter: adapter,
+  });
+  chart.init();
+
+  await chart.loadData("BTCUSDT", {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates("BTCUSDT");
+}
+```
+
+### Load a specific date range
+
+```typescript
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  from: new Date("2024-01-01"),
+  to: new Date("2024-12-31"),
+});
+```
+
+When `from` and `to` are omitted, Binance returns the most recent candles up to `limit` (max 1,000 per request).
+
+### Create a multi-asset dashboard
+
+```typescript
+const adapter = new BinanceAdapter();
+const symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"];
+
+for (const symbol of symbols) {
+  const chart = createChart({
+    container: `#chart-${symbol}`,
+    dataAdapter: adapter,
+  });
+  chart.init();
+
+  await chart.loadData(symbol, {
+    interval: "1d",
+    limit: 365,
+  });
+
+  chart.subscribeToUpdates(symbol);
+}
+```
+
+### Switch between cryptocurrencies
+
+```typescript
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+### Compare multiple timeframes
+
+```typescript
+async function compareTimeframes() {
+  const symbol = "BTCUSDT";
+  const adapter = new BinanceAdapter();
+
+  const dailyChart = createChart({
+    container: "#daily-chart",
+    dataAdapter: adapter,
+  });
+  dailyChart.init();
+  await dailyChart.loadData(symbol, {
+    interval: "1d",
+    limit: 365,
+  });
+
+  const hourlyChart = createChart({
+    container: "#hourly-chart",
+    dataAdapter: adapter,
+  });
+  hourlyChart.init();
+  await hourlyChart.loadData(symbol, {
+    interval: "1h",
+    limit: 1000,
+  });
+
+  dailyChart.subscribeToUpdates(symbol);
+  hourlyChart.subscribeToUpdates(symbol);
+}
+```
+
+### Track multiple assets with real-time updates
+
+```typescript
+async function setupPriceTracker() {
+  const adapter = new BinanceAdapter();
+  const symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"];
+
+  for (const symbol of symbols) {
+    const chart = createChart({
+      container: `#chart-${symbol}`,
+      dataAdapter: adapter,
+    });
+    chart.init();
+
+    await chart.loadData(symbol, {
+      interval: "1h",
+      limit: 500,
+    });
+
+    chart.subscribeToUpdates(symbol, (tick) => {
+      const price = tick.price ?? tick.c;
+      console.log(`${symbol}: $${price} at ${new Date(tick.stamp)}`);
+    });
+  }
+}
+```
+
+## Error Handling
+
+Wrap `loadData()` in try/catch — the chart does not emit adapter-specific events today.
+
+```typescript
+try {
+  await chart.loadData("BTCUSDT", {
+    interval: "1d",
+    limit: 1000,
+  });
+} catch (error) {
+  if (error instanceof Error) {
+    if (error.message.includes("404")) {
+      console.error("Symbol not found on Binance");
+    } else if (error.message.includes("timeout")) {
+      console.error("Request timed out. Try again later.");
+    } else {
+      console.error("Unexpected error:", error.message);
+    }
+  }
+}
+```
+
+## Performance Tips
+
+### Use appropriate timeframes and limits
+
+```typescript
+// ✅ Fetch a bounded number of recent candles
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  limit: 500,
+});
+
+// ✅ Use shorter intervals for detailed recent data
+await chart.loadData("BTCUSDT", {
+      interval: "1h",
+  limit: 1000,
+});
+
+// ⚠️ Avoid very wide date ranges with short intervals
+await chart.loadData("BTCUSDT", {
+  interval: "1m",
+  from: new Date("2000-01-01"),
+  to: new Date(),
+});
+```
+
+### Unsubscribe when not needed
+
+```typescript
+// ✅ Good: use chart.unsubscribeFromUpdates() before switching symbols
+chart.unsubscribeFromUpdates();
+
+// ✅ Good: disconnect the adapter when the page unmounts
+await adapter.disconnect();
+```
+
+## Limitations
+
+### Rate Limiting
+
+Binance has API rate limits:
+
+- **REST API**: 1,200 requests per minute
+- **WebSocket**: Limited stream connections per IP
+
+For high-volume applications, consider:
+
+- Caching historical data locally
+- Using Binance's [dedicated data API](https://data-api.binance.vision)
+- Implementing request queueing
+
+### Historical Data
+
+- Maximum 1,000 candles per API request
+- Use `limit` or a narrow `from`/`to` range to stay within bounds
+- Very long timeframes with short intervals may require multiple requests in custom adapters
+
+### Browser Compatibility
+
+- Requires WebSocket support
+- Works in all modern browsers
+- Node.js 14 or later
+
+## See Also
+
+- [Binance Adapter demo](/binance-example) — interactive live chart
+- [Data Adapters Overview](./overview)
+- [Loading Data with Adapters](../chart-usage/loading-data#loading-data-with-adapters)
+- [API Reference — Data Adapters](../api-reference/data-adapters)
+- [Binance API Documentation](https://binance-docs.github.io/apidocs/)

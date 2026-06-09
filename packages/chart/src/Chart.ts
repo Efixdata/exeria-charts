@@ -67,6 +67,7 @@ import type {
   Instrument,
   Interval,
   ScriptDefinition,
+  Tick,
   ValueAxisMode,
 } from "./types";
 import {
@@ -111,6 +112,8 @@ import {
 } from "./locale";
 import { createLocaleMessages, type ChartLocaleMessages } from "./locale/messages";
 import { createCatalogTranslator } from "./locale/catalogTranslator";
+import type { DataAdapter, LoadDataOptions } from "./dataAdapter";
+import { intervalFromSymbol } from "./intervalFromSymbol";
 
 /** Layout size from the container box — avoids transient getBoundingClientRect overflow on mobile. */
 function readChartContainerSize(container: HTMLElement): { width: number; height: number } {
@@ -166,6 +169,9 @@ export default class Chart implements CoreChartController {
     createLocaleMessages(DEFAULT_LOCALE_ID),
     createLocaleMessages(DEFAULT_LOCALE_ID),
   );
+  private dataAdapter?: DataAdapter;
+  private adapterUnsubscribe?: () => void;
+  private currentPrice: Tick | null = null;
 
   constructor(options: ChartOptions) {
     if (typeof window === "undefined") return;
@@ -205,6 +211,10 @@ export default class Chart implements CoreChartController {
       compactBreakpoint: options.layout?.breakpoints?.compact,
     });
     this.model._priceAxisExpanded = !getChartEnvironment(this.layoutModeOverride).isCompact;
+
+    if (options.dataAdapter) {
+      this.dataAdapter = options.dataAdapter;
+    }
   }
 
   private syncPriceAxisRenderingOptions(): void {
@@ -374,6 +384,8 @@ export default class Chart implements CoreChartController {
     this.interactor?.currentMode?.onCancel?.();
     this.interactor?.offDOMEvents?.();
     this.subscriptionManager?.clear?.();
+    this.unsubscribeFromUpdates();
+    void this.dataAdapter?.disconnect?.();
 
     this.topLayer?.remove();
     this.overlay?.remove();
@@ -719,6 +731,78 @@ export default class Chart implements CoreChartController {
     });
   }
 
+  setDataAdapter(adapter: DataAdapter) {
+    this.dataAdapter = adapter;
+  }
+
+  async loadData(symbol: string, options: LoadDataOptions) {
+    if (!this.dataAdapter) {
+      throw new Error("No data adapter configured. Pass dataAdapter in chart options or call setDataAdapter().");
+    }
+
+    const historicalData = await this.dataAdapter.getHistoricalData(symbol, options);
+
+    if (this.instrument) {
+      this.setInstrument({ ...this.instrument, symbol });
+    }
+
+    await this.setMainSeriesData(historicalData, intervalFromSymbol(options.interval));
+    this.setMainDrawMode("OHLC");
+  }
+
+  subscribeToUpdates(symbol: string, callback?: (update: Tick) => void) {
+    if (!this.dataAdapter) {
+      throw new Error("No data adapter configured. Pass dataAdapter in chart options or call setDataAdapter().");
+    }
+
+    this.unsubscribeFromUpdates();
+    this.adapterUnsubscribe = this.dataAdapter.subscribeToUpdates(symbol, (update) => {
+      this.currentPrice = update;
+
+      const { o, h, l, c } = update;
+
+      if (
+        o !== undefined &&
+        h !== undefined &&
+        l !== undefined &&
+        c !== undefined
+      ) {
+        this.upsertCandle(
+          {
+            stamp: update.stamp,
+            o,
+            h,
+            l,
+            c,
+            v: update.v ?? 0,
+          },
+          true,
+        );
+      } else {
+        this.appendTick(
+          {
+            stamp: update.stamp,
+            c: update.c ?? update.price,
+            price: update.price ?? update.c,
+            v: update.v,
+          },
+          true,
+        );
+      }
+
+      callback?.(update);
+    });
+  }
+
+  unsubscribeFromUpdates() {
+    this.adapterUnsubscribe?.();
+    this.adapterUnsubscribe = undefined;
+  }
+
+  getCurrentPrice() {
+    return this.currentPrice;
+  }
+
   async setMainSeriesData(data: OhlcvCandle[], interval?: Interval, moveToEnd = true) {
     if (!this.fusion) return;
 
@@ -737,6 +821,7 @@ export default class Chart implements CoreChartController {
     );
 
     try {
+      this.fit();
       await this.recalculateScripts({ rerender: false });
       if (moveToEnd) this.moveToEnd({ rerender: false });
       this.rerender();

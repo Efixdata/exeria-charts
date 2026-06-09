@@ -2,6 +2,8 @@ import Chart from "./Chart";
 import type { ChartInstance, ChartOptions } from "./types";
 
 export * from "./types";
+export * from "./dataAdapter";
+export { intervalFromSymbol, milisFromIntervalSymbol } from "./intervalFromSymbol";
 export {
   DEFAULT_LOCALE_ID,
   LOCALE_STORAGE_KEY,

@@ -36,6 +36,19 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Data Adapters",
+      items: [
+        "adapters/overview",
+        "adapters/binance-adapter",
+        {
+          type: "link",
+          label: "Binance Live Demo",
+          href: "/binance-example",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Drawing Tools",
       items: [
         "drawing-tools/overview",
@@ -59,7 +72,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "API Reference",
-      items: ["api-reference/chart-instance", "api-reference/chart-environment"],
+      items: [
+        "api-reference/chart-instance",
+        "api-reference/chart-environment",
+        "api-reference/data-adapters",
+      ],
     },
     {
       type: "category",

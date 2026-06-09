@@ -1,0 +1,146 @@
+---
+sidebar_position: 3
+title: Data Adapters
+description: TypeScript reference for the DataAdapter interface and related types exported by @efixdata/exeria-chart.
+---
+
+# Data Adapters
+
+The chart library defines a standard adapter contract in `@efixdata/exeria-chart`. Provider-specific packages such as `@efix-data/adapter-binance` implement this interface.
+
+```ts
+import type {
+  Candle,
+  DataAdapter,
+  LoadDataOptions,
+  Tick,
+} from "@efixdata/exeria-chart";
+import { intervalFromSymbol } from "@efixdata/exeria-chart";
+```
+
+For usage patterns and examples, see [Data Adapters Overview](../adapters/overview).
+
+## DataAdapter
+
+All adapters implement this interface:
+
+```ts
+interface DataAdapter {
+  initialize(config: Record<string, unknown>): Promise<void>;
+  getHistoricalData(symbol: string, options: LoadDataOptions): Promise<Candle[]>;
+  getCurrentPrice(symbol: string): Promise<Tick>;
+  subscribeToUpdates(
+    symbol: string,
+    callback: (update: Tick) => void,
+  ): () => void;
+  disconnect(): Promise<void>;
+}
+```
+
+### initialize(config)
+
+Prepare the adapter with user-supplied configuration (API keys, base URLs, timeouts, and so on). Called once before other methods.
+
+### getHistoricalData(symbol, options)
+
+Fetch OHLC candles for the given symbol. Returns candles sorted by timestamp ascending.
+
+The `options` object uses the same shape as `chart.loadData()` — see [LoadDataOptions](#loaddataoptions) below.
+
+### getCurrentPrice(symbol)
+
+Return the latest known price for a symbol. Implementations may use a cache or a lightweight REST request.
+
+### subscribeToUpdates(symbol, callback)
+
+Subscribe to real-time updates for a symbol. The callback receives a `Tick`. Returns an unsubscribe function that removes the callback and tears down the underlying stream when no listeners remain.
+
+The symbol is passed separately, so ticks do not need to repeat it.
+
+### disconnect()
+
+Release network connections, cancel subscriptions, and clear internal state.
+
+## ChartInstance adapter methods
+
+When a `DataAdapter` is configured, the chart exposes these helpers:
+
+```ts
+chart.setDataAdapter(adapter);
+await chart.loadData(symbol, options);
+chart.subscribeToUpdates(symbol, callback?);
+chart.unsubscribeFromUpdates();
+chart.getCurrentPrice(); // Tick | null
+```
+
+## Types
+
+Adapters reuse the chart's existing data types rather than defining parallel shapes.
+
+### LoadDataOptions
+
+```ts
+interface LoadDataOptions {
+  interval: string;
+  from?: Date;
+  to?: Date;
+  limit?: number;
+}
+```
+
+- `interval` is required — a symbol string such as `"1h"`, `"1d"`, or `"1w"`. The chart resolves this to an `Interval` internally via `intervalFromSymbol()`.
+- `from` / `to` optionally bound the historical range.
+- `limit` optionally caps how many candles are returned. When no date range is given, adapters fetch the most recent candles up to this limit.
+
+### Candle
+
+Historical data uses the same `Candle` type as `setMainSeriesData()`:
+
+```ts
+interface Candle {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  stamp: number; // Unix timestamp in milliseconds
+  v?: number;
+}
+```
+
+### Tick
+
+Real-time updates use the same `Tick` type as `appendTick()`:
+
+```ts
+interface Tick {
+  stamp: number;
+  o?: number;
+  h?: number;
+  l?: number;
+  c?: number;
+  v?: number;
+  price?: number;
+}
+```
+
+When a tick includes `o`, `h`, `l`, and `c`, the chart upserts the current candle. Otherwise it appends a price tick using `price` or `c`.
+
+### Interval symbols
+
+`LoadDataOptions.interval` is a string symbol. Adapters map it to their provider's native timeframe format.
+
+Common values include `"1m"`, `"1h"`, `"1d"`, `"1w"`, and `"1M"`. The chart exports `intervalFromSymbol()` and `milisFromIntervalSymbol()` if you need the full `Interval` object elsewhere:
+
+```ts
+import { intervalFromSymbol } from "@efixdata/exeria-chart";
+
+const interval = intervalFromSymbol("1h");
+// { symbol: "1h", milis: 3600000 }
+```
+
+## See also
+
+- [Binance Adapter demo](/binance-example) — interactive live chart
+- [Data Adapters Overview](../adapters/overview)
+- [Binance Adapter](../adapters/binance-adapter)
+- [Loading Data](../chart-usage/loading-data#loading-data-with-adapters)
