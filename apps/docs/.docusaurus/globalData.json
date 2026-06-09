@@ -56,6 +56,11 @@
               "sidebar": "docsSidebar"
             },
             {
+              "id": "chart-usage/multi-instrument-charts",
+              "path": "/docs/chart-usage/multi-instrument-charts",
+              "sidebar": "docsSidebar"
+            },
+            {
               "id": "chart-usage/navigation-and-viewport",
               "path": "/docs/chart-usage/navigation-and-viewport",
               "sidebar": "docsSidebar"

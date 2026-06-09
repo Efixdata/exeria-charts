@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "เลือกรูปลักษณ์อย่างรวดเร็ว",
   chart_settings_symbol: "สัญลักษณ์",
   chart_settings_symbol_hint: "แท่งเทียนและเส้น (เติมสีใช้ในโหมดเส้น)",
+  chart_settings_main_symbol_hint: "แท่งเทียนและเส้นของสัญลักษณ์หลัก (เติมสีใช้ในโหมดเส้น)",
+  chart_settings_overlay_symbol_hint: "สีและสไตล์เส้นของสัญลักษณ์ซ้อนทับ",
   chart_settings_canvas: "พื้นที่กราฟ",
   chart_settings_canvas_hint: "พื้นหลังและตาราง",
   chart_settings_scales: "สเกล",

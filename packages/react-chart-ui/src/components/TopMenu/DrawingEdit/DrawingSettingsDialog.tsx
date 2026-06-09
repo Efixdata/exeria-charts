@@ -14,7 +14,7 @@ import {
 import { Eye, EyeSlash, Lock, LockOpen, X } from "phosphor-react";
 import type { ChartDrawingEditConfig, ChartDrawingEditPatch } from "@efixdata/exeria-chart";
 import { Icon } from "ui/src/Icon";
-import type { NullableChartInstance } from "../../../chartTypes";
+import type { ChartUITheme, NullableChartInstance } from "../../../chartTypes";
 import { Remove } from "../../../img/icons";
 import { ColorField } from "../ChartSettings/ColorField";
 import { LineStyleSelect } from "../Indicators/LineStyleSelect";
@@ -100,8 +100,8 @@ const toNumber = (value: string | number) => {
 
 export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
   const chart = props.chart as ChartWithDrawingActions;
-  const themeContext = useContext(ThemeContext);
-  const dialogCssVars = getChartSettingsCssVars(themeContext);
+  const themeContext = useContext(ThemeContext as React.Context<Record<string, unknown>>);
+  const dialogCssVars = getChartSettingsCssVars(themeContext as Partial<ChartUITheme>);
   const t = useChartTranslate(chart);
   const [settings, setSettings] = useState<ChartDrawingEditConfig | null>(null);
   const [textDraft, setTextDraft] = useState("");

@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Schnelle Design-Auswahl",
   chart_settings_symbol: "Symbol",
   chart_settings_symbol_hint: "Kerzen und Linie (Füllung gilt im Linienmodus)",
+  chart_settings_main_symbol_hint: "Hauptsymbol Kerzen und Linie (Füllung gilt im Linienmodus)",
+  chart_settings_overlay_symbol_hint: "Linienfarbe und -stil des Overlay-Symbols",
   chart_settings_canvas: "Chart-Bereich",
   chart_settings_canvas_hint: "Hintergrund und Gitter",
   chart_settings_scales: "Skalen",

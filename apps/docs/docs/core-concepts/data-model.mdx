@@ -85,6 +85,14 @@ const instrument = {
 
 Set the instrument in the constructor or later with `setInstrument()`.
 
+## Multiple instruments on one chart
+
+The chart model supports more than one instrument through `instrumentsSeries`. The first entry is the main symbol; additional entries are overlay series on the same time axis. Each instrument has its own `seriesId` and OHLC array in `getSeriesManager()`.
+
+Use `getChartInstrumentSettings()` and `applyChartInstrumentSettings()` to read or change line color and dash style for overlay symbols. Main-symbol candle and theme settings use `getChartAppearanceSettings()`.
+
+See [Multi-instrument charts](../chart-usage/multi-instrument-charts) for adding symbols, synchronizing data, and UI settings.
+
 ## Data and scripts
 
 The runtime also exposes script definitions through `getScripts()` and data series through `getSeriesManager()`. Those become relevant when you start adding built-in indicators, strategies, or custom scripts.

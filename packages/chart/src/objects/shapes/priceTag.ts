@@ -1,5 +1,9 @@
 import WEBRCP from "../../WebRCP";
-import { isDrawingSnapEnabled, resolveMagnetAnchorValue } from "../../drawingWorkflow";
+import {
+  type DrawingSnapInteractor,
+  isDrawingSnapEnabled,
+  resolveMagnetAnchorValue,
+} from "../../drawingWorkflow";
 import { Shape, resolveToolRenderContext } from "../../objectRuntimeBases";
 import LIB from "../../utils/chartingCommons";
 import {
@@ -11,6 +15,7 @@ import {
   createShapeAnchorOverlayDelegate,
   createShapeMouseDownDelegate,
 } from "./_delegates";
+import type { CoreInteractor } from "../../internal-types/interactor";
 import type {
   ShapeHitArgs,
   ShapeInteractionArgs,
@@ -44,7 +49,7 @@ function syncPriceTagPanelReference(
 
 function resolvePriceTagPanel(
   panel: PriceTagPanel,
-  interactor: ShapeInteractionArgs[3],
+  interactor: Pick<CoreInteractor, "getPanel" | "getMainPanel">,
   event?: ShapeLifecycleArgs[0],
 ) {
   const offsetY = event?._offset?.offsetY;
@@ -69,10 +74,14 @@ function resolvePriceTagPanel(
   return panel;
 }
 
+type OhlcStampPoint = {
+  stamp: number;
+};
+
 type MainOhlcSeriesEntry = {
   seriesId: string;
   series: {
-    data: Array<Record<string, unknown>>;
+    data: Array<OhlcStampPoint>;
     interval?: { milis?: number };
   };
 };
@@ -178,7 +187,7 @@ function setPriceTagAnchorValueFromPointer(
   offsetX: number,
   offsetY: number,
   renderer: ShapeRenderArgs[2],
-  interactor: ShapeInteractionArgs[3],
+  interactor: DrawingSnapInteractor | null | undefined,
   model: PriceTagModel,
   panel: PriceTagPanel,
   seriesManager: PriceTagSeriesManager,
@@ -228,7 +237,7 @@ function setPriceTagAnchorValueFromPointer(
 function snapPriceTagAnchorValueAtIndex(
   shape: ShapeTagRuntime,
   o: ShapeRenderArgs[0],
-  interactor: ShapeInteractionArgs[3],
+  interactor: DrawingSnapInteractor | null | undefined,
   anchorIndex: number,
   proposedValue: number,
   renderer: ShapeRenderArgs[2],

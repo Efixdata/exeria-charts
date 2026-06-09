@@ -1,7 +1,19 @@
 import { Shape } from "./Objects2";
-import type { CoreChartPanel } from "./internal-types/chart";
+import type { ChartModelFragment, CoreChartModel, CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
+import type {
+  PriceCoordinateOptions,
+  RendererPointIndexMethod,
+  RendererPriceCoordinateMethod,
+} from "./internal-types/renderer";
+import type { SeriesManager } from "./internal-types/series";
 import LIB from "./utils/chartingCommons";
+
+type DrawingSnapModel = Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">;
+type DrawingSnapRenderer = {
+  getPointIndex: RendererPointIndexMethod;
+  getPriceForYCoordinate: RendererPriceCoordinateMethod;
+};
 
 export interface DrawingWorkflowHost {
   model: {
@@ -35,8 +47,8 @@ export interface DrawingSnapShapeRuntime {
   ): unknown;
   getCurrentCandles(
     index: number,
-    model: Record<string, unknown>,
-    seriesManager: Record<string, unknown>,
+    model: DrawingSnapModel,
+    seriesManager: SeriesManager,
   ): Record<string, unknown>[];
 }
 
@@ -47,11 +59,8 @@ export function resolveMagnetAnchorValue(
   interactor: DrawingSnapInteractor | null | undefined,
   offsetX: number,
   offsetY: number,
-  renderer: {
-    getPointIndex: (x: number, model: Record<string, unknown>) => number;
-    getPriceForYCoordinate: (y: number, options: Record<string, unknown>) => number;
-  },
-  model: Record<string, unknown>,
+  renderer: DrawingSnapRenderer,
+  model: DrawingSnapModel,
   panel: {
     _height: number;
     _offset: number;
@@ -60,10 +69,10 @@ export function resolveMagnetAnchorValue(
     valueAxisMode: unknown;
     main?: boolean;
   },
-  seriesManager: Record<string, unknown>,
+  seriesManager: SeriesManager,
 ): number {
   const referenceValue = LIB.getReferenceValue(object, model, seriesManager);
-  const index = renderer.getPointIndex(offsetX, model);
+  const index = renderer.getPointIndex(offsetX, model as CoreChartModel);
   const yValue = offsetY - panel._offset;
 
   if (isDrawingSnapEnabled(object, interactor)) {
@@ -85,7 +94,7 @@ export function resolveMagnetAnchorValue(
     panelHeight: panel._height,
     minValue: panel.vMin,
     maxValue: panel.vMax,
-    valueAxisMode: panel.valueAxisMode,
+    valueAxisMode: panel.valueAxisMode as PriceCoordinateOptions["valueAxisMode"],
     fV: panelReference,
   });
 }

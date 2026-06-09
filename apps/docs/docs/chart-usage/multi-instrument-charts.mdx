@@ -1,0 +1,108 @@
+---
+sidebar_position: 6
+title: Multi-instrument charts
+description: Overlay multiple symbols on one chart, load their data, and customize line appearance per symbol.
+---
+
+# Multi-instrument charts
+
+A single chart can display more than one instrument (symbol). The first instrument in `instrumentsSeries` is the **main series** — it drives the primary price scale, viewport synchronization, and candle or bar rendering. Additional instruments are drawn as **overlay series**, typically as lines on the same time axis.
+
+## Data model
+
+The runtime keeps one entry per instrument in `model.instrumentsSeries`. Each entry has:
+
+- `seriesId` — unique key used by `getSeriesManager()` and panel `SeriesObject` plotters
+- `instrument` — symbol metadata (`symbol`, `precision`, `currency`, …)
+- `title` — legend label (usually the symbol)
+
+The main series id is also stored in `model.mainSeries` and matches `instrumentsSeries[0].seriesId`.
+
+```ts
+// Simplified shape
+{
+  mainSeries: "series-a",
+  instrumentsSeries: [
+    { seriesId: "series-a", instrument: { symbol: "BTCUSD", precision: 2 } },
+    { seriesId: "series-b", instrument: { symbol: "ETHUSD", precision: 2 } },
+  ],
+  panels: [
+    {
+      main: true,
+      objects: [
+        { type: "SeriesObject", dataLink: "series-a", renderAs: "OHLC", /* … */ },
+        { type: "SeriesObject", dataLink: "series-b", renderAs: "Line", /* … */ },
+      ],
+    },
+  ],
+}
+```
+
+OHLC data for every instrument lives in `chart.getSeriesManager()[seriesId].data`.
+
+## Adding an instrument
+
+Pass a chart `model` that already lists every symbol, or extend the live model from your host app. A new overlay requires **three** pieces:
+
+1. An entry in `instrumentsSeries` (any index after the main series).
+2. A `SeriesObject` on the main panel with `dataLink` set to that `seriesId` (`renderAs: "Line"` is typical for overlays).
+3. OHLC data in `getSeriesManager()[seriesId].data`.
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+
+const chart = createChart({
+  container,
+  model: persistedModelWithTwoSymbols,
+});
+
+chart.init();
+await chart.setMainSeriesData(btcCandles, interval);
+
+// Load overlay data into its own series id
+const seriesManager = chart.getSeriesManager();
+seriesManager["series-b"].data = ethCandles;
+chart.render();
+```
+
+The internal Fusion builder also exposes `addInstrument()` for engine rebuilds when you use the runtime `Chart` class directly. That path is intended for advanced integrations — see [Chart runtime access](../advanced/chart-class-runtime).
+
+`multiInstrumentChart` in chart config defaults to `true` and signals that the host app may expose compare / add-symbol flows.
+
+## Synchronizing time
+
+When multiple instruments share one chart, candle timestamps are aligned in `synchronizeAllWithAll()`. Missing bars for one symbol are forward-filled from the last close so all series share the same stamp index range. Keep intervals consistent (`model.interval`) when loading overlay data.
+
+## Chart settings per symbol
+
+Open **Chart settings** from the React UI toolbar. Appearance is split by symbol:
+
+| Symbol | Settings available |
+|--------|-------------------|
+| Main (`instrumentsSeries[0]`) | Candles, line, fill, last-price line and label |
+| Each additional symbol | Line color and line style (solid, dashed, dotted, …) |
+
+Runtime API:
+
+```ts
+const overlays = chart.getChartInstrumentSettings();
+// [{ seriesId, symbol, lineColor, lineDash }, …]
+
+chart.applyChartInstrumentSettings(overlays[0].seriesId, {
+  lineColor: "#ff9800",
+  lineDash: [3, 3],
+});
+```
+
+`getChartAppearanceSettings()` / `applyChartAppearanceSettings()` continue to control only the **main** symbol and global canvas theme.
+
+## Removing an overlay
+
+Removing the overlay `SeriesObject` (via the legend close control or `ObjectsManager.removeInstrument`) also removes the instrument from `instrumentsSeries` and deletes its series data. The main series cannot be removed.
+
+## Related topics
+
+- [Data model](../core-concepts/data-model) — `Instrument`, `Candle`, and `Interval`
+- [Loading data](./loading-data) — `setMainSeriesData()` for the primary series
+- [Realtime updates](./realtime-updates) — `appendTick()` on the main series
+- [React UI integration](../advanced/react-ui-integration) — chart settings dialog in `ChartUI`

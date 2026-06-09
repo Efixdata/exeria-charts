@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Selección rápida de apariencia",
   chart_settings_symbol: "Símbolo",
   chart_settings_symbol_hint: "Velas y línea (el relleno aplica en modo línea)",
+  chart_settings_main_symbol_hint: "Velas y línea del símbolo principal (relleno en modo línea)",
+  chart_settings_overlay_symbol_hint: "Color y estilo de línea del símbolo superpuesto",
   chart_settings_canvas: "Área del gráfico",
   chart_settings_canvas_hint: "Fondo y cuadrícula",
   chart_settings_scales: "Escalas",

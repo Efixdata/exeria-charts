@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useCallback, useContext, useEffect, useState, useId } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   DialogBody,
   DialogContainer,
@@ -17,6 +17,7 @@ import type {
   ChartFunctionSettingsItem,
   ChartGridLineStyle,
   ChartGridMode,
+  ChartInstrumentSettingsItem,
   ChartLineFillMode,
   ChartIndicatorSettingsItem,
   ChartStrategySettingsItem,
@@ -27,10 +28,24 @@ import { Remove } from "../../../img/icons";
 import { Icon } from "ui/src/Icon";
 import type { NullableChartInstance } from "../../../chartTypes";
 import { DialogSelect, type DialogSelectOption } from "../Indicators/DialogSelect";
+import { LineStyleSelect } from "../Indicators/LineStyleSelect";
+import {
+  getPlotterLineStyleDash,
+  getPlotterLineStyleId,
+  type PlotterLineStyle,
+} from "../../../utils/plotterLineStyles";
 import { useChartUiSettings } from "../../../contexts/ChartUiSettingsContext";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import { CHART_SETTINGS_PRESETS, DEFAULT_CHART_UI_THEME } from "./chartSettingsPresets";
 import { mergeChartUiTheme } from "../../../utils/mergeChartUiTheme";
+import { useStableId } from "../../../utils/useStableId";
+import type { ChartSubscription } from "@efixdata/exeria-chart";
+
+function unsubscribeChartTopic(subscription: ChartSubscription | void | undefined) {
+  if (subscription && typeof subscription.unsubscribe === "function") {
+    subscription.unsubscribe();
+  }
+}
 import { deriveChartUiThemeFromAppearance } from "../../../utils/deriveChartUiThemeFromAppearance";
 import { ColorField } from "./ColorField";
 import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
@@ -53,6 +68,12 @@ interface ChartSettingsDialogProps {
 type ChartWithSettings = NullableChartInstance & {
   getChartAppearanceSettings?: () => ChartAppearanceSettings;
   applyChartAppearanceSettings?: (settings: ChartAppearanceSettings) => void;
+  getChartInstrumentSettings?: () => ChartInstrumentSettingsItem[];
+  applyChartInstrumentSettings?: (
+    seriesId: string,
+    settings: Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash">,
+  ) => void;
+  getInstrument?: () => { symbol?: string } | undefined;
   getChartVolumeSettings?: () => ChartVolumeSettings;
   applyChartVolumeSettings?: (settings: ChartVolumeSettings) => void;
   getChartIndicatorSettings?: () => ChartIndicatorSettingsItem[];
@@ -180,12 +201,13 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
   const chart = props.chart as ChartWithSettings;
   const { applyUiTheme } = useChartUiSettings();
   const t = useChartTranslate(chart);
-  const titleId = useId();
-  const layersTabsId = useId();
+  const titleId = useStableId("chart-settings-title");
+  const layersTabsId = useStableId("chart-settings-layers-tabs");
   // @ts-ignore styled-components theme mismatch
   const themeContext = useContext(ThemeContext);
 
   const [appearance, setAppearance] = useState<ChartAppearanceSettings | null>(null);
+  const [instrumentSettings, setInstrumentSettings] = useState<ChartInstrumentSettingsItem[]>([]);
   const [volume, setVolume] = useState<ChartVolumeSettings | null>(null);
   const [indicators, setIndicators] = useState<ChartIndicatorSettingsItem[]>([]);
   const [functions, setFunctions] = useState<ChartFunctionSettingsItem[]>([]);
@@ -203,6 +225,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     }
 
     setAppearance(chart.getChartAppearanceSettings());
+    setInstrumentSettings(chart.getChartInstrumentSettings?.() ?? []);
     setVolume(chart.getChartVolumeSettings?.() ?? null);
     setIndicators(chart.getChartIndicatorSettings?.() ?? []);
     setFunctions(chart.getChartFunctionSettings?.() ?? []);
@@ -225,7 +248,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     });
 
     return () => {
-      subscription?.unsubscribe();
+      unsubscribeChartTopic(subscription);
     };
   }, [chart, refreshFromChart]);
 
@@ -257,6 +280,21 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     setAppearance(next);
     chart.applyChartAppearanceSettings(next);
     applyUiTheme?.(deriveChartUiThemeFromAppearance(next));
+  };
+
+  const applyInstrumentSettings = (
+    seriesId: string,
+    patch: Partial<Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash">>,
+  ) => {
+    const current = instrumentSettings.find((entry) => entry.seriesId === seriesId);
+    if (!current || !chart?.applyChartInstrumentSettings) {
+      return;
+    }
+
+    setActivePresetId(null);
+    const next = { lineColor: current.lineColor, lineDash: current.lineDash, ...patch };
+    chart.applyChartInstrumentSettings(seriesId, next);
+    refreshFromChart();
   };
 
   const applyVolume = (patch: Partial<ChartVolumeSettings>) => {
@@ -329,6 +367,18 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     value: entry.id,
     label: entry.label,
   }));
+
+  const mainSymbol = chart.getInstrument?.()?.symbol;
+  const hasMultipleInstruments = instrumentSettings.length > 0;
+  const mainSymbolTitle = hasMultipleInstruments && mainSymbol
+    ? `${t("chart_settings_symbol")} — ${mainSymbol}`
+    : t("chart_settings_symbol");
+  const mainSymbolHint = hasMultipleInstruments
+    ? t("chart_settings_main_symbol_hint")
+    : t("chart_settings_symbol_hint");
+
+  const getLineStyleOptionLabel = (style: PlotterLineStyle) =>
+    t(style.labelKey, style.defaultLabel);
 
   const layersCounts = {
     indicators: indicators.length,
@@ -665,10 +715,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
             </div>
           </DialogSection>
 
-          <DialogSection
-            title={t("chart_settings_symbol")}
-            hint={t("chart_settings_symbol_hint")}
-          >
+          <DialogSection title={mainSymbolTitle} hint={mainSymbolHint}>
             <div className={styles.colorGrid}>
               <ColorField
                 label={t("chart_settings_chart_line")}
@@ -753,6 +800,35 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
               />
             </div>
           </DialogSection>
+
+          {instrumentSettings.map((instrument) => (
+            <DialogSection
+              key={instrument.seriesId}
+              title={`${t("chart_settings_symbol")} — ${instrument.symbol}`}
+              hint={t("chart_settings_overlay_symbol_hint")}
+            >
+              <div className={styles.fieldRow}>
+                <ColorField
+                  label={t("chart_settings_chart_line")}
+                  value={instrument.lineColor}
+                  onChange={(lineColor) => applyInstrumentSettings(instrument.seriesId, { lineColor })}
+                />
+                <Label name={t("chart_settings_line_style")}>
+                  <LineStyleSelect
+                    value={getPlotterLineStyleId(instrument.lineDash)}
+                    lineColor={instrument.lineColor}
+                    onChange={(styleId) =>
+                      applyInstrumentSettings(instrument.seriesId, {
+                        lineDash: getPlotterLineStyleDash(styleId),
+                      })
+                    }
+                    getOptionLabel={getLineStyleOptionLabel}
+                    ariaLabel={`${instrument.symbol} ${t("chart_settings_line_style")}`}
+                  />
+                </Label>
+              </div>
+            </DialogSection>
+          ))}
 
           <DialogSection title={t("chart_settings_canvas")} hint={t("chart_settings_canvas_hint")}>
             <div className={`${styles.colorGrid} ${styles.colorGridSingle}`}>

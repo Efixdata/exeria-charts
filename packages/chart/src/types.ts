@@ -57,6 +57,7 @@ export type {
   ChartDrawingSettingsItem,
   ChartGridLineStyle,
   ChartGridMode,
+  ChartInstrumentSettingsItem,
   ChartLineFillMode,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
@@ -134,8 +135,15 @@ export interface ChartMode {
   [key: string]: unknown;
 }
 
+export interface ChartStagingObject {
+  type?: string;
+  [key: string]: unknown;
+}
+
 export interface ChartInteractor {
   currentMode?: ChartMode;
+  currentStagingObject?: ChartStagingObject | null;
+  completeStagingDrawing?: () => boolean | void;
   setMode(mode: string, options?: Record<string, unknown>, onDrawingDone?: () => void): void;
   setObjectSelectionAllowed?(isAllowed: boolean): void;
   [key: string]: unknown;
@@ -311,6 +319,14 @@ export interface ChartInstance {
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  getChartInstrumentSettings(): import("./chartSettings").ChartInstrumentSettingsItem[];
+  applyChartInstrumentSettings(
+    seriesId: string,
+    settings: Pick<
+      import("./chartSettings").ChartInstrumentSettingsItem,
+      "lineColor" | "lineDash"
+    >,
+  ): void;
   applyChartTheme(theme: ChartTheme, themeVariant?: string): void;
   getChartVolumeSettings(): import("./chartSettings").ChartVolumeSettings;
   applyChartVolumeSettings(settings: import("./chartSettings").ChartVolumeSettings): void;
@@ -339,6 +355,9 @@ export interface ChartInstance {
   importChartSettingsTemplate(template: import("./chartSettings").ChartSettingsTemplate): void;
   getSeriesManager(): ChartSeriesManager;
   getInteractor(): ChartInteractor;
+  fit(): void;
+  render(objectOnlyOnOverlay?: unknown): void;
+  renderOverlay(): void;
   onDownload(watermark?: string, watermarkWidth?: number, watermarkHeight?: number): void;
   translate(text: string): string;
   getLocale(): string;

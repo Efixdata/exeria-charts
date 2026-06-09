@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "快速选择外观",
   chart_settings_symbol: "品种",
   chart_settings_symbol_hint: "K线与折线（填充适用于折线模式）",
+  chart_settings_main_symbol_hint: "主品种K线与折线（填充适用于折线模式）",
+  chart_settings_overlay_symbol_hint: "叠加品种折线颜色与样式",
   chart_settings_canvas: "图表区域",
   chart_settings_canvas_hint: "背景与网格",
   chart_settings_scales: "刻度",

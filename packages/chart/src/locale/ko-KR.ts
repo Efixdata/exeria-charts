@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "빠른 모양 선택",
   chart_settings_symbol: "심볼",
   chart_settings_symbol_hint: "캔들 및 선 (선 모드에서 채우기 적용)",
+  chart_settings_main_symbol_hint: "주 심볼 캔들 및 선 (선 모드에서 채우기 적용)",
+  chart_settings_overlay_symbol_hint: "오버레이 심볼 선 색상 및 스타일",
   chart_settings_canvas: "차트 영역",
   chart_settings_canvas_hint: "배경 및 격자",
   chart_settings_scales: "스케일",

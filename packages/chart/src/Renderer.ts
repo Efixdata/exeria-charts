@@ -1039,7 +1039,13 @@ const Renderer: CoreRendererConstructor = function (
     }
   };
 
-  this.renderValueAxis = function (ctx, model, panel, tick, fusion) {
+  this.renderValueAxis = function (
+    ctx: CanvasRenderingContext2D,
+    model: CoreChartModel,
+    panel: CoreChartPanel,
+    tick: ValueAxisTick,
+    fusion?: CoreFusionRuntime,
+  ) {
     const mode = panel.valueAxisMode;
 
     try {

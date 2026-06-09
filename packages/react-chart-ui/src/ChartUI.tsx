@@ -158,6 +158,7 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
     this.containerOffset = {};
     this.state = {
       uiThemeOverride: null,
+      uiThemeRevision: 0,
       isCompact: typeof window !== "undefined" ? getChartEnvironment().isCompact : false,
       drawingToolsVisible: false,
       isFullscreen: false,
@@ -266,7 +267,7 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
     const resolvedTheme = mergeChartUiTheme(
       DEFAULT_CHART_UI_THEME,
       mergeChartUiTheme(this.props.theme, this.state.uiThemeOverride),
-    );
+    ) as ChartUITheme;
     const isCompact = this.state.isCompact;
     const drawingToolsVisible = isCompact ? this.state.drawingToolsVisible : true;
     const useCompactDrawingRail = isCompact && drawingToolsVisible;

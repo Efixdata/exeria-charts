@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Pilihan tampilan cepat",
   chart_settings_symbol: "Simbol",
   chart_settings_symbol_hint: "Lilin dan garis (isian berlaku dalam mode garis)",
+  chart_settings_main_symbol_hint: "Lilin dan garis simbol utama (isian berlaku dalam mode garis)",
+  chart_settings_overlay_symbol_hint: "Warna dan gaya garis simbol overlay",
   chart_settings_canvas: "Area grafik",
   chart_settings_canvas_hint: "Latar belakang dan kisi",
   chart_settings_scales: "Skala",

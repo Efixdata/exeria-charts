@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Chọn nhanh giao diện",
   chart_settings_symbol: "Mã",
   chart_settings_symbol_hint: "Nến và đường (tô màu áp dụng ở chế độ đường)",
+  chart_settings_main_symbol_hint: "Nến và đường của mã chính (tô màu ở chế độ đường)",
+  chart_settings_overlay_symbol_hint: "Màu và kiểu đường của mã chồng",
   chart_settings_canvas: "Vùng biểu đồ",
   chart_settings_canvas_hint: "Nền và lưới",
   chart_settings_scales: "Thang",

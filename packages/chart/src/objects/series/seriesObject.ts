@@ -1206,7 +1206,7 @@ var SeriesObject = function (this: SeriesRuntime) {
 
   this.updateExtremes = function (o, extremes, model, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
-    if (!linkedSeries || linkedSeries.data.length == 0) return;
+    if (!linkedSeries?.data?.length) return;
 
     if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars")
       return this.updateExtremesOHLC(o, extremes, model, seriesManager);

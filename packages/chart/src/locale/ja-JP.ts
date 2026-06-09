@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "外観のクイック選択",
   chart_settings_symbol: "シンボル",
   chart_settings_symbol_hint: "ローソク足とライン（塗りつぶしはラインモードで適用）",
+  chart_settings_main_symbol_hint: "メインシンボルのローソク足とライン（塗りつぶしはラインモードで適用）",
+  chart_settings_overlay_symbol_hint: "オーバーレイシンボルのライン色とスタイル",
   chart_settings_canvas: "チャート領域",
   chart_settings_canvas_hint: "背景とグリッド",
   chart_settings_scales: "スケール",

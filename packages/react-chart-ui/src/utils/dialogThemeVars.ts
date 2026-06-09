@@ -39,7 +39,7 @@ export function isLightDialogBackground(color?: string): boolean {
   return luminance > 0.62;
 }
 
-function getTabActiveTokens(theme?: ChartUITheme) {
+function getTabActiveTokens(theme?: Partial<ChartUITheme>) {
   const text = theme?.dialog?.textColor ?? "#D1D4DC";
   const accent = theme?.accentColor ?? "#2962FF";
   const isLight = isLightDialogBackground(theme?.dialog?.backgroundColor);
@@ -62,7 +62,7 @@ function getTabActiveTokens(theme?: ChartUITheme) {
   };
 }
 
-function getSharedDialogCssVars(theme?: ChartUITheme): CSSProperties {
+function getSharedDialogCssVars(theme?: Partial<ChartUITheme>): CSSProperties {
   const text = theme?.dialog?.textColor ?? "#D1D4DC";
   const muted = theme?.dialog?.itemSubTitleColor ?? "rgba(255, 255, 255, 0.65)";
   const divider = theme?.dialog?.dividerColor ?? "rgba(255, 255, 255, 0.12)";
@@ -86,7 +86,7 @@ function getSharedDialogCssVars(theme?: ChartUITheme): CSSProperties {
   } as CSSProperties;
 }
 
-export function getChartSettingsCssVars(theme?: ChartUITheme): CSSProperties {
+export function getChartSettingsCssVars(theme?: Partial<ChartUITheme>): CSSProperties {
   const text = theme?.dialog?.textColor ?? "#D1D4DC";
   const muted = theme?.dialog?.itemSubTitleColor ?? "rgba(255, 255, 255, 0.65)";
   const divider = theme?.dialog?.dividerColor ?? "rgba(255, 255, 255, 0.12)";
@@ -110,7 +110,7 @@ export function getChartSettingsCssVars(theme?: ChartUITheme): CSSProperties {
   } as CSSProperties;
 }
 
-export function getIndicatorDialogCssVars(theme?: ChartUITheme): CSSProperties {
+export function getIndicatorDialogCssVars(theme?: Partial<ChartUITheme>): CSSProperties {
   const chartVars = getChartSettingsCssVars(theme);
   const text = theme?.dialog?.textColor ?? "#D1D4DC";
   const muted = theme?.dialog?.itemSubTitleColor ?? "rgba(255, 255, 255, 0.65)";

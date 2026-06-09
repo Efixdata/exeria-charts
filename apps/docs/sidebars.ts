@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
         "chart-usage/navigation-and-viewport",
         "chart-usage/autoscale-and-value-axis",
         "chart-usage/drawing-and-interaction",
+        "chart-usage/multi-instrument-charts",
       ],
     },
     {

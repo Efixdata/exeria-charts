@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Hızlı görünüm seçimi",
   chart_settings_symbol: "Sembol",
   chart_settings_symbol_hint: "Mumlar ve çizgi (dolgu çizgi modunda geçerlidir)",
+  chart_settings_main_symbol_hint: "Ana sembol mumları ve çizgisi (dolgu çizgi modunda geçerlidir)",
+  chart_settings_overlay_symbol_hint: "Üst üste bindirilmiş sembol çizgi rengi ve stili",
   chart_settings_canvas: "Grafik alanı",
   chart_settings_canvas_hint: "Arka plan ve ızgara",
   chart_settings_scales: "Ölçekler",

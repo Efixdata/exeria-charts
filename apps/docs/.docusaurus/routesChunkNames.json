@@ -49,17 +49,17 @@
     },
     "config": "config---playground-5-e-9-7f7"
   },
-  "/docs-5b4": {
+  "/docs-b2a": {
     "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
       "plugin": "plugin---docsaba-d7c"
     }
   },
-  "/docs-fb5": {
+  "/docs-8b5": {
     "__comp": "__comp---theme-doc-version-roota-7-b-5de",
     "__props": "__props---docs-005-788"
   },
-  "/docs-ce7": {
+  "/docs-ff0": {
     "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/docs/advanced/chart-class-runtime-45f": {
@@ -97,6 +97,10 @@
   "/docs/chart-usage/loading-data-a18": {
     "__comp": "__comp---theme-doc-item-178-a40",
     "content": "content---docs-chart-usage-loading-data-29-f-fde"
+  },
+  "/docs/chart-usage/multi-instrument-charts-e1a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-chart-usage-multi-instrument-charts-101-dcd"
   },
   "/docs/chart-usage/navigation-and-viewport-3ed": {
     "__comp": "__comp---theme-doc-item-178-a40",

@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Selezione rapida dell'aspetto",
   chart_settings_symbol: "Simbolo",
   chart_settings_symbol_hint: "Candele e linea (il riempimento si applica in modalità linea)",
+  chart_settings_main_symbol_hint: "Candele e linea del simbolo principale (riempimento in modalità linea)",
+  chart_settings_overlay_symbol_hint: "Colore e stile linea del simbolo sovrapposto",
   chart_settings_canvas: "Area grafico",
   chart_settings_canvas_hint: "Sfondo e griglia",
   chart_settings_scales: "Scale",

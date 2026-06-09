@@ -26,6 +26,13 @@ const chart = createChart({ container });
 - `getInterval(): Interval | undefined`
 - `getCurrency(): string | undefined`
 
+When the chart model contains more than one symbol, use:
+
+- `getChartInstrumentSettings(): ChartInstrumentSettingsItem[]` — overlay symbols only (not the main series)
+- `applyChartInstrumentSettings(seriesId, { lineColor, lineDash }): void`
+
+See [Multi-instrument charts](../chart-usage/multi-instrument-charts).
+
 ## Main-series data
 
 - `setMainSeriesData(data, interval?, moveToEnd?): Promise<void>`

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useStableId } from "../../../utils/useStableId";
 import styled from "styled-components";
 import { CaretDown } from "phosphor-react";
 import { Portal } from "react-portal";
@@ -192,7 +193,7 @@ export const DialogSelect = ({
   const [menuPlacement, setMenuPlacement] = useState<MenuPlacement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const listboxId = React.useId();
+  const listboxId = useStableId("dialog-select-listbox");
 
   const selectedOption =
     options.find((option) => option.value === value) ?? options[0] ?? { value: "", label: "" };

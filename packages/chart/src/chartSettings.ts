@@ -77,6 +77,13 @@ export interface ChartDrawingSettingsItem {
   visible: boolean;
 }
 
+export interface ChartInstrumentSettingsItem {
+  seriesId: string;
+  symbol: string;
+  lineColor: string;
+  lineDash: number[];
+}
+
 export interface ChartSettingsTemplate {
   version: 1;
   name?: string;
@@ -94,6 +101,11 @@ interface ChartSettingsHost {
     mainSeries: string;
     panels: CoreChartPanel[];
     scripts: ScriptModelConfig[];
+    instrumentsSeries: Array<{
+      seriesId: string;
+      title?: string;
+      instrument?: { symbol?: string; name?: string };
+    }>;
   };
   renderer: {
     objects: Record<string, unknown>;
@@ -175,10 +187,30 @@ function getMainPanel(chart: ChartSettingsHost): CoreChartPanel {
 }
 
 function getMainSeriesObject(chart: ChartSettingsHost): ChartRuntimeObject | undefined {
+  return getInstrumentSeriesPlotter(chart, chart.model.mainSeries);
+}
+
+function getInstrumentSeriesPlotter(
+  chart: ChartSettingsHost,
+  seriesId: string,
+): ChartRuntimeObject | undefined {
   const panel = getMainPanel(chart);
   return panel.objects.find(
-    (object) => object.id === chart.model.mainSeries || object.dataLink === chart.model.mainSeries,
+    (object) =>
+      object.type === "SeriesObject" &&
+      (object.id === seriesId || object.dataLink === seriesId) &&
+      chart.model.instrumentsSeries.some((entry) => entry.seriesId === seriesId),
   ) as ChartRuntimeObject | undefined;
+}
+
+function getInstrumentSymbol(
+  instrumentSeries: ChartSettingsHost["model"]["instrumentsSeries"][number],
+): string {
+  return (
+    instrumentSeries.instrument?.symbol ||
+    instrumentSeries.title ||
+    instrumentSeries.seriesId
+  );
 }
 
 export function gridModeFromPanel(hGrid: boolean, vGrid: boolean): ChartGridMode {
@@ -783,6 +815,51 @@ export function setChartDrawingVisibility(
 
 export function removeChartDrawing(chart: ChartSettingsHost, objectId: string | number): void {
   chart.onDelete(objectId);
+}
+
+export function getChartInstrumentSettings(chart: ChartSettingsHost): ChartInstrumentSettingsItem[] {
+  const items: ChartInstrumentSettingsItem[] = [];
+
+  for (let index = 1; index < chart.model.instrumentsSeries.length; index += 1) {
+    const instrumentSeries = chart.model.instrumentsSeries[index];
+    const plotter = getInstrumentSeriesPlotter(chart, instrumentSeries.seriesId);
+    if (!plotter) {
+      continue;
+    }
+
+    const lineColor =
+      typeof plotter.color === "string"
+        ? plotter.color
+        : typeof plotter.strokeStyle === "string"
+          ? plotter.strokeStyle
+          : WEBRCP.utils.colorManager.getColor("chartLine");
+
+    items.push({
+      seriesId: instrumentSeries.seriesId,
+      symbol: getInstrumentSymbol(instrumentSeries),
+      lineColor,
+      lineDash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+    });
+  }
+
+  return items;
+}
+
+export function applyChartInstrumentSettings(
+  chart: ChartSettingsHost,
+  seriesId: string,
+  settings: Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash">,
+): void {
+  const plotter = getInstrumentSeriesPlotter(chart, seriesId);
+  if (!plotter || seriesId === chart.model.mainSeries) {
+    return;
+  }
+
+  plotter.color = settings.lineColor;
+  plotter.strokeStyle = settings.lineColor;
+  plotter.dash = [...settings.lineDash];
+
+  chart.rerender();
 }
 
 export function exportChartSettingsTemplate(

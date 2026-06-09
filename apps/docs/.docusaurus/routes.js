@@ -44,15 +44,15 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', '5b4'),
+    component: ComponentCreator('/docs', 'b2a'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', 'fb5'),
+        component: ComponentCreator('/docs', '8b5'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', 'ce7'),
+            component: ComponentCreator('/docs', 'ff0'),
             routes: [
               {
                 path: '/docs/advanced/chart-class-runtime',
@@ -105,6 +105,12 @@ export default [
               {
                 path: '/docs/chart-usage/loading-data',
                 component: ComponentCreator('/docs/chart-usage/loading-data', 'a18'),
+                exact: true,
+                sidebar: "docsSidebar"
+              },
+              {
+                path: '/docs/chart-usage/multi-instrument-charts',
+                component: ComponentCreator('/docs/chart-usage/multi-instrument-charts', 'e1a'),
                 exact: true,
                 sidebar: "docsSidebar"
               },

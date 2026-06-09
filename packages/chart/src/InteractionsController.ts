@@ -30,6 +30,7 @@ import type {
   CoreInteractorConstructor,
   CoreInteractionMode,
   InteractorChartHost,
+  OffsetPointerEvent,
   PointerEventLike,
 } from "./internal-types/interactor";
 import type { ChartRuntimeObject } from "./internal-types/objects";
@@ -1349,9 +1350,9 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.valueAxisClicked &&
       isTouchDevice() &&
       !self.touchGestureMoved &&
-      initialEvent &&
-      Math.abs(e._offset.offsetX - initialEvent.offsetX) < 12 &&
-      Math.abs(e._offset.offsetY - initialEvent.offsetY) < 12;
+      initialEvent?._offset &&
+      Math.abs(e._offset.offsetX - initialEvent._offset.offsetX) < 12 &&
+      Math.abs(e._offset.offsetY - initialEvent._offset.offsetY) < 12;
 
     if (isValueAxisTap && self.isAboveValueAxis(e)) {
       self.schedulePriceAxisTapToggle();
@@ -2831,6 +2832,16 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     }
   };
 
+  type RoundedCanvasContext = CanvasRenderingContext2D & {
+    roundRect?: (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      radii?: number | number[],
+    ) => void;
+  };
+
   function fillRoundedTooltipRect(
     ctx: CanvasRenderingContext2D,
     left: number,
@@ -2840,9 +2851,10 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     radius: number,
   ) {
     const r = Math.min(radius, width / 2, height / 2);
+    const roundedContext = ctx as RoundedCanvasContext;
     ctx.beginPath();
-    if (typeof ctx.roundRect === "function") {
-      ctx.roundRect(left, top, width, height, r);
+    if (typeof roundedContext.roundRect === "function") {
+      roundedContext.roundRect(left, top, width, height, r);
       return;
     }
 
@@ -3557,7 +3569,7 @@ function StageTool(
     this.interactor.setMode("DEFAULT");
   };
 
-  this.finalizeStagingPlacement = function (e) {
+  this.finalizeStagingPlacement = function (e: OffsetPointerEvent) {
     if (this.cancelled) return false;
     if (!this.interactor.currentStagingObject) return false;
     if (!this.tool?.stageUp) return false;

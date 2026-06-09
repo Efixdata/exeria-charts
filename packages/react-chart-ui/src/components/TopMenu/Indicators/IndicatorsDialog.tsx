@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useState, useContext, useEffect, useMemo, useId } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
+import { useStableId } from "../../../utils/useStableId";
 import {
   DialogHeader,
   DialogHeaderActions,
@@ -58,8 +59,8 @@ const TAB_LABEL_KEYS: Record<ScriptCatalogTab, string> = {
 export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
   const { isCompact } = useChartEnvironment();
   const t = useChartTranslate(props.chart);
-  const titleId = useId();
-  const tabsId = useId();
+  const titleId = useStableId("indicators-title");
+  const tabsId = useStableId("indicators-tabs");
   const [activeTab, setActiveTab] = useState<ScriptCatalogTab>("indicators");
   const [searchQuery, setSearchQuery] = useState("");
   const [chosenIndicator, setChosenIndicator] = useState<IndicatorDefinition | null>(null);

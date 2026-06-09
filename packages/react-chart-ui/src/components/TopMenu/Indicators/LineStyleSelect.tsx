@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   PLOTTER_LINE_STYLES,
   type PlotterLineStyle,

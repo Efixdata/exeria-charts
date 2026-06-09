@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Sélection rapide de l'apparence",
   chart_settings_symbol: "Symbole",
   chart_settings_symbol_hint: "Chandeliers et ligne (le remplissage s'applique en mode ligne)",
+  chart_settings_main_symbol_hint: "Chandeliers et ligne du symbole principal (remplissage en mode ligne)",
+  chart_settings_overlay_symbol_hint: "Couleur et style de ligne du symbole superposé",
   chart_settings_canvas: "Zone du graphique",
   chart_settings_canvas_hint: "Arrière-plan et grille",
   chart_settings_scales: "Échelles",

@@ -41,11 +41,12 @@ export const TopMenuOverflowMenu = (props: TopMenuOverflowMenuProps) => {
       background?: string;
       buttons?: {
         color?: string;
+        activeColor?: string;
         hoverBackground?: string;
         activeBackground?: string;
       };
     };
-    toolbar?: { buttons?: { color?: string } };
+    toolbar?: { buttons?: { color?: string; activeColor?: string } };
   };
   const wrapRef = React.useRef<HTMLDivElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);

@@ -67,15 +67,15 @@ function mergeRadioButtonSection(
 }
 
 export function mergeChartUiTheme(
-  base?: ChartUITheme,
+  base?: Partial<ChartUITheme>,
   patch?: Partial<ChartUITheme> | null,
-): ChartUITheme | undefined {
+): Partial<ChartUITheme> | undefined {
   if (!patch) {
     return base;
   }
 
   if (!base) {
-    return patch as ChartUITheme;
+    return patch;
   }
 
   return {

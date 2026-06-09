@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Szybki wybór wyglądu",
   chart_settings_symbol: "Symbol",
   chart_settings_symbol_hint: "Świeczki i linia (wypełnienie dotyczy trybu linii)",
+  chart_settings_main_symbol_hint: "Świeczki i linia symbolu głównego (wypełnienie dotyczy trybu linii)",
+  chart_settings_overlay_symbol_hint: "Kolor i styl linii dodatkowego symbolu",
   chart_settings_canvas: "Obszar wykresu",
   chart_settings_canvas_hint: "Tło i siatka",
   chart_settings_scales: "Skale",

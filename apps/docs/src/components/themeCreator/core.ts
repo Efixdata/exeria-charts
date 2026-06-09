@@ -150,6 +150,11 @@ const chartFontValues = {
 };
 
 export const previewCandles = docsExampleDatasets.trend.candles;
+export const previewOverlayCandles = docsExampleDatasets.range.candles;
+
+export const PLAYGROUND_MAIN_SERIES_ID = "playground-btc";
+export const PLAYGROUND_OVERLAY_SERIES_ID = "playground-bnb";
+
 export const previewInstrument: Instrument = {
   id: "BTCUSD",
   symbol: "BTC/USD",
@@ -160,6 +165,108 @@ export const previewInstrument: Instrument = {
   availableIntervals: [docsInterval],
   interval: docsInterval,
 };
+
+export const previewOverlayInstrument: Instrument = {
+  id: "BNBUSD",
+  symbol: "BNB/USD",
+  name: "Binance Coin / US Dollar",
+  currency: "USD",
+  precision: 2,
+  chart: "ohlc",
+  availableIntervals: [docsInterval],
+  interval: docsInterval,
+};
+
+function createInstrumentSeriesEntry(seriesId: string, instrument: Instrument, data?: Candle[]) {
+  return {
+    seriesId,
+    title: instrument.symbol,
+    labels: ["O", "H", "L", "C", "V", "I"],
+    fields: ["o", "h", "l", "c", "v", "i"],
+    instrument,
+    interval: docsInterval,
+    ...(data ? { data } : {}),
+  };
+}
+
+function createMainSeriesPlotter(seriesId: string) {
+  return {
+    id: seriesId,
+    type: "SeriesObject",
+    dataLink: seriesId,
+    renderAs: "OHLC",
+    color: "#00bcd4",
+    stroke: [1],
+    dash: [],
+    width: 1,
+    priceTag: true,
+    priceLine: true,
+    openDataField: "o",
+    highDataField: "h",
+    lowDataField: "l",
+    closeDataField: "c",
+    dataField: "c",
+    strokeStyle: "#00bcd4",
+    _hit: false,
+    _hitAnchor: null,
+    _hitArrow: null,
+    selected: false,
+  };
+}
+
+function createOverlaySeriesPlotter(seriesId: string) {
+  return {
+    id: seriesId,
+    type: "SeriesObject",
+    dataLink: seriesId,
+    renderAs: "Line",
+    color: "#ff9800",
+    stroke: [1],
+    dash: [],
+    width: 2,
+    priceTag: true,
+    priceLine: false,
+    dataField: "c",
+    strokeStyle: "#ff9800",
+    _hit: false,
+    _hitAnchor: null,
+    _hitArrow: null,
+    selected: false,
+  };
+}
+
+export function createPlaygroundChartModel(): Record<string, unknown> {
+  return {
+    mainSeries: PLAYGROUND_MAIN_SERIES_ID,
+    interval: docsInterval,
+    instrumentsSeries: [
+      createInstrumentSeriesEntry(PLAYGROUND_MAIN_SERIES_ID, previewInstrument),
+      createInstrumentSeriesEntry(
+        PLAYGROUND_OVERLAY_SERIES_ID,
+        previewOverlayInstrument,
+        previewOverlayCandles,
+      ),
+    ],
+    panels: [
+      {
+        id: "1",
+        valueAxisMode: "lin",
+        main: true,
+        hGrid: true,
+        vGrid: true,
+        basis: 75,
+        precision: 2,
+        centerZero: false,
+        objects: [
+          createMainSeriesPlotter(PLAYGROUND_MAIN_SERIES_ID),
+          createOverlaySeriesPlotter(PLAYGROUND_OVERLAY_SERIES_ID),
+        ],
+        _visible: true,
+        _index: 0,
+      },
+    ],
+  };
+}
 
 function parseHexColor(hexColor: string) {
   const normalized = hexColor.replace("#", "");

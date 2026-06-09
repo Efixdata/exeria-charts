@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useContext, useEffect, useState, useId } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useStableId } from "../../../utils/useStableId";
 import {
   DialogHeader,
   DialogHeaderActions,
@@ -489,7 +490,7 @@ const initializeConfig = (
 
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
   const { isCompact } = useChartEnvironment();
-  const titleId = useId();
+  const titleId = useStableId("indicator-settings-title");
   const t = useChartTranslate(props.chart);
 
   const buildInitialConfig = () =>

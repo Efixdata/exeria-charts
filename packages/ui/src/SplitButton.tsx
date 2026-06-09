@@ -222,11 +222,12 @@ export interface SplitButtonOptions {
   [index: string]: SplitButtonOption;
 }
 
-interface SplitButtonProps {
+export interface SplitButtonProps {
   defaultOption: string;
   options: SplitButtonOptions;
   setCurrentOption?: boolean | undefined;
   activeOption?: string | undefined;
+  pressed?: boolean;
   onMainDoubleClick?: () => void;
   onMainClickWhileActive?: () => void;
   onChevronClick?: () => boolean | void;

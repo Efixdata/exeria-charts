@@ -10,8 +10,11 @@ import {
   type VariantPalette,
   buildChartTheme,
   buildUiTheme,
+  createPlaygroundChartModel,
+  PLAYGROUND_OVERLAY_SERIES_ID,
   previewCandles,
   previewInstrument,
+  previewOverlayCandles,
 } from "./core";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
 
@@ -108,12 +111,14 @@ export default function ChartThemePreview({
       const chartInstance = chartModule.createChart({
         container,
         instrument: previewInstrument,
+        model: createPlaygroundChartModel(),
         theme: runtimeTheme,
         themeVariant,
       });
 
       try {
         chartInstance.init();
+        chartInstance.getSeriesManager()[PLAYGROUND_OVERLAY_SERIES_ID].data = previewOverlayCandles;
         await chartInstance.setMainSeriesData(previewCandles, docsInterval);
         chartInstance.setMainDrawMode("OHLC");
 

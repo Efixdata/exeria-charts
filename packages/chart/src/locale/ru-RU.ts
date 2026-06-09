@@ -72,6 +72,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Быстрый выбор оформления",
   chart_settings_symbol: "Символ",
   chart_settings_symbol_hint: "Свечи и линия (заливка применяется в режиме линии)",
+  chart_settings_main_symbol_hint: "Свечи и линия основного символа (заливка в режиме линии)",
+  chart_settings_overlay_symbol_hint: "Цвет и стиль линии дополнительного символа",
   chart_settings_canvas: "Область графика",
   chart_settings_canvas_hint: "Фон и сетка",
   chart_settings_scales: "Шкалы",

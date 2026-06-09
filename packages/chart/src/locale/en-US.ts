@@ -819,6 +819,8 @@ const locale: Record<string, unknown> = {
   chart_settings_theme_templates_hint: "Quick look",
   chart_settings_symbol: "Symbol",
   chart_settings_symbol_hint: "Candles & line (fill applies in line mode)",
+  chart_settings_main_symbol_hint: "Main symbol candles & line (fill applies in line mode)",
+  chart_settings_overlay_symbol_hint: "Overlay symbol line color and style",
   chart_settings_canvas: "Canvas",
   chart_settings_canvas_hint: "Background & grid",
   chart_settings_scales: "Scales",

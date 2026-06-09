@@ -11,12 +11,14 @@ import SubscriptionManager from "./SubscriptionManager";
 import ToolDrawer from "./ToolDrawer";
 import {
   applyChartAppearanceSettings,
+  applyChartInstrumentSettings,
   applyChartTheme as applyChartThemeColors,
   applyChartVolumeSettings,
   exportChartSettingsTemplate,
   getChartAppearanceSettings,
   getChartDrawingSettings,
   getChartIndicatorSettings,
+  getChartInstrumentSettings,
   getChartFunctionSettings,
   getChartStrategySettings,
   getChartVolumeSettings,
@@ -48,6 +50,7 @@ import type {
   ChartDrawingSettingsItem,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
+  ChartInstrumentSettingsItem,
   ChartSettingsTemplate,
   ChartStrategySettingsItem,
   ChartVolumeSettings,
@@ -1703,6 +1706,17 @@ export default class Chart implements CoreChartController {
       settings,
       this.chartAppearanceTheme,
     );
+  }
+
+  getChartInstrumentSettings(): ChartInstrumentSettingsItem[] {
+    return getChartInstrumentSettings(this.getChartSettingsHost());
+  }
+
+  applyChartInstrumentSettings(
+    seriesId: string,
+    settings: Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash">,
+  ): void {
+    applyChartInstrumentSettings(this.getChartSettingsHost(), seriesId, settings);
   }
 
   applyChartTheme(theme: import("./types").ChartTheme, themeVariant?: string): void {
