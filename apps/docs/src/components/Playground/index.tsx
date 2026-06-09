@@ -5,12 +5,14 @@ import {
   type UiColorKey,
   type ThemeVariant,
   chartColorControls,
+  deriveCandleStrokeColors,
   uiColorControls,
 } from "../themeCreator/core";
 import {
   getThemePresetPreferredVariant,
   themePresets,
 } from "../themeCreator/chartSettingsThemePresets";
+import { ColorFieldInput } from "../ColorFieldInput";
 import ElementPicker from "./ElementPicker";
 import {
   type PlaygroundExampleId,
@@ -97,17 +99,27 @@ export default function Playground() {
   };
 
   const handleChartColorChange = (key: ChartColorKey, value: string) => {
-    setChartColorsByVariant((current) => ({
-      ...current,
-      [themeVariant]: {
+    setUsePresetOnly(false);
+    setChartColorsByVariant((current) => {
+      const nextVariantColors = {
         ...current[themeVariant],
         [key]: value,
-      },
-    }));
+      };
+
+      if (key === "candleUp" || key === "candleDown" || key === "background") {
+        Object.assign(nextVariantColors, deriveCandleStrokeColors(nextVariantColors, themeVariant));
+      }
+
+      return {
+        ...current,
+        [themeVariant]: nextVariantColors,
+      };
+    });
     setSceneVersion((value) => value + 1);
   };
 
   const handleUiColorChange = (key: UiColorKey, value: string) => {
+    setUsePresetOnly(false);
     setUiColorsByVariant((current) => ({
       ...current,
       [themeVariant]: {
@@ -183,7 +195,10 @@ export default function Playground() {
                       className={
                         variant === themeVariant ? styles.variantButtonActive : styles.variantButton
                       }
-                      onClick={() => setThemeVariant(variant)}
+                      onClick={() => {
+                        setThemeVariant(variant);
+                        setUsePresetOnly(false);
+                      }}
                       aria-pressed={variant === themeVariant}
                     >
                       {variant === "dark" ? "Dark" : "Light"}
@@ -234,31 +249,17 @@ export default function Playground() {
                           onChange={setSelectedChartKey}
                         />
 
-                        <div className={styles.colorInputs}>
-                          <input
-                            type="color"
-                            value={selectedChartColor}
-                            onChange={(event) =>
-                              handleChartColorChange(
-                                selectedChartKey,
-                                event.target.value.toUpperCase(),
-                              )
-                            }
-                            className={styles.colorPicker}
-                            aria-label="Chart color"
-                          />
-                          <input
-                            type="text"
-                            value={selectedChartColor}
-                            onChange={(event) =>
-                              handleChartColorChange(selectedChartKey, event.target.value)
-                            }
-                            className={styles.colorValue}
-                            maxLength={10}
-                            spellCheck={false}
-                            aria-label="Chart color hex value"
-                          />
-                        </div>
+                        <ColorFieldInput
+                          className={styles.colorInputs}
+                          value={selectedChartColor}
+                          onChange={(nextValue) =>
+                            handleChartColorChange(selectedChartKey, nextValue)
+                          }
+                          swatchClassName={styles.colorPicker}
+                          hexClassName={styles.colorValue}
+                          swatchAriaLabel="Chart color"
+                          hexAriaLabel="Chart color hex value"
+                        />
                       </div>
                       <p className={styles.controlHint}>{activeChartHint}</p>
                     </div>
@@ -274,28 +275,15 @@ export default function Playground() {
                           onChange={setSelectedUiKey}
                         />
 
-                        <div className={styles.colorInputs}>
-                          <input
-                            type="color"
-                            value={selectedUiColor}
-                            onChange={(event) =>
-                              handleUiColorChange(selectedUiKey, event.target.value.toUpperCase())
-                            }
-                            className={styles.colorPicker}
-                            aria-label="UI color"
-                          />
-                          <input
-                            type="text"
-                            value={selectedUiColor}
-                            onChange={(event) =>
-                              handleUiColorChange(selectedUiKey, event.target.value)
-                            }
-                            className={styles.colorValue}
-                            maxLength={10}
-                            spellCheck={false}
-                            aria-label="UI color hex value"
-                          />
-                        </div>
+                        <ColorFieldInput
+                          className={styles.colorInputs}
+                          value={selectedUiColor}
+                          onChange={(nextValue) => handleUiColorChange(selectedUiKey, nextValue)}
+                          swatchClassName={styles.colorPicker}
+                          hexClassName={styles.colorValue}
+                          swatchAriaLabel="UI color"
+                          hexAriaLabel="UI color hex value"
+                        />
                       </div>
                       <p className={styles.controlHint}>{activeUiHint}</p>
                     </div>
@@ -323,6 +311,8 @@ export default function Playground() {
             chartColorsByVariant={chartColorsByVariant}
             uiColorsByVariant={uiColorsByVariant}
             themeVariant={themeVariant}
+            presetId={presetId}
+            usePresetTemplate={usePresetOnly}
             sceneApplyKey={sceneApplyKey}
             onChartReady={chartSceneAction}
             minHeight={560}

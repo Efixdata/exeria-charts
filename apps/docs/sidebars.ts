@@ -113,6 +113,16 @@ const sidebars: SidebarsConfig = {
         "guides/mobile-qa-checklist",
       ],
     },
+    {
+      type: "category",
+      label: "Data Bridges",
+      items: [
+        "data-bridges/overview",
+        "data-bridges/binance",
+        "data-bridges/coingecko",
+        "data-bridges/partner-equities",
+      ],
+    },
   ],
 };
 

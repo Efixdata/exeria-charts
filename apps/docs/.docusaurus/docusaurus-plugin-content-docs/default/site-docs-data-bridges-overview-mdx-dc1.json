@@ -1,0 +1,28 @@
+{
+  "id": "data-bridges/overview",
+  "title": "Data Bridges overview",
+  "description": "Learn how Exeria Data Bridge plugins connect market data providers to your charts.",
+  "source": "@site/docs/data-bridges/overview.mdx",
+  "sourceDirName": "data-bridges",
+  "slug": "/data-bridges/overview",
+  "permalink": "/docs/data-bridges/overview",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Data Bridges overview",
+    "description": "Learn how Exeria Data Bridge plugins connect market data providers to your charts."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Mobile QA Checklist",
+    "permalink": "/docs/guides/mobile-qa-checklist"
+  },
+  "next": {
+    "title": "Binance bridge",
+    "permalink": "/docs/data-bridges/binance"
+  }
+}

@@ -236,6 +236,13 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
     if (prevProps.chart !== this.props.chart || prevProps.mobileLayout !== this.props.mobileLayout) {
       this.syncChartLayoutMode();
     }
+
+    if (prevProps.theme !== this.props.theme) {
+      this.setState((prev) => ({
+        uiThemeOverride: null,
+        uiThemeRevision: prev.uiThemeRevision + 1,
+      }));
+    }
   }
 
   syncChartLayoutMode = () => {
@@ -276,9 +283,6 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
     const mobileLayout = this.props.mobileLayout ?? "default";
     const topMenuPosition = resolvedTheme?.toolbar?.topMenuPosition ?? "right";
     const surroundBackground = resolvedTheme?.surroundBackground;
-    const topMenuStyles: React.CSSProperties = {
-      marginBottom: gap,
-    };
 
     return (
       <ChartUiSettingsContext.Provider value={{ applyUiTheme: this.applyUiTheme }}>
@@ -297,7 +301,6 @@ class ChartUI extends React.Component<ChartUIProps, ChartUIState> {
               <TopMenu
                 chart={this.props.chart}
                 compact={topMenuPosition === "right"}
-                style={topMenuStyles}
                 mainContainer={this.containerRef}
                 onIntervalChange={this.props.onIntervalChange}
                 shareConfig={this.props.shareConfig}

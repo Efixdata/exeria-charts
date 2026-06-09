@@ -381,28 +381,14 @@
 
 .colorPicker {
   box-sizing: border-box;
+  display: block;
   flex-shrink: 0;
   width: var(--playground-control-height, 40px);
   height: var(--playground-control-height, 40px);
-  padding: 3px;
+  padding: 0;
   border: 1px solid var(--doc-border);
   border-radius: 12px;
-  background: var(--doc-bg);
   cursor: pointer;
-}
-
-.colorPicker::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.colorPicker::-webkit-color-swatch {
-  border: none;
-  border-radius: 8px;
-}
-
-.colorPicker::-moz-color-swatch {
-  border: none;
-  border-radius: 8px;
 }
 
 .colorValue {

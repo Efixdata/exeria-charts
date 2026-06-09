@@ -1,0 +1,28 @@
+{
+  "id": "data-bridges/binance",
+  "title": "Binance bridge",
+  "description": "Connect Binance public market data to Exeria Charts.",
+  "source": "@site/docs/data-bridges/binance.mdx",
+  "sourceDirName": "data-bridges",
+  "slug": "/data-bridges/binance",
+  "permalink": "/docs/data-bridges/binance",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Binance bridge",
+    "description": "Connect Binance public market data to Exeria Charts."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Data Bridges overview",
+    "permalink": "/docs/data-bridges/overview"
+  },
+  "next": {
+    "title": "CoinGecko bridge",
+    "permalink": "/docs/data-bridges/coingecko"
+  }
+}

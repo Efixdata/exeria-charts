@@ -65,17 +65,36 @@ const buildChartUiTheme = (options: {
   text?: string;
   muted?: string;
   inputBorder?: string;
+  activeButtonBackground?: string;
+  activeButtonColor?: string;
+  dividerColor?: string;
+  hoverBackground?: string;
+  radioButtonBackground?: string;
+  scrollBarThumbColor?: string;
+  scrollBarThumbHoverColor?: string;
 }): Partial<ChartUITheme> => {
   const isLight = options.mode === "light";
   const text = options.text ?? (isLight ? "#131722" : "#D1D4DC");
   const muted = options.muted ?? (isLight ? "#787B86" : "#848E9C");
-  const divider = isLight ? "rgba(19, 23, 34, 0.12)" : "rgba(255, 255, 255, 0.12)";
+  const divider =
+    options.dividerColor ?? (isLight ? "rgba(19, 23, 34, 0.12)" : "rgba(255, 255, 255, 0.12)");
   const inputBorder =
     options.inputBorder ?? (isLight ? "1px solid #E0E3EB" : "1px solid rgba(255, 255, 255, 0.14)");
-  const hoverBackground = isLight ? "rgba(19, 23, 34, 0.06)" : "rgba(255, 255, 255, 0.08)";
+  const hoverBackground =
+    options.hoverBackground ?? (isLight ? "rgba(19, 23, 34, 0.06)" : "rgba(255, 255, 255, 0.08)");
+  const radioButtonBackground =
+    options.radioButtonBackground ??
+    (isLight ? "rgba(19, 23, 34, 0.05)" : "rgba(255, 255, 255, 0.06)");
+  const scrollBarThumbColor =
+    options.scrollBarThumbColor ??
+    (isLight ? "rgba(19, 23, 34, 0.18)" : "rgba(255, 255, 255, 0.22)");
+  const scrollBarThumbHoverColor =
+    options.scrollBarThumbHoverColor ??
+    (isLight ? "rgba(19, 23, 34, 0.32)" : "rgba(255, 255, 255, 0.34)");
   const chromeAccent = options.uiAccent ?? options.accent;
-  const activeBackground = isLight ? accentFill(chromeAccent, 0.14) : options.input;
-  const activeColor = isLight ? chromeAccent : "#FFFFFF";
+  const activeBackground =
+    options.activeButtonBackground ?? (isLight ? accentFill(chromeAccent, 0.14) : options.input);
+  const activeColor = options.activeButtonColor ?? (isLight ? chromeAccent : "#FFFFFF");
 
   const buttonColors = {
     color: muted,
@@ -95,7 +114,7 @@ const buildChartUiTheme = (options: {
     },
     buttons: buttonColors,
     radioButton: {
-      background: isLight ? "rgba(19, 23, 34, 0.05)" : "rgba(255, 255, 255, 0.06)",
+      background: radioButtonBackground,
       buttons: buttonColors,
     },
     toolbar: {
@@ -134,8 +153,8 @@ const buildChartUiTheme = (options: {
     },
     scrollBar: {
       trackColor: hoverBackground,
-      thumbColor: isLight ? "rgba(19, 23, 34, 0.18)" : "rgba(255, 255, 255, 0.22)",
-      thumbHoverColor: isLight ? "rgba(19, 23, 34, 0.32)" : "rgba(255, 255, 255, 0.34)",
+      thumbColor: scrollBarThumbColor,
+      thumbHoverColor: scrollBarThumbHoverColor,
     },
   };
 };
@@ -156,6 +175,13 @@ const makePreset = (
     text?: string;
     muted?: string;
     inputBorder?: string;
+    activeButtonBackground?: string;
+    activeButtonColor?: string;
+    dividerColor?: string;
+    hoverBackground?: string;
+    radioButtonBackground?: string;
+    scrollBarThumbColor?: string;
+    scrollBarThumbHoverColor?: string;
   },
 ): ChartSettingsPreset => {
   const uiTheme = buildChartUiTheme(ui);
@@ -185,7 +211,7 @@ const makePreset = (
 };
 
 /**
- * Six common chart theme presets. Four dark + two light.
+ * Six common chart theme presets. Three dark + three light.
  */
 export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
   makePreset(
@@ -193,28 +219,34 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
     "Trading Dark",
     "Default dark theme",
     baseAppearance({
-      backgroundColor: "#131722",
-      gridColor: "#2A2E39",
-      axisTextColor: "#D1D4DC",
-      axisBackgroundColor: "#131722",
-      chartLineColor: "#2962FF",
-      chartFillColor: "rgba(41, 98, 255, 0.25)",
+      backgroundColor: "#0B0C10",
+      gridColor: "#455A64",
+      axisTextColor: "#CFD8DC",
+      axisBackgroundColor: "#0B0C10",
+      chartLineColor: "#00C8C8",
+      chartFillColor: "rgba(0, 200, 200, 0.22)",
       chartLineFillVisible: true,
       chartLineFillMode: "gradient",
-      chartFillGradientColor: "#2962FF",
-      chartFillGradientOpacity: 0.45,
-      crosshairColor: "#2962FF",
+      chartFillGradientColor: "#00C8C8",
+      chartFillGradientOpacity: 0.48,
+      candleUpColor: "#00C8C8",
+      candleDownColor: "#DC0464",
+      candleUpStrokeColor: "#00C8C8",
+      candleDownStrokeColor: "#DC0464",
+      crosshairColor: "#00C8C8",
     }),
     {
       mode: "dark",
-      surround: "#1E222D",
-      toolbar: "#1E222D",
-      dialog: "#1E222D",
-      input: "#2A2E39",
-      accent: "#2962FF",
-      uiAccent: "#9598A1",
-      muted: "#787B86",
-      inputBorder: "1px solid #434651",
+      surround: "#101218",
+      toolbar: "#101218",
+      dialog: "#12141A",
+      input: "#181B22",
+      accent: "#00C8C8",
+      text: "#CFD8DC",
+      muted: "#546E7A",
+      inputBorder: "1px solid #37474F",
+      activeButtonBackground: "#0A5F5F",
+      activeButtonColor: "#FFFFFF",
     },
   ),
   makePreset(
@@ -234,6 +266,8 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       chartFillGradientOpacity: 0.42,
       candleUpColor: "#34D399",
       candleDownColor: "#F87171",
+      candleUpStrokeColor: "#34D399",
+      candleDownStrokeColor: "#F87171",
       crosshairColor: "#5B8CFF",
     }),
     {
@@ -243,72 +277,88 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       dialog: "#0C1220",
       input: "#151D2E",
       accent: "#5B8CFF",
-      uiAccent: "#8BA4C9",
-      muted: "#8B9BB5",
+      text: "#A3B1C6",
+      muted: "#6B7D94",
       inputBorder: "1px solid #243044",
+      activeButtonBackground: "#243B6B",
+      activeButtonColor: "#FFFFFF",
     },
   ),
   makePreset(
     "carbon",
     "Carbon",
-    "Neutral gray workspace",
+    "Enterprise trading terminal",
     baseAppearance({
-      backgroundColor: "#1C1C1C",
-      gridColor: "#323232",
-      axisTextColor: "#C7C7C7",
-      axisBackgroundColor: "#1C1C1C",
-      chartLineColor: "#4DA3FF",
-      chartFillColor: "rgba(77, 163, 255, 0.2)",
-      chartLineFillVisible: true,
+      backgroundColor: "#1E222D",
+      gridColor: "#253558",
+      axisTextColor: "#CBD5E1",
+      axisBackgroundColor: "#1E222D",
+      chartLineColor: "#D97706",
+      chartFillColor: "rgba(217, 119, 6, 0.24)",
+      chartLineFillVisible: false,
       chartLineFillMode: "gradient",
-      chartFillGradientColor: "#4DA3FF",
-      chartFillGradientOpacity: 0.4,
-      candleUpColor: "#4CAF50",
-      candleDownColor: "#E53935",
-      crosshairColor: "#4DA3FF",
+      chartFillGradientColor: "#D97706",
+      chartFillGradientOpacity: 0.38,
+      candleUpColor: "#2E7D52",
+      candleDownColor: "#B91C1C",
+      candleUpStrokeColor: "#2E7D52",
+      candleDownStrokeColor: "#B91C1C",
+      crosshairColor: "#D97706",
+      gridLineStyle: "solid",
     }),
     {
       mode: "dark",
-      surround: "#141414",
-      toolbar: "#141414",
-      dialog: "#1C1C1C",
-      input: "#262626",
-      accent: "#4DA3FF",
-      uiAccent: "#9CA3AF",
-      muted: "#9CA3AF",
-      inputBorder: "1px solid #3A3A3A",
+      surround: "#1A1E28",
+      toolbar: "#1A1E28",
+      dialog: "#1E222D",
+      input: "#262B36",
+      accent: "#D97706",
+      text: "#CBD5E1",
+      muted: "#7B8A9A",
+      inputBorder: "1px solid #334155",
+      activeButtonBackground: "#1E3A8A",
+      activeButtonColor: "#FFFFFF",
     },
   ),
   makePreset(
     "onyx",
-    "Onyx",
-    "Warm charcoal with amber accents",
+    "Monochrome",
+    "Pure black and white light theme",
     baseAppearance({
-      backgroundColor: "#141210",
-      gridColor: "#2C2A27",
-      axisTextColor: "#D4CFC6",
-      axisBackgroundColor: "#141210",
-      chartLineColor: "#FFAB40",
-      chartFillColor: "rgba(255, 171, 64, 0.2)",
-      chartLineFillVisible: true,
-      chartLineFillMode: "gradient",
-      chartFillGradientColor: "#FFAB40",
-      chartFillGradientOpacity: 0.4,
-      candleUpColor: "#66BB6A",
-      candleDownColor: "#EF5350",
-      crosshairColor: "#FFAB40",
-      gridLineStyle: "dashed",
+      backgroundColor: "#FFFFFF",
+      gridColor: "#E8E8E8",
+      axisTextColor: "#000000",
+      axisBackgroundColor: "#FFFFFF",
+      chartLineColor: "#000000",
+      chartFillColor: "rgba(0, 0, 0, 0.08)",
+      chartLineFillVisible: false,
+      chartLineFillMode: "solid",
+      chartFillGradientColor: "#000000",
+      chartFillGradientOpacity: 0.12,
+      candleUpColor: "#FFFFFF",
+      candleDownColor: "#000000",
+      candleUpStrokeColor: "#000000",
+      candleDownStrokeColor: "#000000",
+      crosshairColor: "#000000",
+      gridLineStyle: "solid",
     }),
     {
-      mode: "dark",
-      surround: "#1C1A17",
-      toolbar: "#1C1A17",
-      dialog: "#242220",
-      input: "#2E2C28",
-      accent: "#FFAB40",
-      uiAccent: "#C8C4BC",
-      muted: "#9E9890",
-      inputBorder: "1px solid #3D3A35",
+      mode: "light",
+      surround: "#FAFAFA",
+      toolbar: "#FAFAFA",
+      dialog: "#FFFFFF",
+      input: "#F5F5F5",
+      accent: "#000000",
+      text: "#000000",
+      muted: "#666666",
+      inputBorder: "1px solid #E8E8E8",
+      activeButtonBackground: "#000000",
+      activeButtonColor: "#FFFFFF",
+      dividerColor: "rgba(0, 0, 0, 0.12)",
+      hoverBackground: "rgba(0, 0, 0, 0.06)",
+      radioButtonBackground: "rgba(0, 0, 0, 0.05)",
+      scrollBarThumbColor: "rgba(0, 0, 0, 0.18)",
+      scrollBarThumbHoverColor: "rgba(0, 0, 0, 0.32)",
     },
   ),
   makePreset(
@@ -323,6 +373,9 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       chartLineColor: "#2962FF",
       chartFillColor: "rgba(41, 98, 255, 0.12)",
       chartLineFillVisible: true,
+      chartLineFillMode: "gradient",
+      chartFillGradientColor: "#2962FF",
+      chartFillGradientOpacity: 0.35,
       candleUpColor: "#089981",
       candleDownColor: "#F23645",
       candleUpStrokeColor: "#089981",
@@ -334,43 +387,48 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       surround: "#F0F3FA",
       toolbar: "#F0F3FA",
       dialog: "#FFFFFF",
-      input: "#F0F3FA",
+      input: "#FFFFFF",
       accent: "#2962FF",
       text: "#131722",
       muted: "#787B86",
       inputBorder: "1px solid #E0E3EB",
+      activeButtonBackground: "#E0EAFF",
+      activeButtonColor: "#2962FF",
     },
   ),
   makePreset(
     "paper",
-    "Paper",
-    "Warm cream paper tone",
+    "Pearl",
+    "Warm neutral light theme",
     baseAppearance({
-      backgroundColor: "#FFFDF8",
-      gridColor: "#E8E4DC",
-      axisTextColor: "#3D3929",
-      axisBackgroundColor: "#F5F1E8",
-      chartLineColor: "#B45309",
-      chartFillColor: "rgba(180, 83, 9, 0.12)",
+      backgroundColor: "#FAFAF9",
+      gridColor: "#E7E5E4",
+      axisTextColor: "#292524",
+      axisBackgroundColor: "#F5F4F1",
+      chartLineColor: "#EA580C",
+      chartFillColor: "rgba(234, 88, 12, 0.12)",
       chartLineFillVisible: true,
       chartLineFillMode: "gradient",
-      chartFillGradientColor: "#B45309",
+      chartFillGradientColor: "#EA580C",
       chartFillGradientOpacity: 0.35,
-      candleUpColor: "#2F855A",
-      candleDownColor: "#C53030",
-      crosshairColor: "#B45309",
+      candleUpColor: "#16A34A",
+      candleDownColor: "#DC2626",
+      candleUpStrokeColor: "#16A34A",
+      candleDownStrokeColor: "#DC2626",
+      crosshairColor: "#EA580C",
     }),
     {
       mode: "light",
-      surround: "#F5F1E8",
-      toolbar: "#F5F1E8",
-      dialog: "#FFFDF8",
-      input: "#EDE8DE",
-      accent: "#B45309",
-      uiAccent: "#B45309",
-      text: "#3D3929",
-      muted: "#7A7368",
-      inputBorder: "1px solid #D9D2C4",
+      surround: "#F5F4F1",
+      toolbar: "#F5F4F1",
+      dialog: "#FFFFFF",
+      input: "#FFFFFF",
+      accent: "#EA580C",
+      text: "#292524",
+      muted: "#78716C",
+      inputBorder: "1px solid #E7E5E4",
+      activeButtonBackground: "#FFEDD5",
+      activeButtonColor: "#C2410C",
     },
   ),
 ];

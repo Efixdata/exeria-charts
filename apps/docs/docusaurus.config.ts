@@ -77,6 +77,11 @@ const config: Config = {
           label: "Playground",
           position: "left",
         },
+        {
+          to: "/data-bridges",
+          label: "Data Bridges",
+          position: "left",
+        },
       ],
     },
     footer: {
@@ -98,7 +103,7 @@ const config: Config = {
               label: "GitHub Repo",
               href: "https://github.com/Efixdata/exeria-charts",
             },
-            { label: "Pro Plugins", to: "/#pricing" },
+            { label: "Data Bridges", to: "/data-bridges" },
             { label: "Case studies", to: "/#case-studies" },
             { label: "Playground", to: "/playground" },
           ],

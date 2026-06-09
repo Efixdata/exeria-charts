@@ -4,17 +4,20 @@ import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import {
+  applyChartSettingsPreset,
+  buildChartSettingsPresetUiTheme,
+} from "./applyChartSettingsPreset";
+import {
   type ChartColorKey,
   type UiColorKey,
   type ThemeVariant,
   type VariantPalette,
+  buildChartAppearanceSettings,
   buildChartTheme,
   buildUiTheme,
   createPlaygroundChartModel,
-  PLAYGROUND_OVERLAY_SERIES_ID,
   previewCandles,
   previewInstrument,
-  previewOverlayCandles,
 } from "./core";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
 
@@ -24,6 +27,9 @@ type ChartThemePreviewProps = {
   chartColorsByVariant: VariantPalette<ChartColorKey>;
   uiColorsByVariant: VariantPalette<UiColorKey>;
   themeVariant: ThemeVariant;
+  /** When set, applies the full Chart Settings preset template (step 1). */
+  presetId?: string;
+  usePresetTemplate?: boolean;
   /** When this key changes, `onChartReady` runs again on the existing chart instance. */
   sceneApplyKey?: string | null;
   onChartReady?: ChartSceneAction;
@@ -35,6 +41,8 @@ export default function ChartThemePreview({
   chartColorsByVariant,
   uiColorsByVariant,
   themeVariant,
+  presetId,
+  usePresetTemplate = false,
   sceneApplyKey,
   onChartReady,
   minHeight = 520,
@@ -57,10 +65,14 @@ export default function ChartThemePreview({
     }),
     [chartColorsByVariant, uiColorsByVariant],
   );
-  const activeUiTheme = uiThemes[themeVariant];
+  const presetUiTheme = useMemo(
+    () => (usePresetTemplate && presetId ? buildChartSettingsPresetUiTheme(presetId) : null),
+    [presetId, usePresetTemplate],
+  );
+  const activeUiTheme = presetUiTheme ?? uiThemes[themeVariant];
   const themeUpdateKey = useMemo(
-    () => JSON.stringify({ runtimeTheme, themeVariant }),
-    [runtimeTheme, themeVariant],
+    () => JSON.stringify({ runtimeTheme, themeVariant, presetId, usePresetTemplate }),
+    [presetId, runtimeTheme, themeVariant, usePresetTemplate],
   );
 
   useEffect(() => {
@@ -118,7 +130,6 @@ export default function ChartThemePreview({
 
       try {
         chartInstance.init();
-        chartInstance.getSeriesManager()[PLAYGROUND_OVERLAY_SERIES_ID].data = previewOverlayCandles;
         await chartInstance.setMainSeriesData(previewCandles, docsInterval);
         chartInstance.setMainDrawMode("OHLC");
 
@@ -162,8 +173,16 @@ export default function ChartThemePreview({
       return;
     }
 
+    if (usePresetTemplate && presetId) {
+      applyChartSettingsPreset(chartInstance, presetId);
+      return;
+    }
+
     chartInstance.applyChartTheme(runtimeTheme, themeVariant);
-  }, [themeUpdateKey, chart]);
+    chartInstance.applyChartAppearanceSettings(
+      buildChartAppearanceSettings(chartColors, themeVariant),
+    );
+  }, [themeUpdateKey, chart, chartColors, presetId, themeVariant, usePresetTemplate]);
 
   useEffect(() => {
     if (!sceneApplyKey) {

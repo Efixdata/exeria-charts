@@ -6,7 +6,7 @@ import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import defaultTheme from "./themes/swipper";
 import { resolveChartTipThemeColors } from "./utils/chartThemeColors";
-import type { ChartTheme } from "./types";
+import type { ChartTheme, DrawMode } from "./types";
 import type { CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
 import type { ScriptModelConfig } from "./internal-types/scripts";
@@ -77,9 +77,23 @@ export interface ChartDrawingSettingsItem {
   visible: boolean;
 }
 
-export interface ChartInstrumentSettingsItem {
+export type ChartInstrumentSymbolAppearance = Pick<
+  ChartAppearanceSettings,
+  | "chartFillColor"
+  | "chartLineFillVisible"
+  | "chartLineFillMode"
+  | "chartFillGradientColor"
+  | "chartFillGradientOpacity"
+  | "candleUpColor"
+  | "candleDownColor"
+  | "candleUpStrokeColor"
+  | "candleDownStrokeColor"
+>;
+
+export interface ChartInstrumentSettingsItem extends ChartInstrumentSymbolAppearance {
   seriesId: string;
   symbol: string;
+  drawMode: DrawMode;
   lineColor: string;
   lineDash: number[];
 }
@@ -817,6 +831,76 @@ export function removeChartDrawing(chart: ChartSettingsHost, objectId: string | 
   chart.onDelete(objectId);
 }
 
+function readInstrumentSymbolAppearance(plotter: ChartRuntimeObject): ChartInstrumentSymbolAppearance {
+  const colorManager = WEBRCP.utils.colorManager;
+
+  return {
+    chartFillColor:
+      typeof plotter.fillColor === "string"
+        ? plotter.fillColor
+        : colorManager.getColor("chartFill"),
+    chartLineFillVisible: plotter.lineFillVisible === true,
+    chartLineFillMode: plotter.lineFillMode === "gradient" ? "gradient" : "solid",
+    chartFillGradientColor:
+      typeof plotter.fillGradientColor === "string"
+        ? plotter.fillGradientColor
+        : colorManager.getColor("chartFillGradient", "chartLine"),
+    chartFillGradientOpacity:
+      typeof plotter.lineFillGradientOpacity === "number"
+        ? plotter.lineFillGradientOpacity
+        : 0.4,
+    candleUpColor:
+      typeof plotter.candleUpColor === "string"
+        ? plotter.candleUpColor
+        : colorManager.getColor("chartGreen"),
+    candleDownColor:
+      typeof plotter.candleDownColor === "string"
+        ? plotter.candleDownColor
+        : colorManager.getColor("chartRed"),
+    candleUpStrokeColor:
+      typeof plotter.candleUpStrokeColor === "string"
+        ? plotter.candleUpStrokeColor
+        : colorManager.getColor("chartGreenStroke"),
+    candleDownStrokeColor:
+      typeof plotter.candleDownStrokeColor === "string"
+        ? plotter.candleDownStrokeColor
+        : colorManager.getColor("chartRedStroke"),
+  };
+}
+
+function writeInstrumentSymbolAppearance(
+  plotter: ChartRuntimeObject,
+  settings: Partial<ChartInstrumentSymbolAppearance>,
+): void {
+  if (settings.chartFillColor !== undefined) {
+    plotter.fillColor = settings.chartFillColor;
+  }
+  if (settings.chartLineFillVisible !== undefined) {
+    plotter.lineFillVisible = settings.chartLineFillVisible;
+  }
+  if (settings.chartLineFillMode !== undefined) {
+    plotter.lineFillMode = settings.chartLineFillMode;
+  }
+  if (settings.chartFillGradientColor !== undefined) {
+    plotter.fillGradientColor = settings.chartFillGradientColor;
+  }
+  if (settings.chartFillGradientOpacity !== undefined) {
+    plotter.lineFillGradientOpacity = settings.chartFillGradientOpacity;
+  }
+  if (settings.candleUpColor !== undefined) {
+    plotter.candleUpColor = settings.candleUpColor;
+  }
+  if (settings.candleDownColor !== undefined) {
+    plotter.candleDownColor = settings.candleDownColor;
+  }
+  if (settings.candleUpStrokeColor !== undefined) {
+    plotter.candleUpStrokeColor = settings.candleUpStrokeColor;
+  }
+  if (settings.candleDownStrokeColor !== undefined) {
+    plotter.candleDownStrokeColor = settings.candleDownStrokeColor;
+  }
+}
+
 export function getChartInstrumentSettings(chart: ChartSettingsHost): ChartInstrumentSettingsItem[] {
   const items: ChartInstrumentSettingsItem[] = [];
 
@@ -837,27 +921,67 @@ export function getChartInstrumentSettings(chart: ChartSettingsHost): ChartInstr
     items.push({
       seriesId: instrumentSeries.seriesId,
       symbol: getInstrumentSymbol(instrumentSeries),
+      drawMode: getInstrumentSeriesDrawMode(plotter),
       lineColor,
       lineDash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+      ...readInstrumentSymbolAppearance(plotter),
     });
   }
 
   return items;
 }
 
+function getInstrumentSeriesDrawMode(plotter: ChartRuntimeObject): DrawMode {
+  const renderAs = plotter.renderAs;
+  if (
+    renderAs === "OHLC" ||
+    renderAs === "Bars" ||
+    renderAs === "Line" ||
+    renderAs === "Histogram" ||
+    renderAs === "Line and Histogram"
+  ) {
+    return renderAs;
+  }
+
+  return "Line";
+}
+
+export function getInstrumentDrawMode(chart: ChartSettingsHost, seriesId: string): DrawMode {
+  const plotter = getInstrumentSeriesPlotter(chart, seriesId);
+  if (!plotter) {
+    return "OHLC";
+  }
+
+  return getInstrumentSeriesDrawMode(plotter);
+}
+
 export function applyChartInstrumentSettings(
   chart: ChartSettingsHost,
   seriesId: string,
-  settings: Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash">,
+  settings: Partial<
+    Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash"> & ChartInstrumentSymbolAppearance
+  >,
 ): void {
   const plotter = getInstrumentSeriesPlotter(chart, seriesId);
-  if (!plotter || seriesId === chart.model.mainSeries) {
+  if (!plotter) {
     return;
   }
 
-  plotter.color = settings.lineColor;
-  plotter.strokeStyle = settings.lineColor;
-  plotter.dash = [...settings.lineDash];
+  if (seriesId === chart.model.mainSeries) {
+    chart.rerender();
+    return;
+  }
+
+  if (settings.lineColor !== undefined) {
+    plotter.color = settings.lineColor;
+    plotter.strokeStyle = settings.lineColor;
+  }
+
+  if (settings.lineDash !== undefined) {
+    plotter.dash = [...settings.lineDash];
+  }
+
+  writeInstrumentSymbolAppearance(plotter, settings);
 
   chart.rerender();
 }

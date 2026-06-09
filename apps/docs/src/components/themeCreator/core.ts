@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
-import type { ChartInstance, Candle, Instrument, Interval } from "@efixdata/exeria-chart";
+import type {
+  ChartAppearanceSettings,
+  ChartInstance,
+  Candle,
+  Instrument,
+  Interval,
+} from "@efixdata/exeria-chart";
 import { buildChartUiTheme } from "../../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets, docsInterval, getCandleAtRatio } from "../chartExampleData";
 
@@ -11,6 +17,8 @@ export type ChartColorKey =
   | "grid"
   | "candleUp"
   | "candleDown"
+  | "candleUpStroke"
+  | "candleDownStroke"
   | "crosshair"
   | "tool";
 
@@ -150,26 +158,13 @@ const chartFontValues = {
 };
 
 export const previewCandles = docsExampleDatasets.trend.candles;
-export const previewOverlayCandles = docsExampleDatasets.range.candles;
 
 export const PLAYGROUND_MAIN_SERIES_ID = "playground-btc";
-export const PLAYGROUND_OVERLAY_SERIES_ID = "playground-bnb";
 
 export const previewInstrument: Instrument = {
   id: "BTCUSD",
   symbol: "BTC/USD",
   name: "Bitcoin / US Dollar",
-  currency: "USD",
-  precision: 2,
-  chart: "ohlc",
-  availableIntervals: [docsInterval],
-  interval: docsInterval,
-};
-
-export const previewOverlayInstrument: Instrument = {
-  id: "BNBUSD",
-  symbol: "BNB/USD",
-  name: "Binance Coin / US Dollar",
   currency: "USD",
   precision: 2,
   chart: "ohlc",
@@ -214,39 +209,11 @@ function createMainSeriesPlotter(seriesId: string) {
   };
 }
 
-function createOverlaySeriesPlotter(seriesId: string) {
-  return {
-    id: seriesId,
-    type: "SeriesObject",
-    dataLink: seriesId,
-    renderAs: "Line",
-    color: "#ff9800",
-    stroke: [1],
-    dash: [],
-    width: 2,
-    priceTag: true,
-    priceLine: false,
-    dataField: "c",
-    strokeStyle: "#ff9800",
-    _hit: false,
-    _hitAnchor: null,
-    _hitArrow: null,
-    selected: false,
-  };
-}
-
 export function createPlaygroundChartModel(): Record<string, unknown> {
   return {
     mainSeries: PLAYGROUND_MAIN_SERIES_ID,
     interval: docsInterval,
-    instrumentsSeries: [
-      createInstrumentSeriesEntry(PLAYGROUND_MAIN_SERIES_ID, previewInstrument),
-      createInstrumentSeriesEntry(
-        PLAYGROUND_OVERLAY_SERIES_ID,
-        previewOverlayInstrument,
-        previewOverlayCandles,
-      ),
-    ],
+    instrumentsSeries: [createInstrumentSeriesEntry(PLAYGROUND_MAIN_SERIES_ID, previewInstrument)],
     panels: [
       {
         id: "1",
@@ -257,10 +224,7 @@ export function createPlaygroundChartModel(): Record<string, unknown> {
         basis: 75,
         precision: 2,
         centerZero: false,
-        objects: [
-          createMainSeriesPlotter(PLAYGROUND_MAIN_SERIES_ID),
-          createOverlaySeriesPlotter(PLAYGROUND_OVERLAY_SERIES_ID),
-        ],
+        objects: [createMainSeriesPlotter(PLAYGROUND_MAIN_SERIES_ID)],
         _visible: true,
         _index: 0,
       },
@@ -310,13 +274,19 @@ function getContrastColor(color: string, dark = "#08111B", light = "#FFFFFF") {
 }
 
 function deriveLightChartColors(chartColors: ChartColorState): ChartColorState {
+  const background = mixColors(chartColors.background, "#F7FAFD", 0.95);
+  const candleUp = mixColors(chartColors.candleUp, "#0F5132", 0.16);
+  const candleDown = mixColors(chartColors.candleDown, "#8A1C2F", 0.14);
+
   return {
     accent: mixColors(chartColors.accent, "#18324D", 0.18),
-    background: mixColors(chartColors.background, "#F7FAFD", 0.95),
+    background,
     axisText: mixColors(chartColors.axisText, "#25354A", 0.74),
     grid: mixColors(chartColors.grid, "#FFFFFF", 0.82),
-    candleUp: mixColors(chartColors.candleUp, "#0F5132", 0.16),
-    candleDown: mixColors(chartColors.candleDown, "#8A1C2F", 0.14),
+    candleUp,
+    candleDown,
+    candleUpStroke: mixColors(chartColors.candleUpStroke, "#FFFFFF", 0.82),
+    candleDownStroke: mixColors(chartColors.candleDownStroke, "#FFFFFF", 0.82),
     crosshair: mixColors(chartColors.crosshair, "#334155", 0.4),
     tool: mixColors(chartColors.tool, "#3A4D63", 0.58),
   };
@@ -391,8 +361,8 @@ function buildChartThemeVariant(
     chartGreenBackground: mixColors(chartColors.candleUp, chartColors.background, isLight ? 0.28 : 0.32),
     chartGray,
     chartGrayPrimary: mixColors(chartColors.axisText, chartColors.background, isLight ? 0.38 : 0.28),
-    chartRedStroke: mixColors(chartColors.candleDown, chartColors.background, isLight ? 0.28 : 0.22),
-    chartGreenStroke: mixColors(chartColors.candleUp, chartColors.background, isLight ? 0.28 : 0.22),
+    chartRedStroke: chartColors.candleDownStroke,
+    chartGreenStroke: chartColors.candleUpStroke,
     chartFill: withAlpha(chartColors.accent, isLight ? 0.14 : 0.22),
     chartStroke: chartColors.accent,
     buyColor: chartColors.candleUp,
@@ -415,6 +385,48 @@ function buildChartThemeVariant(
     legendValueColor: textColor,
     legendLineBackground: "transparent",
     fibonacciRetracementLine: withAlpha(textColor, isLight ? 0.08 : 0.12),
+  };
+}
+
+export function deriveCandleStrokeColors(
+  chartColors: ChartColorState,
+  themeVariant: ThemeVariant,
+): Pick<ChartColorState, "candleUpStroke" | "candleDownStroke"> {
+  const ratio = themeVariant === "light" ? 0.28 : 0.22;
+
+  return {
+    candleUpStroke: mixColors(chartColors.candleUp, chartColors.background, ratio),
+    candleDownStroke: mixColors(chartColors.candleDown, chartColors.background, ratio),
+  };
+}
+
+export function buildChartAppearanceSettings(
+  chartColors: ChartColorState,
+  themeVariant: ThemeVariant = "dark",
+): ChartAppearanceSettings {
+  const isLight = themeVariant === "light";
+
+  return {
+    backgroundColor: chartColors.background,
+    gridColor: chartColors.grid,
+    chartLineColor: chartColors.accent,
+    chartFillColor: withAlpha(chartColors.accent, isLight ? 0.14 : 0.22),
+    chartLineFillVisible: false,
+    chartLineFillMode: "solid",
+    chartFillGradientColor: chartColors.accent,
+    chartFillGradientOpacity: 0.4,
+    candleUpColor: chartColors.candleUp,
+    candleDownColor: chartColors.candleDown,
+    candleUpStrokeColor: chartColors.candleUpStroke,
+    candleDownStrokeColor: chartColors.candleDownStroke,
+    axisTextColor: chartColors.axisText,
+    axisBackgroundColor: chartColors.background,
+    crosshairColor: chartColors.crosshair,
+    gridMode: "both",
+    gridVisible: true,
+    gridLineStyle: "solid",
+    lastPriceLineVisible: true,
+    lastPriceLabelVisible: true,
   };
 }
 

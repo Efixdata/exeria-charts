@@ -1,0 +1,44 @@
+---
+sidebar_position: 2
+title: Binance bridge
+description: Connect Binance public market data to Exeria Charts.
+---
+
+# Binance bridge
+
+Connect live and historical crypto candles, trades, and order-book snapshots from Binance public endpoints.
+
+## Install
+
+```bash
+npm i @exeria/data-bridge-binance
+```
+
+## Basic wiring
+
+```ts
+import { Chart } from "@efixdata/exeria-chart";
+import { createBinanceBridge } from "@exeria/data-bridge-binance";
+
+const chart = new Chart({ container: "#chart" });
+const bridge = createBinanceBridge({
+  symbol: "BTCUSDT",
+  interval: "1h",
+});
+
+await chart.loadData(bridge.fetchHistorical());
+bridge.subscribeRealtime((bar) => chart.updateBar(bar));
+```
+
+## Coverage
+
+- Crypto spot and futures
+- Trades and klines / OHLCV
+- REST and WebSocket transport
+
+## Notes
+
+- Uses Binance public API endpoints (subject to provider rate limits).
+- Plugin is MIT-licensed.
+
+Back to the [Data Bridges catalog](/data-bridges#binance-public).

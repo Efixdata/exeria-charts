@@ -13,7 +13,7 @@ import {
   CheckboxInput,
   Form,
 } from "ui";
-import { Eye, EyeSlash, Lock, LockOpen, X } from "phosphor-react";
+import { Eye, EyeSlash, Lock, LockOpen, Trash, X } from "phosphor-react";
 import { ThemeContext } from "styled-components";
 import type { NullableChartInstance } from "../../../chartTypes";
 import {
@@ -33,7 +33,11 @@ import {
   normalizeBooleanListForDialog,
 } from "./booleanListUtils";
 import { DialogPrimaryButton } from "../ChartSettings/DialogPrimaryButton";
-import { dialogScrollBodyStyle, getDialogCatalogLayoutStyle } from "../../dialog/dialogLayout";
+import {
+  dialogFitLayoutStyle,
+  dialogFormBodyStyle,
+  getDialogCatalogLayoutStyle,
+} from "../../dialog/dialogLayout";
 import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
 import { DialogSection, dialogSectionStyles } from "../../dialog/DialogSection";
@@ -133,6 +137,16 @@ const LayerIconToggle = (props: {
 
 const DEFAULT_STRATEGY_BUY_COLOR = "#3CC3AF";
 const DEFAULT_STRATEGY_SELL_COLOR = "#CE3E5B";
+const DEFAULT_CANDLE_UP_COLOR = "#3CC3AF";
+const DEFAULT_CANDLE_DOWN_COLOR = "#CE3E5B";
+const DEFAULT_CANDLE_UP_STROKE_COLOR = "#2A9D8F";
+const DEFAULT_CANDLE_DOWN_STROKE_COLOR = "#A83248";
+const DEFAULT_BAND_FILL_OPACITY = 0.3;
+
+const isBandPlotter = (plotter: IndicatorPlotter) => plotter.renderAs === "Band";
+
+const isOhlcPlotter = (plotter: IndicatorPlotter) =>
+  plotter.renderAs === "OHLC" || plotter.renderAs === "Bars";
 
 const isStrategyPlotter = (plotter: IndicatorPlotter) =>
   plotter.type != null && STRATEGY_PLOTTER_TYPES.has(String(plotter.type));
@@ -265,6 +279,73 @@ const mergePlottersForDialog = (
             : typeof templatePlotter?.sellColor === "string"
               ? templatePlotter.sellColor
               : DEFAULT_STRATEGY_SELL_COLOR,
+        ),
+      };
+    }
+
+    if (isBandPlotter(plotter)) {
+      const lineColor =
+        typeof plotter.color === "string"
+          ? plotter.color
+          : typeof templatePlotter?.color === "string"
+            ? templatePlotter.color
+            : "#5B6F8B";
+      const fillColor =
+        typeof plotter.bandFillColor === "string"
+          ? plotter.bandFillColor
+          : typeof templatePlotter?.bandFillColor === "string"
+            ? templatePlotter.bandFillColor
+            : lineColor;
+
+      return {
+        ...plotter,
+        color: normalizeHexColor(lineColor),
+        dash: Array.isArray(plotter.dash)
+          ? [...plotter.dash]
+          : Array.isArray(templatePlotter?.dash)
+            ? [...templatePlotter.dash]
+            : [],
+        bandFillColor: normalizeHexColor(fillColor),
+        bandFillOpacity:
+          typeof plotter.bandFillOpacity === "number"
+            ? plotter.bandFillOpacity
+            : typeof templatePlotter?.bandFillOpacity === "number"
+              ? templatePlotter.bandFillOpacity
+              : DEFAULT_BAND_FILL_OPACITY,
+      };
+    }
+
+    if (isOhlcPlotter(plotter)) {
+      return {
+        ...plotter,
+        dash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+        candleUpColor: normalizeHexColor(
+          typeof plotter.candleUpColor === "string"
+            ? plotter.candleUpColor
+            : typeof templatePlotter?.candleUpColor === "string"
+              ? templatePlotter.candleUpColor
+              : DEFAULT_CANDLE_UP_COLOR,
+        ),
+        candleDownColor: normalizeHexColor(
+          typeof plotter.candleDownColor === "string"
+            ? plotter.candleDownColor
+            : typeof templatePlotter?.candleDownColor === "string"
+              ? templatePlotter.candleDownColor
+              : DEFAULT_CANDLE_DOWN_COLOR,
+        ),
+        candleUpStrokeColor: normalizeHexColor(
+          typeof plotter.candleUpStrokeColor === "string"
+            ? plotter.candleUpStrokeColor
+            : typeof templatePlotter?.candleUpStrokeColor === "string"
+              ? templatePlotter.candleUpStrokeColor
+              : DEFAULT_CANDLE_UP_STROKE_COLOR,
+        ),
+        candleDownStrokeColor: normalizeHexColor(
+          typeof plotter.candleDownStrokeColor === "string"
+            ? plotter.candleDownStrokeColor
+            : typeof templatePlotter?.candleDownStrokeColor === "string"
+              ? templatePlotter.candleDownStrokeColor
+              : DEFAULT_CANDLE_DOWN_STROKE_COLOR,
         ),
       };
     }
@@ -590,9 +671,15 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       index: number;
     } =>
       !isStrategyPlotter(entry.plotter) &&
+      !isBandPlotter(entry.plotter) &&
+      !isOhlcPlotter(entry.plotter) &&
       typeof entry.plotter.color === "string" &&
       Array.isArray(entry.plotter.dash),
   );
+
+  const bandPlotterEntries = plotterEntries.filter((entry) => isBandPlotter(entry.plotter));
+
+  const ohlcPlotterEntries = plotterEntries.filter((entry) => isOhlcPlotter(entry.plotter));
 
   const strategyPlotterEntries = plotterEntries.filter((entry) => isStrategyPlotter(entry.plotter));
 
@@ -673,6 +760,50 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     setConfig({ ...config, plotters });
   };
 
+  const onBandFillColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isBandPlotter(plotter)) {
+      return;
+    }
+
+    plotter.bandFillColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onBandFillOpacityChange = (index: number, value: number) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isBandPlotter(plotter)) {
+      return;
+    }
+
+    plotter.bandFillOpacity = value;
+    setConfig({ ...config, plotters });
+  };
+
+  const onCandleColorChange = (
+    index: number,
+    field:
+      | "candleUpColor"
+      | "candleDownColor"
+      | "candleUpStrokeColor"
+      | "candleDownStrokeColor",
+    value: string,
+  ) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isOhlcPlotter(plotter)) {
+      return;
+    }
+
+    plotter[field] = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
   const onPaneChange = (nextPane: string) => {
     setConfig({
       ...config,
@@ -747,6 +878,133 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
               ariaLabel={`${label} ${lineStyleLabel}`}
             />
           </Label>
+        </div>
+      );
+    });
+
+  const getBandLinesLabel = () => {
+    const upper = translate("upperBand");
+    const lower = translate("lowerBand");
+    const resolvedUpper = upper !== "upperBand" ? upper : "Upper band";
+    const resolvedLower = lower !== "lowerBand" ? lower : "Lower band";
+    return `${resolvedUpper} / ${resolvedLower}`;
+  };
+
+  const renderBandFillInputs = () =>
+    bandPlotterEntries.map(({ plotter, index }) => {
+      const bandLinesLabel = getBandLinesLabel();
+      const lineColor = normalizeHexColor(
+        typeof plotter.color === "string" ? plotter.color : "#5B6F8B",
+      );
+      const lineStyleId = getPlotterLineStyleId(
+        Array.isArray(plotter.dash) ? plotter.dash : [],
+      );
+      const translatedLineStyle = translate("lineStyle");
+      const lineStyleLabel =
+        translatedLineStyle !== "lineStyle" ? translatedLineStyle : "Line style";
+      const fillColor = normalizeHexColor(
+        typeof plotter.bandFillColor === "string"
+          ? plotter.bandFillColor
+          : lineColor,
+      );
+      const fillOpacity =
+        typeof plotter.bandFillOpacity === "number"
+          ? plotter.bandFillOpacity
+          : DEFAULT_BAND_FILL_OPACITY;
+
+      return (
+        <React.Fragment key={`band-appearance-${index}`}>
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={bandLinesLabel}
+              value={lineColor}
+              onChange={(value) => onPlotterColorChange(index, value)}
+            />
+            <Label name={lineStyleLabel}>
+              <LineStyleSelect
+                value={lineStyleId}
+                lineColor={lineColor}
+                onChange={(styleId) => onPlotterDashChange(index, styleId)}
+                getOptionLabel={getLineStyleOptionLabel}
+                ariaLabel={`${bandLinesLabel} ${lineStyleLabel}`}
+              />
+            </Label>
+          </div>
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={t("chart_settings_line_fill", "Fill")}
+              value={fillColor}
+              onChange={(value) => onBandFillColorChange(index, value)}
+            />
+            <Label
+              name={`${t("chart_settings_opacity", "Opacity")} · ${Math.round(fillOpacity * 100)}%`}
+            >
+              <input
+                type="range"
+                className={chartSettingsStyles.rangeInput}
+                min={5}
+                max={100}
+                step={5}
+                value={Math.round(fillOpacity * 100)}
+                onChange={(event) =>
+                  onBandFillOpacityChange(index, Number(event.target.value) / 100)
+                }
+              />
+            </Label>
+          </div>
+        </React.Fragment>
+      );
+    });
+
+  const renderOhlcCandleColorInputs = () =>
+    ohlcPlotterEntries.map(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const candleUpColor = normalizeHexColor(
+        typeof plotter.candleUpColor === "string"
+          ? plotter.candleUpColor
+          : DEFAULT_CANDLE_UP_COLOR,
+      );
+      const candleDownColor = normalizeHexColor(
+        typeof plotter.candleDownColor === "string"
+          ? plotter.candleDownColor
+          : DEFAULT_CANDLE_DOWN_COLOR,
+      );
+      const candleUpStrokeColor = normalizeHexColor(
+        typeof plotter.candleUpStrokeColor === "string"
+          ? plotter.candleUpStrokeColor
+          : DEFAULT_CANDLE_UP_STROKE_COLOR,
+      );
+      const candleDownStrokeColor = normalizeHexColor(
+        typeof plotter.candleDownStrokeColor === "string"
+          ? plotter.candleDownStrokeColor
+          : DEFAULT_CANDLE_DOWN_STROKE_COLOR,
+      );
+
+      return (
+        <div
+          key={`ohlc-candles-${index}`}
+          className={chartSettingsStyles.colorGrid}
+        >
+          <ColorField
+            label={`${label} — ${t("chart_settings_candle_up", "Candle up")}`}
+            value={candleUpColor}
+            onChange={(value) => onCandleColorChange(index, "candleUpColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_candle_down", "Candle down")}`}
+            value={candleDownColor}
+            onChange={(value) => onCandleColorChange(index, "candleDownColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_up_stroke", "Up stroke")}`}
+            value={candleUpStrokeColor}
+            onChange={(value) => onCandleColorChange(index, "candleUpStrokeColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_down_stroke", "Down stroke")}`}
+            value={candleDownStrokeColor}
+            onChange={(value) => onCandleColorChange(index, "candleDownStrokeColor", value)}
+          />
         </div>
       );
     });
@@ -1095,7 +1353,10 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     const parameterInputs = renderParameterInputs();
     const hasParameters = parameterInputs.length > 0;
     const hasAppearanceFields =
-      linePlotterEntries.length > 0 || strategyPlotterEntries.length > 0;
+      linePlotterEntries.length > 0 ||
+      bandPlotterEntries.length > 0 ||
+      ohlcPlotterEntries.length > 0 ||
+      strategyPlotterEntries.length > 0;
     const hasPanelSelector = props.chart != null && buildPanelOptions(props.chart, translate).length > 0;
     const showAppearanceSection = hasAppearanceFields || hasPanelSelector;
     return (
@@ -1123,6 +1384,8 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
               {hasAppearanceFields ? (
                 <div className={dialogSectionStyles.appearanceGrid}>
                   {renderPlotterAppearanceInputs()}
+                  {renderBandFillInputs()}
+                  {renderOhlcCandleColorInputs()}
                   {renderStrategyArrowColorInputs()}
                 </div>
               ) : null}
@@ -1226,12 +1489,41 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     props.onClose();
   };
 
+  const getRemoveLabel = () => {
+    if (scriptType === "functions") {
+      return t("layers_remove_function", "Remove function");
+    }
+
+    if (scriptType === "strategies") {
+      return t("layers_remove_strategy", "Remove strategy");
+    }
+
+    return t("layers_remove_indicator", "Remove indicator");
+  };
+
+  const onRemoveIndicator = () => {
+    if (!props.chart || config.id == null) {
+      return;
+    }
+
+    if (scriptType === "functions") {
+      props.chart.removeChartFunction?.(config.id);
+    } else if (scriptType === "strategies") {
+      props.chart.removeChartStrategy?.(config.id);
+    } else {
+      props.chart.removeChartIndicator?.(config.id);
+    }
+
+    props.onClose();
+  };
+
   return (
     <>
       <DialogContainer
         ariaLabelledBy={titleId}
         style={{
           ...dialogThemeVars,
+          ...dialogFitLayoutStyle,
           ...getDialogCatalogLayoutStyle(isCompact),
           ...props.style,
         }}
@@ -1239,13 +1531,18 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         <DialogHeader>
           <DialogHeaderTitle id={titleId}>{`${props.indicator.title}`}</DialogHeaderTitle>
           <DialogHeaderActions>
+            {config.id != null ? (
+              <TextButton onClick={onRemoveIndicator} ariaLabel={getRemoveLabel()}>
+                <Trash size={24} aria-hidden />
+              </TextButton>
+            ) : null}
             <TextButton onClick={props.onBack} ariaLabel={t("dialog_back", "Back")}>
               <X size={24} aria-hidden />
             </TextButton>
           </DialogHeaderActions>
         </DialogHeader>
 
-        <DialogBody style={dialogScrollBodyStyle}>
+        <DialogBody style={dialogFormBodyStyle}>
           <div className={layoutStyles.scrollArea} style={dialogThemeVars}>
             {renderDialogBody()}
           </div>

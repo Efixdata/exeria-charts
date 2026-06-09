@@ -8,9 +8,10 @@ import {
   hideFusionScriptDialog,
   showFusionScriptDialog,
 } from "./adapters/fusionUi";
-import { isSmallScreen, isTouchDevice, isTouchEnvironment, hitTolerance } from "./utils/environment";
+import { hitTolerance, isSmallScreen, isTouchDevice, isTouchEnvironment } from "./utils/environment";
 import {
   dismissMobileContextMenu,
+  isMobileContextMenuOpen,
   openMobileChartContextMenu,
   resolvePointerClientPosition,
 } from "./utils/mobileContextMenu";
@@ -170,9 +171,9 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   function bindDomEvents() {
-    self.preventContextMenu = function (evt: Event) {
+    self.onChartContextMenu = function (evt: Event) {
       evt.preventDefault();
-      return true;
+      self.onContextMenu(evt);
     };
     self.onHammerPress = self.onContextMenu;
     self.onHammerSwipe = self.onSwipe;
@@ -185,6 +186,7 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     self.topLayer.addEventListener("wheel", self.triggerWheelCallback);
     self.topLayer.classList.add("context-menu-topLayer"); //this class is base to bind CONTEXT MENU
+    self.topLayer.addEventListener("contextmenu", self.onChartContextMenu);
 
     if (isTouchDevice()) {
       const touchListenerOptions = { passive: false } as AddEventListenerOptions;
@@ -194,12 +196,12 @@ var InteractionsController: CoreInteractorConstructor = function (
 
       self.hammer = createGestureManager(self.topLayer);
 
-      self.hammer.get("press").set({ time: 500 });
+      self.hammer.get("press").set({ time: 500, threshold: 12 });
       self.hammer.on("press", self.onHammerPress);
 
       self.hammer.on("touch", self.onTouchEvent);
 
-      self.hammer.get("pan").set({ direction: HAMMER_DIRECTIONS.all });
+      self.hammer.get("pan").set({ direction: HAMMER_DIRECTIONS.all, threshold: 14 });
       self.hammer.on("pan", self.onTouchEvent);
 
       self.hammer.get("pinch").set({ enable: true });
@@ -220,8 +222,6 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.body.addEventListener("mouseout", self.onBodyMouseOut);
       self.body.addEventListener("mousemove", self.onBodyMouseMove);
 
-      self.topLayer.addEventListener("contextmenu", self.preventContextMenu);
-
       self.hammer = createGestureManager(self.topLayer);
       self.hammer.on("swipe", self.onHammerSwipe);
     }
@@ -238,7 +238,7 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.offDOMEvents = function () {
     self.topLayer.removeEventListener("wheel", self.triggerWheelCallback);
     self.topLayer.classList.remove("context-menu-topLayer");
-    self.topLayer.removeEventListener("contextmenu", self.preventContextMenu);
+    self.topLayer.removeEventListener("contextmenu", self.onChartContextMenu);
     self.body.removeEventListener("keyup", self.onBodyKeyUp);
     self.body.removeEventListener("keydown", self.onBodyKeyDown);
 
@@ -297,7 +297,9 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onTouchEvent = function (evt) {
-    self.body.click();
+    if (!isMobileContextMenuOpen()) {
+      self.body.click();
+    }
 
     if (evt.type === "touchcancel" || evt.type === "pancancel") {
       self.resetPointerGestureState();
@@ -339,7 +341,9 @@ var InteractionsController: CoreInteractorConstructor = function (
       case "touchend": // previously mouseup
       case "panend":
         self.onMouseUp(touchEvent, evt);
-        self.body.click();
+        if (!isMobileContextMenuOpen()) {
+          self.body.click();
+        }
         if (evt.type === "panend") {
           self.tryStartPanEndMomentum(evt);
         }
@@ -600,15 +604,17 @@ var InteractionsController: CoreInteractorConstructor = function (
   };
 
   this.onContextMenu = function (e) {
-    self.body.click();
+    if (!isMobileContextMenuOpen()) {
+      self.body.click();
+    }
     dismissMobileContextMenu();
 
     if (self.controller.isChartEmpty(self.chart)) return;
     if (self.model.mode == "plain") return;
     if (self.currentStagingObject) return;
 
-    if (!isTouchEnvironment()) {
-      if (e.preventDefault) e.preventDefault();
+    if (!self.allowContextMenu) {
+      self.allowContextMenu = true;
       return;
     }
 
@@ -619,10 +625,12 @@ var InteractionsController: CoreInteractorConstructor = function (
       return;
     }
 
+    const dismissGraceMs = e.type === "contextmenu" ? 0 : undefined;
     openMobileChartContextMenu(
       self.controller as unknown as Parameters<typeof openMobileChartContextMenu>[0],
       anchor.x,
       anchor.y,
+      dismissGraceMs,
     );
   };
 
@@ -1065,6 +1073,9 @@ var InteractionsController: CoreInteractorConstructor = function (
 
     self.isMouseDown = true;
     self.isRightButton = self.isRightMouseButton(e);
+    if (!self.isRightButton) {
+      self.allowContextMenu = true;
+    }
     self.touchGestureMoved = false;
     self.lastDragWasChartPan = false;
 
@@ -1617,7 +1628,14 @@ var InteractionsController: CoreInteractorConstructor = function (
       }
     }
 
-    this.controller.fitAndRepaint();
+    const controller = this.controller as CoreChartController & {
+      syncChartLayoutAndRepaint?: () => void;
+    };
+    if (controller.syncChartLayoutAndRepaint) {
+      controller.syncChartLayoutAndRepaint();
+    } else {
+      this.controller.fitAndRepaint();
+    }
 
     return true;
   };

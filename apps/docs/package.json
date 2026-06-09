@@ -10,7 +10,9 @@
     "serve": "docusaurus serve --host 0.0.0.0 --port 3001",
     "clear": "docusaurus clear",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx src docusaurus.config.ts sidebars.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.1",
@@ -28,6 +30,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.1",
     "@docusaurus/tsconfig": "^3.10.1",
+    "@playwright/test": "^1.52.0",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.3",
     "eslint": "7.32.0",

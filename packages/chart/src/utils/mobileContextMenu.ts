@@ -1,5 +1,26 @@
 import type { PointerEventLike } from "../internal-types/interactor";
 
+/** Portal target for overlays — stays inside the fullscreen element when active. */
+function getOverlayPortalRoot(): HTMLElement {
+  if (typeof document === "undefined") {
+    throw new Error("getOverlayPortalRoot requires document");
+  }
+
+  const doc = document as Document & {
+    webkitFullscreenElement?: Element | null;
+    mozFullScreenElement?: Element | null;
+    msFullscreenElement?: Element | null;
+  };
+
+  const fullscreen =
+    doc.fullscreenElement ||
+    doc.webkitFullscreenElement ||
+    doc.mozFullScreenElement ||
+    doc.msFullscreenElement;
+
+  return (fullscreen as HTMLElement | null) ?? doc.body;
+}
+
 export interface MobileContextMenuItem {
   id: string;
   label: string;
@@ -65,6 +86,14 @@ export function resolvePointerClientPosition(
 
 let activeMenu: HTMLDivElement | null = null;
 let activeDismissHandlers: (() => void) | null = null;
+/** Ignore outside-pointer dismiss briefly after open (long-press lift fires synthetic click). */
+let menuOpenedAt = 0;
+let menuDismissGraceMs = 0;
+export const MENU_DISMISS_GRACE_MS = 400;
+
+export function isMobileContextMenuOpen(): boolean {
+  return activeMenu != null;
+}
 
 export function dismissMobileContextMenu(): void {
   activeDismissHandlers?.();
@@ -83,6 +112,8 @@ export function showMobileContextMenu(options: {
   y: number;
   items: MobileContextMenuItem[];
   onSelect: (id: string) => void;
+  /** Ms to ignore outside-pointer dismiss after open (long-press needs grace; desktop contextmenu does not). */
+  dismissGraceMs?: number;
 }): void {
   if (typeof document === "undefined" || options.items.length === 0) {
     return;
@@ -136,8 +167,10 @@ export function showMobileContextMenu(options: {
 
   menu.style.left = `${Math.max(8, options.x)}px`;
   menu.style.top = `${Math.max(8, options.y)}px`;
-  document.body.appendChild(menu);
+  getOverlayPortalRoot().appendChild(menu);
   activeMenu = menu;
+  menuOpenedAt = Date.now();
+  menuDismissGraceMs = options.dismissGraceMs ?? MENU_DISMISS_GRACE_MS;
 
   requestAnimationFrame(() => {
     if (!activeMenu) {
@@ -156,6 +189,10 @@ export function showMobileContextMenu(options: {
   });
 
   const onPointerDown = (event: Event) => {
+    if (menuDismissGraceMs > 0 && Date.now() - menuOpenedAt < menuDismissGraceMs) {
+      return;
+    }
+
     const target = event.target as Node;
     if (activeMenu?.contains(target)) {
       return;
@@ -227,6 +264,7 @@ export function openMobileChartContextMenu(
   },
   clientX: number,
   clientY: number,
+  dismissGraceMs: number = MENU_DISMISS_GRACE_MS,
 ): void {
   const items: MobileContextMenuItem[] = [
     {
@@ -252,5 +290,6 @@ export function openMobileChartContextMenu(
     y: clientY,
     items,
     onSelect: (id) => handleMobileChartContextAction(id, controller),
+    dismissGraceMs,
   });
 }

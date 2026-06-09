@@ -56,6 +56,13 @@
   scrollbar-color: var(--dialog-scrollbar-thumb) var(--dialog-scrollbar-track);
 }
 
+/* Full-screen catalog dialog — grow list to fill remaining viewport */
+.catalogListPanelCompact {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
 .catalogListPanel::-webkit-scrollbar {
   width: var(--dialog-scrollbar-width, 8px);
 }

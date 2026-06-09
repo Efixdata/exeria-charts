@@ -78,7 +78,7 @@ export const playgroundExamples: PlaygroundExample[] = [
     title: "Line mode",
     image: "/img/playground/example-5.jpg",
     presetId: "onyx",
-    themeVariant: "dark",
+    themeVariant: "light",
     applyScene: async (chart) => {
       chart.setMainDrawMode("Line");
     },

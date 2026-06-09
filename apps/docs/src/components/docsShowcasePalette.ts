@@ -5,12 +5,12 @@ const chart = tradingDark?.chart.dark;
 
 /** Runtime hex palette for docs chart demos — aligned with the Trading Dark preset. */
 export const docsShowcasePalette = {
-  background: chart?.background ?? "#131722",
-  accent: chart?.accent ?? "#2962FF",
-  tool: chart?.tool ?? "#787B86",
-  success: chart?.candleUp ?? "#26A69A",
-  danger: chart?.candleDown ?? "#EF5350",
-  crosshair: chart?.crosshair ?? "#2962FF",
+  background: chart?.background ?? "#0B0C10",
+  accent: chart?.accent ?? "#00C8C8",
+  tool: chart?.tool ?? "#78909C",
+  success: chart?.candleUp ?? "#00C8C8",
+  danger: chart?.candleDown ?? "#DC0464",
+  crosshair: chart?.crosshair ?? "#00C8C8",
   warning: "#F0B429",
   violet: "#C084FC",
   violetSoft: "#A78BFA",

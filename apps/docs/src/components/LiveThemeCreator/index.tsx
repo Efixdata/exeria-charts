@@ -14,6 +14,7 @@ import {
   cloneVariantPalette,
   buildChartTheme,
   buildUiTheme,
+  deriveCandleStrokeColors,
   formatCodeBlock,
   formatApplySnippet,
   capitalizeThemeVariant,
@@ -22,6 +23,7 @@ import {
   previewInstrument,
 } from "../themeCreator/core";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";
+import { ColorFieldInput } from "../ColorFieldInput";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
@@ -180,13 +182,21 @@ export default function LiveThemeCreator() {
   };
 
   const handleChartColorChange = (key: ChartColorKey, value: string) => {
-    setChartColorsByVariant((current) => ({
-      ...current,
-      [themeVariant]: {
+    setChartColorsByVariant((current) => {
+      const nextVariantColors = {
         ...current[themeVariant],
         [key]: value,
-      },
-    }));
+      };
+
+      if (key === "candleUp" || key === "candleDown" || key === "background") {
+        Object.assign(nextVariantColors, deriveCandleStrokeColors(nextVariantColors, themeVariant));
+      }
+
+      return {
+        ...current,
+        [themeVariant]: nextVariantColors,
+      };
+    });
   };
 
   const handleUiColorChange = (key: UiColorKey, value: string) => {
@@ -400,30 +410,21 @@ function ColorControlRow({
   onChange: (value: string) => void;
 }) {
   return (
-    <label style={styles.controlRow}>
+    <div style={styles.controlRow}>
       <div style={styles.controlCopy}>
         <span style={styles.controlTitle}>{label}</span>
         <span style={styles.controlDescription}>{description}</span>
       </div>
 
-      <div style={styles.controlInputs}>
-        <input
-          type="color"
-          value={value}
-          onChange={(event) => onChange(event.target.value.toUpperCase())}
-          style={styles.colorPicker}
-          aria-label={label}
-        />
-
-        <input
-          type="text"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          style={styles.colorValueInput}
-          spellCheck={false}
-        />
-      </div>
-    </label>
+      <ColorFieldInput
+        style={styles.controlInputs}
+        swatchStyle={styles.colorPicker}
+        hexStyle={styles.colorValueInput}
+        value={value}
+        onChange={onChange}
+        swatchAriaLabel={label}
+      />
+    </div>
   );
 }
 

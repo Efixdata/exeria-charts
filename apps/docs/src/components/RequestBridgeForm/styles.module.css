@@ -1,0 +1,91 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  color: var(--doc-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.fieldInput,
+.fieldTextarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--doc-text) 28%, var(--doc-border));
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font-family: var(--ifm-font-family-base);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+html[data-theme="dark"] .fieldInput,
+html[data-theme="dark"] .fieldTextarea {
+  border-color: color-mix(in srgb, var(--doc-text) 36%, var(--doc-border));
+}
+
+.fieldInput:focus-visible,
+.fieldTextarea:focus-visible,
+.form button:focus-visible {
+  outline: none;
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-muted-bg);
+}
+
+.fieldTextarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.successPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.successTitle {
+  margin: 0;
+  color: var(--doc-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.successText {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+}

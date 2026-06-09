@@ -1,0 +1,24 @@
+{
+  "id": "data-bridges/partner-equities",
+  "title": "Partner equities bridge",
+  "description": "Connect partner US equities market data to Exeria Charts.",
+  "source": "@site/docs/data-bridges/partner-equities.mdx",
+  "sourceDirName": "data-bridges",
+  "slug": "/data-bridges/partner-equities",
+  "permalink": "/docs/data-bridges/partner-equities",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "Partner equities bridge",
+    "description": "Connect partner US equities market data to Exeria Charts."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "CoinGecko bridge",
+    "permalink": "/docs/data-bridges/coingecko"
+  }
+}

@@ -1387,6 +1387,7 @@ const Renderer: CoreRendererConstructor = function (
     ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
     ctx.fillStyle = resolveThemeColor("timeAxisTextColor", "primaryTextColor");
     ctx.lineWidth = 1;
+    const previousTextBaseline = ctx.textBaseline;
     ctx.textBaseline = "middle";
     ctx.font = WEBRCP.utils.colorManager.getFont("time", "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif");
 
@@ -1428,6 +1429,8 @@ const Renderer: CoreRendererConstructor = function (
       ctx.lineTo(tickX + 0.5, tickY + 6);
       ctx.stroke();
     }
+
+    ctx.textBaseline = previousTextBaseline;
   };
 
   this.renderHandler = function (ctx, model, panel) {
@@ -1661,6 +1664,8 @@ const Renderer: CoreRendererConstructor = function (
     }
 
     ctx.save();
+    const previousTextBaseline = ctx.textBaseline;
+    ctx.textBaseline = "alphabetic";
     ctx.beginPath();
     ctx.rect(
       0,
@@ -1747,6 +1752,7 @@ const Renderer: CoreRendererConstructor = function (
       panel._legendHits = hits;
     }
 
+    ctx.textBaseline = previousTextBaseline;
     ctx.restore();
 
     return true;

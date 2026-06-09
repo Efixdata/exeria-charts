@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import ChartQuickstartExample from "../components/ChartQuickstartExample";
-import CryptoTerminalCaseStudyChart from "../components/CryptoTerminalCaseStudyChart";
+import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./index.module.css";
 
 const features = [
@@ -103,16 +103,16 @@ const pricingPlans = [
     featured: false,
   },
   {
-    name: "Plugin Store",
-    price: "Perpetual license per project",
+    name: "Data Bridges",
+    price: "Free connectors for instant market data",
     features: [
-      { label: "One license per app or codebase", emphasized: true },
-      { label: "Advanced technical indicators", emphasized: false },
-      { label: "Advanced drawing & annotation tools", emphasized: false },
-      { label: "Data bridge plugins", emphasized: false },
+      { label: "Free plugins for open data providers", emphasized: true },
+      { label: "Complimentary premium bridges via partners", emphasized: false },
+      { label: "Seamless REST & WebSocket integration", emphasized: false },
+      { label: "Ready to deploy out of the box", emphasized: false },
     ],
-    cta: "Browse Plugins",
-    href: "/docs/guides/licensing#plugin-licenses",
+    cta: "Explore Data Bridges",
+    href: "/data-bridges",
     variant: "primary" as const,
     featured: true,
   },
@@ -136,28 +136,52 @@ const caseStudies = [
   {
     id: "crypto-terminal",
     title: "The Ultimate Crypto Terminal.",
-    body: "Deliver the institutional trading experience your power users demand. Leverage our robust windowing framework to build fully customizable workspaces.",
+    body: "Deliver the institutional-grade trading experience. Seamlessly handle millions of simultaneous tick streams and execute trades at ultra-low latency. Perfect for centralized exchanges and high-performance DEXs.",
+    image: "/img/case-studies/crypto-terminal.jpg",
+    imageAlt: "Crypto exchange terminal with neon candlesticks, volume profile, and Fibonacci grid",
     href: "/docs/getting-started/react",
-  },
-  {
-    id: "quant-analytics",
-    title: "Quant Analytics Dashboard.",
-    body: "Visualize complex backtest results, equity curves, and proprietary indicators over millions of historical ticks without browser lag.",
-    href: "/docs/getting-started/vanilla",
   },
   {
     id: "forex-platforms",
     title: "Next-Gen Forex Platforms.",
-    body: "Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements and dynamic bid/ask spreads with zero latency.",
-    href: "/docs/getting-started/vite-react",
+    body: "Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements, dynamic bid/ask spreads, and complex technical indicators with zero latency and pixel-perfect precision.",
+    image: "/img/case-studies/forex-platforms.jpg",
+    imageAlt: "Forex chart with Heikin-Ashi candles and advanced drawing tools",
+    href: "/docs/drawing-tools/catalog",
   },
   {
-    id: "mobile-native",
-    title: "Mobile and touch-ready charts.",
-    body: "Pan, pinch, compact layout, and dense toolbar chrome on narrow viewports. Follow the mobile integration guide for viewport, safe-area, and QA setup.",
+    id: "fintech-integration",
+    title: "Consumer-Ready Fintech Integration.",
+    body: "Embed stunning, minimalist charts directly into your banking or wealth management app. Designed for simplicity, our touch-first, lightweight charts provide a flawless mobile experience for retail investors.",
+    image: "/img/case-studies/fintech-integration.jpg",
+    imageAlt: "Light-themed area chart for a consumer fintech app",
     href: "/docs/advanced/mobile-and-responsive",
   },
-];
+  {
+    id: "quant-analytics",
+    title: "Quant Analytics Dashboard.",
+    body: "Visualize complex backtest results, equity curves, and proprietary algorithmic indicators over millions of historical ticks. Experience sub-millisecond rendering speed without a hint of browser lag.",
+    image: "/img/case-studies/quant-analytics.jpg",
+    imageAlt: "Quant dashboard with trade markers and equity curve panel",
+    href: "/docs/scripts/strategies/overview",
+  },
+  {
+    id: "market-news",
+    title: "Interactive Market News.",
+    body: "Keep your readers engaged with dynamic, embeddable charts. Showcase comparative asset performance, historical trends, and live quotes inside your articles with a minimal footprint and maximum clarity.",
+    image: "/img/case-studies/market-news.jpg",
+    imageAlt: "Comparison chart showing asset performance against a benchmark index",
+    href: "/docs/chart-usage/multi-instrument-charts",
+  },
+  {
+    id: "screener-signals",
+    title: "Real-Time Alert & Signal Terminal.",
+    body: "Transform market noise into actionable intelligence. Generate real-time trade signals, visualize alert triggers with clarity, and display complex technical strategies instantly.",
+    image: "/img/case-studies/screener-signals.jpg",
+    imageAlt: "Market screener chart with buy and sell signal labels",
+    href: "/docs/scripts/strategies/key-strategies",
+  },
+] as const;
 
 const NPM_COMMAND = "npm install @exeria/charts";
 
@@ -202,15 +226,15 @@ export default function Home(): JSX.Element {
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
-      <main className={styles.page}>
-        <section className={styles.hero}>
+      <main className={layoutStyles.page}>
+        <section className={layoutStyles.hero}>
           <div className={styles.badge}>🏆 Winner of the Benzinga Fintech Awards</div>
-          <h1 className={styles.title}>
+          <h1 className={layoutStyles.title}>
             Build Modern Charts
             <br />
             in Minutes.
           </h1>
-          <p className={styles.subtitle}>
+          <p className={layoutStyles.subtitle}>
             The high-performance open source charting library that developers love using. Integrate
             once, deploy everywhere. Zero dependencies.
           </p>
@@ -248,8 +272,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Write once. Fit the product around it.</h2>
             <p>
               Start with the runtime. Add the React controls when they save time. Keep the surface
@@ -265,7 +289,7 @@ export default function Home(): JSX.Element {
         </section>
 
         <section id="case-studies" className={styles.caseStudiesSection}>
-          <div className={styles.sectionHeader}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Engineered for every use case.</h2>
           </div>
 
@@ -273,15 +297,12 @@ export default function Home(): JSX.Element {
             {caseStudies.map((item) => (
               <article key={item.title} className={styles.caseCard}>
                 <div className={styles.caseVisual}>
-                  {isMounted ? (
-                    item.id === "crypto-terminal" ? (
-                      <CryptoTerminalCaseStudyChart />
-                    ) : (
-                      <ChartQuickstartExample compact />
-                    )
-                  ) : (
-                    <div className={styles.caseChartFallback}>Loading chart...</div>
-                  )}
+                  <img
+                    className={styles.caseImage}
+                    src={item.image}
+                    alt={item.imageAlt}
+                    loading="lazy"
+                  />
                 </div>
                 <div className={styles.caseContent}>
                   <h3>{item.title}</h3>
@@ -296,8 +317,8 @@ export default function Home(): JSX.Element {
         </section>
 
         <section id="pricing" className={styles.pricingSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Free open-source core. Pro plugins to move faster.</h2>
+          <div className={layoutStyles.sectionHeader}>
+            <h2>Free open-source core. Instant data bridges to move faster.</h2>
             <p>
               Use the full charting engine under AGPL v3 for open and experimental work. Need a
               proprietary product? A commercial license lets you keep your code closed—with
@@ -333,8 +354,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Start with the guide that matches the job.</h2>
           </div>
 

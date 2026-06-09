@@ -40,6 +40,8 @@ export default function createBBANDIndicatorScript(FUSION: CoreFusionStatic) {
         upperField: "BBUpper",
         lowerField: "BBLower",
         color: "#5b6f8b",
+        bandFillColor: "#5b6f8b",
+        bandFillOpacity: 0.3,
         width: 1,
         dash: [0, 0],
       },

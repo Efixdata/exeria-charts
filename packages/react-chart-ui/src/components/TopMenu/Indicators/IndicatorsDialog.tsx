@@ -133,7 +133,9 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
     ));
 
     return (
-      <div className={layoutStyles.catalogListPanel}>
+      <div
+        className={`${layoutStyles.catalogListPanel} ${isCompact ? layoutStyles.catalogListPanelCompact : ""}`}
+      >
         {listItems.length === 0 ? (
           <div className={layoutStyles.emptyState}>{t("noResults", "NO RESULTS")}</div>
         ) : (

@@ -58,6 +58,7 @@ export type {
   ChartGridLineStyle,
   ChartGridMode,
   ChartInstrumentSettingsItem,
+  ChartInstrumentSymbolAppearance,
   ChartLineFillMode,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
@@ -275,6 +276,8 @@ export interface ChartEventPayloads {
   VALUE_AXIS_WIDTH_CHANGE: number;
   LOCALE_CHANGE: { locale: string };
   ENVIRONMENT_CHANGE: ChartEnvironmentSnapshot;
+  SELECTED_INSTRUMENT_CHANGE: { seriesId: string };
+  INSTRUMENT_DRAW_MODE_CHANGE: { seriesId: string; drawMode: DrawMode };
 }
 
 export interface ChartOptions {
@@ -314,6 +317,11 @@ export interface ChartInstance {
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;
   setMainDrawMode(mode: DrawMode): void;
+  getMainSeriesId(): string;
+  getSelectedInstrumentSeriesId(): string;
+  setSelectedInstrumentSeriesId(seriesId: string): void;
+  getInstrumentDrawMode(seriesId?: string): DrawMode;
+  setInstrumentDrawMode(mode: DrawMode, seriesId?: string): void;
   getValueAxisMode(): ValueAxisMode;
   setValueAxisMode(mode: ValueAxisMode): void;
   getValueAxisWidth(): number;
@@ -331,9 +339,12 @@ export interface ChartInstance {
   getChartInstrumentSettings(): import("./chartSettings").ChartInstrumentSettingsItem[];
   applyChartInstrumentSettings(
     seriesId: string,
-    settings: Pick<
-      import("./chartSettings").ChartInstrumentSettingsItem,
-      "lineColor" | "lineDash"
+    settings: Partial<
+      Pick<
+        import("./chartSettings").ChartInstrumentSettingsItem,
+        "lineColor" | "lineDash" | "drawMode"
+      > &
+        import("./chartSettings").ChartInstrumentSymbolAppearance
     >,
   ): void;
   applyChartTheme(theme: ChartTheme, themeVariant?: string): void;

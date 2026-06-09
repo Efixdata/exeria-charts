@@ -1,0 +1,28 @@
+{
+  "id": "data-bridges/coingecko",
+  "title": "CoinGecko bridge",
+  "description": "Connect CoinGecko market data to Exeria Charts.",
+  "source": "@site/docs/data-bridges/coingecko.mdx",
+  "sourceDirName": "data-bridges",
+  "slug": "/data-bridges/coingecko",
+  "permalink": "/docs/data-bridges/coingecko",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "CoinGecko bridge",
+    "description": "Connect CoinGecko market data to Exeria Charts."
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Binance bridge",
+    "permalink": "/docs/data-bridges/binance"
+  },
+  "next": {
+    "title": "Partner equities bridge",
+    "permalink": "/docs/data-bridges/partner-equities"
+  }
+}

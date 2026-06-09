@@ -224,7 +224,7 @@ export const TopMenuOverflowMenu = (props: TopMenuOverflowMenuProps) => {
                   type="button"
                   className={[
                     styles.menuItem,
-                    item.active === true ? styles.menuItemActive : "",
+                    item.active === true && !item.toggle ? styles.menuItemActive : "",
                     item.toggle && !item.active ? styles.menuItemInactive : "",
                   ]
                     .filter(Boolean)
