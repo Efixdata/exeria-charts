@@ -34,6 +34,9 @@ type ChartThemePreviewProps = {
   sceneApplyKey?: string | null;
   onChartReady?: ChartSceneAction;
   minHeight?: number;
+  aspectRatio?: string;
+  /** When true, sizing is controlled by `className` CSS (no inline height/aspect-ratio). */
+  fluidSize?: boolean;
   className?: string;
 };
 
@@ -46,6 +49,8 @@ export default function ChartThemePreview({
   sceneApplyKey,
   onChartReady,
   minHeight = 520,
+  aspectRatio,
+  fluidSize = false,
   className,
 }: ChartThemePreviewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -203,8 +208,11 @@ export default function ChartThemePreview({
   return (
     <DocChartEmbed
       {...(className ? { className } : {})}
-      minHeight={minHeight}
-      height={minHeight}
+      {...(fluidSize
+        ? {}
+        : aspectRatio
+          ? { aspectRatio }
+          : { minHeight, height: minHeight })}
       background={chartColors.background}
       padded
       loading={isChartLoading}

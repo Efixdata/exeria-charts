@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import ChartQuickstartExample from "../components/ChartQuickstartExample";
 import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./index.module.css";
 
@@ -218,11 +216,6 @@ function CommandBox(): JSX.Element {
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
@@ -248,12 +241,17 @@ export default function Home(): JSX.Element {
             </a>
           </div>
 
-          <div className={styles.heroChartContainer}>
-            {isMounted ? (
-              <ChartQuickstartExample />
-            ) : (
-              <div className={styles.exampleFallback}>Loading live chart example...</div>
-            )}
+          <div className={styles.heroVideoContainer}>
+            <div className={styles.heroVideo}>
+              <div className={styles.heroVideoPlaceholder} aria-label="Product demo video">
+                <span className={styles.heroVideoPlayIcon} aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+                <p className={styles.heroVideoLabel}>Demo video</p>
+              </div>
+            </div>
           </div>
 
           <CommandBox />

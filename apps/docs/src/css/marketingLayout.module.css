@@ -1,4 +1,6 @@
 .page {
+  --marketing-max-width: 1200px;
+  --marketing-inline-padding: 24px;
   background: var(--doc-bg);
   color: var(--doc-text);
   font-family: var(--ifm-font-family-base);
@@ -7,8 +9,11 @@
 
 .hero,
 .section {
-  width: min(1200px, calc(100% - 48px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--marketing-max-width);
   margin: 0 auto;
+  padding-inline: var(--marketing-inline-padding);
 }
 
 .hero {
@@ -79,6 +84,10 @@
 }
 
 @media (max-width: 768px) {
+  .page {
+    --marketing-inline-padding: 20px;
+  }
+
   .hero {
     padding: 140px 0 60px;
   }

@@ -26,9 +26,15 @@
   margin-bottom: 64px;
 }
 
-.heroChartContainer {
+.heroVideoContainer {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
+}
+
+.heroVideo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   border-radius: var(--doc-radius-lg);
   background: var(--doc-surface);
   border: 1px solid var(--doc-border);
@@ -36,8 +42,51 @@
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.1);
 }
 
-html[data-theme="dark"] .heroChartContainer {
+html[data-theme="dark"] .heroVideo {
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+
+.heroVideoPlaceholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--doc-chart-surface);
+  color: var(--doc-text-secondary);
+  cursor: default;
+}
+
+.heroVideoPlayIcon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--doc-text) 12%, transparent);
+  border: 1px solid var(--doc-border);
+  color: var(--doc-text);
+}
+
+.heroVideoPlayIcon svg {
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+}
+
+.heroVideoLabel {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--doc-text-secondary);
 }
 
 .commandBox {
@@ -70,9 +119,11 @@ html[data-theme="dark"] .heroChartContainer {
 }
 
 .featuresSection {
-  width: min(1200px, calc(100% - 48px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--marketing-max-width, 1200px);
   margin: 0 auto;
-  padding: 80px 0 0;
+  padding: 80px var(--marketing-inline-padding, 24px) 0;
   scroll-margin-top: 88px;
 }
 
@@ -135,16 +186,20 @@ html[data-theme="dark"] .heroChartContainer {
 }
 
 .caseStudiesSection {
-  width: min(1200px, calc(100% - 48px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--marketing-max-width, 1200px);
   margin: 0 auto;
-  padding: 120px 0 0;
+  padding: 120px var(--marketing-inline-padding, 24px) 0;
   scroll-margin-top: 88px;
 }
 
 .pricingSection {
-  width: min(1200px, calc(100% - 48px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--marketing-max-width, 1200px);
   margin: 0 auto;
-  padding: 120px 0 0;
+  padding: 120px var(--marketing-inline-padding, 24px) 0;
   scroll-margin-top: 88px;
 }
 
@@ -316,7 +371,7 @@ html[data-theme="light"] .pricingCta.pricingCtaOutlined:hover {
 .caseVisual {
   position: relative;
   width: 100%;
-  height: 300px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--doc-surface-elevated);
   border-bottom: 1px solid var(--doc-border);
@@ -364,15 +419,6 @@ html[data-theme="light"] .pricingCta.pricingCtaOutlined:hover {
   color: var(--doc-accent);
   text-decoration: none;
   gap: 8px;
-}
-
-.exampleFallback {
-  min-height: 420px;
-  display: grid;
-  place-items: center;
-  border-radius: calc(var(--doc-radius-lg) - 6px);
-  background: var(--doc-chart-surface);
-  color: var(--doc-text-secondary);
 }
 
 @media (max-width: 1024px) {
@@ -424,10 +470,6 @@ html[data-theme="light"] .pricingCta.pricingCtaOutlined:hover {
 
   .section {
     padding-top: 96px;
-  }
-
-  .heroChartContainer {
-    padding: 16px;
   }
 
   .platformsLine span {

@@ -315,7 +315,7 @@ export default function Playground() {
             usePresetTemplate={usePresetOnly}
             sceneApplyKey={sceneApplyKey}
             onChartReady={chartSceneAction}
-            minHeight={560}
+            minHeight={675}
             className={styles.chartPreview}
           />
         </section>

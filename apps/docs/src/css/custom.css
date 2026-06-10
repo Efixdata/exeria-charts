@@ -127,6 +127,7 @@ body {
   color: var(--doc-text);
   font-family: var(--ifm-font-family-base);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a {

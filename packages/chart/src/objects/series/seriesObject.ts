@@ -176,22 +176,23 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     if (model.periodWidth < 1) {
       switch (renderAs.toLowerCase()) {
+        case "ohlc":
+        case "bars":
+          return renderAs;
         case "histogram":
           return "Histogram";
-          break;
         case "volume histogram":
           return "Volume Histogram";
-          break;
         case "line and histogram":
           return "ChartShape";
-          break;
         case "band":
           return "Band";
-          break;
         default:
           return "Line";
       }
-    } else return renderAs;
+    }
+
+    return renderAs;
   };
 
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
