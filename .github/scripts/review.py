@@ -25,10 +25,16 @@ def main():
 
     # 2. Pobranie zmian w kodzie (diff)
     diff_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
-    diff_req = urllib.request.Request(diff_url, headers={
+    
+    # DODANE: Wymagane nagłówki dla API GitHuba (User-Agent i wersja API)
+    diff_headers = {
         "Authorization": f"Bearer {github_token}",
-        "Accept": "application/vnd.github.v3.diff"
-    })
+        "Accept": "application/vnd.github.diff",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "Gemini-Code-Review-Bot"
+    }
+    
+    diff_req = urllib.request.Request(diff_url, headers=diff_headers)
     
     try:
         with urllib.request.urlopen(diff_req) as response:
@@ -77,14 +83,20 @@ def main():
     print("💬 Próbuję dodać komentarz do Pull Requesta...")
     comment_url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
     comment_payload = {"body": f"### 🤖 Gemini 3.1 Pro Code Review\n\n{review_text}"}
+    
+    # DODANE: Wymagane nagłówki dla publikacji komentarza
+    comment_headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "Gemini-Code-Review-Bot"
+    }
+    
     comment_req = urllib.request.Request(
         comment_url, 
         method="POST", 
         data=json.dumps(comment_payload).encode('utf-8'), 
-        headers={
-            "Authorization": f"Bearer {github_token}",
-            "Accept": "application/vnd.github+json"
-        }
+        headers=comment_headers
     )
     
     try:
@@ -97,6 +109,5 @@ def main():
     except Exception as e:
         print(f"❌ Błąd podczas publikowania komentarza: {e}")
 
-# Te dwie linijki są kluczowe, bez nich skrypt nic nie zrobi!
 if __name__ == "__main__":
     main()
