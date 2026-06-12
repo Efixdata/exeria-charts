@@ -1,4 +1,5 @@
 import * as React from "react";
+import { getOverlayPortalRoot } from "./device";
 import { useOnClick } from "./hooksHelper";
 import styled from "styled-components";
 
@@ -64,11 +65,28 @@ export const Modal = (props: ModalProps) => {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (props.visible) {
-      document.body.classList.add("overFlowHidden");
+    if (!props.visible) {
+      return;
     }
+
+    const portalRoot = getOverlayPortalRoot();
+    const targets: HTMLElement[] =
+      portalRoot === document.body ? [document.body] : [document.body, portalRoot];
+    const previous = targets.map((element) => ({
+      element,
+      overflow: element.style.overflow,
+    }));
+
+    targets.forEach((element) => {
+      element.classList.add("overFlowHidden");
+      element.style.overflow = "hidden";
+    });
+
     return () => {
-      document.body.classList.remove("overFlowHidden");
+      previous.forEach(({ element, overflow }) => {
+        element.style.overflow = overflow;
+        element.classList.remove("overFlowHidden");
+      });
     };
   }, [props.visible]);
 

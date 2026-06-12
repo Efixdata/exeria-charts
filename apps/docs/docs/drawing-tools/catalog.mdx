@@ -1,80 +1,148 @@
 ---
 sidebar_position: 2
 title: Catalog
-description: Reference the current drawing-tool types, their runtime keys, anchor counts, and creation paths.
+description: Every drawing tool name, anchor count, and how to create it — quick lookup.
 ---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Drawing tools catalog
 
-This page tracks the drawing-tool types currently visible in the React UI registry plus the helper-only runtime overlays.
+Use this page as a **lookup table**. Not sure which `type` string to pass to `drawTool()`? Find it here, then open the grouped guide for a copy-paste example.
 
-## Visible in the current React UI menu
+<DrawingToolShowcase
+  visiblePresets={["trendLine", "hLine", "fibonLines", "box", "timeRange", "priceTag"]}
+  initialPreset="trendLine"
+/>
 
-| Runtime type | UI label | Anchors | Typical use | Creation path |
-| --- | --- | ---: | --- | --- |
-| `trendLine` | Trend line | 2 | directional trend and support/resistance projection | `drawTrendLine()` or `drawTool()` |
-| `trendRay` | Trend ray | 2 | diagonal ray from origin through second point | `drawTool()` |
-| `parallelChannel` | Parallel Channel | 3 | channel projection | `drawTool()` |
-| `pitchfork` | Pitchfork | 3 | Andrews median-line fork from pivot + baseline | `drawTool()` |
-| `regressionChannel` | Regression channel | 2 | linear regression channel with ±σ bands over a time range | `drawTool()` |
-| `gannFan` | Gann fan | 2 | Gann angle rays from origin (1x1 set by second anchor) | `drawTool()` |
-| `gannGrid` | Gann grid | 2 | Gann square grid (0.25 / 0.382 / 0.5 / 0.618 / 0.75) | `drawTool()` |
-| `gannBox` | Gann box | 2 | Gann square grid plus internal fan diagonals | `drawTool()` |
-| `hLine` | Horizontal line | 1 | price levels | `drawTool()` |
-| `hRay` | Horizontal ray | 1 | horizontal ray to the right from anchor | `drawTool()` |
-| `vLine` | Vertical line | 1 | time markers | `drawTool()` |
-| `vRay` | Vertical ray | 1 | vertical ray downward from anchor | `drawTool()` |
-| `crossLine` | Cross line | 1 | horizontal + vertical lines through one point | `drawTool()` |
-| `mLine` | Multi-line | 3 | custom multi-point line construction | `drawTool()` |
-| `fibonLines` | Fibonacci Retracement | 2 | retracement levels between two swing points | `drawTool()` |
-| `fibonExtension` | Fibonacci Extension | 2 | extension levels beyond 100% of the swing | `drawTool()` |
-| `fibonTimeZone` | Fibonacci Time Zone | 2 | vertical Fibonacci time projections from two anchors | `drawTool()` |
-| `fibonChannel` | Fibonacci channel | 3 | parallel Fibonacci levels between a trend line and channel width | `drawTool()` |
-| `fibonArcs` | Fibonacci arcs | 2 | elliptical Fibonacci arcs from center through radius anchor | `drawTool()` |
-| `fibonCircles` | Fibonacci circles | 2 | concentric Fibonacci circles from center through radius anchor | `drawTool()` |
-| `abcd` | Abcd tool | 3 | measured-move projection | `drawTool()` |
-| `arrow` | Arrow | 2 | directional callouts | `drawTool()` |
-| `brush` | Brush | dynamic | freehand stroke (click + drag) | `drawTool()` |
-| `ellipse` | Ellipse | 2 | highlight area | `drawTool()` |
-| `triangle` | Triangle | 3 | geometric area highlight | `drawTool()` |
-| `box` | Rectangle | 2 | range box or zone highlight | `drawTool()` |
-| `cycle` | Cycle | 2 | repeating interval visualization | `drawTool()` |
-| `hRange` | Horizontal Range | 2 | price-span measurement | `drawTool()` |
-| `vRange` | Vertical Range | 2 | time-span measurement | `drawTool()` |
-| `timeRange` | Time range | 2 | session or review window on the time axis | `drawTool()` or `drawTimeRange()` |
-| `priceTag` | Price tag | 1 | pinned price label | `drawTool()` |
-| `textAnnotation` | Text | 2 | freeform text label | `drawTool()` |
-| `longShortPosition` | Long / Short position | 3 | trade plan: drag **corner 1 → corner 2** (rectangle), then **Entry** (like Box + ABCD) | `drawTool()` or `drawLongShortPosition()` |
+## How to read this catalog
 
-## Runtime shapes documented here but not shown in the current menu
+| Column | Meaning |
+| --- | --- |
+| **Runtime type** | String for `drawTool({ type: "…" })` |
+| **Anchors** | How many points you place |
+| **Creation** | Helper shortcut, if any |
 
-| Runtime type | Current surface | Typical use | Creation path |
-| --- | --- | --- | --- |
-| `timeBet` | helper method | risk-reward or outcome window | `drawTimeBet()` |
-## Workflow controls
+**Helper first** when available (`drawTrendLine` is easier than raw `drawTool`). Otherwise use `drawTool({ type, anchors, … })`.
 
-The left toolbar exposes two chart-wide drawing controls:
+## Beginner picks (start here)
 
-| Control | Location | Behavior |
+| Tool | Type | Use |
 | --- | --- | --- |
-| **Magnet** | left toolbar (above drawing tools) | When enabled, new and edited drawing anchors snap to the nearest OHLC value on the candle under the cursor. Per-tool `sticky: true` in `DrawToolConfig` still forces snap even when the global magnet is off. |
-| **Lock all / Unlock all** | left toolbar and **Chart settings → Layers → Drawings** | Sets `locked: true` on every drawing shape on all panels. Locked drawings stay visible and selectable, but anchors cannot be dragged until unlocked. Individual drawings can also be locked from the drawing edit dialog. |
+| Trend line | `trendLine` | Connect two swings — [guide](./trend-line) |
+| Horizontal level | `hLine` | Support / resistance price |
+| Fibonacci | `fibonLines` | Retracement levels — [guide](./levels-and-channels) |
+| Rectangle | `box` | Highlight a zone — [guide](./shapes-and-annotations) |
+| Time window | `timeRange` | Shade a session — [guide](./lines-ranges-and-tags) |
 
-Programmatic API:
+---
 
-```js
+## Lines
+
+| Runtime type | Label | Anchors | Creation |
+| --- | --- | ---: | --- |
+| `trendLine` | Trend line | 2 | `drawTrendLine()` or `drawTool()` |
+| `trendRay` | Trend ray | 2 | `drawTool()` |
+| `hLine` | Horizontal line | 1 | `drawTool()` |
+| `hRay` | Horizontal ray | 1 | `drawTool()` |
+| `vLine` | Vertical line | 1 | `drawTool()` |
+| `vRay` | Vertical ray | 1 | `drawTool()` |
+| `crossLine` | Cross line | 1 | `drawTool()` |
+| `mLine` | Multi-line | 3 | `drawTool()` |
+
+Grouped examples: [Lines, ranges, and tags](./lines-ranges-and-tags).
+
+---
+
+## Levels, channels, and projections
+
+| Runtime type | Label | Anchors | Creation |
+| --- | --- | ---: | --- |
+| `fibonLines` | Fibonacci retracement | 2 | `drawTool()` |
+| `fibonExtension` | Fibonacci extension | 2 | `drawTool()` |
+| `fibonTimeZone` | Fibonacci time zone | 2 | `drawTool()` |
+| `fibonChannel` | Fibonacci channel | 3 | `drawTool()` |
+| `fibonArcs` | Fibonacci arcs | 2 | `drawTool()` |
+| `fibonCircles` | Fibonacci circles | 2 | `drawTool()` |
+| `parallelChannel` | Parallel channel | 3 | `drawTool()` |
+| `pitchfork` | Pitchfork | 3 | `drawTool()` |
+| `regressionChannel` | Regression channel | 2 | `drawTool()` |
+| `gannFan` | Gann fan | 2 | `drawTool()` |
+| `gannGrid` | Gann grid | 2 | `drawTool()` |
+| `gannBox` | Gann box | 2 | `drawTool()` |
+| `abcd` | ABCD | 3 | `drawTool()` |
+
+Grouped examples: [Levels and channels](./levels-and-channels).  
+Every tool described: [Complete tool reference](./tool-reference).
+
+---
+
+## Volume and trade planning
+
+| Runtime type | Label | Anchors | Creation |
+| --- | --- | ---: | --- |
+| `fixedRangeVolumeProfile` | Volume profile | 2 | `drawTool()` |
+| `longShortPosition` | Long / short plan | 3 | `drawLongShortPosition()` or `drawTool()` |
+
+`fixedRangeVolumeProfile` draws a volume histogram between two time anchors (POC + value area).  
+`longShortPosition` is for paper-trade entry/stop/target — not live broker lines.
+
+---
+
+## Ranges, sessions, and tags
+
+| Runtime type | Label | Anchors | Creation |
+| --- | --- | ---: | --- |
+| `hRange` | Horizontal range | 2 | `drawTool()` |
+| `vRange` | Vertical range | 2 | `drawTool()` |
+| `timeRange` | Time range | 2 | `drawTimeRange()` or `drawTool()` |
+| `priceTag` | Price tag | 1 | `drawTool()` |
+| `timeBet` | Time bet overlay | — | `drawTimeBet()` only |
+
+Grouped examples: [Lines, ranges, and tags](./lines-ranges-and-tags).
+
+---
+
+## Shapes and text
+
+| Runtime type | Label | Anchors | Creation |
+| --- | --- | ---: | --- |
+| `brush` | Brush (freehand) | dynamic | `drawTool()` |
+| `arrow` | Arrow | 2 | `drawTool()` |
+| `ellipse` | Ellipse | 2 | `drawTool()` |
+| `triangle` | Triangle | 3 | `drawTool()` |
+| `box` | Rectangle | 2 | `drawTool()` |
+| `cycle` | Cycle | 2 | `drawTool()` |
+| `textAnnotation` | Text | 2 | `drawTool()` |
+
+Grouped examples: [Shapes and annotations](./shapes-and-annotations).
+
+---
+
+## Toolbar controls
+
+| Control | Where | Effect |
+| --- | --- | --- |
+| **Magnet** | Left toolbar | Snap anchors to OHLC |
+| **Lock all** | Toolbar + Chart settings → Layers | Prevent dragging |
+| **Unlock all** | Same | Allow editing again |
+
+```ts
 chart.setDrawingMagnetEnabled(true);
-chart.getDrawingMagnetEnabled();
 chart.lockAllDrawings();
 chart.unlockAllDrawings();
-chart.getAllDrawingsLocked();
 ```
 
-Events: `DRAWING_MAGNET_CHANGE`, `DRAWINGS_LOCK_CHANGE`.
+---
 
-## Notes
+## Notes for integrators
 
-- The anchor counts above come from the current React UI tool definitions.
-- Tool types such as `fibonLines`, `abcd`, `box`, `cycle`, and `textAnnotation` accept extra runtime fields beyond the shared `DrawToolConfig` shape.
+- Anchor counts match the current ChartUI tool definitions.
+- Fibonacci, ABCD, and similar tools accept extra fields (`values`, `valuesState`, `fillBg`) beyond the shared config type — pass them through `drawTool()`.
+- Treat this catalog as a **name lookup**; behavior details live in the grouped pages and live showcase.
 
-Next step: use the grouped pages for practical examples rather than treating this page as the complete behavioral reference.
+## What is next?
+
+- [Complete tool reference](./tool-reference) — every type with live preview
+- [Overview](./overview) — anchors and helpers explained
+- [Drawing tools recipes](../tutorials/drawing-tools-recipes) — end-to-end tutorial

@@ -1,19 +1,13 @@
 import LIB from "./chartingCommons";
+import { formatDataPrice, trimInsignificantFractionZeros } from "./numberFormat";
+
+export { trimInsignificantFractionZeros };
 
 /** Minimum shared head length to enable compact ledger axis. */
 export const PRICE_AXIS_PREFIX_MIN_LENGTH = 2;
 
 /** Digits shown in the variable (suffix) column on compact axis. */
 export const COMPACT_AXIS_SUFFIX_DIGITS = 3;
-
-/** Strip trailing fractional zeros (e.g. 21650.00 → 21650). */
-export function trimInsignificantFractionZeros(text: string): string {
-  if (!text.includes(".")) {
-    return text;
-  }
-
-  return text.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
-}
 
 /** Full axis / last-price label (instrument precision, no compact suffix). */
 export function formatFullAxisPrice(value: number, precision: number): string {
@@ -26,7 +20,7 @@ export function formatFullAxisPrice(value: number, precision: number): string {
     return LIB.nFormatter(value, precision);
   }
 
-  return trimInsignificantFractionZeros(value.toFixed(precision));
+  return formatDataPrice(value, precision);
 }
 
 function parseFormattedPriceParts(formatted: string): {

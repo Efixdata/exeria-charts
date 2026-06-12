@@ -1,114 +1,285 @@
 ---
 sidebar_position: 1
 title: ChartInstance
-description: Reference the stable, typed public runtime surface returned by createChart().
+description: The typed public API returned by createChart() — lifecycle, data, settings, drawings, and events.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
+import ChartInstanceGenerated from "./_generated/chart-instance-api.mdx";
 
 # ChartInstance
 
-`createChart()` returns `ChartInstance`, the typed public runtime surface.
+`createChart()` returns **`ChartInstance`** — the stable, typed API for almost every integration.
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
+import { createChart, type ChartInstance } from "@exeria/charts";
 
-const chart = createChart({ container });
+const chart: ChartInstance = createChart({ container });
 ```
+
+Use this page as a **lookup table**. For step-by-step tasks, see [Chart usage](../chart-usage/).
+
+<GettingStartedDemo
+  variant="vanilla"
+  caption="ChartInstance is the handle to everything inside this chart."
+/>
 
 ## Lifecycle
 
-- `init(): void`
-- `destroy(): void`
+| Method | What it does |
+| --- | --- |
+| `init()` | Prepare canvases and internal state — call **once** after `createChart` |
+| `destroy()` | Tear down listeners and DOM — call on unmount or route leave |
+
+```ts
+chart.init();
+// … use chart …
+chart.destroy();
+```
+
+Guide: [Chart lifecycle](../core-concepts/chart-lifecycle).
+
+## Data — your API
+
+| Method | What it does |
+| --- | --- |
+| `setMainSeriesData(data, interval?, moveToEnd?)` | Replace main series candles (async) |
+| `appendMainSeriesData(data)` | Append older or newer candles to the main series |
+| `appendTick(tick, recalculate?)` | Push one live update (price or full OHLC) |
+| `appendTicks(ticks, recalculate?)` | Batch version of `appendTick` |
+| `getCurrentPrice()` | Last known tick, or `null` |
+
+```ts
+await chart.setMainSeriesData(candles, { symbol: "1h", milis: 3_600_000 });
+
+chart.appendTick({ stamp: Date.now(), price: 42_150 });
+```
+
+Guides: [Loading data](../chart-usage/loading-data), [Realtime updates](../chart-usage/realtime-updates).  
+Types: `Candle`, `Tick` — [Data model](../core-concepts/data-model).
+
+## Data — Data Connector
+
+| Method | What it does |
+| --- | --- |
+| `setDataAdapter(adapter)` | Attach a connector implementing `DataAdapter` |
+| `loadData(symbol, options)` | Fetch history through the adapter |
+| `subscribeToUpdates(symbol, callback?)` | Start live stream |
+| `unsubscribeFromUpdates()` | Stop live stream |
+
+```ts
+chart.setDataAdapter(connector);
+await chart.loadData("BTCUSDT", { interval: "1h", limit: 1000 });
+chart.subscribeToUpdates("BTCUSDT", (tick) => console.log(tick.c));
+```
+
+Contract: [Data Connectors](./data-connectors). Tutorial: [Connect with a Data Connector](../tutorials/connect-with-data-connector).
 
 ## Instrument and interval
 
-- `setInstrument(instrument): void`
-- `getInstrument(): Instrument | undefined`
-- `getInterval(): Interval | undefined`
-- `getCurrency(): string | undefined`
+| Method | What it does |
+| --- | --- |
+| `setInstrument(instrument)` | Set symbol metadata (name, intervals, precision) |
+| `getInstrument()` | Current instrument, or `undefined` |
+| `getInterval()` | Active interval object |
+| `getCurrency()` | Display currency string, if set |
 
-## Main-series data
+`Instrument` fields you often set:
 
-- `setMainSeriesData(data, interval?, moveToEnd?): Promise<void>`
-- `appendMainSeriesData(data): void`
-- `appendTick(tick, recalculate?): void`
-- `appendTicks(ticks, recalculate?): void`
+```ts
+chart.setInstrument({
+  symbol: "BTCUSDT",
+  name: "Bitcoin / Tether",
+  currency: "USDT",
+  precision: 2,
+  availableIntervals: [
+    { symbol: "1h", milis: 3_600_000 },
+    { symbol: "1d", milis: 86_400_000 },
+  ],
+});
+```
+
+## Multi-instrument (overlays)
+
+| Method | What it does |
+| --- | --- |
+| `getMainSeriesId()` | ID of the main price series |
+| `getSelectedInstrumentSeriesId()` | Which symbol is selected in the UI |
+| `setSelectedInstrumentSeriesId(seriesId)` | Select overlay for editing |
+| `getInstrumentDrawMode(seriesId?)` | Draw mode for main or overlay |
+| `setInstrumentDrawMode(mode, seriesId?)` | Candles vs line per series |
+| `getChartInstrumentSettings()` | Overlay symbols only (not main) |
+| `applyChartInstrumentSettings(seriesId, patch)` | Colors, dash, draw mode for overlay |
+
+Guide: [Multi-instrument charts](../chart-usage/multi-instrument-charts).
 
 ## Rendering and scale
 
-- `setMainDrawMode(mode): void`
-- `getValueAxisMode(): ValueAxisMode`
-- `setValueAxisMode(mode): void`
-- `getValueAxisWidth(): number`
-- `getAutoScale(): boolean`
-- `setAutoScale(autoScale): void`
+| Method | What it does |
+| --- | --- |
+| `setMainDrawMode(mode)` | Main series: `"OHLC"`, `"Line"`, `"Bars"`, … |
+| `getValueAxisMode()` | `"lin"`, `"log"`, or `"%"` |
+| `setValueAxisMode(mode)` | Switch Y-axis scale |
+| `getValueAxisWidth()` | Pixel width of price axis (for layout) |
+| `getAutoScale()` / `setAutoScale(bool)` | Fit Y axis to visible range |
+| `fit()` | Recalculate layout after resize |
+| `render()` / `renderOverlay()` | Force redraw (rare — chart usually auto-renders) |
 
-Operational behavior, mode values, and related events are documented in [Autoscale and value axis](../chart-usage/autoscale-and-value-axis).
+Guide: [Autoscale and value axis](../chart-usage/autoscale-and-value-axis), [Rendering and scales](../core-concepts/rendering-and-scales).
+
+## Chart settings (appearance)
+
+| Method | What it does |
+| --- | --- |
+| `getChartAppearanceSettings()` | Theme, grid, scales, last-price line, … |
+| `applyChartAppearanceSettings(settings)` | Apply appearance patch |
+| `applyChartTheme(theme, themeVariant?)` | Quick theme swap |
+| `getChartVolumeSettings()` / `applyChartVolumeSettings()` | Volume pane visibility and colors |
+| `exportChartSettingsTemplate(name?)` | JSON snapshot of user settings |
+| `importChartSettingsTemplate(template)` | Restore from snapshot |
+
+Guide: [Chart settings](../chart-usage/chart-settings). Tutorial: [Save and restore settings](../tutorials/save-and-restore-settings).
+
+## Layers — indicators, functions, strategies, drawings
+
+| Method | What it does |
+| --- | --- |
+| `getChartIndicatorSettings()` | List indicators with visibility flags |
+| `setChartIndicatorVisibility(id, visible)` | Show/hide indicator plot |
+| `setChartIndicatorPriceTagVisibility(id, visible)` | Show/hide price tag on scale |
+| `setChartIndicatorLocked(id, locked)` | Lock indicator from edits |
+| `removeChartIndicator(id)` | Remove indicator |
+| `getChartFunctionSettings()` | Same pattern for **functions** |
+| `setChartFunctionVisibility` / `setChartFunctionPriceTagVisibility` / `removeChartFunction` | Function layer controls |
+| `getChartStrategySettings()` | Strategy layer list |
+| `setChartStrategyVisibility` / `removeChartStrategy` | Strategy visibility |
+| `getChartDrawingSettings()` | User drawings list |
+| `setChartDrawingVisibility` / `removeChartDrawing` | Drawing visibility |
+| `getDrawingEditConfig(id)` / `applyDrawingEditSettings(id, patch)` | Edit one drawing's style |
+
+## Scripts (add / update indicators)
+
+| Method | What it does |
+| --- | --- |
+| `getScripts()` | Catalog of available script definitions |
+| `addScript(scriptKey, proto?)` | Add built-in or custom script |
+| `updateIndicator(scriptId, proto?)` | Change inputs after add |
+| `getIndicatorEditConfig(scriptId)` | Form schema for settings dialog |
+| `getChartPanels()` | Panel list (`main` flag on price pane) |
+| `getSeriesManager()` | Low-level series map |
+
+Tutorial: [Add an indicator](../tutorials/add-an-indicator). Deeper: [Programmatic wiring](../scripts/programmatic-wiring).
+
+## Drawings (`toolDrawer`)
+
+| Method | What it does |
+| --- | --- |
+| `toolDrawer.drawTool(config)` | Any drawing `type` + anchors |
+| `toolDrawer.drawTrendLine(options?)` | Shortcut for trend line |
+| `toolDrawer.drawTimeRange(options)` | Time range highlight |
+| `toolDrawer.drawTimeBet(options)` | Time bet marker |
+| `toolDrawer.drawLongShortPosition(options)` | Trade plan box |
+| `toolDrawer.deleteTool(id)` | Remove drawing by id |
+| `onDownload(watermark?, w?, h?)` | Export chart image |
+
+Guide: [Drawing and interaction](../chart-usage/drawing-and-interaction). Catalog: [Drawing tools](../drawing-tools/tool-reference).
+
+## Interaction
+
+| Method | What it does |
+| --- | --- |
+| `setCursor(mode)` | `"DEFAULT"`, `"CROSSHAIR"`, `"ERASER"`, … |
+| `setObjectSelectionAllowed(allowed)` | Lock/unlock selecting drawings |
+| `getDrawingMagnetEnabled()` / `setDrawingMagnetEnabled()` | Snap drawings to OHLC |
+| `getAllDrawingsLocked()` / `lockAllDrawings()` / `unlockAllDrawings()` | Bulk lock |
+| `getInteractor()` | Low-level mode and staging object |
+
+## Locale
+
+| Method | What it does |
+| --- | --- |
+| `getLocale()` / `setLocale(locale, overrides?)` | UI language |
+| `getSupportedLocales()` | `{ id, label }[]` for picker |
+| `getLocaleMessages()` | Resolved message catalog |
+| `translate(text)` | Translate a catalog key |
 
 ## Layout and environment
 
-- `getChartEnvironment(): ChartEnvironmentSnapshot`
-- `setLayoutMode(mode): void` — `mode` is `"auto" | "desktop" | "compact" | "touch"`
+| Method | What it does |
+| --- | --- |
+| `getChartEnvironment()` | Snapshot: `layoutMode`, `isCompact`, `isTouch`, … |
+| `setLayoutMode(mode)` | `"auto"` \| `"desktop"` \| `"compact"` \| `"touch"` |
 
-Pass `layout` in `createChart` options:
+Pass layout at create time:
 
 ```ts
 createChart({
   container,
-  layout: {
-    mode: "auto",
-    breakpoints: { compact: 600 },
-  },
+  layout: { mode: "auto", breakpoints: { compact: 600 } },
 });
 ```
 
-Subscribe to layout changes:
-
-```ts
-chart.subscribe("ENVIRONMENT_CHANGE", (env) => {
-  console.log(env.layoutMode, env.isCompact);
-});
-```
-
-Full reference: [Chart environment and layout](./chart-environment) and [Mobile and responsive](../advanced/mobile-and-responsive).
-
-## Scripts and data access
-
-- `getScripts(): Record<string, ScriptDefinition>`
-- `addScript(scriptKey, proto?): void`
-- `getSeriesManager(): ChartSeriesManager`
-- `getInteractor(): ChartInteractor`
-
-## Drawings and export
-
-- `toolDrawer.drawTool(toolConfig)`
-- `toolDrawer.drawTrendLine(initialOptions?)`
-- `toolDrawer.drawTimeRange(initialOptions)`
-- `toolDrawer.drawTimeBet(initialOptions)`
-- `toolDrawer.deleteTool(id)`
-- `onDownload(watermark?, watermarkWidth?, watermarkHeight?): void`
+Full types: [Chart environment and layout](./chart-environment). Guide: [Mobile and responsive](../advanced/mobile-and-responsive).
 
 ## Events
 
-`subscribe()` supports typed topics from `ChartEventPayloads`.
+`subscribe(topic, callback)` returns a subscription with `unsubscribe()`.
 
 ```ts
-const subscription = chart.subscribe("INTERVAL_CHANGE", (interval) => {
+const sub = chart.subscribe("INTERVAL_CHANGE", (interval) => {
   console.log(interval.symbol);
 });
-
-subscription?.unsubscribe();
+sub?.unsubscribe();
 ```
 
-Available typed topics:
+### Typed topics (`ChartEventPayloads`)
 
-- `AUTOSCALE`
-- `CURSOR_CHANGE`
-- `INTERVAL_CHANGE`
-- `OBJECT_SELECTION_ALLOWED_CHANGE`
-- `VALUE_AXIS_WIDTH_CHANGE`
+| Topic | Payload (summary) |
+| --- | --- |
+| `AUTOSCALE` | `{ autoScale: boolean }` |
+| `CURSOR_CHANGE` | `{ cursor: string }` |
+| `INTERVAL_CHANGE` | `Interval` object |
+| `INDICATOR_EDIT_REQUEST` | `{ scriptId }` — user opened indicator settings |
+| `DRAWING_EDIT_REQUEST` | `{ objectId }` — user opened drawing settings |
+| `OBJECT_SELECTION_ALLOWED_CHANGE` | `boolean` |
+| `DRAWING_MAGNET_CHANGE` | `{ enabled: boolean }` |
+| `DRAWINGS_LOCK_CHANGE` | `{ allLocked: boolean }` |
+| `VALUE_AXIS_WIDTH_CHANGE` | `number` (pixels) |
+| `LOCALE_CHANGE` | `{ locale: string }` |
+| `ENVIRONMENT_CHANGE` | `ChartEnvironmentSnapshot` |
+| `SELECTED_INSTRUMENT_CHANGE` | `{ seriesId: string }` |
+| `INSTRUMENT_DRAW_MODE_CHANGE` | `{ seriesId, drawMode }` |
 
-## Boundary with the Chart class
+Use events to sync **your** app state (headers, side panels) with chart UI actions.
 
-Methods such as `moveToEnd()`, `moveToStamp()`, `upsertCandle()`, and `addPanelToModel()` are available on the exported `Chart` class but are not currently part of `ChartInstance`.
+## `createChart` options (related types)
 
-Read [Chart runtime access](../advanced/chart-class-runtime) before depending on those runtime-only methods.
+| Option | Type | Purpose |
+| --- | --- | --- |
+| `container` | `HTMLElement` | Required mount target |
+| `instrument` | `Instrument` | Initial symbol metadata |
+| `config` | `ChartConfig` | Feature flags (`multiInstrumentChart`, …) |
+| `theme` / `themeVariant` | `ChartTheme`, `string` | Candle and axis colors |
+| `locale` / `messages` | `string`, `Record` | Language overrides |
+| `layout` | `ChartLayoutOptions` | Compact breakpoint |
+| `dataAdapter` | `DataAdapter` | Optional connector |
+
+## Boundary with the `Chart` class
+
+These exist on the exported **`Chart` class** but **not** on `ChartInstance` today:
+
+- `moveToEnd()`, `moveToStamp(stamp)`
+- `upsertCandle(candle)`
+- `addPanelToModel()`
+- `getScriptsManager()` (raw Fusion map)
+- `prependMainSeriesData()` — stub; do not use
+
+When you need them: [Chart runtime access](../advanced/chart-class-runtime).
+
+<ChartInstanceGenerated />
+
+## What is next?
+
+- [Chart environment and layout](./chart-environment) — breakpoints and compact metrics
+- [Data Connectors](./data-connectors) — `DataAdapter` contract
+- [Chart usage](../chart-usage/) — task-oriented guides

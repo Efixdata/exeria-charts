@@ -1039,7 +1039,13 @@ const Renderer: CoreRendererConstructor = function (
     }
   };
 
-  this.renderValueAxis = function (ctx, model, panel, tick, fusion) {
+  this.renderValueAxis = function (
+    ctx: CanvasRenderingContext2D,
+    model: CoreChartModel,
+    panel: CoreChartPanel,
+    tick: ValueAxisTick,
+    fusion?: CoreFusionRuntime,
+  ) {
     const mode = panel.valueAxisMode;
 
     try {
@@ -1381,6 +1387,7 @@ const Renderer: CoreRendererConstructor = function (
     ctx.strokeStyle = WEBRCP.utils.colorManager.getColor("gridColor");
     ctx.fillStyle = resolveThemeColor("timeAxisTextColor", "primaryTextColor");
     ctx.lineWidth = 1;
+    const previousTextBaseline = ctx.textBaseline;
     ctx.textBaseline = "middle";
     ctx.font = WEBRCP.utils.colorManager.getFont("time", "300 11px Chivo, Roboto, Tahoma, Arial, sans-serif");
 
@@ -1422,6 +1429,8 @@ const Renderer: CoreRendererConstructor = function (
       ctx.lineTo(tickX + 0.5, tickY + 6);
       ctx.stroke();
     }
+
+    ctx.textBaseline = previousTextBaseline;
   };
 
   this.renderHandler = function (ctx, model, panel) {
@@ -1606,7 +1615,7 @@ const Renderer: CoreRendererConstructor = function (
         precision = this.getPrecision(model, panel);
       }
 
-      var v = LIB.nFormatter(field, precision);
+      var v = formatFullAxisPrice(field, precision);
 
       valueToRender.label.text = resolveChartLocaleMessage(label, label) + ": ";
       if (series.fields.length == 1 && label == "value") valueToRender.label.text = "";
@@ -1655,6 +1664,8 @@ const Renderer: CoreRendererConstructor = function (
     }
 
     ctx.save();
+    const previousTextBaseline = ctx.textBaseline;
+    ctx.textBaseline = "alphabetic";
     ctx.beginPath();
     ctx.rect(
       0,
@@ -1741,6 +1752,7 @@ const Renderer: CoreRendererConstructor = function (
       panel._legendHits = hits;
     }
 
+    ctx.textBaseline = previousTextBaseline;
     ctx.restore();
 
     return true;
@@ -1980,7 +1992,7 @@ const Renderer: CoreRendererConstructor = function (
       let vp1 = v1;
       if (panel.valueAxisMode == "log" && valueType != "real")
         vp1 = logConverter.axisToReal?.(v1, 1) ?? v1;
-      var vs1 = LIB.nFormatter(vp1, this.getPrecision(model, panel));
+      var vs1 = formatFullAxisPrice(vp1, this.getPrecision(model, panel));
       const previousBaseline = ctx.textBaseline;
       ctx.textBaseline = "middle";
       renderPriceText({
@@ -2086,7 +2098,7 @@ const Renderer: CoreRendererConstructor = function (
       let vp2 = v2;
       if (panel.valueAxisMode == "log" && valueType != "real")
         vp2 = logConverter.axisToReal?.(v2, 1) ?? v2;
-      var vs2 = LIB.nFormatter(vp2, this.getPrecision(model, panel));
+      var vs2 = formatFullAxisPrice(vp2, this.getPrecision(model, panel));
 
       ctx.fillStyle = textColor;
       renderPriceText({

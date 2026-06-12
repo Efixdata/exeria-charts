@@ -69,6 +69,55 @@ function getSeriesPrecision(precisions: unknown, index: number, field: string) {
   return undefined;
 }
 
+function getSeriesSolidFillColor(object: LegacySeriesObject & { fillColor?: string }) {
+  if (typeof object.fillColor === "string") {
+    return object.fillColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("chartFill");
+}
+
+function getSeriesGradientFillColor(
+  object: LegacySeriesObject & { fillGradientColor?: string },
+) {
+  if (typeof object.fillGradientColor === "string") {
+    return object.fillGradientColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("chartFillGradient", "chartLine");
+}
+
+function getSeriesCandleColors(
+  object: LegacySeriesObject & {
+    candleUpColor?: string;
+    candleDownColor?: string;
+    candleUpStrokeColor?: string;
+    candleDownStrokeColor?: string;
+  },
+) {
+  const colorManager = WEBRCP.utils.colorManager;
+
+  return {
+    up:
+      typeof object.candleUpColor === "string"
+        ? object.candleUpColor
+        : colorManager.getColor("chartGreen"),
+    down:
+      typeof object.candleDownColor === "string"
+        ? object.candleDownColor
+        : colorManager.getColor("chartRed"),
+    upStroke:
+      typeof object.candleUpStrokeColor === "string"
+        ? object.candleUpStrokeColor
+        : colorManager.getColor("chartGreenStroke"),
+    downStroke:
+      typeof object.candleDownStrokeColor === "string"
+        ? object.candleDownStrokeColor
+        : colorManager.getColor("chartRedStroke"),
+    neutral: colorManager.getColor("chartGray"),
+  };
+}
+
 const SERIES_RENDER_MODE_OPTIONS: SeriesMenuOption[] = [
   { key: "radio1", mode: "OHLC", labelKey: "candles" },
   { key: "radio2", mode: "Line", labelKey: "line" },
@@ -127,22 +176,23 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     if (model.periodWidth < 1) {
       switch (renderAs.toLowerCase()) {
+        case "ohlc":
+        case "bars":
+          return renderAs;
         case "histogram":
           return "Histogram";
-          break;
         case "volume histogram":
           return "Volume Histogram";
-          break;
         case "line and histogram":
           return "ChartShape";
-          break;
         case "band":
           return "Band";
-          break;
         default:
           return "Line";
       }
-    } else return renderAs;
+    }
+
+    return renderAs;
   };
 
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -231,11 +281,13 @@ var SeriesObject = function (this: SeriesRuntime) {
         const resolvedColor = WEBRCP.utils.colorManager.getColor(colorKey, colorKey);
         return WEBRCP.utils.getContrastColor(resolvedColor);
       },
-      getUpColor: function () {
-        return WEBRCP.utils.colorManager.getColor("chartGreenBackground");
+      getUpColor: function (object) {
+        const colors = getSeriesCandleColors(object);
+        return colors.up;
       },
-      getDownColor: function () {
-        return WEBRCP.utils.colorManager.getColor("chartRed");
+      getDownColor: function (object) {
+        const colors = getSeriesCandleColors(object);
+        return colors.down;
       },
     });
   };
@@ -390,13 +442,16 @@ var SeriesObject = function (this: SeriesRuntime) {
     var valueY = 0;
     var midX = 0;
 
-    const fill = o.color ?? WEBRCP.utils.colorManager.getColor("chartLine");
+    const fill =
+      typeof o.bandFillColor === "string"
+        ? o.bandFillColor
+        : (o.color ?? WEBRCP.utils.colorManager.getColor("chartLine"));
 
     ctx.fillStyle = fill;
     ctx.lineWidth = o.width;
     ctx.setLineDash(o.dash || []);
     ctx.beginPath();
-    ctx.globalAlpha = 0.3;
+    ctx.globalAlpha = typeof o.bandFillOpacity === "number" ? o.bandFillOpacity : 0.3;
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
@@ -732,7 +787,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     const fillMode = o.lineFillMode === "gradient" ? "gradient" : "solid";
 
     if (fillMode === "gradient") {
-      const color = WEBRCP.utils.colorManager.getColor("chartFillGradient", "chartLine");
+      const color = getSeriesGradientFillColor(o);
       const opacity =
         typeof o.lineFillGradientOpacity === "number" ? o.lineFillGradientOpacity : 0.4;
       const rgb = parseLineFillColor(color);
@@ -741,7 +796,7 @@ var SeriesObject = function (this: SeriesRuntime) {
       gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
       ctx.fillStyle = gradient;
     } else {
-      ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
+      ctx.fillStyle = getSeriesSolidFillColor(o);
     }
 
     ctx.beginPath();
@@ -808,19 +863,22 @@ var SeriesObject = function (this: SeriesRuntime) {
     var openY = 0;
     var closeY = 0;
 
-    const redFillColor = WEBRCP.utils.colorManager.getColor("chartRed");
-    const greenFillColor = WEBRCP.utils.colorManager.getColor("chartGreen");
-    const grayFillColor = WEBRCP.utils.colorManager.getColor("chartGray");
+    const candleColors = getSeriesCandleColors(o);
+    const redFillColor = candleColors.down;
+    const greenFillColor = candleColors.up;
+    const grayFillColor = candleColors.neutral;
 
-    const redStrokeColor = WEBRCP.utils.colorManager.getColor("chartRedStroke");
-    const greenStrokeColor = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
-    const grayStrokeColor = WEBRCP.utils.colorManager.getColor("chartGray");
+    const redStrokeColor = candleColors.downStroke;
+    const greenStrokeColor = candleColors.upStroke;
+    const grayStrokeColor = candleColors.neutral;
 
     let color = redFillColor;
     let stroke = redStrokeColor;
 
     ctx.save();
     ctx.lineWidth = 1;
+
+    LIB.ensureInstrumentOhlcDataFields(o);
 
     let dfH = o.highDataField ? o.highDataField : o.dataField;
     let dfL = o.lowDataField ? o.lowDataField : o.dataField;
@@ -933,17 +991,20 @@ var SeriesObject = function (this: SeriesRuntime) {
     var openY = 0;
     var closeY = 0;
 
-    var red = WEBRCP.utils.colorManager.getColor("chartRed");
-    var green = WEBRCP.utils.colorManager.getColor("chartGreen");
-    var redStroke = WEBRCP.utils.colorManager.getColor("chartRedStroke");
-    var greenStroke = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
+    const candleColors = getSeriesCandleColors(o);
+    var red = candleColors.down;
+    var green = candleColors.up;
+    var redStroke = candleColors.downStroke;
+    var greenStroke = candleColors.upStroke;
     var stroke = redStroke;
-    var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
+    var grayStroke = candleColors.neutral;
     var rightX = 0;
     var midX = 0;
 
     ctx.save();
     ctx.lineWidth = 1;
+
+    LIB.ensureInstrumentOhlcDataFields(o);
 
     var dfH = o.highDataField ? o.highDataField : o.dataField;
     var dfL = o.lowDataField ? o.lowDataField : o.dataField;
@@ -1206,7 +1267,7 @@ var SeriesObject = function (this: SeriesRuntime) {
 
   this.updateExtremes = function (o, extremes, model, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
-    if (!linkedSeries || linkedSeries.data.length == 0) return;
+    if (!linkedSeries?.data?.length) return;
 
     if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars")
       return this.updateExtremesOHLC(o, extremes, model, seriesManager);
@@ -1216,6 +1277,8 @@ var SeriesObject = function (this: SeriesRuntime) {
   this.updateExtremesOHLC = function (o, extremes, model, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
     if (!linkedSeries) return;
+
+    LIB.ensureInstrumentOhlcDataFields(o);
 
     const dfH = o.highDataField ? o.highDataField : o.dataField;
     const dfL = o.lowDataField ? o.lowDataField : o.dataField;

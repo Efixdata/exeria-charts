@@ -1,48 +1,36 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 title: Shapes and Annotations
-description: Use boxes, arrows, ellipses, cycles, triangles, and text-style overlays to call out chart structure.
+description: Boxes, arrows, freehand brush, and text — highlight zones on the chart.
 ---
 
 import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Shapes and annotations
 
-This group covers the general-purpose shape types exposed by the runtime: `brush`, `arrow`, `ellipse`, `triangle`, `box`, `cycle`, and `textAnnotation`.
-
-## Live examples
+Use **shapes** when you want to highlight an area, point an arrow, scribble a note, or label a zone in plain language — not just lines across the chart.
 
 <DrawingToolShowcase
-  visiblePresets={["brush", "box", "arrow", "ellipse", "triangle", "cycle", "textAnnotation"]}
-  initialPreset="brush"
+  visiblePresets={["brush", "box", "arrow", "ellipse", "triangle", "cycle", "textAnnotation", "fixedRangeVolumeProfile", "longShortPosition"]}
+  initialPreset="box"
 />
 
-## Brush
+## Pick a shape
 
-`brush` works like TradingView's freehand brush: **click and drag** on the chart to draw, then **release** to finish the stroke. Points are sampled into chart anchors while you drag. Default line width is **2** with round caps for a smooth handwritten look.
+| Shape | Type | Anchors | Good for |
+| --- | --- | ---: | --- |
+| Rectangle | `box` | 2 | Supply/demand zone, date range box |
+| Arrow | `arrow` | 2 | “Price went here” callout |
+| Ellipse | `ellipse` | 2 | Soft highlight oval |
+| Triangle | `triangle` | 3 | Three-point area |
+| Brush | `brush` | many | Freehand circle or underline |
+| Text | `textAnnotation` | 2 | “Supply zone” label |
 
-Enable **Background fill** in the drawing settings to close the path (first anchor → last anchor) and shade the enclosed area. Background color and opacity are configured separately from the stroke.
+---
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "brush",
-  color: "#f0b429",
-  width: 2,
-  fillBg: true,
-  backgroundColor: "#f0b429",
-  backgroundOpacity: 0.25,
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[14].stamp, offset: 0, value: candles[14].c, _index: 0 },
-    { stamp: candles[16].stamp, offset: 0, value: candles[16].h, _index: 0 },
-    // ... more sampled points from the stroke
-  ],
-});
-```
+## Rectangle zone (most common)
 
-## Rectangle and filled zones
-
-`box` is the simplest zone-highlighting tool. The current runtime accepts `fillBg` and `style` as extra object fields.
+Drag opposite corners — or pass two anchors in code:
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -57,9 +45,92 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-## Text annotation
+`fillBg: true` shades the inside. Great for “this region matters” in reports and education.
 
-`textAnnotation` is defined in the current tool registry even though it is not rendered in the visible React UI left menu.
+ChartUI: **Shapes → Rectangle**.
+
+---
+
+## Arrow callout
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "arrow",
+  color: "#f0b429",
+  anchors: [
+    { stamp: candles[8].stamp, offset: 0, value: candles[8].h, _index: 0 },
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+  ],
+});
+```
+
+First anchor = tail, second = head (direction of the arrow).
+
+---
+
+## Ellipse highlight
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "ellipse",
+  color: "#5cc8ff",
+  fillBg: false,
+  anchors: [
+    { stamp: candles[30].stamp, offset: 0, value: candles[30].l, _index: 0 },
+    { stamp: candles[36].stamp, offset: 0, value: candles[36].h, _index: 0 },
+  ],
+});
+```
+
+Two corners of the bounding box — same mental model as `box`.
+
+---
+
+## Triangle
+
+Three corners:
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "triangle",
+  color: "#D12E59",
+  fillBg: true,
+  anchors: [
+    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
+    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].l, _index: 0 },
+  ],
+});
+```
+
+---
+
+## Freehand brush
+
+**Mouse:** select Brush in ChartUI → click and drag → release.
+
+**Code:** pass many sampled anchor points along the stroke:
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "brush",
+  color: "#f0b429",
+  width: 2,
+  fillBg: true,
+  backgroundOpacity: 0.25,
+  anchors: [
+    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
+    { stamp: candles[14].stamp, offset: 0, value: candles[14].c, _index: 0 },
+    // … more points from the drag path
+  ],
+});
+```
+
+---
+
+## Text label
+
+`textAnnotation` is available in code but **not** in the visible toolbar menu yet:
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -74,47 +145,13 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-## Arrow and ellipse
+Two anchors set position and width of the text box.
 
-`arrow` and `ellipse` both use two anchors.
+---
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "arrow",
-  color: "#f0b429",
-  anchors: [
-    { stamp: candles[8].stamp, offset: 0, value: candles[8].h, _index: 0 },
-    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
-  ],
-});
-
-chart.toolDrawer.drawTool({
-  type: "ellipse",
-  color: "#5cc8ff",
-  fillBg: false,
-  anchors: [
-    { stamp: candles[30].stamp, offset: 0, value: candles[30].l, _index: 0 },
-    { stamp: candles[36].stamp, offset: 0, value: candles[36].h, _index: 0 },
-  ],
-});
-```
-
-## Triangle and cycle
-
-`triangle` uses three anchors. `cycle` uses two and accepts a `style` field in the current runtime defaults.
+## Cycle overlay — `cycle`
 
 ```ts
-chart.toolDrawer.drawTool({
-  type: "triangle",
-  color: "#D12E59",
-  fillBg: true,
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
-    { stamp: candles[24].stamp, offset: 0, value: candles[24].l, _index: 0 },
-  ],
-});
-
 chart.toolDrawer.drawTool({
   type: "cycle",
   color: "#5cc8ff",
@@ -126,6 +163,57 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-## Practical boundary
+---
 
-For these shape tools, `drawTool()` is the main programmatic API. The React UI gives you interactive placement for only a subset of them, while programmatic creation gives you the full runtime shape list.
+## Volume profile — `fixedRangeVolumeProfile`
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "fixedRangeVolumeProfile",
+  color: "#5cc8ff",
+  fillBg: true,
+  showPoc: true,
+  showValueArea: true,
+  valueAreaPercent: 70,
+  anchors: [
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[40].stamp, offset: 0, value: candles[40].h, _index: 0 },
+  ],
+});
+```
+
+ChartUI: **Analytical → Volume profile**.
+
+---
+
+## Long / short position — `longShortPosition`
+
+```ts
+chart.toolDrawer.drawLongShortPosition({
+  direction: "LONG",
+  startStamp: candles[20].stamp,
+  endStamp: candles[28].stamp,
+  entryPrice: candles[24].c,
+  stopPrice: candles[20].l,
+  targetPrice: candles[28].h,
+  riskPercent: 1,
+});
+```
+
+Paper-trade planning only — not live broker lines. See [Trade from chart](../tutorials/trade-from-chart).
+
+---
+
+## Mouse vs code
+
+| Tool | ChartUI toolbar | Code |
+| --- | --- | --- |
+| box, arrow, ellipse, triangle, brush | ✅ | ✅ |
+| textAnnotation | ❌ (code only) | ✅ |
+
+Programmatic creation always covers the full runtime list.
+
+## What is next?
+
+- [Complete tool reference](./tool-reference) — all 36 drawing types
+- [Drawing tools recipes](../tutorials/drawing-tools-recipes) — tutorial

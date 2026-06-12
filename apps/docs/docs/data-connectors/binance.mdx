@@ -1,0 +1,192 @@
+---
+sidebar_position: 2
+title: Binance
+description: Live and historical crypto charts from Binance — no API key required.
+---
+
+import BinanceConnectorExample from "@site/src/components/BinanceConnectorExample";
+
+# Binance Data Connector
+
+Want Bitcoin, Ethereum, or altcoin charts with **live prices** and **no API key**? The Binance connector talks to Binance public endpoints — history over REST, updates over WebSocket.
+
+<BinanceConnectorExample />
+
+Use the controls above to change symbol and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [Binance live demo](/binance-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public Binance market data |
+| **History** | Up to 1,000 candles per request |
+| **Live ticks** | WebSocket stream, auto-reconnect |
+| **Pairs** | 100+ symbols (`BTCUSDT`, `ETHUSDT`, …) |
+| **Timeframes** | 1m through monthly |
+
+Perfect for crypto dashboards, DEX frontends, and prototypes.
+
+## Install
+
+```bash
+npm install @exeria/charts @efix-data/adapter-binance
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@exeria/charts";
+import { BinanceAdapter } from "@efix-data/adapter-binance";
+
+const connector = new BinanceAdapter();
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  limit: 1000,
+});
+
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new BinanceAdapter();
+```
+
+Uses Binance public URLs by default. Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` |
+| `limit` | How many recent bars (max 1,000) |
+| `from` / `to` | Optional date range instead of “latest N” |
+
+### 4 — Go live
+
+```ts
+chart.subscribeToUpdates("BTCUSDT");
+// or with a callback:
+chart.subscribeToUpdates("BTCUSDT", (tick) => { /* update UI */ });
+```
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular symbols
+
+| Symbol | Market |
+| --- | --- |
+| `BTCUSDT` | Bitcoin / USDT |
+| `ETHUSDT` | Ethereum / USDT |
+| `BNBUSDT` | BNB / USDT |
+| `SOLUSDT` | Solana / USDT |
+| `XRPUSDT` | XRP / USDT |
+
+Symbol format is always **BASE + QUOTE** with no separator (`BTCUSDT`, not `BTC/USDT`).
+
+## Switch cryptocurrency
+
+```ts
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+Defaults work for most apps. For retries or alternate REST host:
+
+```ts
+const connector = new BinanceAdapter({
+  baseUrl: "https://data-api.binance.vision",
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+});
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("BTCUSDT", { interval: "1d", limit: 1000 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("404")) {
+    console.error("Symbol not found on Binance");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — users on bad networks will thank you.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Candles per request | 1,000 max |
+| REST rate | ~1,200 requests/minute (Binance policy) |
+| Browser | Needs WebSocket support (all modern browsers) |
+
+For heavy traffic: cache history server-side or use Binance's [data API mirror](https://data-api.binance.vision).
+
+## What is next?
+
+- [Bybit](./bybit) — same connector pattern on Bybit spot data
+- [OKX](./okx) — OKX spot with `BTC-USDT` symbols
+- [Kraken](./kraken) — USD spot with `BTC/USD` symbols
+- [KuCoin](./kucoin) — USDT spot with `BTC-USDT` symbols
+- [Coinbase](./coinbase) — USD / USDC spot with `BTC-USD` product ids
+- [CoinGecko](./coingecko) — broad catalog via coin ids (`bitcoin`, `ethereum`)
+- [Overview](./overview) — lifecycle and custom connectors
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Live data stream](../tutorials/live-data-stream) — what happens under the hood
+- [Crypto terminal demo](/starters/crypto-terminal) — full product example

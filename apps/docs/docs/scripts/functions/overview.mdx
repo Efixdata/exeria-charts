@@ -1,97 +1,155 @@
 ---
-sidebar_position: 7
+sidebar_position: 1
 title: Functions Overview
-description: Add built-in function scripts programmatically, inspect their series-transform metadata, and understand which ones rely on custom input wiring.
+description: What chart functions are, how they differ from indicators, and how to wire them to any series.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Functions overview
 
-Functions are built-in Fusion scripts that transform, combine, or condition existing series.
+If indicators are **classic studies** (RSI, MACD), **functions** are the chart’s **formula layer** — they take one or more numeric series and return a new series.
 
-## Add functions programmatically
+There is no “market logic” built in. You supply the inputs.
 
-The public API path is the same as for indicators and strategies: initialize the chart, load candles, then add a built-in function key.
+<TutorialChartDemo scene="indicators" caption="Functions often consume indicator outputs — add the source indicator first." />
+
+## Why functions exist
+
+| Without functions | With functions |
+| --- | --- |
+| Only pre-built studies | Custom math on any line |
+| Hard to shift or combine lines | `DISPLACE`, `IGLUE`, `SUM` in the UI |
+| Strategies limited to defaults | Feed strategies your own series |
+
+Think **spreadsheet formulas** tied to bar timestamps.
+
+## Functions vs indicators vs strategies
+
+```mermaid
+flowchart TB
+  subgraph ind ["Indicators"]
+    I1["Read OHLC"]
+    I2["Draw MA, RSI, bands"]
+  end
+  subgraph fn ["Functions"]
+    F1["Read any series"]
+    F2["Transform / combine"]
+  end
+  subgraph st ["Strategies"]
+    S1["Read series"]
+    S2["Emit Buy / Sell signals"]
+  end
+
+  ind --> fn
+  fn --> st
+  ind --> st
+```
+
+| Type | Output | Example |
+| --- | --- | --- |
+| Indicator | Lines, bands, histograms | `EMA` → orange line |
+| Function | Numeric series | `DISPLACE(EMA)` → shifted EMA |
+| Strategy | Signal markers | `CROSS(EMA, SMA)` → buy/sell arrows |
+
+## All 10 built-in functions
+
+| Key | Display name | One-line purpose |
+| --- | --- | --- |
+| `HIGHEST` | Highest | Rolling highest **high** (or chosen series) |
+| `LOWEST` | Lowest | Rolling lowest **low** |
+| `FIBONACCI` | Fibonacci | Rolling Fib levels from high/low |
+| `DISPLACE` | Displace | Time-shift a series + optional offset |
+| `IGLUE` | Indicator Glue | Add / subtract / multiply / divide two series |
+| `IMOD` | Indicator Modifier | Apply math between a series and a constant |
+| `IF` | IF | Three-way compare: A vs B → X, Y, or Z |
+| `SUM` | Sum | Add up to 10 conditional inputs |
+| `AVERAGE` | Average | Mean of up to 10 inputs (skips gaps) |
+| `1x` | 1/x | Reciprocal of a series |
+
+Full defaults and pane column: [Function catalog](./catalog).
+
+## Two tiers: plug-and-play vs wiring
+
+### Tier 1 — works on price out of the box
+
+These default to main-series **high** or **low**:
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
-
-const chart = createChart({ container, instrument });
-chart.init();
-
-await chart.setMainSeriesData(candles, interval);
-
 chart.addScript("HIGHEST");
 chart.addScript("LOWEST");
 chart.addScript("FIBONACCI");
 ```
 
-Each key maps to a built-in script definition in the Fusion function registry.
+They draw as **overlays** on the main chart.
 
-## Inspect function metadata
+### Tier 2 — needs a source series
 
-Use `getScripts()` when you want to inspect the inputs, outputs, or pane behavior before adding a function.
+Add the producer first, then point the function at its output in settings or code:
+
+| Function | Main input | Typical wiring |
+| --- | --- | --- |
+| `DISPLACE` | `DSERIES` | Output of `EMA` |
+| `IGLUE` | Two series | `EMA` + `SMA` |
+| `IMOD` | Series + constant | `RSI` × 2 |
+| `IF` | `VAL_A`, `VAL_B` | EMA vs SMA (conditional mode) |
+| `SUM` / `AVERAGE` | Up to 10 inputs | Several indicator lines |
+| `1x` | One series | Invert any positive series |
+
+Walkthrough: [Programmatic wiring](../programmatic-wiring).
+
+## Input types you will see
+
+| Input type | UI behavior |
+| --- | --- |
+| `series` | Dropdown of `Symbol.Field` references |
+| `integer` / `double` | Periods, offsets, constants |
+| `list` | Operation picker (`Add`, `Multiply`, …) |
+| `conditional` | Toggle **Number** vs **Series** per value |
+
+[Series and panels](../series-and-panels) explains dropdown labels and `seriesId:field` format.
+
+## Panel behavior
+
+| Key | Default pane |
+| --- | --- |
+| Overlay on main chart | `HIGHEST`, `LOWEST`, `FIBONACCI`, `DISPLACE`, `IGLUE`, `IMOD` |
+| New panel below | `IF`, `SUM`, `AVERAGE`, `1x` |
+
+Override in the **Panel** dropdown like any indicator.
+
+## Visibility
+
+Functions appear under **Chart settings → On chart → Functions** with plot and scale toggles — [Chart settings](../../chart-usage/chart-settings).
+
+API: `setChartFunctionVisibility`, `setChartFunctionPriceTagVisibility`, `removeChartFunction`.
+
+## Example pipeline (beginner-friendly)
+
+**Goal:** shaded regime line — 1 when EMA &gt; SMA, -1 when below.
 
 ```ts
-const scripts = chart.getScripts();
-const fibonacci = scripts.FIBONACCI;
+chart.addScript("EMA");
+chart.addScript("SMA");
 
-console.log(fibonacci.title);
-console.log(fibonacci.newPane);
-console.log(fibonacci.inputs);
-console.log(fibonacci.outputs);
+const emaRef = getSeriesReference(chart, "EMA");
+const smaRef = getSeriesReference(chart, "SMA");
+
+const ifScript = structuredClone(chart.getScripts().IF);
+ifScript.inputs.VAL_A.value = { type: "series", value: emaRef };
+ifScript.inputs.VAL_B.value = { type: "series", value: smaRef };
+ifScript.inputs.VAL_X.value = { type: "double", value: 1 };
+ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
+ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
+
+chart.addScript("IF", ifScript);
 ```
 
-The runtime localizes titles and descriptions, but the stable programmatic keys stay the same, for example `HIGHEST`, `LOWEST`, `DISPLACE`, `IF`, `SUM`, and `FIBONACCI`.
+(`getSeriesReference` — copy from [Programmatic wiring](../programmatic-wiring).)
 
-## Common function input types
+## What is next?
 
-The current function registry uses a few recurring input patterns.
-
-- `series` inputs for market or script series such as `HIGH`, `LOW`, or `DSERIES`
-- `integer` and `double` inputs for periods, offsets, and modifiers
-- `list` inputs for arithmetic operations such as `Add`, `Substract`, `Multiply`, `Divide`, and `Power of`
-- `conditional` inputs that can resolve from a constant value or another series at runtime
-
-## Overlay functions vs new-pane functions
-
-Several functions are overlay-ready on the main chart.
-
-- `HIGHEST`
-- `LOWEST`
-- `DISPLACE`
-- `FIBONACCI`
-- `IGLUE`
-- `IMOD`
-
-Other functions open in a separate pane by default.
-
-- `IF`
-- `SUM`
-- `AVERAGE`
-- `1x`
-
-## Default-ready functions vs wiring-heavy functions
-
-Some functions are immediately usable because their defaults point at main-series prices.
-
-- `HIGHEST` defaults to `h`
-- `LOWEST` defaults to `l`
-- `FIBONACCI` defaults to `h` and `l`
-
-Other functions are more useful once you wire them to indicator or strategy outputs.
-
-- `IGLUE` combines two arbitrary series
-- `IMOD` modifies a series by a numeric value
-- `DISPLACE` offsets an arbitrary series in time
-- `IF`, `SUM`, and `AVERAGE` are best when fed by other script outputs or constants
-
-The public docs focus on the stable keys and baked-in defaults first. Deeper runtime input rewiring sits outside the default `ChartInstance` path.
-
-If you need a net-new function key instead of an input override on an existing one, use [Custom function authoring](./custom-functions).
-
-## Continue reading
-
+- [Function catalog](./catalog) — all 10 keys with inputs/outputs
+- [Key functions](./key-functions) — three starters
 - [Custom function authoring](./custom-functions)
-- [Programmatic wiring](../programmatic-wiring)
-- [Function catalog](./catalog)
-- [Key functions](./key-functions)
+- [Strategies overview](../strategies/overview) — consume function outputs as signals

@@ -1,20 +1,23 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Trend Line
-description: Use the built-in trend-line helper for the common case, then fall back to drawTool() when you need lower-level control.
+description: Draw a trend line in one helper call — the easiest drawing tool to start with.
 ---
 
 import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Trend line
 
-`trendLine` is the most direct drawing tool to start with because it has a dedicated helper and a simple two-anchor model.
-
-## Live example
+A **trend line** connects two points on the chart — usually a low and a high — to show direction, support, or a breakout guide. It is the best first drawing tool because it has a dedicated one-line helper.
 
 <DrawingToolShowcase visiblePresets={["trendLine"]} initialPreset="trendLine" />
 
-## Use the helper first
+## What you need
+
+- A chart with loaded candles
+- Two moments in time and two prices (from your data or from a user click)
+
+## Easiest path — `drawTrendLine`
 
 ```ts
 const toolId = chart.toolDrawer.drawTrendLine({
@@ -23,17 +26,28 @@ const toolId = chart.toolDrawer.drawTrendLine({
   startPrice: candles[10].l,
   endPrice: candles[30].h,
   config: {
-    editable: false,
     color: "#5cc8ff",
+    editable: true,
   },
 });
 ```
 
-This is the cleanest path when you already know the two endpoints.
+| Field | Meaning |
+| --- | --- |
+| `startStamp` / `endStamp` | Left and right time (UTC ms) |
+| `startPrice` / `endPrice` | Y position at each end |
+| `config.color` | Line color |
+| `config.editable` | User can drag anchors in ChartUI |
 
-## Use drawTool() for direct anchor control
+Pick any two candles from your array — often a swing low and a later swing high.
 
-The helper accepts `ToolVisualConfig`, which is enough for color and editability. Use `drawTool()` when you also want direct anchor control, `width`, `dash`, or a custom object name.
+## Draw with the mouse
+
+Select **Trend line** in the ChartUI left toolbar → click start point → click end point. Same shape, no code.
+
+## More control — `drawTool`
+
+Use when you need `width`, `dash`, a custom `name`, or full anchor objects:
 
 ```ts
 const toolId = chart.toolDrawer.drawTool({
@@ -65,7 +79,9 @@ const toolId = chart.toolDrawer.drawTool({
 });
 ```
 
-## Remove the tool later
+`expandable` anchors let the line extend beyond the two points after placement — standard in the React UI.
+
+## Delete later
 
 ```ts
 if (toolId !== undefined) {
@@ -73,11 +89,34 @@ if (toolId !== undefined) {
 }
 ```
 
-## How it works
+Store `toolId` when your app manages saved layouts.
 
-- the runtime type is `trendLine`
-- the standard drawing shape uses 2 anchors
-- the React UI default config treats both anchors as expandable
-- the object can be placed programmatically with the helper or through `drawTool()`
+## Trend ray — `trendRay`
 
-If you want multi-point geometry or channel-style projection, continue with [Levels and channels](./levels-and-channels).
+Same two points as a trend line, but the line extends as a **ray** from the origin (does not stop at the second point).
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "trendRay",
+  color: "#5cc8ff",
+  anchors: [
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[30].stamp, offset: 0, value: candles[30].h, _index: 0 },
+  ],
+});
+```
+
+ChartUI: **Lines → Trend ray**. Live preview: [Complete tool reference](./tool-reference).
+
+## Related tools
+
+| Tool | Difference |
+| --- | --- |
+| `trendRay` | Covered above |
+| `parallelChannel` | Two parallel lines — [Levels and channels](./levels-and-channels) |
+| `hLine` | Flat price level — [Lines, ranges, and tags](./lines-ranges-and-tags) |
+
+## What is next?
+
+- [Levels and channels](./levels-and-channels) — Fibonacci and channels
+- [Drawing tools recipes](../tutorials/drawing-tools-recipes) — tutorial walkthrough

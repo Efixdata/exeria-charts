@@ -161,6 +161,7 @@ export type RendererValueAxisMethod = (
   model: CoreChartModel,
   panel: CoreChartPanel,
   tick: ValueAxisTick,
+  fusion?: CoreFusionRuntime,
 ) => void;
 export type RendererHGridMethod = (
   context: CanvasRenderingContext2D,

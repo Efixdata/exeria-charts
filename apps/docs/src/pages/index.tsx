@@ -1,52 +1,10 @@
-import { useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import ChartQuickstartExample from "../components/ChartQuickstartExample";
-import CryptoTerminalCaseStudyChart from "../components/CryptoTerminalCaseStudyChart";
+import CaseStudiesSection from "@site/src/components/marketing/CaseStudiesSection";
+import FeaturesSection from "@site/src/components/marketing/FeaturesSection";
+import { CHART_INSTALL_COMMAND } from "@site/src/data/packages";
+import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./index.module.css";
-
-const features = [
-  {
-    eyebrow: "Performance",
-    title: "Built for dense market data.",
-    body: "Render millions of data points at a flawless 60 FPS without browser lag. Real chart workflows powered by a highly optimized, raw HTML5 Canvas engine.",
-    icon: "lightning",
-  },
-  {
-    eyebrow: "Ownership",
-    title: "Keep the chart surface yours.",
-    body: "No iframes, no bloated external dependencies. Start with our core runtime, integrate seamlessly, and build your own custom UI controls around the chart.",
-    icon: "cube",
-  },
-  {
-    eyebrow: "Developer Experience",
-    title: "Public API first. Native TypeScript.",
-    body: "Enjoy a first-class developer experience with strict type-checking, comprehensive autocompletion, and a predictable lifecycle architecture.",
-    icon: "code",
-  },
-  {
-    eyebrow: "Release & Reliability",
-    title: "Documentation that reads like a product.",
-    body: "Trusted in high-stakes financial environments and built by Benzinga Award winners. Shorter guidance, cleaner defaults, and examples that help you launch faster.",
-    icon: "badge",
-  },
-] as const;
-
-function FeatureIcon({ name }: { name: (typeof features)[number]["icon"] }): JSX.Element {
-  const paths: Record<(typeof features)[number]["icon"], string> = {
-    lightning: "M13 10V3L4 14h7v7l9-11h-7z",
-    cube: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
-    code: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
-    badge:
-      "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
-  };
-
-  return (
-    <svg className={styles.featureIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={paths[name]} />
-    </svg>
-  );
-}
 
 const guides = [
   {
@@ -75,14 +33,14 @@ const guides = [
   },
   {
     title: "Licensing",
-    body: "Understand AGPL obligations, plugin licenses, and when you need a commercial license for closed-source products.",
+    body: "Understand AGPL obligations, MIT Data Connector packages, and when you need a commercial license for closed-source products.",
     href: "/docs/guides/licensing",
     cta: "Read licensing guide",
   },
   {
-    title: "Plugins & Commercial Use",
-    body: "Ship faster with ready-made plugins for indicators, drawing tools, and data bridges—or use a commercial license to keep your code closed in large, professional products.",
-    href: "/docs/guides/licensing#plugin-licenses",
+    title: "Data Connectors & Commercial Use",
+    body: "Ship faster with MIT connectors for public and freemium market data—or use a commercial license to keep your app closed source.",
+    href: "/docs/guides/licensing#data-connectors-licensing",
     cta: "Open guide",
   },
 ];
@@ -103,16 +61,16 @@ const pricingPlans = [
     featured: false,
   },
   {
-    name: "Plugin Store",
-    price: "Perpetual license per project",
+    name: "Data Connectors",
+    price: "Free connectors for instant market data",
     features: [
-      { label: "One license per app or codebase", emphasized: true },
-      { label: "Advanced technical indicators", emphasized: false },
-      { label: "Advanced drawing & annotation tools", emphasized: false },
-      { label: "Data bridge plugins", emphasized: false },
+      { label: "Free connectors for open data providers", emphasized: true },
+      { label: "Freemium and API-key connectors (Massive, Finnhub, …)", emphasized: false },
+      { label: "Seamless REST & WebSocket integration", emphasized: false },
+      { label: "Ready to deploy out of the box", emphasized: false },
     ],
-    cta: "Browse Plugins",
-    href: "/docs/guides/licensing#plugin-licenses",
+    cta: "Explore Data Connectors",
+    href: "/data-connectors",
     variant: "primary" as const,
     featured: true,
   },
@@ -123,7 +81,7 @@ const pricingPlans = [
       { label: "Keep your application code closed", emphasized: true },
       { label: "Startup-friendly pricing", emphasized: false },
       { label: "Advanced indicators & drawing tools", emphasized: false },
-      { label: "Enterprise data bridges & integrations", emphasized: false },
+      { label: "Enterprise data connectors & integrations", emphasized: false },
     ],
     cta: "Contact Us",
     href: "/docs/guides/licensing#commercial-license",
@@ -132,38 +90,9 @@ const pricingPlans = [
   },
 ];
 
-const caseStudies = [
-  {
-    id: "crypto-terminal",
-    title: "The Ultimate Crypto Terminal.",
-    body: "Deliver the institutional trading experience your power users demand. Leverage our robust windowing framework to build fully customizable workspaces.",
-    href: "/docs/getting-started/react",
-  },
-  {
-    id: "quant-analytics",
-    title: "Quant Analytics Dashboard.",
-    body: "Visualize complex backtest results, equity curves, and proprietary indicators over millions of historical ticks without browser lag.",
-    href: "/docs/getting-started/vanilla",
-  },
-  {
-    id: "forex-platforms",
-    title: "Next-Gen Forex Platforms.",
-    body: "Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements and dynamic bid/ask spreads with zero latency.",
-    href: "/docs/getting-started/vite-react",
-  },
-  {
-    id: "mobile-native",
-    title: "Mobile and touch-ready charts.",
-    body: "Pan, pinch, compact layout, and dense toolbar chrome on narrow viewports. Follow the mobile integration guide for viewport, safe-area, and QA setup.",
-    href: "/docs/advanced/mobile-and-responsive",
-  },
-];
-
-const NPM_COMMAND = "npm install @exeria/charts";
-
 function CommandBox(): JSX.Element {
   const copyCommand = () => {
-    void navigator.clipboard.writeText(NPM_COMMAND);
+    void navigator.clipboard.writeText(CHART_INSTALL_COMMAND);
   };
 
   return (
@@ -173,7 +102,7 @@ function CommandBox(): JSX.Element {
       onClick={copyCommand}
       aria-label="Copy npm install command"
     >
-      <span className={styles.commandText}>{NPM_COMMAND}</span>
+      <span className={styles.commandText}>{CHART_INSTALL_COMMAND}</span>
       <svg
         className={styles.commandIcon}
         fill="none"
@@ -194,23 +123,18 @@ function CommandBox(): JSX.Element {
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
-      <main className={styles.page}>
-        <section className={styles.hero}>
+      <main className={layoutStyles.page}>
+        <section className={layoutStyles.hero}>
           <div className={styles.badge}>🏆 Winner of the Benzinga Fintech Awards</div>
-          <h1 className={styles.title}>
+          <h1 className={layoutStyles.title}>
             Build Modern Charts
             <br />
             in Minutes.
           </h1>
-          <p className={styles.subtitle}>
+          <p className={layoutStyles.subtitle}>
             The high-performance open source charting library that developers love using. Integrate
             once, deploy everywhere. Zero dependencies.
           </p>
@@ -224,32 +148,26 @@ export default function Home(): JSX.Element {
             </a>
           </div>
 
-          <div className={styles.heroChartContainer}>
-            {isMounted ? (
-              <ChartQuickstartExample />
-            ) : (
-              <div className={styles.exampleFallback}>Loading live chart example...</div>
-            )}
+          <div className={styles.heroVideoContainer}>
+            <div className={styles.heroVideo}>
+              <div className={styles.heroVideoPlaceholder} aria-label="Product demo video">
+                <span className={styles.heroVideoPlayIcon} aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+                <p className={styles.heroVideoLabel}>Demo video</p>
+              </div>
+            </div>
           </div>
 
           <CommandBox />
         </section>
 
-        <section id="features" className={styles.featuresSection}>
-          <div className={styles.featuresGrid}>
-            {features.map((item) => (
-              <article key={item.title} className={styles.featureItem}>
-                <FeatureIcon name={item.icon} />
-                <p className={styles.featureEyebrow}>{item.eyebrow}</p>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <FeaturesSection />
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Write once. Fit the product around it.</h2>
             <p>
               Start with the runtime. Add the React controls when they save time. Keep the surface
@@ -264,40 +182,11 @@ export default function Home(): JSX.Element {
           </p>
         </section>
 
-        <section id="case-studies" className={styles.caseStudiesSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Engineered for every use case.</h2>
-          </div>
-
-          <div className={styles.caseGrid}>
-            {caseStudies.map((item) => (
-              <article key={item.title} className={styles.caseCard}>
-                <div className={styles.caseVisual}>
-                  {isMounted ? (
-                    item.id === "crypto-terminal" ? (
-                      <CryptoTerminalCaseStudyChart />
-                    ) : (
-                      <ChartQuickstartExample compact />
-                    )
-                  ) : (
-                    <div className={styles.caseChartFallback}>Loading chart...</div>
-                  )}
-                </div>
-                <div className={styles.caseContent}>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                  <a className={styles.caseLink} href={item.href}>
-                    View Implementation <span aria-hidden>→</span>
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <CaseStudiesSection />
 
         <section id="pricing" className={styles.pricingSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Free open-source core. Pro plugins to move faster.</h2>
+          <div className={layoutStyles.sectionHeader}>
+            <h2>Free open-source core. Instant data connectors to move faster.</h2>
             <p>
               Use the full charting engine under AGPL v3 for open and experimental work. Need a
               proprietary product? A commercial license lets you keep your code closed—with
@@ -333,8 +222,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Start with the guide that matches the job.</h2>
           </div>
 

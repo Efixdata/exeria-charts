@@ -41,11 +41,12 @@ export const TopMenuOverflowMenu = (props: TopMenuOverflowMenuProps) => {
       background?: string;
       buttons?: {
         color?: string;
+        activeColor?: string;
         hoverBackground?: string;
         activeBackground?: string;
       };
     };
-    toolbar?: { buttons?: { color?: string } };
+    toolbar?: { buttons?: { color?: string; activeColor?: string } };
   };
   const wrapRef = React.useRef<HTMLDivElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -223,7 +224,7 @@ export const TopMenuOverflowMenu = (props: TopMenuOverflowMenuProps) => {
                   type="button"
                   className={[
                     styles.menuItem,
-                    item.active === true ? styles.menuItemActive : "",
+                    item.active === true && !item.toggle ? styles.menuItemActive : "",
                     item.toggle && !item.active ? styles.menuItemInactive : "",
                   ]
                     .filter(Boolean)

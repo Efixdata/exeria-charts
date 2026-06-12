@@ -6,7 +6,7 @@ import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import defaultTheme from "./themes/swipper";
 import { resolveChartTipThemeColors } from "./utils/chartThemeColors";
-import type { ChartTheme } from "./types";
+import type { ChartTheme, DrawMode } from "./types";
 import type { CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
 import type { ScriptModelConfig } from "./internal-types/scripts";
@@ -77,6 +77,27 @@ export interface ChartDrawingSettingsItem {
   visible: boolean;
 }
 
+export type ChartInstrumentSymbolAppearance = Pick<
+  ChartAppearanceSettings,
+  | "chartFillColor"
+  | "chartLineFillVisible"
+  | "chartLineFillMode"
+  | "chartFillGradientColor"
+  | "chartFillGradientOpacity"
+  | "candleUpColor"
+  | "candleDownColor"
+  | "candleUpStrokeColor"
+  | "candleDownStrokeColor"
+>;
+
+export interface ChartInstrumentSettingsItem extends ChartInstrumentSymbolAppearance {
+  seriesId: string;
+  symbol: string;
+  drawMode: DrawMode;
+  lineColor: string;
+  lineDash: number[];
+}
+
 export interface ChartSettingsTemplate {
   version: 1;
   name?: string;
@@ -94,6 +115,11 @@ interface ChartSettingsHost {
     mainSeries: string;
     panels: CoreChartPanel[];
     scripts: ScriptModelConfig[];
+    instrumentsSeries: Array<{
+      seriesId: string;
+      title?: string;
+      instrument?: { symbol?: string; name?: string };
+    }>;
   };
   renderer: {
     objects: Record<string, unknown>;
@@ -175,10 +201,30 @@ function getMainPanel(chart: ChartSettingsHost): CoreChartPanel {
 }
 
 function getMainSeriesObject(chart: ChartSettingsHost): ChartRuntimeObject | undefined {
+  return getInstrumentSeriesPlotter(chart, chart.model.mainSeries);
+}
+
+function getInstrumentSeriesPlotter(
+  chart: ChartSettingsHost,
+  seriesId: string,
+): ChartRuntimeObject | undefined {
   const panel = getMainPanel(chart);
   return panel.objects.find(
-    (object) => object.id === chart.model.mainSeries || object.dataLink === chart.model.mainSeries,
+    (object) =>
+      object.type === "SeriesObject" &&
+      (object.id === seriesId || object.dataLink === seriesId) &&
+      chart.model.instrumentsSeries.some((entry) => entry.seriesId === seriesId),
   ) as ChartRuntimeObject | undefined;
+}
+
+function getInstrumentSymbol(
+  instrumentSeries: ChartSettingsHost["model"]["instrumentsSeries"][number],
+): string {
+  return (
+    instrumentSeries.instrument?.symbol ||
+    instrumentSeries.title ||
+    instrumentSeries.seriesId
+  );
 }
 
 export function gridModeFromPanel(hGrid: boolean, vGrid: boolean): ChartGridMode {
@@ -783,6 +829,161 @@ export function setChartDrawingVisibility(
 
 export function removeChartDrawing(chart: ChartSettingsHost, objectId: string | number): void {
   chart.onDelete(objectId);
+}
+
+function readInstrumentSymbolAppearance(plotter: ChartRuntimeObject): ChartInstrumentSymbolAppearance {
+  const colorManager = WEBRCP.utils.colorManager;
+
+  return {
+    chartFillColor:
+      typeof plotter.fillColor === "string"
+        ? plotter.fillColor
+        : colorManager.getColor("chartFill"),
+    chartLineFillVisible: plotter.lineFillVisible === true,
+    chartLineFillMode: plotter.lineFillMode === "gradient" ? "gradient" : "solid",
+    chartFillGradientColor:
+      typeof plotter.fillGradientColor === "string"
+        ? plotter.fillGradientColor
+        : colorManager.getColor("chartFillGradient", "chartLine"),
+    chartFillGradientOpacity:
+      typeof plotter.lineFillGradientOpacity === "number"
+        ? plotter.lineFillGradientOpacity
+        : 0.4,
+    candleUpColor:
+      typeof plotter.candleUpColor === "string"
+        ? plotter.candleUpColor
+        : colorManager.getColor("chartGreen"),
+    candleDownColor:
+      typeof plotter.candleDownColor === "string"
+        ? plotter.candleDownColor
+        : colorManager.getColor("chartRed"),
+    candleUpStrokeColor:
+      typeof plotter.candleUpStrokeColor === "string"
+        ? plotter.candleUpStrokeColor
+        : colorManager.getColor("chartGreenStroke"),
+    candleDownStrokeColor:
+      typeof plotter.candleDownStrokeColor === "string"
+        ? plotter.candleDownStrokeColor
+        : colorManager.getColor("chartRedStroke"),
+  };
+}
+
+function writeInstrumentSymbolAppearance(
+  plotter: ChartRuntimeObject,
+  settings: Partial<ChartInstrumentSymbolAppearance>,
+): void {
+  if (settings.chartFillColor !== undefined) {
+    plotter.fillColor = settings.chartFillColor;
+  }
+  if (settings.chartLineFillVisible !== undefined) {
+    plotter.lineFillVisible = settings.chartLineFillVisible;
+  }
+  if (settings.chartLineFillMode !== undefined) {
+    plotter.lineFillMode = settings.chartLineFillMode;
+  }
+  if (settings.chartFillGradientColor !== undefined) {
+    plotter.fillGradientColor = settings.chartFillGradientColor;
+  }
+  if (settings.chartFillGradientOpacity !== undefined) {
+    plotter.lineFillGradientOpacity = settings.chartFillGradientOpacity;
+  }
+  if (settings.candleUpColor !== undefined) {
+    plotter.candleUpColor = settings.candleUpColor;
+  }
+  if (settings.candleDownColor !== undefined) {
+    plotter.candleDownColor = settings.candleDownColor;
+  }
+  if (settings.candleUpStrokeColor !== undefined) {
+    plotter.candleUpStrokeColor = settings.candleUpStrokeColor;
+  }
+  if (settings.candleDownStrokeColor !== undefined) {
+    plotter.candleDownStrokeColor = settings.candleDownStrokeColor;
+  }
+}
+
+export function getChartInstrumentSettings(chart: ChartSettingsHost): ChartInstrumentSettingsItem[] {
+  const items: ChartInstrumentSettingsItem[] = [];
+
+  for (let index = 1; index < chart.model.instrumentsSeries.length; index += 1) {
+    const instrumentSeries = chart.model.instrumentsSeries[index];
+    const plotter = getInstrumentSeriesPlotter(chart, instrumentSeries.seriesId);
+    if (!plotter) {
+      continue;
+    }
+
+    const lineColor =
+      typeof plotter.color === "string"
+        ? plotter.color
+        : typeof plotter.strokeStyle === "string"
+          ? plotter.strokeStyle
+          : WEBRCP.utils.colorManager.getColor("chartLine");
+
+    items.push({
+      seriesId: instrumentSeries.seriesId,
+      symbol: getInstrumentSymbol(instrumentSeries),
+      drawMode: getInstrumentSeriesDrawMode(plotter),
+      lineColor,
+      lineDash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+      ...readInstrumentSymbolAppearance(plotter),
+    });
+  }
+
+  return items;
+}
+
+function getInstrumentSeriesDrawMode(plotter: ChartRuntimeObject): DrawMode {
+  const renderAs = plotter.renderAs;
+  if (
+    renderAs === "OHLC" ||
+    renderAs === "Bars" ||
+    renderAs === "Line" ||
+    renderAs === "Histogram" ||
+    renderAs === "Line and Histogram"
+  ) {
+    return renderAs;
+  }
+
+  return "Line";
+}
+
+export function getInstrumentDrawMode(chart: ChartSettingsHost, seriesId: string): DrawMode {
+  const plotter = getInstrumentSeriesPlotter(chart, seriesId);
+  if (!plotter) {
+    return "OHLC";
+  }
+
+  return getInstrumentSeriesDrawMode(plotter);
+}
+
+export function applyChartInstrumentSettings(
+  chart: ChartSettingsHost,
+  seriesId: string,
+  settings: Partial<
+    Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash"> & ChartInstrumentSymbolAppearance
+  >,
+): void {
+  const plotter = getInstrumentSeriesPlotter(chart, seriesId);
+  if (!plotter) {
+    return;
+  }
+
+  if (seriesId === chart.model.mainSeries) {
+    chart.rerender();
+    return;
+  }
+
+  if (settings.lineColor !== undefined) {
+    plotter.color = settings.lineColor;
+    plotter.strokeStyle = settings.lineColor;
+  }
+
+  if (settings.lineDash !== undefined) {
+    plotter.dash = [...settings.lineDash];
+  }
+
+  writeInstrumentSymbolAppearance(plotter, settings);
+
+  chart.rerender();
 }
 
 export function exportChartSettingsTemplate(

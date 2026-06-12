@@ -1,29 +1,48 @@
 ---
 sidebar_position: 4
 title: Next.js App Router
-description: Mount Exeria Charts in a Next.js App Router app without evaluating the runtime on the server.
+description: Mount Exeria Charts in Next.js without breaking server rendering.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # Next.js App Router
 
-Use a client component for the chart surface. The runtime depends on browser APIs such as `window`, `document`, and `ResizeObserver`, so the chart should not be created during server rendering.
+Next.js renders pages on the **server** first. Exeria Charts needs the **browser** (`window`, `document`, canvas). This guide keeps the chart in a **client component** so the server never tries to draw it.
 
-## Install
+<GettingStartedDemo
+  variant="react"
+  caption="Same chart you would get in Vite — safe for Next.js App Router."
+/>
 
-```bash
-npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
+## The one rule to remember
+
+Put all chart code in a file that starts with:
+
+```tsx
+"use client";
 ```
 
-## Create a client chart surface
+Without that line, Next.js runs your code on the server and the chart will crash or fail silently.
 
-Create `app/components/chart-surface.tsx`.
+## Step 1 — Install
+
+In your Next.js project:
+
+```bash
+npm install @exeria/charts @exeria/charts-ui
+```
+
+## Step 2 — Create the chart component
+
+Add `app/components/chart-surface.tsx` (path can match your folder structure):
 
 ```tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Candle, ChartInstance, Interval } from "@efixdata/exeria-chart";
-import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+import type { Candle, ChartInstance, Interval } from "@exeria/charts";
+import { ChartUI } from "@exeria/charts-ui";
 
 const candles: Candle[] = [
   { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
@@ -49,7 +68,8 @@ export function ChartSurface() {
         return;
       }
 
-      const { createChart } = await import("@efixdata/exeria-chart");
+      // Import only in the browser — avoids server-side evaluation
+      const { createChart } = await import("@exeria/charts");
       if (disposed) {
         return;
       }
@@ -84,9 +104,11 @@ export function ChartSurface() {
 }
 ```
 
-## Render it from a route
+**Why `import()` inside `useEffect`?** Next.js can still analyze static imports at build time. Dynamic import inside the effect guarantees the chart module loads only in the browser.
 
-Your route can stay a server component and just import the client surface.
+## Step 3 — Use it on a page
+
+Your page file (`app/page.tsx`) can stay a **server component** — it only imports the client chart:
 
 ```tsx
 import { ChartSurface } from "./components/chart-surface";
@@ -94,17 +116,54 @@ import { ChartSurface } from "./components/chart-surface";
 export default function Page() {
   return (
     <main style={{ padding: 24 }}>
+      <h1>Market overview</h1>
       <ChartSurface />
     </main>
   );
 }
 ```
 
-## Notes
+No `"use client"` needed on the page itself. Only `ChartSurface` must be a client component.
 
-- Keep `"use client"` at the top of the chart surface file.
-- Import `createChart()` inside the effect or isolate the whole chart surface behind a client-only boundary. That keeps the browser runtime out of the server render path.
-- `ChartUI` is safe to render with `chart={null}` during the first pass. The chart container still needs to be mounted as its child so the runtime has a DOM node to claim.
-- If you want the route chunk itself to stay lighter, you can wrap the chart surface in `next/dynamic(..., { ssr: false })` instead of importing it directly.
+## How it fits in Next.js
 
-Next step: use [React quickstart](./react) for the shared wrapper model and [Loading data](../chart-usage/loading-data) when you move from inline candles to live API responses.
+```mermaid
+flowchart LR
+  Page["app/page.tsx — server OK"]
+  Chart["chart-surface.tsx — use client"]
+  Browser["Browser only: createChart"]
+  Page --> Chart
+  Chart --> Browser
+```
+
+## Optional: lazy load the whole chart
+
+For a lighter first paint, wrap the chart in `next/dynamic` with `ssr: false`:
+
+```tsx
+import dynamic from "next/dynamic";
+
+const ChartSurface = dynamic(
+  () => import("./components/chart-surface").then((m) => m.ChartSurface),
+  { ssr: false, loading: () => <p>Loading chart…</p> },
+);
+```
+
+Use this if the chart is below the fold or not needed immediately.
+
+## Checklist
+
+- [ ] `"use client"` at the top of the chart file
+- [ ] `createChart` imported inside `useEffect` (or entire file is client-only)
+- [ ] Wrapper `div` has fixed height
+- [ ] `destroy()` in the effect cleanup
+
+## Real-world example
+
+See the [Fintech integration demo](/starters/fintech-integration) — a consumer-style Next.js embed with light theme and touch-friendly layout.
+
+## What is next?
+
+- [React quickstart](./react) — same ChartUI pattern, framework-agnostic explanation
+- [Loading data](../chart-usage/loading-data) — swap inline candles for API data
+- [Mobile and responsive](../advanced/mobile-and-responsive) — touch layouts for banking apps

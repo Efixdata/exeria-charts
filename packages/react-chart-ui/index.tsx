@@ -1,5 +1,10 @@
 export * from "./src/ChartUI";
-export type { ChartUIMobileLayout } from "./src/chartTypes";
+export type {
+  ChartUIMobileLayout,
+  ChartUITheme,
+  ShareConfig,
+  NullableChartInstance,
+} from "./src/chartTypes";
 export {
   applyChartUiEnvironmentOptions,
   getChartUiSafeAreaPadding,

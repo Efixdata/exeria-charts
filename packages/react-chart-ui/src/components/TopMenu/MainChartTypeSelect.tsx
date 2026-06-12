@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { DrawMode } from "@efixdata/exeria-chart";
 import {
   ChartHistogram,
@@ -17,10 +17,66 @@ interface MainChartTypeSelectProps {
   style?: React.CSSProperties;
 }
 
+type ChartWithInstrumentDrawMode = NullableChartInstance & {
+  getInstrumentDrawMode?: (seriesId?: string) => DrawMode;
+  setInstrumentDrawMode?: (mode: DrawMode, seriesId?: string) => void;
+  getSelectedInstrumentSeriesId?: () => string;
+  subscribe?: (
+    topic: string,
+    callback: (data: { seriesId?: string; drawMode?: DrawMode }) => void,
+  ) => { unsubscribe?: () => void } | void;
+};
+
+function unsubscribeChartTopic(subscription: { unsubscribe?: () => void } | void | undefined) {
+  if (subscription && typeof subscription.unsubscribe === "function") {
+    subscription.unsubscribe();
+  }
+}
+
 export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
-  const t = useChartTranslate(props.chart);
+  const chart = props.chart as ChartWithInstrumentDrawMode;
+  const t = useChartTranslate(chart);
   const defaultDrawMode: DrawMode = "OHLC";
   const [selectedDrawMode, setSelectedDrawMode] = useState<DrawMode>(defaultDrawMode);
+
+  const syncDrawMode = useCallback(() => {
+    const mode = chart?.getInstrumentDrawMode?.();
+    if (mode) {
+      setSelectedDrawMode(mode);
+    }
+  }, [chart]);
+
+  useEffect(() => {
+    syncDrawMode();
+  }, [syncDrawMode]);
+
+  useEffect(() => {
+    if (!chart?.subscribe) {
+      return undefined;
+    }
+
+    const selectedSubscription = chart.subscribe("SELECTED_INSTRUMENT_CHANGE", () => {
+      syncDrawMode();
+    });
+    const drawModeSubscription = chart.subscribe(
+      "INSTRUMENT_DRAW_MODE_CHANGE",
+      (data: { seriesId?: string; drawMode?: DrawMode }) => {
+        if (!data.drawMode) {
+          return;
+        }
+
+        const selectedSeriesId = chart.getSelectedInstrumentSeriesId?.();
+        if (!selectedSeriesId || data.seriesId === selectedSeriesId) {
+          setSelectedDrawMode(data.drawMode);
+        }
+      },
+    );
+
+    return () => {
+      unsubscribeChartTopic(selectedSubscription);
+      unsubscribeChartTopic(drawModeSubscription);
+    };
+  }, [chart, syncDrawMode]);
 
   function getOptions() {
     const options = {
@@ -100,7 +156,7 @@ export const MainChartTypeSelect = (props: MainChartTypeSelectProps) => {
       options={getOptions()}
       onSelect={(option) => {
         if (!option) return;
-        props.chart?.setMainDrawMode(option as DrawMode);
+        chart?.setInstrumentDrawMode?.(option as DrawMode);
         setSelectedDrawMode(option as DrawMode);
       }}
       selectedOption={selectedDrawMode}

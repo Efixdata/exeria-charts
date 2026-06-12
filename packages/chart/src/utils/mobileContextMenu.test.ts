@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { resolvePointerClientPosition } from "./mobileContextMenu";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  dismissMobileContextMenu,
+  isMobileContextMenuOpen,
+  resolvePointerClientPosition,
+  showMobileContextMenu,
+} from "./mobileContextMenu";
 
 describe("resolvePointerClientPosition", () => {
   it("prefers Hammer center viewport coordinates", () => {
@@ -55,5 +60,60 @@ describe("resolvePointerClientPosition", () => {
         configurable: true,
       });
     }
+  });
+});
+
+describe("showMobileContextMenu", () => {
+  afterEach(() => {
+    dismissMobileContextMenu();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("stays open through the releasing pointer event after long-press", () => {
+    vi.useFakeTimers();
+    const body = { appendChild: vi.fn() };
+    const pointerDownHandlers: Array<(event: Event) => void> = [];
+    const doc = {
+      body,
+      createElement: () => ({
+        setAttribute: vi.fn(),
+        style: {},
+        appendChild: vi.fn(),
+        addEventListener: vi.fn(),
+        contains: () => false,
+        remove: vi.fn(),
+        getBoundingClientRect: () => ({ width: 200, height: 160 }),
+      }),
+      addEventListener: vi.fn((type: string, handler: (event: Event) => void) => {
+        if (type === "mousedown") {
+          pointerDownHandlers.push(handler);
+        }
+      }),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal("document", doc);
+    vi.stubGlobal("window", { innerWidth: 800, innerHeight: 600 });
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0);
+      return 0;
+    });
+
+    showMobileContextMenu({
+      x: 40,
+      y: 40,
+      items: [{ id: "goStart", label: "Go to start" }],
+      onSelect: () => undefined,
+    });
+
+    expect(isMobileContextMenuOpen()).toBe(true);
+
+    pointerDownHandlers[0]?.({ target: body } as Event);
+    expect(isMobileContextMenuOpen()).toBe(true);
+
+    vi.advanceTimersByTime(400);
+
+    pointerDownHandlers[0]?.({ target: body } as Event);
+    expect(isMobileContextMenuOpen()).toBe(false);
   });
 });

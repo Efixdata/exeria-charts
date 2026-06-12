@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance, DrawMode } from "@efixdata/exeria-chart";
+import type { ChartInstance, DrawMode } from "@exeria/charts";
 import {
   docsCandleCount,
   docsExampleDatasets,
@@ -48,7 +48,7 @@ export default function ChartQuickstartExample({ compact = false }: ChartQuickst
       setError(null);
 
       try {
-        const chartModule = await import("@efixdata/exeria-chart");
+        const chartModule = await import("@exeria/charts");
         if (disposed) {
           return;
         }

@@ -1,77 +1,146 @@
 ---
 sidebar_position: 2
 title: Licensing
-description: Understand the AGPL v3 core license, plugin licenses, and when a commercial license is required.
+description: AGPL core license, commercial use for closed-source apps, and MIT Data Connector packages.
 ---
 
 # Licensing
 
-The Exeria Charts **core** (`@efixdata/exeria-chart` and `@efixdata/exeria-chart-ui-react`) is open source under the **GNU Affero General Public License v3.0 (AGPL v3)**.
+You can ship products with Exeria Charts. **Two questions** decide what you need:
 
-Paid **plugins** are licensed separately, per project. A **commercial license** is required when you ship a **closed-source** product that uses the core and cannot comply with AGPL obligations.
+1. Is your **app** open source (AGPL-compliant) or **closed source**?
+2. Which **Data Connectors** feed the chart — and what are the **data provider's** terms?
 
-## The practical summary
+This page is a **plain-language guide**, not legal advice. When in doubt, contact Efix Data before production launch.
 
-- **Open source projects** can use the core for free under AGPL v3, provided you meet AGPL requirements (including source availability for users of your app when you distribute or offer network access).
-- **Closed-source or proprietary products** need a **commercial license** for the core so you are not required to open your application code.
-- **Plugins** are optional add-ons (advanced indicators, drawing tools, data bridges). Each plugin is sold as a **perpetual license for one named app or codebase**, whether that project is open source or proprietary.
-- **Startups and small companies** can obtain commercial terms at **startup-friendly pricing**—contact us for details.
+## The one-minute summary
 
-## Core license (AGPL v3)
+| Your situation | Core chart (`@exeria/charts`) | Data Connectors |
+| --- | --- | --- |
+| **Open-source app**, AGPL-compliant | Free under **AGPL v3** | **MIT** connector packages + provider API terms |
+| **Closed-source / proprietary app** | **Commercial license** required | Same — MIT connectors + provider API terms |
 
-AGPL v3 is a strong copyleft license. In practice, that means:
+Official text: [LICENSE](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) · [LICENSING.md](https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md)
 
-- You may use, modify, and redistribute the core in compliance with AGPL.
-- If you distribute a product that incorporates the core, or offer it as a network service where users interact with it, you generally must provide corresponding source code and license your derivative under AGPL-compatible terms.
-- If you cannot or do not want to release your product’s source under those terms, you need a **commercial license** instead of relying on AGPL alone.
+Compare connectors: [Data Connectors catalog](/data-connectors).
 
-Full legal text: see the repository [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) file and [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html).
+## What is licensed?
 
-## Commercial license {#commercial-license}
+| Component | License model |
+| --- | --- |
+| **Core chart** + **ChartUI** | Open source under **GNU AGPL v3** |
+| **Commercial license** | Paid agreement for **closed-source** use of the core |
+| **Data Connectors** | **MIT** npm packages — use with the provider's market data API on their terms |
 
-A **commercial license** from Efix Data Sp. z o. o. is for teams that ship a **proprietary (closed-source)** application built on Exeria Charts.
+Built-in **indicators**, **functions**, **strategies**, and **drawing tools** ship in the open core. Optional market data goes through **Data Connectors** from third-party vendors (Binance, Massive, Finnhub, and others).
+
+## AGPL v3 — the core (free, with obligations)
+
+AGPL is a **strong copyleft** license. In practice:
+
+- You may use, modify, and redistribute the core for free.
+- If you **distribute** software that incorporates the core, or offer it as a **network service** users interact with, you generally must make **corresponding source** available under AGPL-compatible terms.
+- If you **cannot** open your application source on those terms, you need a **commercial license** instead of relying on AGPL alone.
+
+**Open-source projects** that publish source under AGPL (or compatible terms) can use the core at no charge — provided you meet AGPL obligations for your combined work.
+
+## Commercial license — closed-source products {#commercial-license}
+
+A **commercial license** from Efix Data Sp. z o. o. is for teams shipping a **proprietary** application.
 
 It typically covers:
 
-- Use of the core in closed-source products without AGPL copyleft applying to your entire application (as defined in your agreement).
-- Predictable terms for production and customer-facing deployments.
-- **Startup-friendly pricing** for qualifying small teams—contact us rather than assuming enterprise-only pricing.
+- Using the core in closed-source products without AGPL applying to your **entire** codebase (as defined in your agreement)
+- Predictable terms for production and customer-facing deployments
+- **Startup-friendly pricing** for qualifying small teams — contact us; pricing is not enterprise-only by default
 
-Commercial licenses do **not** automatically replace **plugin** licenses unless your agreement explicitly bundles them (for example, an Enterprise plan that includes all premium plugins).
+A commercial core license is **separate** from any **market data subscription** you buy from Massive, Finnhub, Twelve Data, or other vendors.
 
-## Plugin licenses {#plugin-licenses}
+## Data Connectors licensing {#data-connectors-licensing}
 
-Plugins are **not** included in the AGPL grant for the core. They are sold under **separate terms**, usually as a **one-time, perpetual license for a single project** (one app, product, or codebase).
+Data Connectors are **MIT** packages. You still must follow each **data provider's** terms (rate limits, attribution, redistribution, display rights).
 
-### How this works in practice
+```mermaid
+flowchart LR
+  subgraph connectors ["MIT Data Connectors"]
+    MIT["Connector package"]
+    API["Provider REST / WebSocket API"]
+  end
 
-| Your product | Core | Plugin you bought |
+  MIT --> API
+```
+
+### MIT connectors
+
+| Connector | Package license | Data |
 | --- | --- | --- |
-| **Open source** (AGPL-compatible, you comply with AGPL for the core) | Free under AGPL v3 | Plugin license is tied to **that one project**. You may use the plugin there like any other dependency, subject to the plugin’s license terms. |
-| **Closed source** (proprietary app) | **Commercial license required** for the core | Plugin license is tied to **that one proprietary project**. You still need a valid commercial license for the core. |
+| [Binance](../data-connectors/binance) | MIT | Public crypto — no API key |
+| [Bybit](../data-connectors/bybit) | MIT | Public crypto spot — no API key |
+| [OKX](../data-connectors/okx) | MIT | Public crypto spot — no API key |
+| [Kraken](../data-connectors/kraken) | MIT | Public USD spot — no API key |
+| [KuCoin](../data-connectors/kucoin) | MIT | Public USDT spot — no API key |
+| [Coinbase](../data-connectors/coinbase) | MIT | Public USD / USDC spot |
+| [Gate.io](../data-connectors/gate) | MIT | Public USDT spot — no API key |
+| [EODHD](../data-connectors/eodhd) | MIT | Global EOD + intraday — API token required |
+| [CoinGecko](../data-connectors/coingecko) | MIT | Broad crypto catalog |
+| [Massive](../data-connectors/massive) | MIT | US stocks, forex, crypto — provider API key |
+| [Finnhub](../data-connectors/finnhub) | MIT | US stocks, forex, crypto — provider API token |
+| [Twelve Data](../data-connectors/twelve-data) | MIT | Multi-asset — provider API key |
+| [Finage](../data-connectors/finage) | MIT | Forex and equities — provider API key |
 
-**Example:** You buy a plugin for $20 for your open-source chart app released under AGPL. The purchase grants use of that plugin in **that repository/product only**—not in every future app your company builds. Another product needs its own plugin license.
+- Install via npm, use in open-source or commercial apps per **MIT** terms for the connector package.
+- You still must follow the **data provider's** terms (rate limits, attribution, redistribution).
+- Your **chart core** may still need a **commercial license** if the overall product is closed source — MIT on the connector does not remove AGPL obligations on the core.
 
-**Example:** You buy the same plugin for a proprietary SaaS dashboard. You need **both** a commercial core license **and** the per-project plugin license.
+Full MIT terms on the catalog: [MIT license](/data-connectors#mit-license).
 
-Plugins may include advanced indicators, advanced drawing and annotation tools, and data bridge integrations. Plugin licenses include **updates for a defined period** (for example, one year); they do not include dedicated email support unless stated in the offer.
+### Your own API
+
+Loading candles from **your backend** (`setMainSeriesData`) does not use a Data Connector license — you own the data contract. See [Chart with your data](../tutorials/chart-with-your-data).
 
 ## Enterprise
 
-Enterprise agreements usually combine:
+Enterprise agreements typically combine:
 
-- A commercial core license for closed-source use.
-- All premium plugins included.
-- Advanced indicators, drawing tools, and **enterprise data bridges**.
-- Integration and onboarding support as agreed in the contract.
+- Commercial **core** license for closed-source products
+- Integration and onboarding support
 
-Contact us for Enterprise and startup commercial pricing.
+Contact Efix Data for Enterprise and startup commercial terms.
 
-## Before you ship
+## Decision checklist before you ship
 
-Review:
+```mermaid
+flowchart TD
+  Q1{"Is your app\nclosed source?"}
+  Q2{"AGPL-compliant\nopen source?"}
+  Q3{"Which data feed?"}
 
-- [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) — AGPL v3 for the core
-- [`LICENSING.md`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md) — overview and links
+  Q1 -->|Yes| Commercial["Plan commercial\ncore license"]
+  Q1 -->|No| Q2
+  Q2 -->|Yes| CoreFree["Core under AGPL —\nmeet source obligations"]
+  Q2 -->|Unsure| Contact["Contact Efix Data"]
+  Commercial --> Q3
+  CoreFree --> Q3
+  Q3 -->|Public / freemium API| MIT["MIT Data Connector\n+ provider ToS"]
+  Q3 -->|Your own API| Own["Your data agreement only"]
+```
 
-If you are unsure whether your use is AGPL-compliant or needs a commercial or plugin license, contact Efix Data before production launch.
+- [ ] Read [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE)
+- [ ] Closed source? → plan **commercial core** license
+- [ ] Using a Data Connector? → MIT package + **provider** rules
+- [ ] Still unsure? → contact before launch
+
+## What ships in the open core
+
+The public repository includes:
+
+- Chart runtime, ChartUI, drawing tools documented in [Drawing tools](../drawing-tools/)
+- **97** indicators, **10** functions, **11** strategies ([Scripts hub](../scripts/))
+- MIT Data Connectors for public and freemium market data APIs
+
+## What is next?
+
+- [Data connectors overview](../data-connectors/overview)
+- [Data Connectors catalog](/data-connectors)
+- [Choosing a package](./choosing-a-package)
+- [Guides hub](../guides/)

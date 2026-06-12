@@ -10,6 +10,7 @@ import type {
   SeriesWithData,
   TickLike,
 } from "../internal-types/series";
+import { trimInsignificantFractionZeros } from "./numberFormat";
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -80,7 +81,7 @@ function nFormatter(num: number, digits: number): string {
     }
   }
 
-  return num.toFixed(digits);
+  return trimInsignificantFractionZeros(num.toFixed(digits));
 }
 
 function round(num: number, digits: number): number {
@@ -719,6 +720,33 @@ function getFirstAvailableValue(
   return null;
 }
 
+type OhlcDataFieldObject = {
+  openDataField?: string | null;
+  highDataField?: string | null;
+  lowDataField?: string | null;
+  closeDataField?: string | null;
+  dataField?: string | null;
+};
+
+function ensureInstrumentOhlcDataFields(object: OhlcDataFieldObject): void {
+  if (
+    object.openDataField &&
+    object.highDataField &&
+    object.lowDataField &&
+    object.closeDataField
+  ) {
+    return;
+  }
+
+  const baseField = object.dataField ?? "c";
+  if (baseField !== "c") return;
+
+  if (!object.openDataField) object.openDataField = "o";
+  if (!object.highDataField) object.highDataField = "h";
+  if (!object.lowDataField) object.lowDataField = "l";
+  if (!object.closeDataField) object.closeDataField = "c";
+}
+
 function synchronizeArraysByObjId<
   T extends { id?: string | number; drag?: boolean; [key: string]: unknown },
 >(src: T[], dst: T[]): void {
@@ -907,6 +935,7 @@ const LIB = {
   getPanelPrimarySeriesField,
   getPanelReferenceValue,
   getFirstAvailableValue,
+  ensureInstrumentOhlcDataFields,
   synchronizeArraysByObjId,
   capitalizeFirstLetter,
   validateIntervalSymbolForInstrument,

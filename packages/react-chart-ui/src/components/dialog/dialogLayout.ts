@@ -53,6 +53,16 @@ export const dialogScrollBodyStyle: CSSProperties = {
   maxHeight: "min(78vh, 760px)",
 };
 
+/** Scrollable form body (settings dialogs) — fills header/footer gap without a max-height cap. */
+export const dialogFormBodyStyle: CSSProperties = {
+  padding: 0,
+  flex: "1 1 auto",
+  minHeight: 0,
+};
+
+/** @deprecated Use dialogFormBodyStyle */
+export const chartSettingsBodyStyle = dialogFormBodyStyle;
+
 export const dialogPaddedBodyStyle: CSSProperties = {
   ...dialogFitBodyStyle,
   padding: DIALOG_BODY_PADDING,

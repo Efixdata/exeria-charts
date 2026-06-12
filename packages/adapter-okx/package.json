@@ -1,0 +1,50 @@
+{
+  "name": "@efix-data/adapter-okx",
+  "version": "0.1.0",
+  "description": "OKX data adapter for @efixdata/exeria-chart - real-time cryptocurrency price data",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "okx",
+    "cryptocurrency",
+    "ohlc",
+    "price-data",
+    "adapter",
+    "efix-data",
+    "chart"
+  ],
+  "author": "Efix Data",
+  "license": "MIT",
+  "peerDependencies": {
+    "@efixdata/exeria-chart": "^0.1.0"
+  },
+  "devDependencies": {
+    "@efixdata/exeria-chart": "*",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/efixdata/chart-repo.git",
+    "directory": "packages/adapter-okx"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

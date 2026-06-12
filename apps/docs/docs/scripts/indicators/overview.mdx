@@ -1,77 +1,112 @@
 ---
 sidebar_position: 1
 title: Indicators Overview
-description: Add built-in indicators programmatically, inspect their metadata, and understand which indicators open in new panes.
+description: Add built-in indicators, pick input series, choose panels, and browse the full catalog.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Indicators overview
 
-Indicators are built-in Fusion scripts that you add to the chart runtime with `addScript()`.
+**Indicators** are the classic chart studies — moving averages, bands, oscillators, volume tools. Exeria ships **97** built-in indicators.
 
-## Add indicators programmatically
+Add them from the toolbar or with one line of code.
 
-The shortest path is to initialize the chart, load candles, and then add one or more indicator keys.
+<TutorialChartDemo scene="indicators" caption="EMA overlay + RSI panel — the most common first combo." />
+
+## Add an indicator in code
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
+import { createChart } from "@exeria/charts";
 
 const chart = createChart({ container, instrument });
 chart.init();
-
 await chart.setMainSeriesData(candles, interval);
 
 chart.addScript("EMA");
 chart.addScript("RSI");
-chart.addScript("MACD");
 ```
 
-Each indicator key maps to a built-in script definition in the Fusion registry.
+The string key (`"EMA"`, `"RSI"`) must match the [catalog](./catalog).
 
-## Inspect indicator metadata
+Tutorial: [Add an indicator](../../tutorials/add-an-indicator).
 
-Use `getScripts()` when you want to inspect inputs, outputs, or pane behavior before adding an indicator.
+## Add an indicator in ChartUI
+
+1. Toolbar → **Indicators**.
+2. Tab **Indicator**.
+3. Search or browse → select one.
+4. Set **Parameters** (periods, series inputs).
+5. Choose **Panel** — [Series and panels](../series-and-panels).
+6. **OK**.
+
+## Choose the input series
+
+Most indicators default to **close** (`c`). In settings, change **Price CLOSE** (or equivalent) to:
+
+- `high`, `low`, `open`, `volume`
+- another symbol’s field (multi-instrument)
+- another indicator’s output (advanced pipelines)
+
+Example: run `RSI` on **high** instead of close for a stricter overbought read.
+
+Guide: [Series and panels](../series-and-panels).
+
+## Overlay vs new panel
+
+| Default | Meaning | Examples |
+| --- | --- | --- |
+| **Overlay** | Draws on the candle panel | `EMA`, `SMA`, `BBAND`, `ICHIMOKU` |
+| **New panel** | Opens a strip below price | `RSI`, `MACD`, `ATR`, `OBV`, `CCI` |
+
+Override anytime with the **Panel** dropdown before confirming.
+
+Quick reference — full table with all 97 keys: [Indicator catalog](./catalog).
+
+## Inspect before adding
 
 ```ts
-const scripts = chart.getScripts();
-const rsi = scripts.RSI;
+const rsi = chart.getScripts().RSI;
 
-console.log(rsi.title);
-console.log(rsi.newPane);
-console.log(rsi.inputs);
-console.log(rsi.outputs);
+console.log(rsi.title);      // localized display name
+console.log(rsi.newPane);    // default panel behavior
+console.log(rsi.inputs);     // PERIOD, CLOSE, baselines…
+console.log(rsi.outputs);    // output field names for wiring
 ```
 
-The runtime localizes script titles and descriptions when you call `getScripts()`, but the stable programmatic keys stay the same, for example `EMA`, `RSI`, `MACD`, `BBAND`, and `ATR`.
+Output field names (e.g. `EMA`, `RSI`, `MACDLine`) become available in **series** dropdowns for functions and strategies.
 
-## Overlay indicators vs new-pane indicators
+## Customize defaults
 
-Indicator definitions include a `newPane` flag.
+`addScript("EMA")` uses baked-in defaults (`PERIODS = 14`, close series). To change them:
 
-- Overlay indicators render on the main chart panel. Examples: `EMA`, `BBAND`, `KELTNERCHANNEL`, `PARSAR`.
-- New-pane indicators render below the main chart automatically. Examples: `RSI`, `MACD`, `ATR`, `STOCHASTICOSCILLATOR`, `OBV`.
+```ts
+const ema = structuredClone(chart.getScripts().EMA);
+ema.inputs.PERIODS.value = 21;
+chart.addScript("EMA", ema);
+```
 
-This matters because `chart.addScript("EMA")` changes the main chart panel, while `chart.addScript("RSI")` creates a separate analysis pane.
+Same pattern for any indicator. Wiring to other scripts: [Programmatic wiring](../programmatic-wiring).
 
-## Defaults and configuration
+## Licensed packs
 
-`addScript(scriptKey)` applies the defaults baked into the indicator definition.
+Some indicators (DiNapoli family) require a **subscription pack** in licensed deployments. Keys still appear in `getScripts()`; your license gate may hide them in UI.
 
-Examples from the current registry:
+## Good first indicators
 
-- `EMA` defaults to `CLOSE` and `PERIODS = 14`
-- `RSI` defaults to `CLOSE`, `PERIOD = 14`, `HI_BASELINE = 70`, and `LO_BASELINE = 30`
-- `MACD` defaults to `CLOSE`, `FPERIOD = 12`, `SPERIOD = 26`, and `SGPERIOD = 9`
+| Key | Why start here |
+| --- | --- |
+| `EMA` | Simple overlay trend line |
+| `BBAND` | Volatility bands on price |
+| `RSI` | Separate-panel oscillator |
+| `MACD` | Multi-line momentum panel |
+| `ATR` | Volatility in its own pane |
 
-The public docs focus on the default path first. If you need deeper runtime control over script configuration or management, that moves into advanced runtime territory.
+Details: [Key indicators](./key-indicators).
 
-If you need a net-new indicator key instead of an input override on an existing one, use [Custom indicator authoring](./custom-indicators).
+## What is next?
 
-## Current boundary
-
-The typed public surface gives you `addScript()` and `getScripts()` on `ChartInstance`. Runtime-level script-manager operations live closer to the exported `Chart` class, not the default public docs path.
-
-## Continue reading
-
+- [Indicator catalog](./catalog) — all 97 keys
+- [Series and panels](../series-and-panels)
 - [Custom indicator authoring](./custom-indicators)
-- [Indicator catalog](./catalog)
-- [Key indicators](./key-indicators)
+- [Chart settings](../../chart-usage/chart-settings) — visibility per indicator

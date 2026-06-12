@@ -1,19 +1,28 @@
 ---
-sidebar_position: 3
+sidebar_position: 5
 title: Drawing and Interaction
-description: Add drawings programmatically and switch runtime interaction modes.
+description: Place trend lines and shapes in code, use the toolbar, and switch crosshair mode.
 ---
+
+import { TutorialDrawingDemo } from "@site/src/components/TutorialChartDemo";
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Drawing and interaction
 
-There are two main ways to work with chart interaction:
+Charts are not read-only. Users (or your code) can **draw** on them — trend lines, levels, Fibonacci, text — and **interact** — crosshair, pan, zoom, select objects.
 
-1. Use `toolDrawer` to place drawings programmatically.
-2. Use `getInteractor()` to change the active runtime mode.
+<TutorialDrawingDemo />
 
-## Draw with helpers
+Two paths:
 
-The runtime exposes convenience methods for the most common drawing flows.
+| Path | Best for |
+| --- | --- |
+| **Code** — `toolDrawer` | Alerts, saved layouts, AI-generated annotations |
+| **Mouse** — ChartUI toolbar | Trading terminals, analyst workflows |
+
+---
+
+## Draw a trend line (code)
 
 ```ts
 chart.toolDrawer.drawTrendLine({
@@ -21,19 +30,23 @@ chart.toolDrawer.drawTrendLine({
   endStamp: candles[30].stamp,
   startPrice: candles[10].l,
   endPrice: candles[30].h,
-  config: {
-    color: "#5cc8ff",
-  },
+  config: { color: "#5cc8ff" },
 });
 ```
 
-Time-range annotation:
+Pick two points from your candle array — start time/price and end time/price.
+
+---
+
+## Mark a time range
+
+Highlight a session or event window:
 
 ```ts
 chart.toolDrawer.drawTimeRange({
   text: "London session",
   startTime: candles[20].stamp,
-  timeRange: 4 * 60 * 60 * 1000,
+  timeRange: 4 * 60 * 60 * 1000, // 4 hours in ms
   config: {
     color: "#f0b429",
     textColor: "#f0b429",
@@ -41,24 +54,11 @@ chart.toolDrawer.drawTimeRange({
 });
 ```
 
-Risk or outcome marker:
+---
 
-```ts
-chart.toolDrawer.drawTimeBet({
-  price: candles[40].c,
-  predictedDirection: "up",
-  reward: 2,
-  bet: 1,
-  startTime: candles[40].stamp,
-  timeRange: 2 * 60 * 60 * 1000,
-  status: "open",
-  isWinning: false,
-});
-```
+## Generic shapes — `drawTool()`
 
-## Draw generic tools
-
-Use `drawTool()` when you want to create a drawing object directly.
+When you need full control over anchors and type:
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -66,65 +66,54 @@ chart.toolDrawer.drawTool({
   color: "#14f7ab",
   width: 2,
   anchors: [
-    {
-      stamp: candles[5].stamp,
-      offset: 0,
-      value: candles[5].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "left",
-    },
-    {
-      stamp: candles[15].stamp,
-      offset: 0,
-      value: candles[15].h,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
+    { stamp: candles[5].stamp, offset: 0, value: candles[5].l, _index: 0 },
+    { stamp: candles[15].stamp, offset: 0, value: candles[15].h, _index: 0 },
   ],
 });
 ```
 
-The React UI left menu currently exposes drawing types such as `trendLine`, `parallelChannel`, `fibonLines`, `triangle`, `arrow`, `hLine`, `vLine`, `mLine`, `abcd`, `ellipse`, `vRange`, `hRange`, `cycle`, `box`, `textAnnotation`, and `priceTag`.
+Every built-in type (`hLine`, `fibonLines`, `box`, …) is listed in the [Drawing tools catalog](../drawing-tools/catalog).
 
-If you need the current visible `ChartUI` menu coverage, cursor controls, or share and toolbar integration around these tools, continue with [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools).
+---
 
-## Touch gestures (mobile)
+## Draw with the mouse (ChartUI)
 
-On coarse pointers the chart interaction layer handles:
+Wrap your chart in `ChartUI` and use the **left toolbar** — no code required for each line.
 
-- **Pan** — scroll along the time axis (`touch-action: none` on the interaction surface)
-- **Pinch** — zoom the viewport (throttled per animation frame)
-- **Swipe** — inertial scroll after release
-- **Long press** — context menu at the touch location (go to start/end, toggle autoscale, toggle crosshair)
+Tutorial: [Drawing tools recipes](../tutorials/drawing-tools-recipes).  
+Toolbar details: [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools).
 
-Crosshair mode keeps the last position after finger lift. Pinch dismisses an open context menu.
+---
 
-Integration notes (viewport meta, safe area, compact toolbar) are in [Mobile and responsive](../advanced/mobile-and-responsive).
+## Try more shapes live
+
+<DrawingToolShowcase visiblePresets={["trendLine", "hLine", "timeRange", "fibonLines"]} />
+
+---
 
 ## Change interaction mode
 
-Access the interactor with `getInteractor()`.
+Crosshair, pan, draw mode — controlled via the interactor:
 
 ```ts
 const interactor = chart.getInteractor();
-
 interactor.setMode("CROSSHAIR");
 ```
 
-The interactor also supports object-selection control when the runtime exposes `setObjectSelectionAllowed()`.
+Use crosshair when clicks should read a price (e.g. [Trade from chart](../tutorials/trade-from-chart)).
+
+---
 
 ## Remove a drawing
 
-`drawTool()` returns the drawing identifier when creation succeeds.
+Keep the id returned when you create a shape:
 
 ```ts
 const toolId = chart.toolDrawer.drawTrendLine({
   startStamp: candles[1].stamp,
   endStamp: candles[10].stamp,
+  startPrice: candles[1].l,
+  endPrice: candles[10].h,
 });
 
 if (toolId !== undefined) {
@@ -132,11 +121,36 @@ if (toolId !== undefined) {
 }
 ```
 
-Use this page as the short entry point, then continue with the dedicated drawing-tools section:
+---
+
+## ChartUI toolbars
+
+| Bar | Location | Guide |
+| --- | --- | --- |
+| **Top toolbar** | Above the chart | Type, interval, indicators, scale, settings — [Top toolbar and mobile](./top-toolbar-and-mobile) |
+| **Left menu** | Beside the chart (desktop) or pencil rail (mobile) | Drawing tools — [Drawing tools overview](../drawing-tools/overview) |
+| **Chart settings** | Gear icon / ⋯ menu | Colors, layers, language — [Chart settings](./chart-settings) |
+
+---
+
+## Touch and mobile
+
+On phones and tablets the chart supports:
+
+| Gesture | Effect |
+| --- | --- |
+| **Pan** | Scroll along time |
+| **Pinch** | Zoom |
+| **Long press** | Context menu (go to start/end, toggle crosshair) |
+
+Layout tips: [Mobile and responsive](../advanced/mobile-and-responsive).  
+Consumer example: [Fintech integration demo](/starters/fintech-integration).
+
+---
+
+## Where to go deeper
 
 - [Drawing tools overview](../drawing-tools/overview)
-- [Drawing tools catalog](../drawing-tools/catalog)
 - [Trend line](../drawing-tools/trend-line)
 - [Levels and channels](../drawing-tools/levels-and-channels)
-- [Lines, ranges, and tags](../drawing-tools/lines-ranges-and-tags)
 - [Shapes and annotations](../drawing-tools/shapes-and-annotations)

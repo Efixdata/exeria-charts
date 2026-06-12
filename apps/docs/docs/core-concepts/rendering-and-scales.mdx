@@ -1,74 +1,139 @@
 ---
 sidebar_position: 3
 title: Rendering and Scales
-description: Switch chart draw modes, control the value axis, and understand autoscale behavior.
+description: Switch between candles and lines, and control how the Y axis behaves.
 ---
+
+import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
 
 # Rendering and scales
 
-The runtime separates how the main series is drawn from how the value axis is scaled.
+Same data, different **look**. Exeria separates:
 
-## Main draw modes
+1. **How** price is drawn (candles, line, bars, …)
+2. **How** the Y axis is scaled (linear, log, percent)
 
-The public runtime supports these main-series draw modes:
+You can mix them — for example a **line** on a **log** scale.
 
-- `OHLC`
-- `Bars`
-- `Line`
-- `Histogram`
-- `Line and Histogram`
+<ChartQuickstartExample />
 
-Set the mode with `setMainDrawMode()`.
+Use the buttons above to switch draw modes on the same dataset. No extra data fetch — just `setMainDrawMode`.
+
+## Draw modes — how price looks
+
+The main series can render as:
+
+| Mode | Best for |
+| --- | --- |
+| `OHLC` | Classic candlestick chart (default) |
+| `Bars` | OHLC as vertical bars |
+| `Line` | Simple closing-price line — clean embeds |
+| `Histogram` | Volume-style columns |
+| `Line and Histogram` | Line plus histogram combined |
+
+Switch anytime:
 
 ```ts
 chart.setMainDrawMode("OHLC");
 chart.setMainDrawMode("Line");
+chart.setMainDrawMode("Histogram");
 ```
 
-Use this to move between candle-style views and simpler line or histogram presentations without replacing the underlying data.
+Underlying candles stay the same — only the renderer changes. Great for user toggles (“Candles / Line”) without refetching.
 
-## Value axis modes
+### When to use which
 
-The main panel value axis supports these modes:
+| Your product | Suggestion |
+| --- | --- |
+| Trading terminal | `OHLC` or `Bars` |
+| Banking / fintech embed | `Line` — calmer, simpler |
+| Volume emphasis | `Histogram` |
 
-- `lin`
-- `log`
-- `perc`
-- `%`
+See [Fintech integration demo](/starters/fintech-integration) for a minimal line chart in context.
 
-Set the mode with `setValueAxisMode()`.
+---
+
+## Value axis — how the Y scale behaves
+
+The right-hand price scale supports:
+
+| Mode | Meaning |
+| --- | --- |
+| `lin` | Normal linear scale (default) |
+| `log` | Logarithmic — wide price ranges (crypto, long-term) |
+| `perc` or `%` | Percent change from a reference |
 
 ```ts
 chart.setValueAxisMode("lin");
 chart.setValueAxisMode("log");
-chart.setValueAxisMode("%");
+chart.setValueAxisMode("%");  // same as "perc"
 ```
 
-The runtime normalizes `%` to `perc` internally.
+`%` is accepted for convenience; internally it becomes `perc`.
 
-## Autoscale
+**Linear** — equal steps on the axis (100 → 200 feels same distance as 200 → 300).  
+**Log** — percentage moves look equal (useful when price went from 1 to 1000).  
+**Percent** — “how much up/down from start” rather than absolute price.
 
-Use `setAutoScale()` to toggle automatic price-range fitting on the main panel.
+---
+
+## Autoscale — fit price to the screen
+
+When autoscale is **on**, the chart zooms the Y axis so visible candles fill the panel:
 
 ```ts
 chart.setAutoScale(true);
 
 if (chart.getAutoScale()) {
-  console.log("autoscale is enabled");
+  console.log("Chart fits visible range automatically");
 }
 ```
 
-Changing the value-axis mode also re-enables autoscale.
+Turn off when you want a fixed manual range (advanced).
 
-## Value-axis width
+**Note:** calling `setValueAxisMode` turns autoscale back **on** as a side effect. If the axis suddenly jumps, check that.
 
-Use `getValueAxisWidth()` when you need layout-aware overlays or external controls that line up with the rendered chart surface.
+---
 
-Read [Autoscale and value axis](../chart-usage/autoscale-and-value-axis) for the operational page that covers the current public methods, the `"%"` to `"perc"` normalization, event hooks, and the autoscale side effect of `setValueAxisMode()`.
+## Value axis width
 
-## Related docs
+Need an external legend or button aligned with the chart edge?
 
-- [Autoscale and value axis](../chart-usage/autoscale-and-value-axis)
-- [ChartInstance reference](../api-reference/chart-instance)
-- [Drawing and interaction](../chart-usage/drawing-and-interaction)
-- [Theming overview](../theming/overview)
+```ts
+const width = chart.getValueAxisWidth();
+```
+
+Returns the rendered width of the price column — handy for pixel-perfect layouts.
+
+---
+
+## Rendering vs scale — quick reference
+
+```mermaid
+flowchart TB
+  Data["Same candle data"]
+  Draw["setMainDrawMode — OHLC, Line, …"]
+  Scale["setValueAxisMode — lin, log, %"]
+  Screen["What user sees"]
+
+  Data --> Draw --> Screen
+  Data --> Scale --> Screen
+```
+
+Two knobs, one dataset. Change draw mode for presentation; change scale for how big moves feel.
+
+---
+
+## Common questions
+
+| Question | Answer |
+| --- | --- |
+| Do I reload data when switching to Line? | No — `setMainDrawMode` only |
+| Why did Y axis reset? | `setValueAxisMode` re-enables autoscale |
+| Candles look flat on crypto | Try `log` scale for large ranges |
+
+## What is next?
+
+- [Autoscale and value axis](../chart-usage/autoscale-and-value-axis) — full method reference
+- [Custom theme](../tutorials/custom-theme) — colors independent of draw mode
+- [Drawing and interaction](../chart-usage/drawing-and-interaction) — crosshair, zoom, pan

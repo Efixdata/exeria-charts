@@ -1,0 +1,64 @@
+---
+sidebar_position: 2
+title: Playground
+description: Experiment with themes, indicators, and drawing tools in the browser before you write integration code.
+---
+
+# Playground
+
+The [Playground](/playground) is a live sandbox on exeriacharts.dev. Use it to **see** how Exeria Charts behaves before you paste code into your app.
+
+## What you can try
+
+| Area | What to experiment with |
+| --- | --- |
+| **Chart surface** | Candles, line mode, intervals, autoscale, linear/log scale |
+| **Indicators** | Add built-in studies (RSI, MACD, EMA, …) and open their settings |
+| **Drawing tools** | Trend lines, channels, fib tools, positions — from the left menu |
+| **Themes** | Switch preset palettes and see candle, grid, and axis colors update |
+| **Mobile layout** | Resize the browser to see compact toolbar behavior |
+
+Nothing you change in the Playground writes to your project. It is a safe place to answer “does this library do what I need?”
+
+## When to use Playground vs docs
+
+| Goal | Start here |
+| --- | --- |
+| Pick colors and chart feel before coding | **Playground** → then [Custom theme](../tutorials/custom-theme) |
+| Confirm an indicator exists | **Playground** indicator picker → [Indicator catalog](../scripts/indicators/catalog) |
+| Learn integration step by step | [Tutorials](../tutorials/) or [Vanilla quickstart](../getting-started/vanilla) |
+| Copy exact API calls | [ChartInstance](../api-reference/chart-instance) or tutorials |
+
+## Suggested 5-minute flow
+
+1. Open [/playground](/playground).
+2. Switch interval and chart type from the top toolbar.
+3. Add **EMA** and **RSI** from the indicators menu.
+4. Draw a **trend line** from the left menu.
+5. Change the theme preset and note which parts move (candles vs toolbar).
+
+Then open [Custom theme](../tutorials/custom-theme) to apply the same ideas in code.
+
+## Playground vs starter demos
+
+| Resource | Best for |
+| --- | --- |
+| [Playground](/playground) | Open-ended experimentation |
+| [Starter demos](/starters/crypto-terminal) | Full product-shaped layouts (crypto terminal, forex, screener, …) |
+| [Binance live demo](/binance-example) | Data Connector with real market stream |
+| [Bybit live demo](/bybit-example) | Same connector pattern on Bybit spot data |
+| [OKX live demo](/okx-example) | OKX spot data with `BTC-USDT` symbols |
+| [Kraken live demo](/kraken-example) | Kraken USD spot with `BTC/USD` symbols |
+| [KuCoin live demo](/kucoin-example) | KuCoin USDT spot with `BTC-USDT` symbols |
+| [Coinbase live demo](/coinbase-example) | Coinbase USD/USDC spot with `BTC-USD` product ids |
+| [Gate.io live demo](/gate-example) | Gate.io USDT spot with `BTC_USDT` currency pairs |
+| [EODHD live demo](/eodhd-example) | Global stocks, forex, and crypto with `AAPL.US`-style symbols |
+| [CoinGecko live demo](/coingecko-example) | Broad crypto catalog via coin ids |
+
+Starters show **integration patterns**; Playground shows **chart capabilities** in isolation.
+
+## Related pages
+
+- [Live theme creator](../theming/live-theme-creator) — focused theme tuning with export-friendly workflow
+- [Drawing tools overview](../drawing-tools/overview) — what each tool type does
+- [FAQ and troubleshooting](./faq-and-troubleshooting) — if Playground works but your app does not

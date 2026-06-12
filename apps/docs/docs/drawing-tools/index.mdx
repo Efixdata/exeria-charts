@@ -1,0 +1,83 @@
+---
+sidebar_position: 0
+title: Drawing Tools
+description: Mark up your chart — trend lines, levels, Fibonacci, boxes, and text.
+---
+
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+import { TutorialDrawingDemo } from "@site/src/components/TutorialChartDemo";
+
+# Drawing tools
+
+Charts are not just for watching price move. You can **draw** on them — underline a trend, mark support, highlight a session, leave a note for your user.
+
+<DrawingToolShowcase
+  visiblePresets={["trendLine", "fibonLines", "hLine", "box", "timeRange"]}
+  initialPreset="trendLine"
+/>
+
+Click the buttons above to see different tools on the same chart.
+
+## Two ways to draw
+
+| Way | Best for |
+| --- | --- |
+| **Mouse** — ChartUI left toolbar | Analysts, traders, anyone who wants TradingView-style interaction |
+| **Code** — `chart.toolDrawer` | Saved layouts, alerts, AI annotations, automated reports |
+
+You can mix both: users draw with the mouse; your app restores layouts from JSON on load.
+
+Tutorial: [Drawing tools recipes](../tutorials/drawing-tools-recipes).
+
+## Pick a topic
+
+| You want to… | Read |
+| --- | --- |
+| Understand anchors, helpers, and the toolbar | [Overview](./overview) |
+| Look up every tool name | [Catalog](./catalog) |
+| See all 34 tools with live previews | [Complete tool reference](./tool-reference) |
+| Draw a simple trend line | [Trend line](./trend-line) |
+| Fibonacci, channels, pitchforks | [Levels and channels](./levels-and-channels) |
+| Price levels, time windows, tags | [Lines, ranges, and tags](./lines-ranges-and-tags) |
+| Boxes, arrows, text labels | [Shapes and annotations](./shapes-and-annotations) |
+
+## The smallest code example
+
+Two clicks worth of geometry — one trend line in code:
+
+<TutorialDrawingDemo />
+
+```ts
+chart.toolDrawer.drawTrendLine({
+  startStamp: candles[10].stamp,
+  endStamp: candles[30].stamp,
+  startPrice: candles[10].l,
+  endPrice: candles[30].h,
+  config: { color: "#5cc8ff" },
+});
+```
+
+Every drawing is anchored to **time** (`stamp`) and **price** (`value`) on the chart.
+
+## Tool families (plain English)
+
+| Family | Examples | Typical use |
+| --- | --- | --- |
+| **Lines** | Trend line, horizontal level | Support, resistance, trend |
+| **Levels & channels** | Fibonacci, parallel channel | Technical analysis projections |
+| **Ranges** | Time range, price range | “This session”, “this move” |
+| **Shapes** | Box, arrow, ellipse | Highlight zones, callouts |
+| **Tags** | Price tag, text | Pin a number or label |
+
+Full list with runtime keys: [Catalog](./catalog).
+
+## Before you start
+
+- Chart must be mounted and have data (`init()` + `setMainSeriesData`).
+- With **ChartUI**, drawings appear on the main panel via the left toolbar.
+- Keep the `toolId` from `drawTool()` if you need `deleteTool(id)` later.
+
+## See drawings in a full product
+
+- [Forex platforms demo](/starters/forex-platforms) — drawing-heavy terminal
+- [Drawing and interaction](../chart-usage/drawing-and-interaction) — crosshair, mobile gestures

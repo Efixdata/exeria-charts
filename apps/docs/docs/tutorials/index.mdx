@@ -1,0 +1,64 @@
+---
+sidebar_position: 1
+title: Tutorials
+description: Friendly, step-by-step guides that show you how to build charts — even if you are just getting started.
+---
+
+# Tutorials
+
+Welcome! These guides are written for **beginners** — including folks who lean on AI assistants and copy-paste their way to a working app (“vibe coding”). No finance or charting background required.
+
+Each tutorial has three things:
+
+1. **Plain-language steps** — what to do and why, without jargon.
+2. **Copy-paste code** — small snippets you can drop into your project.
+3. **A live chart** — so you can see the result before you write a line of code.
+
+When you need exact method names or types, use the [API Reference](../api-reference/chart-instance). These pages are about **getting something on screen fast**.
+
+## Start here
+
+Never used Exeria Charts before? Spend five minutes on the [Vanilla quickstart](../getting-started/vanilla) — install the package and mount your first chart. Then come back and pick a tutorial below.
+
+## Learning path
+
+Work through these in order if you want a gentle ramp. Skip ahead anytime — each tutorial stands on its own.
+
+| Step | Tutorial | You will learn… | Time |
+| --- | --- | --- | ---: |
+| 1 | [Chart with your data](./chart-with-your-data) | Put **your** price history on a chart | ~15 min |
+| 2 | [Live data stream](./live-data-stream) | Keep the last price moving in real time | ~20 min |
+| 3 | [Add an indicator](./add-an-indicator) | Layer EMA and RSI on top of candles | ~15 min |
+| 4 | [Custom theme](./custom-theme) | Match colors to your brand | ~15 min |
+| 5 | [Drawing tools recipes](./drawing-tools-recipes) | Draw trend lines and levels in code | ~15 min |
+| 6 | [Connect with a Data Connector](./connect-with-data-connector) | Let the chart fetch crypto data for you | ~20 min |
+| 7 | [Multi-instrument overlay](./multi-instrument-overlay) | Compare two symbols on one chart | ~20 min |
+| 8 | [Save and restore settings](./save-and-restore-settings) | Remember colors and layout for your users | ~20 min |
+| 9 | [Customize a built-in indicator](./customize-built-in-indicator) | Tweak periods without writing new math | ~20 min |
+| 10 | [Trade from chart](./trade-from-chart) | Hook clicks and drags to your broker | ~30 min |
+
+## See it live first
+
+Not ready to code? Open a full demo and poke around:
+
+| What you want to build | Try this demo |
+| --- | --- |
+| Crypto terminal with live prices | [/starters/crypto-terminal](/starters/crypto-terminal) |
+| Forex-style platform | [/starters/forex-platforms](/starters/forex-platforms) |
+| Branded fintech chart | [/starters/fintech-integration](/starters/fintech-integration) |
+| Analytics with indicators | [/starters/quant-analytics](/starters/quant-analytics) |
+| Charts inside news articles | [/starters/market-news](/starters/market-news) |
+| Screener with buy/sell signals | [/starters/screener-signals](/starters/screener-signals) |
+
+## For package maintainers only
+
+- [Custom drawing tool authoring](./custom-drawing-tool-authoring) — add a **new** shape type inside the chart source (not needed for most apps).
+- [Custom indicator authoring](../scripts/indicators/custom-indicators) — ship a brand-new indicator key with the library.
+
+## Quick checklist before you start
+
+- Give your chart container a **height** in CSS (for example `height: 480px`). A chart cannot grow if its parent has zero height.
+- Call `chart.init()` **once**, then load data.
+- Call `chart.destroy()` when the user leaves the page or your React component unmounts.
+
+That is it. Pick a tutorial and build something you can show off.

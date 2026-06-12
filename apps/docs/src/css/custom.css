@@ -8,13 +8,13 @@
   --doc-surface-elevated: #ffffff;
   --doc-text: #1d1d1f;
   --doc-text-secondary: #6e6e73;
-  --doc-border: #d2d2d7;
+  --doc-border: #c4c4c9;
   --doc-accent: #0066cc;
   --doc-accent-hover: #005bb5;
   --doc-radius-sm: 8px;
   --doc-radius-lg: 24px;
 
-  /* Chart embed + showcase (docs ↔ product bridge) */
+  /* Chart embed + showcase (docs ↔ product surface) */
   --doc-chart-surface: #131722;
   --doc-chart-embed-radius: var(--doc-radius-lg);
   --doc-chart-embed-padding: 8px;
@@ -40,6 +40,7 @@
   --doc-inverse-text: var(--doc-bg);
   --doc-elevated-overlay: rgba(0, 0, 0, 0.04);
   --doc-elevated-border: color-mix(in srgb, var(--doc-text) 12%, var(--doc-border));
+  --doc-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
 
   --ifm-color-primary: var(--doc-accent);
   --ifm-color-primary-dark: #005bb5;
@@ -75,7 +76,7 @@ html[data-theme="dark"] {
   --doc-surface-elevated: #111111;
   --doc-text: #ffffff;
   --doc-text-secondary: #a3a3a3;
-  --doc-border: #222222;
+  --doc-border: #383838;
   --doc-accent: #0066cc;
   --doc-accent-hover: #005bb5;
 
@@ -95,7 +96,8 @@ html[data-theme="dark"] {
   --doc-inverse-surface: #f7fbff;
   --doc-inverse-text: #09111d;
   --doc-elevated-overlay: rgba(255, 255, 255, 0.05);
-  --doc-elevated-border: rgba(255, 255, 255, 0.08);
+  --doc-elevated-border: rgba(255, 255, 255, 0.12);
+  --doc-search-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
 
   --ifm-color-primary: var(--doc-accent);
   --ifm-color-primary-dark: #005bb5;
@@ -127,6 +129,7 @@ body {
   color: var(--doc-text);
   font-family: var(--ifm-font-family-base);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a {
@@ -220,6 +223,11 @@ a {
   padding-right: 0;
 }
 
+/* Docs search lives in the left sidebar — never in the top bar */
+.navbar .navbar__search {
+  display: none !important;
+}
+
 /* Docusaurus built-in mobile sidebar — not used (see components/MobileNav) */
 .navbar-sidebar,
 .navbar-sidebar__backdrop {
@@ -265,6 +273,13 @@ a {
 .theme-doc-sidebar-container {
   background: var(--doc-surface);
   border-right: 1px solid var(--doc-border);
+}
+
+.theme-doc-sidebar-container:has([data-search-active="true"]) {
+  z-index: 40;
+  overflow: visible;
+  /* Docusaurus clips sidebar content; search dropdown must paint outside the box */
+  clip-path: none !important;
 }
 
 .menu__link {
@@ -526,4 +541,50 @@ html[data-theme="dark"] div[class^="codeBlockContainer"] {
   .theme-doc-sidebar-container {
     border-right: none;
   }
+}
+
+/* Crypto Terminal live app — full viewport, no site chrome */
+html[data-crypto-terminal-app] {
+  --ifm-navbar-height: 0px;
+}
+
+html[data-crypto-terminal-app] .navbar {
+  display: none !important;
+}
+
+html[data-crypto-terminal-app] .footer {
+  display: none !important;
+}
+
+html[data-crypto-terminal-app] body {
+  overflow: hidden;
+}
+
+html[data-crypto-terminal-app] .main-wrapper {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+html[data-crypto-terminal-app] main {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-crypto-terminal-app] .container {
+  max-width: none;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-crypto-terminal-app] .container > .row,
+html[data-crypto-terminal-app] .container > .row > .col {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
 }

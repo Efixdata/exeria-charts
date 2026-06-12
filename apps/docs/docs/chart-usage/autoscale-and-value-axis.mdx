@@ -1,157 +1,135 @@
 ---
 sidebar_position: 4
 title: Autoscale and Value Axis
-description: Control autoscale, switch value-axis modes, subscribe to scale-related events, and understand the current public boundary.
+description: Fit prices to the screen, switch linear/log/percent scale, and listen for axis changes.
 ---
+
+import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
 
 # Autoscale and value axis
 
-Use this page when you need the operational behavior behind `setAutoScale()`, `setValueAxisMode()`, and `getValueAxisWidth()`.
+The **value axis** is the price column on the right. Two settings control how it behaves:
 
-The public API here is small, but there are a few important runtime details behind it.
+1. **Scale mode** — linear, logarithmic, or percent.
+2. **Autoscale** — automatically zoom the axis to fit visible candles.
 
-## Public methods
+<ChartQuickstartExample />
 
-`ChartInstance` exposes these scale-related methods:
+Switch draw modes above with the buttons — the Y axis refits when autoscale is on. Same data, different look and scale behavior.
 
-- `getValueAxisMode()`
-- `setValueAxisMode(mode)`
-- `getAutoScale()`
-- `setAutoScale(autoScale)`
-- `getValueAxisWidth()`
+Conceptual overview: [Rendering and scales](../core-concepts/rendering-and-scales).
 
-```ts
-chart.setValueAxisMode("log");
-chart.setAutoScale(true);
+---
 
-console.log(chart.getValueAxisMode());
-console.log(chart.getAutoScale());
-console.log(chart.getValueAxisWidth());
-```
+## Scale modes
 
-## Supported value-axis modes
-
-The public `ValueAxisMode` union is:
-
-- `lin`
-- `log`
-- `perc`
-- `%`
+| Mode | When to use |
+| --- | --- |
+| `lin` | Default — normal price steps |
+| `log` | Huge ranges (crypto from cents to thousands) |
+| `perc` or `%` | “% change from start” instead of absolute price |
 
 ```ts
 chart.setValueAxisMode("lin");
 chart.setValueAxisMode("log");
-chart.setValueAxisMode("perc");
-chart.setValueAxisMode("%");
+chart.setValueAxisMode("%");  // same as "perc"
 ```
 
-The runtime normalizes `"%"` to `"perc"` internally, so `getValueAxisMode()` returns the normalized mode.
+`getValueAxisMode()` returns the normalized mode (`%` becomes `perc` internally).
 
-## What `setValueAxisMode()` changes
+---
 
-From the public surface, `setValueAxisMode()` targets the main panel value axis.
+## Autoscale on / off
 
-Practical effects:
-
-- `lin` keeps the axis in linear price space
-- `log` switches the main panel to logarithmic scaling
-- `perc` and `%` switch the main panel into percentage mode
-
-Important runtime behavior:
-
-- changing the value-axis mode re-enables autoscale
-- calling `setValueAxisMode()` also rerenders the chart immediately
-
-```ts
-chart.setAutoScale(false);
-chart.setValueAxisMode("log");
-
-console.log(chart.getAutoScale()); // true
-```
-
-That side effect matters if your app deliberately turned autoscale off and expected it to stay off across scale-mode changes.
-
-## Autoscale behavior
-
-Use `setAutoScale()` when you want the runtime to fit the visible vertical range automatically.
+When **on**, the chart adjusts the vertical range so visible bars fill the panel:
 
 ```ts
 chart.setAutoScale(true);
 
 if (chart.getAutoScale()) {
-  console.log("Autoscale is enabled");
+  console.log("Axis fits visible candles automatically");
 }
 ```
 
-When autoscale is on, the runtime recomputes visible extremes during the render fit pass. When autoscale is off, the existing panel range is left in place until something else changes it.
-
-This is the right toggle when users want to freeze the current visible range temporarily.
-
-## Value-axis width
-
-`getValueAxisWidth()` exposes the currently rendered width of the value axis.
+When **off**, the range stays frozen until something else changes it — useful when users manually zoom price.
 
 ```ts
-const valueAxisWidth = chart.getValueAxisWidth();
-
-console.log(valueAxisWidth);
+chart.setAutoScale(false);
 ```
 
-Use this when you need:
+### Important side effect
 
-- layout-aware overlays next to the chart
-- external controls that align with the visible plotting area
-- measurements that account for the current axis label width
-
-The width is recalculated when main-series data is loaded and the renderer refreshes its price-rendering options.
-
-## Scale-related events
-
-The public typed event surface gives you two scale-related hooks here:
-
-- `AUTOSCALE`
-- `VALUE_AXIS_WIDTH_CHANGE`
+Changing scale mode **turns autoscale back on**:
 
 ```ts
-const autoscaleSubscription = chart.subscribe("AUTOSCALE", (data) => {
-  console.log("Autoscale changed", data.autoScale);
-});
+chart.setAutoScale(false);
+chart.setValueAxisMode("log");
 
-const widthSubscription = chart.subscribe("VALUE_AXIS_WIDTH_CHANGE", (width) => {
-  console.log("Axis width changed", width);
-});
-
-autoscaleSubscription?.unsubscribe();
-widthSubscription?.unsubscribe();
+console.log(chart.getAutoScale()); // true — autoscale was re-enabled
 ```
 
-Use `AUTOSCALE` when your app mirrors the toggle state elsewhere in the UI.
+If your UI has an “autoscale off” toggle, sync it after scale changes.
 
-Use `VALUE_AXIS_WIDTH_CHANGE` when the surrounding layout depends on the actual rendered value-axis width after data loads or formatting changes.
+---
 
-## Current public boundary
+## Measure the axis width
 
-There are a few important limits to the typed public surface:
+Align external UI (legends, buttons) with the chart edge:
 
-- these value-axis helpers operate on the main panel path exposed by `ChartInstance`
-- there is no public per-panel axis-mode setter on `ChartInstance`
-- internal model settings such as `extremesMargin`, panel precision, `hGrid`, and `vGrid` are not exposed as first-class `ChartInstance` setters
+```ts
+const width = chart.getValueAxisWidth();
+```
 
-If you need panel-by-panel control or closer access to the runtime model, continue with [Chart runtime access](../advanced/chart-class-runtime).
+Width updates when data loads or label formatting changes.
 
-## Practical recommendation
+---
 
-Stay on the public API when you need:
+## React to changes in your app
 
-- linear, logarithmic, or percentage scaling on the main panel
-- an autoscale toggle in your own app shell
-- layout measurements from the rendered axis width
+Subscribe when your own controls must mirror the chart:
 
-Drop to the runtime layer only when you need per-panel or model-level scale customization that the typed surface does not currently expose.
+```ts
+const autoscaleSub = chart.subscribe("AUTOSCALE", (data) => {
+  console.log("Autoscale:", data.autoScale);
+});
 
-## Continue reading
+const widthSub = chart.subscribe("VALUE_AXIS_WIDTH_CHANGE", (width) => {
+  console.log("Axis width:", width);
+});
 
-- [Rendering and scales](../core-concepts/rendering-and-scales)
-- [ChartInstance](../api-reference/chart-instance)
-- [Chart runtime access](../advanced/chart-class-runtime)
-- [Navigation and viewport](./navigation-and-viewport)
+autoscaleSub?.unsubscribe();
+widthSub?.unsubscribe();
+```
+
+| Event | Use when |
+| --- | --- |
+| `AUTOSCALE` | Toggle in your settings panel must stay in sync |
+| `VALUE_AXIS_WIDTH_CHANGE` | Layout beside the chart depends on axis width |
+
+---
+
+## Public API summary
+
+| Method | What it does |
+| --- | --- |
+| `getValueAxisMode()` / `setValueAxisMode()` | Read or set lin / log / perc |
+| `getAutoScale()` / `setAutoScale()` | Read or toggle vertical auto-fit |
+| `getValueAxisWidth()` | Pixel width of price column |
+
+These apply to the **main panel** on the public `ChartInstance` surface. Per-panel or grid customization requires the runtime layer: [Chart runtime access](../advanced/chart-class-runtime).
+
+---
+
+## Common questions
+
+| Question | Answer |
+| --- | --- |
+| Y axis jumped after I changed scale | `setValueAxisMode` re-enables autoscale |
+| Crypto looks flat on linear scale | Try `log` |
+| Need % performance view | `setValueAxisMode("%")` |
+
+## What is next?
+
+- [Navigation and viewport](./navigation-and-viewport) — horizontal scroll vs vertical scale
+- [Custom theme](../tutorials/custom-theme) — colors separate from scale
+- [ChartInstance reference](../api-reference/chart-instance)

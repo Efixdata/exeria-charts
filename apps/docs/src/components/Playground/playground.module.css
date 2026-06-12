@@ -1,9 +1,12 @@
 .wrapper {
   --playground-nav-height: 72px;
   --playground-section-gap: 24px;
-  width: min(1320px, calc(100% - 48px));
+  --playground-inline-padding: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: var(--playground-nav-height) 0 120px;
+  padding: var(--playground-nav-height) var(--playground-inline-padding) 120px;
   color: var(--doc-text);
 }
 
@@ -381,28 +384,14 @@
 
 .colorPicker {
   box-sizing: border-box;
+  display: block;
   flex-shrink: 0;
   width: var(--playground-control-height, 40px);
   height: var(--playground-control-height, 40px);
-  padding: 3px;
+  padding: 0;
   border: 1px solid var(--doc-border);
   border-radius: 12px;
-  background: var(--doc-bg);
   cursor: pointer;
-}
-
-.colorPicker::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.colorPicker::-webkit-color-swatch {
-  border: none;
-  border-radius: 8px;
-}
-
-.colorPicker::-moz-color-swatch {
-  border: none;
-  border-radius: 8px;
 }
 
 .colorValue {
@@ -499,7 +488,7 @@
 .exampleImage {
   display: block;
   width: 100%;
-  aspect-ratio: 5 / 3;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 12px;
 }
@@ -522,7 +511,7 @@
 @media (max-width: 640px) {
   .wrapper {
     --playground-section-gap: 16px;
-    width: min(1320px, calc(100% - 32px));
+    --playground-inline-padding: 20px;
   }
 
   .colorEditorRow {

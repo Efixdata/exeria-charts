@@ -1,8 +1,10 @@
 import * as React from "react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useStableId } from "../../../utils/useStableId";
 import styled from "styled-components";
 import { CaretDown } from "phosphor-react";
 import { Portal } from "react-portal";
+import { usePortalNode } from "../../../hooks/usePortalNode";
 import { CHART_UI_OVERLAY_ATTRIBUTE, UI_RADIUS } from "ui";
 import { inputBorderRadius } from "ui/theme";
 import { inputFocusVisibleStyles, menuOptionFocusVisibleStyles } from "ui/inputStyles";
@@ -186,13 +188,14 @@ export const DialogSelect = ({
   renderOptionPrefix,
   renderTriggerPrefix,
 }: DialogSelectProps) => {
+  const portalNode = usePortalNode(document);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [menuPlacement, setMenuPlacement] = useState<MenuPlacement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const listboxId = React.useId();
+  const listboxId = useStableId("dialog-select-listbox");
 
   const selectedOption =
     options.find((option) => option.value === value) ?? options[0] ?? { value: "", label: "" };
@@ -376,7 +379,7 @@ export const DialogSelect = ({
         </ChevronWrap>
       </Trigger>
 
-      {menu ? <Portal>{menu}</Portal> : null}
+      {menu ? <Portal node={portalNode}>{menu}</Portal> : null}
     </Root>
   );
 };

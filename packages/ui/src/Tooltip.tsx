@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import styled from "styled-components";
 import { UI_RADIUS } from "../designTokens";
 import { UI_FONT_FAMILY } from "../theme";
-import { isTooltipEnabled } from "./device";
+import { getOverlayPortalRoot, isTooltipEnabled } from "./device";
 
 const Wrap = styled.span`
   position: relative;
@@ -85,7 +85,7 @@ export const Tooltip = (props: TooltipProps) => {
           <Bubble role="tooltip" $top={position.top} $left={position.left} $placement={placement}>
             {label}
           </Bubble>,
-          document.body,
+          getOverlayPortalRoot(),
         )
       : null;
 

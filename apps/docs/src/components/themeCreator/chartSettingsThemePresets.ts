@@ -12,7 +12,7 @@ import type {
   VariantPalette,
 } from "./core";
 
-const LIGHT_PRESET_IDS = new Set(["day", "paper"]);
+const LIGHT_PRESET_IDS = new Set(["day", "paper", "onyx"]);
 
 function mixColors(first: string, second: string, ratio: number) {
   const parse = (hexColor: string) => {
@@ -52,6 +52,8 @@ function deriveDarkChartColors(lightColors: ChartColorState): ChartColorState {
     grid: mixColors(lightColors.grid, "#131722", 0.75),
     candleUp: mixColors(lightColors.candleUp, "#0F5132", 0.1),
     candleDown: mixColors(lightColors.candleDown, "#8A1C2F", 0.1),
+    candleUpStroke: mixColors(lightColors.candleUpStroke, "#131722", 0.75),
+    candleDownStroke: mixColors(lightColors.candleDownStroke, "#131722", 0.75),
     crosshair: mixColors(lightColors.crosshair, "#131722", 0.15),
     tool: mixColors(lightColors.tool, "#131722", 0.45),
   };
@@ -65,6 +67,8 @@ function deriveLightChartColors(darkColors: ChartColorState): ChartColorState {
     grid: mixColors(darkColors.grid, "#FFFFFF", 0.82),
     candleUp: mixColors(darkColors.candleUp, "#0F5132", 0.16),
     candleDown: mixColors(darkColors.candleDown, "#8A1C2F", 0.14),
+    candleUpStroke: mixColors(darkColors.candleUpStroke, "#FFFFFF", 0.82),
+    candleDownStroke: mixColors(darkColors.candleDownStroke, "#FFFFFF", 0.82),
     crosshair: mixColors(darkColors.crosshair, "#334155", 0.4),
     tool: mixColors(darkColors.tool, "#3A4D63", 0.58),
   };
@@ -108,6 +112,8 @@ function extractChartColors(preset: ChartSettingsPreset): ChartColorState {
     grid: appearance.gridColor,
     candleUp: appearance.candleUpColor,
     candleDown: appearance.candleDownColor,
+    candleUpStroke: appearance.candleUpStrokeColor,
+    candleDownStroke: appearance.candleDownStrokeColor,
     crosshair: appearance.crosshairColor,
     tool: appearance.chartLineColor,
   };

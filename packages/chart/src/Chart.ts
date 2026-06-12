@@ -11,12 +11,15 @@ import SubscriptionManager from "./SubscriptionManager";
 import ToolDrawer from "./ToolDrawer";
 import {
   applyChartAppearanceSettings,
+  applyChartInstrumentSettings,
   applyChartTheme as applyChartThemeColors,
   applyChartVolumeSettings,
   exportChartSettingsTemplate,
   getChartAppearanceSettings,
   getChartDrawingSettings,
   getChartIndicatorSettings,
+  getChartInstrumentSettings,
+  getInstrumentDrawMode as readInstrumentDrawMode,
   getChartFunctionSettings,
   getChartStrategySettings,
   getChartVolumeSettings,
@@ -48,6 +51,7 @@ import type {
   ChartDrawingSettingsItem,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
+  ChartInstrumentSettingsItem,
   ChartSettingsTemplate,
   ChartStrategySettingsItem,
   ChartVolumeSettings,
@@ -64,6 +68,7 @@ import type {
   Instrument,
   Interval,
   ScriptDefinition,
+  Tick,
   ValueAxisMode,
 } from "./types";
 import {
@@ -108,6 +113,8 @@ import {
 } from "./locale";
 import { createLocaleMessages, type ChartLocaleMessages } from "./locale/messages";
 import { createCatalogTranslator } from "./locale/catalogTranslator";
+import type { DataAdapter, LoadDataOptions } from "./dataAdapter";
+import { intervalFromSymbol } from "./intervalFromSymbol";
 
 /** Layout size from the container box — avoids transient getBoundingClientRect overflow on mobile. */
 function readChartContainerSize(container: HTMLElement): { width: number; height: number } {
@@ -146,8 +153,12 @@ export default class Chart implements CoreChartController {
   objectOnlyOnOverlay = false;
   canvasWidth = 0;
   canvasHeight = 0;
+  private lastCanvasBitmapWidth = 0;
+  private lastCanvasBitmapHeight = 0;
+  private lastCanvasDeviceRatio = 1;
   currentAnimationFrame?: number;
   resizeObserver?: ResizeObserver;
+  private resizeObserverFrame?: number;
   private environmentUnsubscribe?: () => void;
   private layoutOptions?: ChartLayoutOptions;
   private layoutModeOverride: ChartLayoutModeOverride = "auto";
@@ -163,6 +174,10 @@ export default class Chart implements CoreChartController {
     createLocaleMessages(DEFAULT_LOCALE_ID),
     createLocaleMessages(DEFAULT_LOCALE_ID),
   );
+  private dataAdapter?: DataAdapter;
+  private adapterUnsubscribe?: () => void;
+  private currentPrice: Tick | null = null;
+  private selectedInstrumentSeriesId?: string;
 
   constructor(options: ChartOptions) {
     if (typeof window === "undefined") return;
@@ -202,6 +217,10 @@ export default class Chart implements CoreChartController {
       compactBreakpoint: options.layout?.breakpoints?.compact,
     });
     this.model._priceAxisExpanded = !getChartEnvironment(this.layoutModeOverride).isCompact;
+
+    if (options.dataAdapter) {
+      this.dataAdapter = options.dataAdapter;
+    }
   }
 
   private syncPriceAxisRenderingOptions(): void {
@@ -327,8 +346,19 @@ export default class Chart implements CoreChartController {
     this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
 
     const onSizeChange = () => {
-      this.fit();
-      this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+      if (this.resizeObserverFrame !== undefined) {
+        window.cancelAnimationFrame(this.resizeObserverFrame);
+      }
+
+      this.resizeObserverFrame = window.requestAnimationFrame(() => {
+        this.resizeObserverFrame = undefined;
+        if (!this.initialized) {
+          return;
+        }
+
+        this.fit();
+        this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+      });
     };
 
     this.resizeObserver = new ResizeObserver(onSizeChange);
@@ -353,6 +383,11 @@ export default class Chart implements CoreChartController {
       window.cancelAnimationFrame(this.currentAnimationFrame);
     this.currentAnimationFrame = undefined;
 
+    if (this.resizeObserverFrame !== undefined) {
+      window.cancelAnimationFrame(this.resizeObserverFrame);
+    }
+    this.resizeObserverFrame = undefined;
+
     if (this.interactor?.currentAnimationFrame !== undefined) {
       window.cancelAnimationFrame(this.interactor.currentAnimationFrame);
     }
@@ -371,6 +406,8 @@ export default class Chart implements CoreChartController {
     this.interactor?.currentMode?.onCancel?.();
     this.interactor?.offDOMEvents?.();
     this.subscriptionManager?.clear?.();
+    this.unsubscribeFromUpdates();
+    void this.dataAdapter?.disconnect?.();
 
     this.topLayer?.remove();
     this.overlay?.remove();
@@ -382,6 +419,9 @@ export default class Chart implements CoreChartController {
 
     this.canvasWidth = 0;
     this.canvasHeight = 0;
+    this.lastCanvasBitmapWidth = 0;
+    this.lastCanvasBitmapHeight = 0;
+    this.lastCanvasDeviceRatio = 1;
     this.objectOnlyOnOverlay = false;
     this.valueConverter = undefined;
     this.initialized = false;
@@ -458,88 +498,150 @@ export default class Chart implements CoreChartController {
     return true;
   }
 
+  private resizeCanvasesIfNeeded(): boolean {
+    if (!this.canvas || !this.overlay || !this.ctx || !this.octx) {
+      return false;
+    }
+
+    let ratio = 1;
+    if (window) {
+      ratio = window.devicePixelRatio;
+    }
+
+    const { width, height } = readChartContainerSize(this.container);
+    const widthWithRatio = Math.round(width * ratio);
+    const heightWithRatio = Math.round(height * ratio);
+
+    const sizeChanged =
+      width !== this.canvasWidth ||
+      height !== this.canvasHeight ||
+      widthWithRatio !== this.lastCanvasBitmapWidth ||
+      heightWithRatio !== this.lastCanvasBitmapHeight ||
+      ratio !== this.lastCanvasDeviceRatio;
+
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+
+    if (!sizeChanged) {
+      return false;
+    }
+
+    const widthPx = `${width}px`;
+    const heightPx = `${height}px`;
+
+    this.canvas.width = widthWithRatio;
+    this.canvas.height = heightWithRatio;
+    this.canvas.style.width = widthPx;
+    this.canvas.style.height = heightPx;
+    this.canvas.style.maxWidth = "100%";
+    this.canvas.style.maxHeight = "100%";
+    this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    this.overlay.width = widthWithRatio;
+    this.overlay.height = heightWithRatio;
+    this.overlay.style.width = widthPx;
+    this.overlay.style.height = heightPx;
+    this.overlay.style.maxWidth = "100%";
+    this.overlay.style.maxHeight = "100%";
+    this.octx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    this.lastCanvasBitmapWidth = widthWithRatio;
+    this.lastCanvasBitmapHeight = heightWithRatio;
+    this.lastCanvasDeviceRatio = ratio;
+
+    return true;
+  }
+
+  syncChartLayout() {
+    if (
+      !this.fusion.getMainSeries() ||
+      !this.fusion.getMainSeries().data ||
+      this.fusion.getMainSeries().data.length === 0
+    ) {
+      return;
+    }
+
+    this.model["_width"] = this.canvasWidth;
+    this.model["_height"] = this.canvasHeight;
+
+    applyResponsiveChartLayout(this.model, this.getChartEnvironment().layoutMode);
+    this.syncPriceAxisRenderingOptions();
+
+    this.model["_timeAxisWidth"] =
+      this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
+    this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
+    this.model["_rightIndex"] = this.renderer.getPointIndex(
+      this.model._timeAxisWidth,
+      this.model
+    );
+
+    this.model["_midOffset"] = Math.trunc(this.model.periodWidth / 2);
+
+    let panel = null;
+    let offset = 0;
+
+    this.interactor.hideEmptyPanels();
+    this.interactor.basisToHeights();
+
+    let lastVisiblePanelIndex = -1;
+    for (var panelIndex = 0; panelIndex < this.model.panels.length; panelIndex++) {
+      if (this.model.panels[panelIndex]._visible) {
+        lastVisiblePanelIndex = panelIndex;
+      }
+    }
+
+    for (var i = 0; i < this.model.panels.length; i++) {
+      panel = this.model.panels[i];
+      if (this.model.panels[i]._visible) {
+        offset += this.fitPanel(panel, i, offset, lastVisiblePanelIndex);
+      }
+    }
+
+    if (this.fusion.isDerivedSeriesOutOfSync()) {
+      const needRecalculate = this.fusion.hasDerivedSeriesLengthMismatch();
+      this.fusion.resyncDerivedSeriesToMain();
+      if (needRecalculate) {
+        this.fusion.calculateAll();
+      }
+    }
+  }
+
   fit() {
     if (
       this.fusion.getMainSeries() &&
       this.fusion.getMainSeries().data &&
       this.fusion.getMainSeries().data.length > 0
     ) {
-      let ratio = 1;
-
-      if (window) {
-        ratio = window.devicePixelRatio;
-      }
-
-      const { width, height } = readChartContainerSize(this.container);
-
-      this.canvasWidth = width;
-      this.canvasHeight = height;
-      const widthWithRatio = this.canvasWidth * ratio;
-      const widthPx = this.canvasWidth + "px";
-      const heightWithRatio = this.canvasHeight * ratio;
-      const heightPx = this.canvasHeight + "px";
-
-      this.canvas.width = widthWithRatio;
-      this.canvas.height = heightWithRatio;
-      this.canvas.style.width = widthPx;
-      this.canvas.style.height = heightPx;
-      this.canvas.style.maxWidth = "100%";
-      this.canvas.style.maxHeight = "100%";
-      this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      this.overlay.width = widthWithRatio;
-      this.overlay.height = heightWithRatio;
-      this.overlay.style.width = widthPx;
-      this.overlay.style.height = heightPx;
-      this.overlay.style.maxWidth = "100%";
-      this.overlay.style.maxHeight = "100%";
-      this.octx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      // this.model['axisGrid'] = this.mainAxisGrid;
-      this.model["_width"] = this.canvasWidth;
-      this.model["_height"] = this.canvasHeight;
-
-      applyResponsiveChartLayout(this.model, this.getChartEnvironment().layoutMode);
-      this.syncPriceAxisRenderingOptions();
-
-      this.model["_timeAxisWidth"] =
-        this.model._width - this.renderer.getPriceRenderingOptions().valueAxisWidth;
-      this.model["_leftIndex"] = this.renderer.getPointIndex(0, this.model);
-      this.model["_rightIndex"] = this.renderer.getPointIndex(
-        this.model._timeAxisWidth,
-        this.model
-      );
-
-      this.model["_midOffset"] = Math.trunc(this.model.periodWidth / 2);
-
-      let panel = null;
-      let offset = 0;
-
-      this.interactor.hideEmptyPanels();
-      this.interactor.basisToHeights();
-
-      let lastVisiblePanelIndex = -1;
-      for (var panelIndex = 0; panelIndex < this.model.panels.length; panelIndex++) {
-        if (this.model.panels[panelIndex]._visible) {
-          lastVisiblePanelIndex = panelIndex;
-        }
-      }
-
-      for (var i = 0; i < this.model.panels.length; i++) {
-        panel = this.model.panels[i];
-        if (this.model.panels[i]._visible) {
-          offset += this.fitPanel(panel, i, offset, lastVisiblePanelIndex);
-        }
-      }
-
-      if (this.fusion.isDerivedSeriesOutOfSync()) {
-        const needRecalculate = this.fusion.hasDerivedSeriesLengthMismatch();
-        this.fusion.resyncDerivedSeriesToMain();
-        if (needRecalculate) {
-          this.fusion.calculateAll();
-        }
-      }
+      this.resizeCanvasesIfNeeded();
+      this.syncChartLayout();
     }
+  }
+
+  scheduleChartRepaint() {
+    if (this.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.currentAnimationFrame);
+    }
+
+    const self = this;
+    this.currentAnimationFrame = window.requestAnimationFrame(function () {
+      self.currentAnimationFrame = undefined;
+      self.render();
+      self.renderOverlay();
+    });
+  }
+
+  syncChartLayoutAndRepaint() {
+    if (this.currentAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(this.currentAnimationFrame);
+    }
+
+    const self = this;
+    this.currentAnimationFrame = window.requestAnimationFrame(function () {
+      self.currentAnimationFrame = undefined;
+      self.syncChartLayout();
+      self.render();
+      self.renderOverlay();
+    });
   }
 
   fitAndRepaint() {
@@ -550,6 +652,7 @@ export default class Chart implements CoreChartController {
     var self = this;
 
     this.currentAnimationFrame = window.requestAnimationFrame(function () {
+      self.currentAnimationFrame = undefined;
       self.fit();
       self.render();
       self.renderOverlay();
@@ -716,6 +819,78 @@ export default class Chart implements CoreChartController {
     });
   }
 
+  setDataAdapter(adapter: DataAdapter) {
+    this.dataAdapter = adapter;
+  }
+
+  async loadData(symbol: string, options: LoadDataOptions) {
+    if (!this.dataAdapter) {
+      throw new Error("No data adapter configured. Pass dataAdapter in chart options or call setDataAdapter().");
+    }
+
+    const historicalData = await this.dataAdapter.getHistoricalData(symbol, options);
+
+    if (this.instrument) {
+      this.setInstrument({ ...this.instrument, symbol });
+    }
+
+    await this.setMainSeriesData(historicalData, intervalFromSymbol(options.interval));
+    this.setMainDrawMode("OHLC");
+  }
+
+  subscribeToUpdates(symbol: string, callback?: (update: Tick) => void) {
+    if (!this.dataAdapter) {
+      throw new Error("No data adapter configured. Pass dataAdapter in chart options or call setDataAdapter().");
+    }
+
+    this.unsubscribeFromUpdates();
+    this.adapterUnsubscribe = this.dataAdapter.subscribeToUpdates(symbol, (update) => {
+      this.currentPrice = update;
+
+      const { o, h, l, c } = update;
+
+      if (
+        o !== undefined &&
+        h !== undefined &&
+        l !== undefined &&
+        c !== undefined
+      ) {
+        this.upsertCandle(
+          {
+            stamp: update.stamp,
+            o,
+            h,
+            l,
+            c,
+            v: update.v ?? 0,
+          },
+          true,
+        );
+      } else {
+        this.appendTick(
+          {
+            stamp: update.stamp,
+            c: update.c ?? update.price,
+            price: update.price ?? update.c,
+            v: update.v,
+          },
+          true,
+        );
+      }
+
+      callback?.(update);
+    });
+  }
+
+  unsubscribeFromUpdates() {
+    this.adapterUnsubscribe?.();
+    this.adapterUnsubscribe = undefined;
+  }
+
+  getCurrentPrice() {
+    return this.currentPrice;
+  }
+
   async setMainSeriesData(data: OhlcvCandle[], interval?: Interval, moveToEnd = true) {
     if (!this.fusion) return;
 
@@ -734,6 +909,7 @@ export default class Chart implements CoreChartController {
     );
 
     try {
+      this.fit();
       await this.recalculateScripts({ rerender: false });
       if (moveToEnd) this.moveToEnd({ rerender: false });
       this.rerender();
@@ -978,6 +1154,57 @@ export default class Chart implements CoreChartController {
     if (typeof source?.priceLine === "boolean") {
       plotter.priceLine = source.priceLine;
     }
+
+    if (typeof source?.bandFillColor === "string" && source.bandFillColor.length > 0) {
+      plotter.bandFillColor = source.bandFillColor;
+    }
+
+    if (typeof source?.bandFillOpacity === "number") {
+      plotter.bandFillOpacity = source.bandFillOpacity;
+    }
+
+    if (typeof source?.candleUpColor === "string" && source.candleUpColor.length > 0) {
+      plotter.candleUpColor = source.candleUpColor;
+    }
+
+    if (typeof source?.candleDownColor === "string" && source.candleDownColor.length > 0) {
+      plotter.candleDownColor = source.candleDownColor;
+    }
+
+    if (typeof source?.candleUpStrokeColor === "string" && source.candleUpStrokeColor.length > 0) {
+      plotter.candleUpStrokeColor = source.candleUpStrokeColor;
+    }
+
+    if (typeof source?.candleDownStrokeColor === "string" && source.candleDownStrokeColor.length > 0) {
+      plotter.candleDownStrokeColor = source.candleDownStrokeColor;
+    }
+  }
+
+  private findSourcePlotterIndex(
+    object: ChartRuntimeObject,
+    sourcePlotters: ChartRuntimeObject[],
+  ): number {
+    if (object.renderAs === "Band") {
+      const bandIndex = sourcePlotters.findIndex((candidate) => candidate.renderAs === "Band");
+      if (bandIndex >= 0) {
+        return bandIndex;
+      }
+    }
+
+    if (object.renderAs === "OHLC" || object.renderAs === "Bars") {
+      const ohlcIndex = sourcePlotters.findIndex(
+        (candidate) => candidate.renderAs === "OHLC" || candidate.renderAs === "Bars",
+      );
+      if (ohlcIndex >= 0) {
+        return ohlcIndex;
+      }
+    }
+
+    if (object.dataField) {
+      return sourcePlotters.findIndex((candidate) => candidate.dataField === object.dataField);
+    }
+
+    return -1;
   }
 
   private updateScriptPlotterStyles(config: RuntimeScriptConfig) {
@@ -1007,14 +1234,19 @@ export default class Chart implements CoreChartController {
           continue;
         }
 
-        const sourceIndex = sourcePlotters.findIndex(
-          (candidate) => candidate.dataField === object.dataField,
+        const sourceIndex = this.findSourcePlotterIndex(
+          object as ChartRuntimeObject,
+          sourcePlotters,
         );
+
+        if (sourceIndex < 0) {
+          continue;
+        }
 
         this.applyPlotterStyleOverrides(
           object,
           sourcePlotters,
-          sourceIndex >= 0 ? sourceIndex : 0,
+          sourceIndex,
           plotterColors,
           plotterDashes,
         );
@@ -1182,6 +1414,42 @@ export default class Chart implements CoreChartController {
             : [],
         width: paneObject?.width ?? templatePlotter.width,
         renderAs: paneObject?.renderAs ?? templatePlotter.renderAs,
+        bandFillColor:
+          typeof paneObject?.bandFillColor === "string"
+            ? this.resolvePlotterColorForUi(paneObject.bandFillColor)
+            : typeof templatePlotter.bandFillColor === "string"
+              ? this.resolvePlotterColorForUi(templatePlotter.bandFillColor)
+              : resolvedColor,
+        bandFillOpacity:
+          typeof paneObject?.bandFillOpacity === "number"
+            ? paneObject.bandFillOpacity
+            : typeof templatePlotter.bandFillOpacity === "number"
+              ? templatePlotter.bandFillOpacity
+              : 0.3,
+        candleUpColor:
+          typeof paneObject?.candleUpColor === "string"
+            ? this.resolvePlotterColorForUi(paneObject.candleUpColor)
+            : typeof templatePlotter.candleUpColor === "string"
+              ? this.resolvePlotterColorForUi(templatePlotter.candleUpColor)
+              : undefined,
+        candleDownColor:
+          typeof paneObject?.candleDownColor === "string"
+            ? this.resolvePlotterColorForUi(paneObject.candleDownColor)
+            : typeof templatePlotter.candleDownColor === "string"
+              ? this.resolvePlotterColorForUi(templatePlotter.candleDownColor)
+              : undefined,
+        candleUpStrokeColor:
+          typeof paneObject?.candleUpStrokeColor === "string"
+            ? this.resolvePlotterColorForUi(paneObject.candleUpStrokeColor)
+            : typeof templatePlotter.candleUpStrokeColor === "string"
+              ? this.resolvePlotterColorForUi(templatePlotter.candleUpStrokeColor)
+              : undefined,
+        candleDownStrokeColor:
+          typeof paneObject?.candleDownStrokeColor === "string"
+            ? this.resolvePlotterColorForUi(paneObject.candleDownStrokeColor)
+            : typeof templatePlotter.candleDownStrokeColor === "string"
+              ? this.resolvePlotterColorForUi(templatePlotter.candleDownStrokeColor)
+              : undefined,
       } as ChartRuntimeObject);
     };
 
@@ -1513,6 +1781,10 @@ export default class Chart implements CoreChartController {
     return this.interactor;
   }
 
+  get options() {
+    return (this.container as InteractorChartHost).options;
+  }
+
   onCancelTool() {
     this.interactor.currentMode.onCancel?.();
   }
@@ -1612,13 +1884,51 @@ export default class Chart implements CoreChartController {
     this.subscriptionManager.onEvent(event);
   }
 
-  setMainDrawMode(mode: DrawMode) {
-    // mode: OHLC, Bars, Line, Histogram, Line and Histogram
+  getMainSeriesId(): string {
+    return this.model.mainSeries;
+  }
+
+  getSelectedInstrumentSeriesId(): string {
+    return this.resolveSelectedInstrumentSeriesId();
+  }
+
+  setSelectedInstrumentSeriesId(seriesId: string): void {
+    if (!this.isInstrumentSeriesId(seriesId)) {
+      return;
+    }
+
+    if (this.resolveSelectedInstrumentSeriesId() === seriesId) {
+      return;
+    }
+
+    this.selectedInstrumentSeriesId = seriesId;
+    this.emitEvent({
+      topic: "SELECTED_INSTRUMENT_CHANGE",
+      data: { seriesId },
+    });
+  }
+
+  getInstrumentDrawMode(seriesId?: string): DrawMode {
+    const targetSeriesId = seriesId ?? this.resolveSelectedInstrumentSeriesId();
+    return readInstrumentDrawMode(this.getChartSettingsHost(), targetSeriesId);
+  }
+
+  setInstrumentDrawMode(mode: DrawMode, seriesId?: string): void {
+    const targetSeriesId = seriesId ?? this.resolveSelectedInstrumentSeriesId();
+    const object = this.resolveInstrumentSeriesObject(targetSeriesId);
+    if (!object) {
+      return;
+    }
+
     this.onDrawModeSelected({
       type: mode,
-      object: "main@link",
-      selected: false,
+      object,
+      selected: targetSeriesId === this.resolveSelectedInstrumentSeriesId(),
     });
+  }
+
+  setMainDrawMode(mode: DrawMode) {
+    this.setInstrumentDrawMode(mode);
   }
 
   onDrawModeSelected(data: {
@@ -1635,28 +1945,66 @@ export default class Chart implements CoreChartController {
       object === "main@link" ||
       (object && typeof object !== "string" && object.id === "main@link")
     ) {
-      var objects = this.model.panels[0].objects;
-      var mainInstrumentSeries = this.model.instrumentsSeries[0];
-      var length = objects.length;
-
-      for (let index = 0; index < length; index++) {
-        if (objects[index].dataLink === mainInstrumentSeries.seriesId) {
-          object = objects[index];
-          break;
-        }
-      }
+      object = this.resolveInstrumentSeriesObject(this.resolveSelectedInstrumentSeriesId());
     }
 
     if (!object || typeof object === "string" || !drawMode) return;
 
     object.renderAs = drawMode;
 
+    if (drawMode === "OHLC" || drawMode === "Bars") {
+      LIB.ensureInstrumentOhlcDataFields(object);
+    }
+
     if (selected) {
       var mode = drawMode === "OHLC" || drawMode === "Bars" ? "candles" : "series";
       this.updateToolsOptions({ mode: mode, object: object });
     }
 
+    const seriesId = typeof object.dataLink === "string" ? object.dataLink : String(object.id);
+    if (this.isInstrumentSeriesId(seriesId)) {
+      this.emitEvent({
+        topic: "INSTRUMENT_DRAW_MODE_CHANGE",
+        data: { seriesId, drawMode: drawMode as DrawMode },
+      });
+    }
+
     this.rerender();
+  }
+
+  private resolveSelectedInstrumentSeriesId(): string {
+    const fallback =
+      this.model.mainSeries ||
+      this.model.instrumentsSeries[0]?.seriesId ||
+      "";
+
+    if (
+      this.selectedInstrumentSeriesId &&
+      this.isInstrumentSeriesId(this.selectedInstrumentSeriesId)
+    ) {
+      return this.selectedInstrumentSeriesId;
+    }
+
+    return fallback;
+  }
+
+  private isInstrumentSeriesId(seriesId: string): boolean {
+    return this.model.instrumentsSeries.some((entry) => entry.seriesId === seriesId);
+  }
+
+  private resolveInstrumentSeriesObject(seriesId: string): ChartRuntimeObject | undefined {
+    const panel =
+      this.model.panels.find((entry) => (entry as { main?: boolean }).main) ??
+      this.model.panels[0];
+    if (!panel) {
+      return undefined;
+    }
+
+    return panel.objects.find(
+      (entry) =>
+        entry.type === "SeriesObject" &&
+        (entry.dataLink === seriesId || entry.id === seriesId),
+    ) as ChartRuntimeObject | undefined;
   }
 
   onDownload(watermark?: string, watermarkWidth = 0, watermarkHeight = 0) {
@@ -1703,6 +2051,24 @@ export default class Chart implements CoreChartController {
       settings,
       this.chartAppearanceTheme,
     );
+  }
+
+  getChartInstrumentSettings(): ChartInstrumentSettingsItem[] {
+    return getChartInstrumentSettings(this.getChartSettingsHost());
+  }
+
+  applyChartInstrumentSettings(
+    seriesId: string,
+    settings: Partial<
+      Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash" | "drawMode"> &
+        import("./chartSettings").ChartInstrumentSymbolAppearance
+    >,
+  ): void {
+    const { drawMode, ...appearanceSettings } = settings;
+    if (drawMode !== undefined) {
+      this.setInstrumentDrawMode(drawMode, seriesId);
+    }
+    applyChartInstrumentSettings(this.getChartSettingsHost(), seriesId, appearanceSettings);
   }
 
   applyChartTheme(theme: import("./types").ChartTheme, themeVariant?: string): void {

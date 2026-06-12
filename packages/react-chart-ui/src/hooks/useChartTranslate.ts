@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ChartInstance } from "@efixdata/exeria-chart";
+import type { ChartInstance, ChartSubscription } from "@efixdata/exeria-chart";
+
+function unsubscribeChartTopic(subscription: ChartSubscription | void | undefined) {
+  if (subscription && typeof subscription.unsubscribe === "function") {
+    subscription.unsubscribe();
+  }
+}
 
 export function useChartTranslate(chart: ChartInstance | null | undefined) {
   const [localeVersion, setLocaleVersion] = useState(0);
@@ -14,7 +20,7 @@ export function useChartTranslate(chart: ChartInstance | null | undefined) {
     });
 
     return () => {
-      subscription?.unsubscribe();
+      unsubscribeChartTopic(subscription);
     };
   }, [chart]);
 

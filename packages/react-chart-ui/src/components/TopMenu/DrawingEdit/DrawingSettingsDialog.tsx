@@ -14,7 +14,7 @@ import {
 import { Eye, EyeSlash, Lock, LockOpen, X } from "phosphor-react";
 import type { ChartDrawingEditConfig, ChartDrawingEditPatch } from "@efixdata/exeria-chart";
 import { Icon } from "ui/src/Icon";
-import type { NullableChartInstance } from "../../../chartTypes";
+import type { ChartUITheme, NullableChartInstance } from "../../../chartTypes";
 import { Remove } from "../../../img/icons";
 import { ColorField } from "../ChartSettings/ColorField";
 import { LineStyleSelect } from "../Indicators/LineStyleSelect";
@@ -24,7 +24,12 @@ import {
   getPlotterLineStyleId,
 } from "../../../utils/plotterLineStyles";
 import { DialogPrimaryButton } from "../ChartSettings/DialogPrimaryButton";
-import { dialogFitBodyStyle, dialogFitLayoutStyle } from "../ChartSettings/dialogLayout";
+import {
+  dialogFitLayoutStyle,
+  dialogFormBodyStyle,
+  getDialogCatalogLayoutStyle,
+} from "../ChartSettings/dialogLayout";
+import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
 import tabStyles from "../../dialog/dialogTabs.module.css";
@@ -100,8 +105,9 @@ const toNumber = (value: string | number) => {
 
 export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
   const chart = props.chart as ChartWithDrawingActions;
-  const themeContext = useContext(ThemeContext);
-  const dialogCssVars = getChartSettingsCssVars(themeContext);
+  const { isCompact } = useChartEnvironment();
+  const themeContext = useContext(ThemeContext as React.Context<Record<string, unknown>>);
+  const dialogCssVars = getChartSettingsCssVars(themeContext as Partial<ChartUITheme>);
   const t = useChartTranslate(chart);
   const [settings, setSettings] = useState<ChartDrawingEditConfig | null>(null);
   const [textDraft, setTextDraft] = useState("");
@@ -179,7 +185,13 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
 
   return (
     <DialogContainer
-      style={{ ...dialogCssVars, ...dialogFitLayoutStyle, width: 400, maxWidth: "92vw" }}
+      style={{
+        ...dialogCssVars,
+        ...dialogFitLayoutStyle,
+        ...getDialogCatalogLayoutStyle(isCompact),
+        width: 400,
+        maxWidth: "92vw",
+      }}
     >
       <DialogHeader>
         <DialogHeaderTitle>{settings.label}</DialogHeaderTitle>
@@ -195,7 +207,7 @@ export const DrawingSettingsDialog = (props: DrawingSettingsDialogProps) => {
         </DialogHeaderActions>
       </DialogHeader>
 
-      <DialogBody style={dialogFitBodyStyle}>
+      <DialogBody style={dialogFormBodyStyle}>
         <div className={layoutStyles.scrollArea}>
           {settings.supportsText ? (
             <section className={styles.section}>

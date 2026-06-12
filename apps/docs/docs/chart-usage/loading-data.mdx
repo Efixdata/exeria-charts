@@ -1,42 +1,54 @@
 ---
 sidebar_position: 1
 title: Loading Data
-description: Load initial candles, switch intervals, and understand the current history-loading boundary.
+description: Put candles on your chart — from your API or a Data Connector.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Loading data
 
-The main-series entry point is `setMainSeriesData()`.
+Loading data means: take a list of **candles** from somewhere and paint them on the chart. This is usually the first thing you do after `createChart()` and `init()`.
+
+<TutorialChartDemo
+  scene="basic"
+  caption="Result of setMainSeriesData — a full history slice on screen."
+/>
+
+## The main method
 
 ```ts
 await chart.setMainSeriesData(candles, interval);
 ```
 
-This does three important things:
+This one call:
 
-1. Replaces the current main-series candle array.
-2. Updates interval metadata when you pass an `Interval`.
-3. Recalculates scripts and rerenders the chart.
+1. **Replaces** the current candles with your new array.
+2. **Updates** the timeframe label when you pass an `interval`.
+3. **Redraws** the chart (and recalculates indicators if any are active).
 
-## Load initial candles
+## Step-by-step: your own API
 
 ```ts
-import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
+import { createChart, type Candle, type Interval } from "@exeria/charts";
 
 const chart = createChart({ container, instrument });
 chart.init();
 
-const candles: Candle[] = await fetchCandles();
+const candles: Candle[] = await fetch("/api/candles?symbol=AAPL&interval=1h").then((r) =>
+  r.json(),
+);
+
 const interval: Interval = { symbol: "1h", milis: 60 * 60 * 1000 };
 
 await chart.setMainSeriesData(candles, interval);
 ```
 
-If you pass an interval, the runtime also emits the `INTERVAL_CHANGE` event after the data load completes.
+Your API must return objects with `stamp`, `o`, `h`, `l`, `c`, and optionally `v`. Shape details: [Data model](../core-concepts/data-model).
 
-## Replace data for a different interval
+## When the user changes timeframe
 
-When the user changes timeframe, fetch the new candle slice and call `setMainSeriesData()` again.
+Fetch a new batch and call the same method again:
 
 ```ts
 async function loadInterval(nextInterval: Interval) {
@@ -45,17 +57,79 @@ async function loadInterval(nextInterval: Interval) {
 }
 ```
 
-## History loading today
+The chart emits an `INTERVAL_CHANGE` event after the load completes — useful if your UI needs to sync a dropdown.
 
-The runtime class has a `prependMainSeriesData()` method, but it is currently a stub and it is not part of the typed `ChartInstance` contract.
+## Scroll to the latest bar on load
 
-Today, the safe public approach is to merge older candles on your side and call `setMainSeriesData()` with the full slice you want rendered.
+Pass `true` as the third argument to land on the right edge after data arrives:
 
 ```ts
-const history = await fetchOlderCandles();
-const current = await fetchVisibleCandles();
-
-await chart.setMainSeriesData([...history, ...current], interval);
+await chart.setMainSeriesData(candles, interval, true);
 ```
 
-If you are working directly against the `Chart` class and plan to rely on runtime-only methods, read [Chart runtime access](../advanced/chart-class-runtime) first.
+Handy for live dashboards where users expect to see the most recent price first.
+
+## Loading older history (scroll back)
+
+There is no public “prepend only” method today. **Merge on your side**, then load the full slice you want visible:
+
+```ts
+const older = await fetchOlderCandles();
+const recent = await fetchRecentCandles();
+
+await chart.setMainSeriesData([...older, ...recent], interval);
+```
+
+Fetch more when the user scrolls left in your app, merge arrays, call `setMainSeriesData` again.
+
+## Loading with a Data Connector {#loading-data-with-connectors}
+
+<span id="loading-data-with-adapters" />
+
+When you use a [Data Connector](../data-connectors/overview), the connector fetches candles for you:
+
+```ts
+import { createChart } from "@exeria/charts";
+import { BinanceAdapter } from "@efix-data/adapter-binance";
+
+const connector = new BinanceAdapter();
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 1000,
+});
+```
+
+`loadData()` calls the connector, converts the response to candles, and applies your interval.
+
+### Options for `loadData`
+
+| Field | Required? | What it does |
+| --- | --- | --- |
+| `interval` | Yes | Candle size — `"1h"`, `"1d"`, `"1w"`, … |
+| `from` | No | Start of date range |
+| `to` | No | End of date range |
+| `limit` | No | Max candles (Binance caps at 1,000 per call) |
+
+Omit `from` / `to` to get the **most recent** bars up to `limit`.
+
+## Your API vs connector — which to pick?
+
+| Situation | Use |
+| --- | --- |
+| Your company's prices | `setMainSeriesData` + your fetch |
+| Public crypto from Binance | `loadData` + [Binance connector](../data-connectors/binance) |
+| Public crypto from Bybit | `loadData` + [Bybit connector](../data-connectors/bybit) |
+| Public crypto from OKX | `loadData` + [OKX connector](../data-connectors/okx) |
+| Public crypto USD spot from Kraken | `loadData` + [Kraken connector](../data-connectors/kraken) |
+| Public crypto USDT spot from KuCoin | `loadData` + [KuCoin connector](../data-connectors/kucoin) |
+| Broad crypto catalog | `loadData` + [CoinGecko connector](../data-connectors/coingecko) |
+| Prototype / vibe coding | [Binance](/binance-example), [Bybit](/bybit-example), [OKX](/okx-example), [Kraken](/kraken-example), [KuCoin](/kucoin-example), or [CoinGecko](/coingecko-example) live demo |
+
+## What is next?
+
+- [Realtime updates](./realtime-updates) — after history loads, keep the last bar moving
+- [Chart with your data](../tutorials/chart-with-your-data) — beginner tutorial
+- [Data Connectors API](../api-reference/data-connectors) — build your own connector

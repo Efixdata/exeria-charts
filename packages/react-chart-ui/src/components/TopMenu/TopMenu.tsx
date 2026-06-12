@@ -201,13 +201,21 @@ export const TopMenu = (props: TopMenuProps) => {
 
   const compactChartControls = (
     <>
-      <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Chart type and interval">
+      <div
+        className={toolbarStyles.toolbarGroup}
+        role="group"
+        aria-label={t("toolbar_group_chart_type_interval", "Chart type and interval")}
+      >
         <MainChartTypeSelect chart={props.chart} />
         <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange} />
       </div>
 
       {!hideIndicatorsInBar ? (
-        <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Indicators">
+        <div
+          className={toolbarStyles.toolbarGroup}
+          role="group"
+          aria-label={t("toolbar_indicators", "Indicators")}
+        >
           <IndicatorsButton chart={props.chart} />
         </div>
       ) : null}
@@ -258,7 +266,11 @@ export const TopMenu = (props: TopMenuProps) => {
           className={toolbarStyles.toolbarRow}
           style={{ flex: compact ? "0 1 auto" : "1 1 auto" }}
         >
-          <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Chart type and interval">
+          <div
+            className={toolbarStyles.toolbarGroup}
+            role="group"
+            aria-label={t("toolbar_group_chart_type_interval", "Chart type and interval")}
+          >
             <MainChartTypeSelect chart={props.chart} />
             <IntervalSwitch chart={props.chart} onIntervalChange={props.onIntervalChange} />
           </div>
@@ -267,20 +279,32 @@ export const TopMenu = (props: TopMenuProps) => {
             <>
               <div className={toolbarStyles.toolbarDivider} aria-hidden="true" />
 
-              <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Indicators">
+              <div
+                className={toolbarStyles.toolbarGroup}
+                role="group"
+                aria-label={t("toolbar_indicators", "Indicators")}
+              >
                 <IndicatorsButton chart={props.chart} />
               </div>
             </>
           ) : null}
 
           <div className={toolbarStyles.toolbarGroupActions}>
-            <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Scale">
+            <div
+              className={toolbarStyles.toolbarGroup}
+              role="group"
+              aria-label={t("toolbar_group_scale", "Scale")}
+            >
               <AutoScaleSwitch chart={props.chart} />
             </div>
 
             <div className={toolbarStyles.toolbarDivider} aria-hidden="true" />
 
-            <div className={toolbarStyles.toolbarGroup} role="group" aria-label="Chart actions">
+            <div
+              className={toolbarStyles.toolbarGroup}
+              role="group"
+              aria-label={t("toolbar_group_chart_actions", "Chart actions")}
+            >
               {showChartScaleSwitch ? <ChartScaleSwitch chart={props.chart} /> : null}
               <ChartSettingsButton chart={props.chart} />
               <FullScreenButton chart={props.chart} mainContainer={props.mainContainer} />

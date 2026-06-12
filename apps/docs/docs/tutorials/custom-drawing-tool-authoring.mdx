@@ -1,0 +1,35 @@
+---
+sidebar_position: 12
+title: Custom Drawing Tool Authoring
+description: Add a brand-new shape type to the chart library — for maintainers only.
+---
+
+# Custom drawing tool authoring
+
+:::caution Most apps do not need this page
+If you want to draw trend lines, levels, Fibonacci, or boxes, use the built-in tools. Start with [Drawing tools recipes](./drawing-tools-recipes) and the [catalog](../drawing-tools/catalog).
+:::
+
+This page is for **library maintainers** who need a shape that does not exist yet — for example a proprietary annotation type that must ship inside `@exeria/charts`.
+
+## Two different meanings of “custom drawing tool”
+
+| Path | Who | What you do |
+| --- | --- | --- |
+| **Recipes** | App developers | Call `toolDrawer.drawTool({ type: "trendLine", … })` with an existing `type` |
+| **Authoring** | Package maintainers | Add a new `type` in chart source code |
+
+## Maintainer workflow (high level)
+
+1. Copy the closest existing shape (for example `trendLine.ts` or `hLine.ts`) under `packages/chart/src/objects/shapes/`.
+2. Implement drawing, hit-testing, and drag handles.
+3. Register the new `type` in `Renderer.ts`.
+4. Add labels (and optional ChartUI menu entry) in `DrawingTools.tsx`.
+5. Document the new key in the [drawing catalog](../drawing-tools/catalog).
+
+Same boundary as [Custom indicator authoring](../scripts/indicators/custom-indicators): app developers use built-in keys; new keys ship with the package or a licensed plugin.
+
+## Related
+
+- [Drawing tools overview](../drawing-tools/overview)
+- [Fusion authoring conventions](../scripts/authoring-conventions)

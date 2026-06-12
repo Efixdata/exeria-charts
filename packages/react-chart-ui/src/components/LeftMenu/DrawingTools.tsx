@@ -174,6 +174,15 @@ interface DrawingToolProps {
   editable?: boolean;
   startTime?: number | "now";
   timeRange?: number;
+  source?: string;
+  showPoc?: boolean;
+  showValueArea?: boolean;
+  valueAreaPercent?: number;
+  profileRows?: number;
+  accountSize?: number;
+  riskMode?: string;
+  riskPercent?: number;
+  riskAmount?: number;
 }
 
 interface DrawingTool {

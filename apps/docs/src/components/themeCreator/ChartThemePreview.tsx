@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
-import type { ChartInstance } from "@efixdata/exeria-chart";
+import type { ChartInstance } from "@exeria/charts";
 import { docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyChartSettingsPreset,
+  buildChartSettingsPresetUiTheme,
+} from "./applyChartSettingsPreset";
 import {
   type ChartColorKey,
   type UiColorKey,
   type ThemeVariant,
   type VariantPalette,
+  buildChartAppearanceSettings,
   buildChartTheme,
   buildUiTheme,
+  createPlaygroundChartModel,
   previewCandles,
   previewInstrument,
 } from "./core";
@@ -21,10 +27,16 @@ type ChartThemePreviewProps = {
   chartColorsByVariant: VariantPalette<ChartColorKey>;
   uiColorsByVariant: VariantPalette<UiColorKey>;
   themeVariant: ThemeVariant;
+  /** When set, applies the full Chart Settings preset template (step 1). */
+  presetId?: string;
+  usePresetTemplate?: boolean;
   /** When this key changes, `onChartReady` runs again on the existing chart instance. */
   sceneApplyKey?: string | null;
   onChartReady?: ChartSceneAction;
   minHeight?: number;
+  aspectRatio?: string;
+  /** When true, sizing is controlled by `className` CSS (no inline height/aspect-ratio). */
+  fluidSize?: boolean;
   className?: string;
 };
 
@@ -32,9 +44,13 @@ export default function ChartThemePreview({
   chartColorsByVariant,
   uiColorsByVariant,
   themeVariant,
+  presetId,
+  usePresetTemplate = false,
   sceneApplyKey,
   onChartReady,
   minHeight = 520,
+  aspectRatio,
+  fluidSize = false,
   className,
 }: ChartThemePreviewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -54,10 +70,14 @@ export default function ChartThemePreview({
     }),
     [chartColorsByVariant, uiColorsByVariant],
   );
-  const activeUiTheme = uiThemes[themeVariant];
+  const presetUiTheme = useMemo(
+    () => (usePresetTemplate && presetId ? buildChartSettingsPresetUiTheme(presetId) : null),
+    [presetId, usePresetTemplate],
+  );
+  const activeUiTheme = presetUiTheme ?? uiThemes[themeVariant];
   const themeUpdateKey = useMemo(
-    () => JSON.stringify({ runtimeTheme, themeVariant }),
-    [runtimeTheme, themeVariant],
+    () => JSON.stringify({ runtimeTheme, themeVariant, presetId, usePresetTemplate }),
+    [presetId, runtimeTheme, themeVariant, usePresetTemplate],
   );
 
   useEffect(() => {
@@ -100,7 +120,7 @@ export default function ChartThemePreview({
       setChart(null);
       chartRef.current = null;
 
-      const chartModule = await import("@efixdata/exeria-chart");
+      const chartModule = await import("@exeria/charts");
       if (disposed) {
         return;
       }
@@ -108,6 +128,7 @@ export default function ChartThemePreview({
       const chartInstance = chartModule.createChart({
         container,
         instrument: previewInstrument,
+        model: createPlaygroundChartModel(),
         theme: runtimeTheme,
         themeVariant,
       });
@@ -157,8 +178,16 @@ export default function ChartThemePreview({
       return;
     }
 
+    if (usePresetTemplate && presetId) {
+      applyChartSettingsPreset(chartInstance, presetId);
+      return;
+    }
+
     chartInstance.applyChartTheme(runtimeTheme, themeVariant);
-  }, [themeUpdateKey, chart]);
+    chartInstance.applyChartAppearanceSettings(
+      buildChartAppearanceSettings(chartColors, themeVariant),
+    );
+  }, [themeUpdateKey, chart, chartColors, presetId, themeVariant, usePresetTemplate]);
 
   useEffect(() => {
     if (!sceneApplyKey) {
@@ -179,8 +208,11 @@ export default function ChartThemePreview({
   return (
     <DocChartEmbed
       {...(className ? { className } : {})}
-      minHeight={minHeight}
-      height={minHeight}
+      {...(fluidSize
+        ? {}
+        : aspectRatio
+          ? { aspectRatio }
+          : { minHeight, height: minHeight })}
       background={chartColors.background}
       padded
       loading={isChartLoading}

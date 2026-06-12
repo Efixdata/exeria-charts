@@ -108,6 +108,17 @@ html[data-theme="dark"] .drawer {
   color: var(--doc-text);
 }
 
+.searchSection {
+  flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+}
+
+.searchSection:has([data-search-active="true"]) {
+  z-index: 260;
+}
+
 .links {
   flex: 1;
   overflow-y: auto;

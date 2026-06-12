@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@efixdata/exeria-chart": ["packages/chart/src/index.ts"],
+      "@exeria/charts": ["packages/chart/src/index.ts"],
+      "ui": ["packages/ui/index.tsx"],
+      "ui/*": ["packages/ui/*"]
+    }
+  },
+  "include": [
+    "../../packages/chart/src/**/*.ts",
+    "../../packages/react-chart-ui/index.tsx",
+    "../../packages/react-chart-ui/src/**/*.ts",
+    "../../packages/react-chart-ui/src/**/*.tsx"
+  ]
+}

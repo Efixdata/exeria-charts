@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
+import type { ChartInstance, ScriptDefinition } from "@exeria/charts";
 import { docsCandleCount, docsExampleDatasets, docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
@@ -203,7 +203,7 @@ export default function ScriptWiringShowcase({
       setLoading(true);
 
       try {
-        const chartModule = await import("@efixdata/exeria-chart");
+        const chartModule = await import("@exeria/charts");
         if (disposed) {
           return;
         }

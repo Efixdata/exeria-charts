@@ -1,39 +1,47 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: Levels and Channels
-description: Work with Fibonacci levels, channels, and projection-style analytical drawings.
+description: Fibonacci, parallel channels, pitchforks, and other projection tools — with live previews.
 ---
 
 import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Levels and channels
 
-This group covers tools that project structure from a small set of anchors: `fibonLines`, `fibonExtension`, `fibonTimeZone`, `fibonChannel`, `fibonArcs`, `fibonCircles`, `parallelChannel`, `pitchfork`, `regressionChannel`, `gannFan`, `gannGrid`, `gannBox`, and `abcd`.
-
-## Live examples
+These tools draw **structure** from a few anchor points — Fibonacci retracements, parallel channels, pitchforks, Gann grids, regression bands. They are popular in technical analysis; you do not need to understand the math to **place** them on the chart.
 
 <DrawingToolShowcase
   visiblePresets={[
     "parallelChannel",
+    "fibonLines",
     "pitchfork",
     "regressionChannel",
-    "gannFan",
-    "gannGrid",
-    "gannBox",
-    "fibonLines",
-    "fibonExtension",
-    "fibonTimeZone",
-    "fibonChannel",
-    "fibonArcs",
-    "fibonCircles",
     "abcd",
   ]}
-  initialPreset="parallelChannel"
+  initialPreset="fibonLines"
 />
 
-## Fibonacci retracement
+Use the buttons above to preview each family on live data.
 
-`fibonLines` is created through `drawTool()`. The runtime accepts extra analytical fields beyond the shared `DrawToolConfig`, including the level arrays used by the React UI defaults.
+## Plain-language map
+
+| Tool family | What it shows on the chart |
+| --- | --- |
+| **Fibonacci retracement** (`fibonLines`) | Horizontal levels between a low and a high (23.6%, 38.2%, 50%, …) |
+| **Fibonacci extension** (`fibonExtension`) | Levels beyond 100% of the swing |
+| **Parallel channel** (`parallelChannel`) | Two parallel lines — trend + width |
+| **Pitchfork** (`pitchfork`) | Three-pronged median line tool |
+| **Regression channel** (`regressionChannel`) | Statistical fit band with ±σ lines |
+| **Gann fan / grid / box** | Angle and square grid overlays |
+| **ABCD** (`abcd`) | Measured-move projection |
+
+Full type list: [Catalog](./catalog).
+
+---
+
+## Fibonacci retracement (most common)
+
+Place between a swing low and swing high. The runtime draws horizontal levels at standard ratios.
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -62,164 +70,21 @@ chart.toolDrawer.drawTool({
   ],
   values: [0, 23.6, 38.2, 50, 61.8, 78.6, 100, 161.8],
   valuesState: [true, true, true, true, true, true, true, false],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
 });
 ```
 
-## Fibonacci extension
+| Field | Meaning |
+| --- | --- |
+| `values` | Level percentages to draw |
+| `valuesState` | `true` = visible, `false` = hidden |
 
-`fibonExtension` uses the same two-anchor workflow as retracement, but the React UI defaults enable levels at and beyond **100%** of the measured swing (127.2%, 161.8%, 200%, and so on).
+In ChartUI: **Analytical → Fibonacci Retracement** — click low, click high.
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "fibonExtension",
-  color: "#38bdf8",
-  width: 1,
-  anchors: [
-    {
-      stamp: candles[8].stamp,
-      offset: 0,
-      value: candles[8].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "left",
-    },
-    {
-      stamp: candles[20].stamp,
-      offset: 0,
-      value: candles[20].h,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
-  ],
-  values: [100, 127.2, 141.4, 161.8, 200, 261.8],
-  valuesState: [true, true, true, true, true, true],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-});
-```
-
-## Fibonacci time zone
-
-`fibonTimeZone` projects **vertical** lines at Fibonacci time multiples from the first anchor. The distance between the two anchors is the unit interval (**1**). Default multipliers follow the Fibonacci sequence: `0`, `1`, `1`, `2`, `3`, `5`, `8`, `13`, `21`, …
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "fibonTimeZone",
-  color: "#c084fc",
-  width: 1,
-  anchors: [
-    {
-      stamp: candles[10].stamp,
-      offset: 0,
-      value: candles[10].l,
-      _index: 0,
-    },
-    {
-      stamp: candles[16].stamp,
-      offset: 0,
-      value: candles[16].h,
-      _index: 0,
-    },
-  ],
-  values: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
-  valuesState: [true, true, true, true, true, true, true, true, true, true, false, false],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-});
-```
-
-## Fibonacci channel
-
-`fibonChannel` uses **three anchors**: the first two define the trend line, the third sets the channel width. Fibonacci percentages subdivide the space between the baseline and the opposite edge with parallel lines (same level arrays as retracement).
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "fibonChannel",
-  color: "#5cc8ff",
-  width: 1,
-  fillBg: true,
-  values: [0, 23.6, 38.2, 50, 61.8, 78.6, 100],
-  valuesState: [true, true, true, true, true, true, true],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-  anchors: [
-    { stamp: candles[8].stamp, offset: 0, value: candles[8].l, _index: 0 },
-    { stamp: candles[28].stamp, offset: 0, value: candles[28].h, _index: 0 },
-    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
-  ],
-});
-```
-
-## Fibonacci arcs
-
-`fibonArcs` uses **two anchors**: the first is the **center** of the arcs, the second sets the **100% radius** (price and time span). Each enabled Fibonacci level draws a semi-elliptical arc at that fraction of the radius.
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "fibonArcs",
-  color: "#c084fc",
-  width: 1,
-  values: [23.6, 38.2, 50, 61.8, 78.6, 100],
-  valuesState: [true, true, true, true, true, true],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[32].stamp, offset: 0, value: candles[32].h, _index: 0 },
-  ],
-});
-```
-
-## Fibonacci circles
-
-`fibonCircles` uses **two anchors**: the first is the **center**, the second sets the **100% radius** (Euclidean distance on the chart). Each enabled level draws a **full circle** at that Fibonacci fraction — unlike `fibonArcs`, which draws semi-elliptical arcs.
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "fibonCircles",
-  color: "#a78bfa",
-  width: 1,
-  values: [23.6, 38.2, 50, 61.8, 78.6, 100],
-  valuesState: [true, true, true, true, true, true],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[32].stamp, offset: 0, value: candles[32].h, _index: 0 },
-  ],
-});
-```
-
-## Regression channel
-
-`regressionChannel` fits a **least-squares linear regression** on the main series between two time anchors (default source: **close**). Channel lines are drawn at configurable standard-deviation multiples (`values`, default `−2σ`, `0`, `+2σ`). The chart shows **Pearson R** for the fit strength.
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "regressionChannel",
-  color: "#21c1f2",
-  width: 1,
-  source: "c",
-  fillBg: true,
-  values: [-2, -1, 0, 1, 2],
-  valuesState: [true, false, true, false, true],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
-  anchors: [
-    { stamp: candles[10].stamp, offset: 0, value: candles[10].c, _index: 0 },
-    { stamp: candles[40].stamp, offset: 0, value: candles[40].c, _index: 0 },
-  ],
-});
-```
+---
 
 ## Parallel channel
 
-`parallelChannel` uses three anchors: two for the main direction and one for the channel width.
+**Three anchors:** two define the main line, the third sets channel width.
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -227,43 +92,25 @@ chart.toolDrawer.drawTool({
   color: "#14f7ab",
   fillBg: false,
   anchors: [
-    {
-      stamp: candles[10].stamp,
-      offset: 0,
-      value: candles[10].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "left",
-    },
-    {
-      stamp: candles[24].stamp,
-      offset: 0,
-      value: candles[24].h,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
-    {
-      stamp: candles[24].stamp,
-      offset: 0,
-      value: candles[24].l,
-      _index: 0,
-    },
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].h, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].l, _index: 0 },
   ],
 });
 ```
 
-## Pitchfork
+Think of it as “draw the trend, then drag how wide the channel is.”
 
-`pitchfork` uses three anchors: the pivot (apex), then two points that define the baseline. The median prong runs through the pivot and the midpoint of the baseline; the outer prongs are parallel through the baseline anchors.
+---
+
+## Pitchfork (three anchors)
+
+Pivot point first, then two points on the baseline. The runtime draws the median line and outer parallels.
 
 ```ts
 chart.toolDrawer.drawTool({
   type: "pitchfork",
   color: "#21c1f2",
-  width: 1,
   anchors: [
     { stamp: candles[8].stamp, offset: 0, value: candles[8].h, _index: 0 },
     { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
@@ -272,83 +119,53 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-## ABCD projection
+---
 
-`abcd` also uses extra analytical fields. The third anchor is typically the projected leg.
+## Regression channel
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "abcd",
-  color: "#f0b429",
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
-    {
-      stamp: candles[26].stamp,
-      offset: 0,
-      value: candles[26].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
-  ],
-  values: [38.2, 50, 61.8, 100, 161.8],
-  valuesState: [true, true, true, true, true],
-});
-```
-
-## Gann tools
-
-All three Gann tools use **two anchors**. The second anchor defines scale or the opposite corner of the box.
-
-### Gann fan
-
-Rays from the first anchor at standard Gann price:time ratios (`1x8` … `8x1`). The line to the second anchor is the **1x1** reference.
+Fits a line through **close** prices between two times and draws ±σ bands. Shows **Pearson R** on the chart.
 
 ```ts
 chart.toolDrawer.drawTool({
-  type: "gannFan",
-  color: "#f0b429",
-  anchors: [
-    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
-    { stamp: candles[24].stamp, offset: 0, value: candles[24].h, _index: 0 },
-  ],
-});
-```
-
-### Gann grid
-
-Rectangle between two anchors with horizontal and vertical lines at **Gann square levels** — not uniform 1/8 spacing. Levels match TradingView: `0`, `0.25`, `0.382`, `0.5`, `0.618`, `0.75`, `1` (includes Fibonacci ratios). Each band has its own color and edge labels.
-
-```ts
-chart.toolDrawer.drawTool({
-  type: "gannGrid",
+  type: "regressionChannel",
   color: "#21c1f2",
+  source: "c",
+  fillBg: true,
+  values: [-2, 0, 2],
+  valuesState: [true, true, true],
   anchors: [
-    { stamp: candles[14].stamp, offset: 0, value: candles[14].h, _index: 0 },
-    { stamp: candles[28].stamp, offset: 0, value: candles[28].l, _index: 0 },
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].c, _index: 0 },
+    { stamp: candles[40].stamp, offset: 0, value: candles[40].c, _index: 0 },
   ],
 });
 ```
 
-### Gann box
+---
 
-Same **non-uniform** square grid as `gannGrid`, plus internal fan diagonals from the **first** anchor (clipped to the box). Diagonal labels use the fan ratio notation (`1/8` … `8/1`).
+## More tools in this family
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "gannBox",
-  color: "#14f7ab",
-  anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].h, _index: 0 },
-    { stamp: candles[26].stamp, offset: 0, value: candles[26].l, _index: 0 },
-  ],
-});
-```
+Each tool below uses `drawTool({ type, anchors, … })`. Switch presets in the showcase above, or read the full write-up in [Complete tool reference](./tool-reference).
 
-## Boundary to keep in mind
+| `type` | What it draws |
+| --- | --- |
+| `fibonExtension` | Fib levels beyond 100% of the swing |
+| `fibonTimeZone` | Vertical Fib time multiples |
+| `fibonChannel` | Parallel Fib levels in a channel (3 anchors) |
+| `fibonArcs` | Semi-elliptical Fib arcs |
+| `fibonCircles` | Concentric Fib circles |
+| `gannFan` | Gann angle rays from origin |
+| `gannGrid` | Gann square grid in a box |
+| `gannBox` | Gann grid + internal fan diagonals |
+| `abcd` | ABCD measured-move projection (3 anchors) |
 
-These tools are public in the sense that the runtime accepts them and the React UI ships defaults for them, but their advanced per-tool fields do not yet have dedicated exported TypeScript interfaces. Treat them as runtime-recognized object fields passed through `drawTool()`.
+---
 
-If you need session windows, time spans, or price markers, continue with [Lines, ranges, and tags](./lines-ranges-and-tags).
+## TypeScript note
+
+Advanced fields (`values`, `valuesState`, `fillBg`) are recognized by the runtime but do not always have dedicated exported types. Pass them through `drawTool()` — the shape matches what ChartUI sends internally.
+
+## What is next?
+
+- [Lines, ranges, and tags](./lines-ranges-and-tags) — horizontal levels and time windows
+- [Catalog](./catalog) — every type key
+- [Forex platforms demo](/starters/forex-platforms) — drawings in a full UI

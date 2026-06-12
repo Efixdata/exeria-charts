@@ -3,18 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "predev": "node ../../scripts/ensure-chart-dist.mjs",
-    "prebuild": "node ../../scripts/ensure-chart-dist.mjs",
+    "predev": "node ../../scripts/ensure-chart-dist.mjs && node scripts/ensure-adapter-ccxt-dist.mjs && node scripts/ensure-adapter-twelve-data-dist.mjs && node scripts/ensure-adapter-finage-dist.mjs && node scripts/ensure-adapter-finnhub-dist.mjs && node scripts/ensure-adapter-massive-dist.mjs && node scripts/ensure-adapter-coinbase-dist.mjs && node scripts/ensure-adapter-gate-dist.mjs && node scripts/ensure-adapter-eodhd-dist.mjs && node scripts/setup-local-search.mjs",
+    "prebuild": "node ../../scripts/ensure-chart-dist.mjs && node scripts/ensure-adapter-ccxt-dist.mjs && node scripts/ensure-adapter-twelve-data-dist.mjs && node scripts/ensure-adapter-finage-dist.mjs && node scripts/ensure-adapter-finnhub-dist.mjs && node scripts/ensure-adapter-massive-dist.mjs && node scripts/ensure-adapter-coinbase-dist.mjs && node scripts/ensure-adapter-gate-dist.mjs && node scripts/ensure-adapter-eodhd-dist.mjs && node scripts/generate-api-reference.mjs",
     "dev": "docusaurus start --host 0.0.0.0 --port 3001",
     "build": "docusaurus build",
-    "serve": "docusaurus serve --host 0.0.0.0 --port 3001",
+    "postbuild": "node scripts/sync-search-index.mjs",
+    "serve": "node scripts/serve-with-ccxt-proxy.mjs",
+    "serve:static": "docusaurus serve --host 0.0.0.0 --port 3001",
     "clear": "docusaurus clear",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx src docusaurus.config.ts sidebars.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "generate:fintech-equity": "node scripts/generate-fintech-equity-csv.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.1",
+    "@docusaurus/plugin-client-redirects": "^3.10.1",
     "@docusaurus/preset-classic": "^3.10.1",
+    "@easyops-cn/docusaurus-search-local": "^0.55.2",
     "@efixdata/exeria-chart": "^1.3.1",
     "@efixdata/exeria-chart-ui-react": "*",
     "@mdx-js/react": "^3.1.1",
@@ -28,6 +35,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.1",
     "@docusaurus/tsconfig": "^3.10.1",
+    "@playwright/test": "^1.52.0",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.3",
     "eslint": "7.32.0",

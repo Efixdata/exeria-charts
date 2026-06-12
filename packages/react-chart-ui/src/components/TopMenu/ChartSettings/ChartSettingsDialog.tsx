@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useCallback, useContext, useEffect, useState, useId } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   DialogBody,
   DialogContainer,
@@ -17,20 +17,32 @@ import type {
   ChartFunctionSettingsItem,
   ChartGridLineStyle,
   ChartGridMode,
+  ChartInstrumentSettingsItem,
   ChartLineFillMode,
   ChartIndicatorSettingsItem,
   ChartStrategySettingsItem,
   ChartVolumeColorMode,
   ChartVolumeSettings,
+  DrawMode,
 } from "@efixdata/exeria-chart";
 import { Remove } from "../../../img/icons";
 import { Icon } from "ui/src/Icon";
 import type { NullableChartInstance } from "../../../chartTypes";
 import { DialogSelect, type DialogSelectOption } from "../Indicators/DialogSelect";
+import type { PlotterLineStyle } from "../../../utils/plotterLineStyles";
 import { useChartUiSettings } from "../../../contexts/ChartUiSettingsContext";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import { CHART_SETTINGS_PRESETS, DEFAULT_CHART_UI_THEME } from "./chartSettingsPresets";
 import { mergeChartUiTheme } from "../../../utils/mergeChartUiTheme";
+import { useStableId } from "../../../utils/useStableId";
+import { CHART_DRAW_MODE_OPTIONS } from "../../../utils/chartDrawModes";
+import type { ChartSubscription } from "@efixdata/exeria-chart";
+
+function unsubscribeChartTopic(subscription: ChartSubscription | void | undefined) {
+  if (subscription && typeof subscription.unsubscribe === "function") {
+    subscription.unsubscribe();
+  }
+}
 import { deriveChartUiThemeFromAppearance } from "../../../utils/deriveChartUiThemeFromAppearance";
 import { ColorField } from "./ColorField";
 import { getChartSettingsCssVars } from "../../../utils/dialogThemeVars";
@@ -38,11 +50,13 @@ import { DialogSection } from "../../dialog/DialogSection";
 import tabStyles from "../../dialog/dialogTabs.module.css";
 import layoutStyles from "../../dialog/dialogLayout.module.css";
 import {
-  dialogCatalogLayoutStyle,
   dialogFitLayoutStyle,
-  dialogScrollBodyStyle,
-} from "../../dialog/dialogLayout";
+  dialogFormBodyStyle,
+  getDialogCatalogLayoutStyle,
+} from "./dialogLayout";
+import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
 import { DialogPrimaryButton } from "./DialogPrimaryButton";
+import { SymbolAppearanceFields } from "./SymbolAppearanceFields";
 import styles from "./chartSettings.module.css";
 
 interface ChartSettingsDialogProps {
@@ -53,6 +67,18 @@ interface ChartSettingsDialogProps {
 type ChartWithSettings = NullableChartInstance & {
   getChartAppearanceSettings?: () => ChartAppearanceSettings;
   applyChartAppearanceSettings?: (settings: ChartAppearanceSettings) => void;
+  getChartInstrumentSettings?: () => ChartInstrumentSettingsItem[];
+  applyChartInstrumentSettings?: (
+    seriesId: string,
+    settings: Partial<
+      Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash" | "drawMode"> &
+        import("@efixdata/exeria-chart").ChartInstrumentSymbolAppearance
+    >,
+  ) => void;
+  getMainSeriesId?: () => string;
+  getInstrumentDrawMode?: (seriesId?: string) => DrawMode;
+  setInstrumentDrawMode?: (mode: DrawMode, seriesId?: string) => void;
+  getInstrument?: () => { symbol?: string } | undefined;
   getChartVolumeSettings?: () => ChartVolumeSettings;
   applyChartVolumeSettings?: (settings: ChartVolumeSettings) => void;
   getChartIndicatorSettings?: () => ChartIndicatorSettingsItem[];
@@ -178,14 +204,16 @@ const IconActionButton = (props: { label: string; onClick: () => void; children:
 
 export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
   const chart = props.chart as ChartWithSettings;
+  const { isCompact } = useChartEnvironment();
   const { applyUiTheme } = useChartUiSettings();
   const t = useChartTranslate(chart);
-  const titleId = useId();
-  const layersTabsId = useId();
+  const titleId = useStableId("chart-settings-title");
+  const layersTabsId = useStableId("chart-settings-layers-tabs");
   // @ts-ignore styled-components theme mismatch
   const themeContext = useContext(ThemeContext);
 
   const [appearance, setAppearance] = useState<ChartAppearanceSettings | null>(null);
+  const [instrumentSettings, setInstrumentSettings] = useState<ChartInstrumentSettingsItem[]>([]);
   const [volume, setVolume] = useState<ChartVolumeSettings | null>(null);
   const [indicators, setIndicators] = useState<ChartIndicatorSettingsItem[]>([]);
   const [functions, setFunctions] = useState<ChartFunctionSettingsItem[]>([]);
@@ -194,6 +222,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [layersTab, setLayersTab] = useState<LayersTab>("indicators");
   const [locale, setLocale] = useState(() => chart?.getLocale?.() ?? "en-US");
+  const [mainDrawMode, setMainDrawMode] = useState<DrawMode>("OHLC");
 
   const cssVars = getChartSettingsCssVars(themeContext);
 
@@ -203,6 +232,11 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     }
 
     setAppearance(chart.getChartAppearanceSettings());
+    setInstrumentSettings(chart.getChartInstrumentSettings?.() ?? []);
+    const mainSeriesId = chart.getMainSeriesId?.();
+    if (mainSeriesId && chart.getInstrumentDrawMode) {
+      setMainDrawMode(chart.getInstrumentDrawMode(mainSeriesId));
+    }
     setVolume(chart.getChartVolumeSettings?.() ?? null);
     setIndicators(chart.getChartIndicatorSettings?.() ?? []);
     setFunctions(chart.getChartFunctionSettings?.() ?? []);
@@ -219,13 +253,29 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
       return undefined;
     }
 
-    const subscription = chart.subscribe("LOCALE_CHANGE", (data: { locale: string }) => {
+    const localeSubscription = chart.subscribe("LOCALE_CHANGE", (data: { locale: string }) => {
       setLocale(data.locale);
       refreshFromChart();
     });
+    const drawModeSubscription = chart.subscribe(
+      "INSTRUMENT_DRAW_MODE_CHANGE",
+      (data: { seriesId?: string; drawMode?: DrawMode }) => {
+        if (!data.drawMode) {
+          return;
+        }
+
+        const mainSeriesId = chart.getMainSeriesId?.();
+        if (mainSeriesId && data.seriesId === mainSeriesId) {
+          setMainDrawMode(data.drawMode);
+        }
+
+        refreshFromChart();
+      },
+    );
 
     return () => {
-      subscription?.unsubscribe();
+      unsubscribeChartTopic(localeSubscription);
+      unsubscribeChartTopic(drawModeSubscription);
     };
   }, [chart, refreshFromChart]);
 
@@ -257,6 +307,37 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     setAppearance(next);
     chart.applyChartAppearanceSettings(next);
     applyUiTheme?.(deriveChartUiThemeFromAppearance(next));
+  };
+
+  const applyInstrumentSettings = (
+    seriesId: string,
+    patch: Partial<
+      Pick<ChartInstrumentSettingsItem, "lineColor" | "lineDash" | "drawMode"> &
+        import("@efixdata/exeria-chart").ChartInstrumentSymbolAppearance
+    >,
+  ) => {
+    const current = instrumentSettings.find((entry) => entry.seriesId === seriesId);
+    if (!current || !chart?.applyChartInstrumentSettings) {
+      return;
+    }
+
+    setActivePresetId(null);
+    const next = { ...current, ...patch };
+    chart.applyChartInstrumentSettings(seriesId, next);
+    setInstrumentSettings((previous) =>
+      previous.map((entry) => (entry.seriesId === seriesId ? next : entry)),
+    );
+  };
+
+  const applyMainDrawMode = (drawMode: DrawMode) => {
+    const mainSeriesId = chart.getMainSeriesId?.();
+    if (!mainSeriesId || !chart.setInstrumentDrawMode) {
+      return;
+    }
+
+    setActivePresetId(null);
+    setMainDrawMode(drawMode);
+    chart.setInstrumentDrawMode(drawMode, mainSeriesId);
   };
 
   const applyVolume = (patch: Partial<ChartVolumeSettings>) => {
@@ -329,6 +410,23 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     value: entry.id,
     label: entry.label,
   }));
+
+  const mainSymbol = chart.getInstrument?.()?.symbol;
+  const hasMultipleInstruments = instrumentSettings.length > 0;
+  const mainSymbolTitle = hasMultipleInstruments && mainSymbol
+    ? `${t("chart_settings_symbol")} — ${mainSymbol}`
+    : t("chart_settings_symbol");
+  const mainSymbolHint = hasMultipleInstruments
+    ? t("chart_settings_main_symbol_hint")
+    : t("chart_settings_symbol_hint");
+
+  const getLineStyleOptionLabel = (style: PlotterLineStyle) =>
+    t(style.labelKey, style.defaultLabel);
+
+  const getChartTypeOptionLabel = (drawMode: DrawMode) => {
+    const option = CHART_DRAW_MODE_OPTIONS.find((entry) => entry.id === drawMode);
+    return option ? t(option.labelKey, option.defaultLabel) : drawMode;
+  };
 
   const layersCounts = {
     indicators: indicators.length,
@@ -581,7 +679,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
       style={{
         ...cssVars,
         ...dialogFitLayoutStyle,
-        ...dialogCatalogLayoutStyle,
+        ...getDialogCatalogLayoutStyle(isCompact),
       }}
     >
       <DialogHeader>
@@ -593,8 +691,47 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
         </DialogHeaderActions>
       </DialogHeader>
 
-      <DialogBody style={dialogScrollBodyStyle}>
+      <DialogBody style={dialogFormBodyStyle}>
         <div className={layoutStyles.scrollArea} style={cssVars}>
+          <DialogSection title={t("chart_settings_on_chart")} hint={t("chart_settings_on_chart_hint")}>
+            <div
+              id={layersTabsId}
+              className={tabStyles.tabBarInset}
+              role="tablist"
+              aria-label={t("chart_settings_on_chart")}
+            >
+              {(
+                [
+                  ["indicators", "layers_tab_indicators"],
+                  ["functions", "layers_tab_functions"],
+                  ["strategies", "layers_tab_strategies"],
+                  ["drawings", "layers_tab_drawings"],
+                ] as const
+              ).map(([tab, labelKey]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  id={`${layersTabsId}-${tab}`}
+                  aria-selected={layersTab === tab}
+                  aria-controls={`${layersTabsId}-${tab}-panel`}
+                  className={`${tabStyles.tab} ${layersTab === tab ? tabStyles.tabActive : ""}`}
+                  onClick={() => setLayersTab(tab)}
+                >
+                  {t(labelKey)}
+                  {layersCounts[tab] > 0 ? ` (${layersCounts[tab]})` : ""}
+                </button>
+              ))}
+            </div>
+            <div
+              id={`${layersTabsId}-${layersTab}-panel`}
+              role="tabpanel"
+              aria-labelledby={`${layersTabsId}-${layersTab}`}
+            >
+              {renderLayersContent()}
+            </div>
+          </DialogSection>
+
           <DialogSection
             title={t("chart_settings_language")}
             hint={t("chart_settings_language_hint")}
@@ -665,94 +802,90 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
             </div>
           </DialogSection>
 
-          <DialogSection
-            title={t("chart_settings_symbol")}
-            hint={t("chart_settings_symbol_hint")}
-          >
-            <div className={styles.colorGrid}>
-              <ColorField
-                label={t("chart_settings_chart_line")}
-                value={appearance.chartLineColor}
-                onChange={(chartLineColor) => applyAppearance({ chartLineColor })}
-              />
-              <div className={styles.colorFieldWithToggle}>
-                <div className={styles.fieldRow}>
-                  <ColorField
-                    label={t("chart_settings_line_fill")}
-                    value={appearance.chartFillColor}
-                    onChange={(chartFillColor) => applyAppearance({ chartFillColor })}
-                  />
-                  <div className={styles.gradientFillColumn}>
-                    <ColorField
-                      label={t("chart_settings_line_fill_gradient")}
-                      value={appearance.chartFillGradientColor}
-                      onChange={(chartFillGradientColor) =>
-                        applyAppearance({ chartFillGradientColor })
-                      }
-                    />
-                    <Label
-                      name={`${t("chart_settings_opacity")} · ${Math.round(appearance.chartFillGradientOpacity * 100)}%`}
-                    >
-                      <input
-                        type="range"
-                        className={styles.rangeInput}
-                        min={5}
-                        max={100}
-                        step={5}
-                        value={Math.round(appearance.chartFillGradientOpacity * 100)}
-                        onChange={(event) =>
-                          applyAppearance({
-                            chartFillGradientOpacity: Number(event.target.value) / 100,
-                          })
-                        }
-                      />
-                    </Label>
-                  </div>
-                </div>
-                <div className={styles.colorFieldWithToggleRow}>
-                  <Label name={t("chart_settings_line_fill_mode")}>
-                    <DialogSelect
-                      value={appearance.chartLineFillMode}
-                      options={lineFillModeOptions}
-                      onChange={(value) =>
-                        applyAppearance({ chartLineFillMode: value as ChartLineFillMode })
-                      }
-                      ariaLabel={t("chart_settings_line_fill_mode")}
-                    />
-                  </Label>
-                  <VisibilityToggle
-                    active={appearance.chartLineFillVisible}
-                    label={
-                      appearance.chartLineFillVisible
-                        ? t("chart_settings_hide_area_under_line")
-                        : t("chart_settings_show_area_under_line")
-                    }
-                    onChange={(chartLineFillVisible) => applyAppearance({ chartLineFillVisible })}
-                  />
-                </div>
-              </div>
-              <ColorField
-                label={t("chart_settings_candle_up")}
-                value={appearance.candleUpColor}
-                onChange={(candleUpColor) => applyAppearance({ candleUpColor })}
-              />
-              <ColorField
-                label={t("chart_settings_candle_down")}
-                value={appearance.candleDownColor}
-                onChange={(candleDownColor) => applyAppearance({ candleDownColor })}
-              />
-              <ColorField
-                label={t("chart_settings_up_stroke")}
-                value={appearance.candleUpStrokeColor}
-                onChange={(candleUpStrokeColor) => applyAppearance({ candleUpStrokeColor })}
-              />
-              <ColorField
-                label={t("chart_settings_down_stroke")}
-                value={appearance.candleDownStrokeColor}
-                onChange={(candleDownStrokeColor) => applyAppearance({ candleDownStrokeColor })}
-              />
-            </div>
+          <DialogSection title={mainSymbolTitle} hint={mainSymbolHint}>
+            <SymbolAppearanceFields
+              showChartType
+              showLineStyle={false}
+              values={{
+                drawMode: mainDrawMode,
+                lineColor: appearance.chartLineColor,
+                lineDash: [],
+                chartFillColor: appearance.chartFillColor,
+                chartLineFillVisible: appearance.chartLineFillVisible,
+                chartLineFillMode: appearance.chartLineFillMode,
+                chartFillGradientColor: appearance.chartFillGradientColor,
+                chartFillGradientOpacity: appearance.chartFillGradientOpacity,
+                candleUpColor: appearance.candleUpColor,
+                candleDownColor: appearance.candleDownColor,
+                candleUpStrokeColor: appearance.candleUpStrokeColor,
+                candleDownStrokeColor: appearance.candleDownStrokeColor,
+              }}
+              onChange={(patch) => {
+                if (patch.drawMode) {
+                  applyMainDrawMode(patch.drawMode);
+                }
+
+                const appearancePatch: Partial<ChartAppearanceSettings> = {};
+                if (patch.lineColor !== undefined) {
+                  appearancePatch.chartLineColor = patch.lineColor;
+                }
+                if (patch.chartFillColor !== undefined) {
+                  appearancePatch.chartFillColor = patch.chartFillColor;
+                }
+                if (patch.chartLineFillVisible !== undefined) {
+                  appearancePatch.chartLineFillVisible = patch.chartLineFillVisible;
+                }
+                if (patch.chartLineFillMode !== undefined) {
+                  appearancePatch.chartLineFillMode = patch.chartLineFillMode;
+                }
+                if (patch.chartFillGradientColor !== undefined) {
+                  appearancePatch.chartFillGradientColor = patch.chartFillGradientColor;
+                }
+                if (patch.chartFillGradientOpacity !== undefined) {
+                  appearancePatch.chartFillGradientOpacity = patch.chartFillGradientOpacity;
+                }
+                if (patch.candleUpColor !== undefined) {
+                  appearancePatch.candleUpColor = patch.candleUpColor;
+                }
+                if (patch.candleDownColor !== undefined) {
+                  appearancePatch.candleDownColor = patch.candleDownColor;
+                }
+                if (patch.candleUpStrokeColor !== undefined) {
+                  appearancePatch.candleUpStrokeColor = patch.candleUpStrokeColor;
+                }
+                if (patch.candleDownStrokeColor !== undefined) {
+                  appearancePatch.candleDownStrokeColor = patch.candleDownStrokeColor;
+                }
+
+                if (Object.keys(appearancePatch).length > 0) {
+                  applyAppearance(appearancePatch);
+                }
+              }}
+              lineFillModeOptions={lineFillModeOptions}
+              getLineStyleOptionLabel={getLineStyleOptionLabel}
+              getChartTypeOptionLabel={getChartTypeOptionLabel}
+              t={t}
+            />
           </DialogSection>
+
+          {instrumentSettings.map((instrument) => (
+            <DialogSection
+              key={instrument.seriesId}
+              title={`${t("chart_settings_symbol")} — ${instrument.symbol}`}
+              hint={t("chart_settings_overlay_symbol_hint")}
+            >
+              <SymbolAppearanceFields
+                showChartType
+                values={instrument}
+                onChange={(patch) => applyInstrumentSettings(instrument.seriesId, patch)}
+                lineFillModeOptions={lineFillModeOptions}
+                getLineStyleOptionLabel={getLineStyleOptionLabel}
+                getChartTypeOptionLabel={getChartTypeOptionLabel}
+                t={t}
+                symbolLabel={instrument.symbol}
+              />
+            </DialogSection>
+          ))}
 
           <DialogSection title={t("chart_settings_canvas")} hint={t("chart_settings_canvas_hint")}>
             <div className={`${styles.colorGrid} ${styles.colorGridSingle}`}>
@@ -905,45 +1038,6 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
                 </div>
               </>
             )}
-          </DialogSection>
-
-          <DialogSection title={t("chart_settings_on_chart")} hint={t("chart_settings_on_chart_hint")}>
-            <div
-              id={layersTabsId}
-              className={tabStyles.tabBarInset}
-              role="tablist"
-              aria-label={t("chart_settings_on_chart")}
-            >
-              {(
-                [
-                  ["indicators", "layers_tab_indicators"],
-                  ["functions", "layers_tab_functions"],
-                  ["strategies", "layers_tab_strategies"],
-                  ["drawings", "layers_tab_drawings"],
-                ] as const
-              ).map(([tab, labelKey]) => (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  id={`${layersTabsId}-${tab}`}
-                  aria-selected={layersTab === tab}
-                  aria-controls={`${layersTabsId}-${tab}-panel`}
-                  className={`${tabStyles.tab} ${layersTab === tab ? tabStyles.tabActive : ""}`}
-                  onClick={() => setLayersTab(tab)}
-                >
-                  {t(labelKey)}
-                  {layersCounts[tab] > 0 ? ` (${layersCounts[tab]})` : ""}
-                </button>
-              ))}
-            </div>
-            <div
-              id={`${layersTabsId}-${layersTab}-panel`}
-              role="tabpanel"
-              aria-labelledby={`${layersTabsId}-${layersTab}`}
-            >
-              {renderLayersContent()}
-            </div>
           </DialogSection>
         </div>
       </DialogBody>

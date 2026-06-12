@@ -1,6 +1,7 @@
 import { useEffect, type ComponentProps } from "react";
 import { useLocation } from "@docusaurus/router";
 import Root from "@theme-original/Root";
+import { installBenignResizeObserverErrorSuppression } from "@site/src/utils/suppressBenignResizeObserverErrors";
 import skipLinkStyles from "./skipLink.module.css";
 
 const NAVBAR_SCROLL_OFFSET = 88;
@@ -22,6 +23,8 @@ function scrollToHash(hash: string): void {
 
 export default function RootWrapper(props: ComponentProps<typeof Root>): JSX.Element {
   const location = useLocation();
+
+  useEffect(() => installBenignResizeObserverErrorSuppression(), []);
 
   useEffect(() => {
     if (!location.hash) {

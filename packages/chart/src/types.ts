@@ -57,6 +57,8 @@ export type {
   ChartDrawingSettingsItem,
   ChartGridLineStyle,
   ChartGridMode,
+  ChartInstrumentSettingsItem,
+  ChartInstrumentSymbolAppearance,
   ChartLineFillMode,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
@@ -134,8 +136,15 @@ export interface ChartMode {
   [key: string]: unknown;
 }
 
+export interface ChartStagingObject {
+  type?: string;
+  [key: string]: unknown;
+}
+
 export interface ChartInteractor {
   currentMode?: ChartMode;
+  currentStagingObject?: ChartStagingObject | null;
+  completeStagingDrawing?: () => boolean | void;
   setMode(mode: string, options?: Record<string, unknown>, onDrawingDone?: () => void): void;
   setObjectSelectionAllowed?(isAllowed: boolean): void;
   [key: string]: unknown;
@@ -267,6 +276,8 @@ export interface ChartEventPayloads {
   VALUE_AXIS_WIDTH_CHANGE: number;
   LOCALE_CHANGE: { locale: string };
   ENVIRONMENT_CHANGE: ChartEnvironmentSnapshot;
+  SELECTED_INSTRUMENT_CHANGE: { seriesId: string };
+  INSTRUMENT_DRAW_MODE_CHANGE: { seriesId: string; drawMode: DrawMode };
 }
 
 export interface ChartOptions {
@@ -279,6 +290,7 @@ export interface ChartOptions {
   locale?: string;
   messages?: Record<string, unknown>;
   layout?: ChartLayoutOptions;
+  dataAdapter?: import("./dataAdapter").DataAdapter;
   [key: string]: unknown;
 }
 
@@ -293,10 +305,23 @@ export interface ChartInstance {
   setInstrument(instrument: Instrument): void;
   getInstrument(): Instrument | undefined;
   setMainSeriesData(data: Candle[], interval?: Interval, moveToEnd?: boolean): Promise<void>;
+  setDataAdapter(adapter: import("./dataAdapter").DataAdapter): void;
+  loadData(symbol: string, options: import("./dataAdapter").LoadDataOptions): Promise<void>;
+  subscribeToUpdates(
+    symbol: string,
+    callback?: (update: Tick) => void,
+  ): void;
+  unsubscribeFromUpdates(): void;
+  getCurrentPrice(): Tick | null;
   appendMainSeriesData(data: Candle[]): void;
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;
   setMainDrawMode(mode: DrawMode): void;
+  getMainSeriesId(): string;
+  getSelectedInstrumentSeriesId(): string;
+  setSelectedInstrumentSeriesId(seriesId: string): void;
+  getInstrumentDrawMode(seriesId?: string): DrawMode;
+  setInstrumentDrawMode(mode: DrawMode, seriesId?: string): void;
   getValueAxisMode(): ValueAxisMode;
   setValueAxisMode(mode: ValueAxisMode): void;
   getValueAxisWidth(): number;
@@ -311,6 +336,17 @@ export interface ChartInstance {
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  getChartInstrumentSettings(): import("./chartSettings").ChartInstrumentSettingsItem[];
+  applyChartInstrumentSettings(
+    seriesId: string,
+    settings: Partial<
+      Pick<
+        import("./chartSettings").ChartInstrumentSettingsItem,
+        "lineColor" | "lineDash" | "drawMode"
+      > &
+        import("./chartSettings").ChartInstrumentSymbolAppearance
+    >,
+  ): void;
   applyChartTheme(theme: ChartTheme, themeVariant?: string): void;
   getChartVolumeSettings(): import("./chartSettings").ChartVolumeSettings;
   applyChartVolumeSettings(settings: import("./chartSettings").ChartVolumeSettings): void;
@@ -339,6 +375,9 @@ export interface ChartInstance {
   importChartSettingsTemplate(template: import("./chartSettings").ChartSettingsTemplate): void;
   getSeriesManager(): ChartSeriesManager;
   getInteractor(): ChartInteractor;
+  fit(): void;
+  render(objectOnlyOnOverlay?: unknown): void;
+  renderOverlay(): void;
   onDownload(watermark?: string, watermarkWidth?: number, watermarkHeight?: number): void;
   translate(text: string): string;
   getLocale(): string;

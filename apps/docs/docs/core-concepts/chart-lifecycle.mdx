@@ -1,25 +1,43 @@
 ---
 sidebar_position: 1
 title: Chart Lifecycle
-description: Understand how the runtime chart is created, initialized, used, and destroyed.
+description: Create, init, load data, and destroy — the full life of a chart in plain steps.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # Chart lifecycle
 
-Every Exeria chart starts with a runtime instance. The shortest stable path is:
+A chart is not magic — it goes through clear **stages**. Get the order right and everything else (live data, indicators, themes) slots in easily.
 
-1. Create the chart with `createChart()` or `new Chart()`.
-2. Call `init()`.
-3. Load data with `setMainSeriesData()`.
-4. Apply runtime changes such as draw mode, subscriptions, or drawings.
-5. Call `destroy()` when the chart leaves the page.
+<GettingStartedDemo
+  variant="vanilla"
+  caption="End state after the lifecycle: create → init → load data."
+/>
 
-## Create the runtime
+## The five stages
 
-Use `createChart()` when you want the typed public `ChartInstance` contract.
+```mermaid
+flowchart TD
+  A["1. createChart() — pick a div"]
+  B["2. init() — wake up internals"]
+  C["3. setMainSeriesData() — show candles"]
+  D["4. Use the chart — ticks, indicators, theme…"]
+  E["5. destroy() — user leaves"]
+
+  A --> B --> C --> D --> E
+```
+
+Think of it like starting a car: create the car, turn the key (`init`), drive (data + updates), park and turn off (`destroy`).
+
+## Stage 1 — Create
+
+Point the library at a DOM element:
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
+import { createChart } from "@exeria/charts";
+
+const container = document.getElementById("chart-root");
 
 const chart = createChart({
   container,
@@ -31,46 +49,107 @@ const chart = createChart({
 });
 ```
 
-Use `Chart` directly when you want access to runtime methods that are implemented on the class but not currently part of the typed `ChartInstance` surface.
+`instrument` is optional metadata — symbol name, how many decimal places to show. Helpful for labels and price formatting.
+
+### `createChart` vs `new Chart`
+
+| Approach | Who uses it |
+| --- | --- |
+| `createChart()` | **You** — typed public API, recommended |
+| `new Chart()` | Advanced integrations that need extra runtime hooks |
+
+Start with `createChart()`. You rarely need the class directly.
+
+## Stage 2 — Init (do not skip)
 
 ```ts
-import Chart from "@efixdata/exeria-chart";
-
-const chart = new Chart({ container });
+chart.init();
 ```
 
-## Initialize before loading data
+`init()` builds canvases, hit-testing, and the internal model. **No init → no chart.**
 
-Call `init()` before `setMainSeriesData()`. The runtime creates its canvases, overlay, renderer, interactor, and Fusion model during initialization.
+Always call it **once**, **before** the first data load.
 
 ```ts
 chart.init();
 await chart.setMainSeriesData(candles, interval);
 ```
 
-If you call `setMainSeriesData()` before `init()`, the runtime returns early because the internal Fusion model is not ready yet.
+If you load data before `init()`, the runtime exits early — you get a blank chart with no obvious error.
 
-## Keep the container measurable
+## Stage 3 — Give the container size
 
-The chart container needs a real size before initialization. In practice that means a fixed height or a parent layout that resolves to a non-zero height.
+Before or right after `init()`, make sure the div has height:
 
 ```ts
 container.style.height = "480px";
 chart.init();
 ```
 
-## Destroy on unmount
+The chart measures its parent. **Zero height = invisible chart.** This is the #1 beginner bug.
 
-Always destroy the chart instance when the container leaves the page.
+## Stage 4 — Load data and use the chart
+
+```ts
+await chart.setMainSeriesData(candles, interval);
+```
+
+Now you can:
+
+- Change draw mode — `setMainDrawMode("Line")`
+- Stream prices — `appendTick({ … })`
+- Add indicators — `addScript("EMA")`
+- Draw lines — `toolDrawer.drawTrendLine({ … })`
+
+See [Data model](./data-model) for candle shape and [Tutorials](../tutorials/) for recipes.
+
+## Stage 5 — Destroy on teardown
+
+When the user navigates away or your React component unmounts:
 
 ```ts
 chart.destroy();
 ```
 
-This prevents orphaned canvases, event listeners, and observers from surviving after the page changes.
+This removes canvases, listeners, and observers. Without it, single-page apps can leak memory over long sessions.
 
-## React wrapper note
+### React pattern
 
-`ChartUI` does not create the runtime for you. Create the runtime chart yourself, initialize it, then pass the live instance into the React wrapper.
+```tsx
+useEffect(() => {
+  const instance = createChart({ container });
+  instance.init();
+  // … load data …
 
-Next step: read [Data model](./data-model) and [Loading data](../chart-usage/loading-data).
+  return () => {
+    instance.destroy(); // always in cleanup
+  };
+}, []);
+```
+
+## ChartUI does not replace the lifecycle
+
+`ChartUI` (React wrapper) adds toolbar and menus. It does **not** create the chart for you.
+
+Your job:
+
+1. `createChart` + `init` + data in `useEffect`
+2. Pass the instance to `<ChartUI chart={chart}>`
+3. `destroy` in cleanup
+
+Full React walkthrough: [React quickstart](../getting-started/react).
+
+## Lifecycle checklist
+
+| Step | Done? |
+| --- | --- |
+| Container has non-zero height | ☐ |
+| `createChart({ container })` | ☐ |
+| `init()` before first data | ☐ |
+| `setMainSeriesData` or connector `loadData` | ☐ |
+| `destroy()` on unmount | ☐ |
+
+## What is next?
+
+- [Data model](./data-model) — candles, ticks, intervals
+- [Loading data](../chart-usage/loading-data) — all load and append methods

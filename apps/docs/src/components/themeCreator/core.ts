@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
-import type { ChartInstance, Candle, Instrument, Interval } from "@efixdata/exeria-chart";
+import type {
+  ChartAppearanceSettings,
+  ChartInstance,
+  Candle,
+  Instrument,
+  Interval,
+} from "@exeria/charts";
 import { buildChartUiTheme } from "../../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets, docsInterval, getCandleAtRatio } from "../chartExampleData";
 
@@ -11,6 +17,8 @@ export type ChartColorKey =
   | "grid"
   | "candleUp"
   | "candleDown"
+  | "candleUpStroke"
+  | "candleDownStroke"
   | "crosshair"
   | "tool";
 
@@ -150,6 +158,9 @@ const chartFontValues = {
 };
 
 export const previewCandles = docsExampleDatasets.trend.candles;
+
+export const PLAYGROUND_MAIN_SERIES_ID = "playground-btc";
+
 export const previewInstrument: Instrument = {
   id: "BTCUSD",
   symbol: "BTC/USD",
@@ -160,6 +171,66 @@ export const previewInstrument: Instrument = {
   availableIntervals: [docsInterval],
   interval: docsInterval,
 };
+
+function createInstrumentSeriesEntry(seriesId: string, instrument: Instrument, data?: Candle[]) {
+  return {
+    seriesId,
+    title: instrument.symbol,
+    labels: ["O", "H", "L", "C", "V", "I"],
+    fields: ["o", "h", "l", "c", "v", "i"],
+    instrument,
+    interval: docsInterval,
+    ...(data ? { data } : {}),
+  };
+}
+
+function createMainSeriesPlotter(seriesId: string) {
+  return {
+    id: seriesId,
+    type: "SeriesObject",
+    dataLink: seriesId,
+    renderAs: "OHLC",
+    color: "#00bcd4",
+    stroke: [1],
+    dash: [],
+    width: 1,
+    priceTag: true,
+    priceLine: true,
+    openDataField: "o",
+    highDataField: "h",
+    lowDataField: "l",
+    closeDataField: "c",
+    dataField: "c",
+    strokeStyle: "#00bcd4",
+    _hit: false,
+    _hitAnchor: null,
+    _hitArrow: null,
+    selected: false,
+  };
+}
+
+export function createPlaygroundChartModel(): Record<string, unknown> {
+  return {
+    mainSeries: PLAYGROUND_MAIN_SERIES_ID,
+    interval: docsInterval,
+    instrumentsSeries: [createInstrumentSeriesEntry(PLAYGROUND_MAIN_SERIES_ID, previewInstrument)],
+    panels: [
+      {
+        id: "1",
+        valueAxisMode: "lin",
+        main: true,
+        hGrid: true,
+        vGrid: true,
+        basis: 75,
+        precision: 2,
+        centerZero: false,
+        objects: [createMainSeriesPlotter(PLAYGROUND_MAIN_SERIES_ID)],
+        _visible: true,
+        _index: 0,
+      },
+    ],
+  };
+}
 
 function parseHexColor(hexColor: string) {
   const normalized = hexColor.replace("#", "");
@@ -203,13 +274,19 @@ function getContrastColor(color: string, dark = "#08111B", light = "#FFFFFF") {
 }
 
 function deriveLightChartColors(chartColors: ChartColorState): ChartColorState {
+  const background = mixColors(chartColors.background, "#F7FAFD", 0.95);
+  const candleUp = mixColors(chartColors.candleUp, "#0F5132", 0.16);
+  const candleDown = mixColors(chartColors.candleDown, "#8A1C2F", 0.14);
+
   return {
     accent: mixColors(chartColors.accent, "#18324D", 0.18),
-    background: mixColors(chartColors.background, "#F7FAFD", 0.95),
+    background,
     axisText: mixColors(chartColors.axisText, "#25354A", 0.74),
     grid: mixColors(chartColors.grid, "#FFFFFF", 0.82),
-    candleUp: mixColors(chartColors.candleUp, "#0F5132", 0.16),
-    candleDown: mixColors(chartColors.candleDown, "#8A1C2F", 0.14),
+    candleUp,
+    candleDown,
+    candleUpStroke: mixColors(chartColors.candleUpStroke, "#FFFFFF", 0.82),
+    candleDownStroke: mixColors(chartColors.candleDownStroke, "#FFFFFF", 0.82),
     crosshair: mixColors(chartColors.crosshair, "#334155", 0.4),
     tool: mixColors(chartColors.tool, "#3A4D63", 0.58),
   };
@@ -284,8 +361,8 @@ function buildChartThemeVariant(
     chartGreenBackground: mixColors(chartColors.candleUp, chartColors.background, isLight ? 0.28 : 0.32),
     chartGray,
     chartGrayPrimary: mixColors(chartColors.axisText, chartColors.background, isLight ? 0.38 : 0.28),
-    chartRedStroke: mixColors(chartColors.candleDown, chartColors.background, isLight ? 0.28 : 0.22),
-    chartGreenStroke: mixColors(chartColors.candleUp, chartColors.background, isLight ? 0.28 : 0.22),
+    chartRedStroke: chartColors.candleDownStroke,
+    chartGreenStroke: chartColors.candleUpStroke,
     chartFill: withAlpha(chartColors.accent, isLight ? 0.14 : 0.22),
     chartStroke: chartColors.accent,
     buyColor: chartColors.candleUp,
@@ -308,6 +385,48 @@ function buildChartThemeVariant(
     legendValueColor: textColor,
     legendLineBackground: "transparent",
     fibonacciRetracementLine: withAlpha(textColor, isLight ? 0.08 : 0.12),
+  };
+}
+
+export function deriveCandleStrokeColors(
+  chartColors: ChartColorState,
+  themeVariant: ThemeVariant,
+): Pick<ChartColorState, "candleUpStroke" | "candleDownStroke"> {
+  const ratio = themeVariant === "light" ? 0.28 : 0.22;
+
+  return {
+    candleUpStroke: mixColors(chartColors.candleUp, chartColors.background, ratio),
+    candleDownStroke: mixColors(chartColors.candleDown, chartColors.background, ratio),
+  };
+}
+
+export function buildChartAppearanceSettings(
+  chartColors: ChartColorState,
+  themeVariant: ThemeVariant = "dark",
+): ChartAppearanceSettings {
+  const isLight = themeVariant === "light";
+
+  return {
+    backgroundColor: chartColors.background,
+    gridColor: chartColors.grid,
+    chartLineColor: chartColors.accent,
+    chartFillColor: withAlpha(chartColors.accent, isLight ? 0.14 : 0.22),
+    chartLineFillVisible: false,
+    chartLineFillMode: "solid",
+    chartFillGradientColor: chartColors.accent,
+    chartFillGradientOpacity: 0.4,
+    candleUpColor: chartColors.candleUp,
+    candleDownColor: chartColors.candleDown,
+    candleUpStrokeColor: chartColors.candleUpStroke,
+    candleDownStrokeColor: chartColors.candleDownStroke,
+    axisTextColor: chartColors.axisText,
+    axisBackgroundColor: chartColors.background,
+    crosshairColor: chartColors.crosshair,
+    gridMode: "both",
+    gridVisible: true,
+    gridLineStyle: "solid",
+    lastPriceLineVisible: true,
+    lastPriceLabelVisible: true,
   };
 }
 
@@ -361,8 +480,8 @@ export function formatApplySnippet(
   themeVariant: ThemeVariant
 ) {
   return [
-    'import { createChart } from "@efixdata/exeria-chart";',
-    'import { ChartUI } from "@efixdata/exeria-chart-ui-react";',
+    'import { createChart } from "@exeria/charts";',
+    'import { ChartUI } from "@exeria/charts-ui";',
     "",
     formatCodeBlock("runtimeTheme", runtimeTheme),
     "",

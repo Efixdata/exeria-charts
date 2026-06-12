@@ -7,6 +7,8 @@ export type DocChartEmbedProps = {
   style?: CSSProperties;
   minHeight?: number;
   height?: number | string;
+  /** When set, height follows width via CSS aspect-ratio (e.g. `"16 / 9"`). */
+  aspectRatio?: string;
   background?: string;
   /** Adds padding around ChartUI toolbars (`.UI-container`). */
   padded?: boolean;
@@ -23,6 +25,7 @@ export default function DocChartEmbed({
   style,
   minHeight,
   height,
+  aspectRatio,
   background,
   padded = false,
   nested = false,
@@ -43,8 +46,7 @@ export default function DocChartEmbed({
         .filter(Boolean)
         .join(" ")}
       style={{
-        minHeight,
-        height,
+        ...(aspectRatio ? { aspectRatio } : { minHeight, height }),
         background,
         ...style,
       }}
