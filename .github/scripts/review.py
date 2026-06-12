@@ -26,11 +26,10 @@ def main():
     # 2. Pobranie zmian w kodzie (diff)
     diff_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
     
-    # DODANE: Wymagane nagłówki dla API GitHuba (User-Agent i wersja API)
+    # NAPRAWIONO: Dodano brakujące "v3" i usunięto konfliktujący nagłówek
     diff_headers = {
         "Authorization": f"Bearer {github_token}",
-        "Accept": "application/vnd.github.diff",
-        "X-GitHub-Api-Version": "2022-11-28",
+        "Accept": "application/vnd.github.v3.diff", 
         "User-Agent": "Gemini-Code-Review-Bot"
     }
     
@@ -39,6 +38,10 @@ def main():
     try:
         with urllib.request.urlopen(diff_req) as response:
             diff_content = response.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        print(f"❌ Błąd HTTP pobierania diff: {e.code} {e.reason}")
+        print(f"Szczegóły: {e.read().decode('utf-8')}")
+        return
     except Exception as e:
         print(f"❌ Błąd podczas pobierania zmian z GitHuba: {e}")
         return
@@ -84,7 +87,7 @@ def main():
     comment_url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
     comment_payload = {"body": f"### 🤖 Gemini 3.1 Pro Code Review\n\n{review_text}"}
     
-    # DODANE: Wymagane nagłówki dla publikacji komentarza
+    # Pozostawiono wymagane nagłówki dla publikacji komentarza JSON
     comment_headers = {
         "Authorization": f"Bearer {github_token}",
         "Accept": "application/vnd.github+json",
