@@ -1,0 +1,54 @@
+---
+sidebar_position: 10
+title: Customize a Built-in Indicator
+description: Change MACD periods and other inputs without writing new indicator code.
+---
+
+import ScriptWiringShowcase from "@site/src/components/ScriptWiringShowcase";
+
+# Customize a built-in indicator
+
+`addScript("EMA")` is great for defaults. When you need **your** periods, colors, or wiring — still no custom math required. You copy the built-in recipe, edit fields, and pass it back in.
+
+## What you are building
+
+For example: MACD with faster settings (8 / 21 / 5) instead of the library defaults.
+
+## Clone, edit, add
+
+```ts
+const macd = structuredClone(chart.getScripts().MACD);
+
+macd.inputs.FPERIOD.value = 8;
+macd.inputs.SPERIOD.value = 21;
+macd.inputs.SGPERIOD.value = 5;
+
+chart.addScript("MACD", macd);
+```
+
+**Always clone** with `structuredClone` (or `JSON.parse(JSON.stringify(...))`). Objects from `getScripts()` are shared templates — editing them directly causes weird bugs.
+
+## See advanced wiring live
+
+Some indicators read **another indicator's output** (for example “trade when EMA crosses SMA”). The showcase below demonstrates those patterns:
+
+<ScriptWiringShowcase visiblePresets={["emaSmaCross", "emaDisplace"]} />
+
+Full explanations: [Programmatic wiring](../scripts/programmatic-wiring).
+
+## Update an indicator already on the chart
+
+```ts
+chart.updateIndicator(scriptId, updatedDefinition);
+```
+
+Use this when the user changes a setting in your settings panel.
+
+## When built-ins are not enough
+
+If you need a completely new formula that does not exist in the catalog, that is a maintainer task: [Custom indicator authoring](../scripts/indicators/custom-indicators).
+
+## What is next?
+
+- [Add an indicator](./add-an-indicator) — first steps with EMA and RSI
+- [Quant analytics demo](/starters/quant-analytics) — heavy indicator dashboards

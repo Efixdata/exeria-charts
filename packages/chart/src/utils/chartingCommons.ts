@@ -10,6 +10,7 @@ import type {
   SeriesWithData,
   TickLike,
 } from "../internal-types/series";
+import { trimInsignificantFractionZeros } from "./numberFormat";
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -80,7 +81,7 @@ function nFormatter(num: number, digits: number): string {
     }
   }
 
-  return num.toFixed(digits);
+  return trimInsignificantFractionZeros(num.toFixed(digits));
 }
 
 function round(num: number, digits: number): number {

@@ -7,6 +7,7 @@ import { useThemeConfig } from "@docusaurus/theme-common";
 import { useLocation } from "@docusaurus/router";
 import NavbarColorModeToggle from "@theme/Navbar/ColorModeToggle";
 import GitHubNavbarButton from "@site/src/components/GitHubNavbarButton";
+import DocsSidebarSearch from "@site/src/components/DocsSidebarSearch";
 import styles from "./styles.module.css";
 
 type NavLink = {
@@ -53,6 +54,7 @@ function MobileNavClient(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const links = useNavLinks();
   const location = useLocation();
+  const isDocsRoute = location.pathname.startsWith("/docs");
 
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((open) => !open), []);
@@ -114,6 +116,12 @@ function MobileNavClient(): JSX.Element {
                 <CloseIcon />
               </button>
             </header>
+
+            {isDocsRoute && (
+              <div className={styles.searchSection}>
+                <DocsSidebarSearch />
+              </div>
+            )}
 
             <nav className={styles.links} aria-label="Mobile navigation">
               {links.map((link) => (

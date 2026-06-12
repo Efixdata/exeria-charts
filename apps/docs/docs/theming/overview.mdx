@@ -1,72 +1,180 @@
 ---
 sidebar_position: 1
 title: Overview
-description: Understand the separation between runtime chart theming and the React UI theme layer.
+description: Chart runtime theme vs React UI theme — what each layer controls and how to apply presets.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Theming overview
 
-There are two different theming layers in this repository:
+**Theming** means choosing colors and surfaces so the chart fits your product — dark fintech dashboard, light news embed, brand accent on the toolbar.
 
-1. Runtime chart theming passed into the chart constructor.
-2. React UI theming passed into `ChartUI`.
+Exeria has **two independent theme systems**. Mixing them up is the most common beginner mistake.
 
-Keep these separate. The runtime theme changes the chart surface itself. The React UI theme changes the toolbar, menus, dialogs, and other chrome.
+<TutorialChartDemo
+  scene="custom-theme"
+  caption="This preview uses a custom runtime theme (candles + grid)."
+/>
 
-## Runtime theme
+## Layer 1 — Chart runtime (the canvas)
 
-Pass a runtime theme through the chart constructor options.
+**Package:** `@exeria/charts`  
+**Controls:** candles, line chart, grid, axes, crosshair, default drawing colors, tooltips
 
 ```ts
+import { createChart } from "@exeria/charts";
+
 const chart = createChart({
   container,
   theme: runtimeTheme,
-  themeVariant: "dark",
+  themeVariant: "dark", // or "light"
 });
 ```
 
-This is the right layer for candle colors, grid colors, axis colors, and other chart-surface decisions.
+`themeVariant` tells the engine which color variant to read when your theme object defines both `light` and `dark` keys (the live theme creator outputs this shape).
 
-## React UI theme
+### What you typically customize
 
-Pass a `theme` prop into `ChartUI` when you want to style the wrapper layer.
+| Area | User-visible effect |
+| --- | --- |
+| Background | Plot and axis backdrop |
+| Grid | Horizontal / vertical guides |
+| Candle up / down | Bullish / bearish bodies and wicks |
+| Axis text | Price and time labels |
+| Crosshair | Cursor lines and labels |
+| Chart line / fill | Line mode and area under line |
+| Tool default | New drawings without custom color |
+
+### Change theme after mount
+
+```ts
+chart.applyChartTheme(runtimeTheme, "dark");
+```
+
+Or use the settings API (same fields as the ChartUI dialog):
+
+```ts
+const settings = chart.getChartAppearanceSettings();
+settings.candleUpColor = "#22c55e";
+chart.applyChartAppearanceSettings(settings);
+```
+
+Guide: [Chart settings](../chart-usage/chart-settings). Tutorial: [Custom theme](../tutorials/custom-theme).
+
+## Layer 2 — React UI (the chrome)
+
+**Package:** `@exeria/charts-ui`  
+**Controls:** top toolbar, left drawing menu, dialogs, inputs, scrollbars, split buttons
 
 ```tsx
+import { ChartUI } from "@exeria/charts-ui";
+
 <ChartUI
   chart={chart}
   theme={{
+    gap: 8,
     accentColor: "#14f7ab",
     toolbar: {
       background: "#111827",
       showShareChartButton: true,
+      showChartScaleSwitch: true,
+      showCurrency: true,
     },
-    subMenu: {
-      background: "#0f172a",
-    },
-    splitButton: {},
+    subMenu: { background: "#0f172a" },
     dialog: {},
     inputs: {},
     scrollBar: {},
+    splitButton: {},
+  }}
+>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
+
+Only applies when you use **ChartUI**. Vanilla integrations ignore this layer.
+
+Deep dive: [React UI integration](../advanced/react-ui-integration).
+
+## Side-by-side cheat sheet
+
+| Question | Runtime (`createChart`) | UI (`ChartUI`) |
+| --- | --- | --- |
+| Candle colors? | ✅ | ❌ |
+| Grid color? | ✅ | ❌ |
+| Toolbar background? | ❌ | ✅ |
+| Settings dialog colors? | ❌ | ✅ |
+| Share button visibility? | ❌ | ✅ (`theme.toolbar`) |
+| Works without React? | ✅ | ❌ |
+
+## Six built-in presets
+
+The same presets appear in **Chart settings → Theme templates** and in the [live theme creator](./live-theme-creator):
+
+| ID | Name | Mode |
+| --- | --- | --- |
+| `trading-dark` | Trading Dark | Dark |
+| `midnight` | Midnight | Dark |
+| `carbon` | Carbon | Dark |
+| `day` | Day | Light |
+| `paper` | Pearl | Light |
+| `onyx` | Monochrome | Light |
+
+Presets update **both** appearance settings and UI chrome when applied through ChartUI.
+
+## Light and dark variants
+
+Production apps often ship both modes:
+
+1. Build `runtimeTheme` with `light` and `dark` branches (live creator does this).
+2. Pass `themeVariant` when creating the chart or call `applyChartTheme(theme, variant)` on toggle.
+3. Pass matching `uiThemes.dark` / `uiThemes.light` to ChartUI.
+
+```ts
+const variant = userPrefersDark ? "dark" : "light";
+
+chart.applyChartTheme(runtimeTheme, variant);
+// React: <ChartUI theme={uiThemes[variant]} … />
+```
+
+## Share and export styling
+
+Share menu watermark and copy text use **`shareConfig`** on ChartUI — not the runtime theme:
+
+```tsx
+<ChartUI
+  shareConfig={{
+    watermarkSvg: "<svg>…</svg>",
+    templateText: "Chart snapshot",
   }}
 />
 ```
 
-The UI theme surface includes border, gap, accent color, button states, toolbar settings, submenu styling, dialog colors, input colors, and scrollbar colors.
+## Three ways to theme (pick your path)
 
-## Share and export theming
+| Path | Best for |
+| --- | --- |
+| **Live theme creator** | Visual tuning + copy-paste code |
+| **Constructor `theme`** | Fixed brand colors in code |
+| **Chart settings API** | User-controlled themes you persist |
 
-The React wrapper also accepts `shareConfig`, which controls watermark and share-copy behavior for the built-in share flow.
+| Path | Page |
+| --- | --- |
+| Visual | [Live theme creator](./live-theme-creator) |
+| Tutorial | [Custom theme](../tutorials/custom-theme) |
+| User dialog | [Chart settings](../chart-usage/chart-settings) |
+| Persist | [Save and restore settings](../tutorials/save-and-restore-settings) |
 
-## Live theme creator
+## Quick troubleshooting
 
-The docs site now includes a public live theme creator with a real chart preview and the React UI wrapper embedded.
+| Symptom | Likely cause |
+| --- | --- |
+| Toolbar still default after editing candles | You changed runtime only — edit `ChartUI theme` |
+| Preset in UI does not match your code | Apply same preset via `importChartSettingsTemplate` or copy from creator |
+| Colors reset on reload | Persist `exportChartSettingsTemplate()` JSON |
 
-- [Open the live theme creator](./live-theme-creator)
+## What is next?
 
-Use this page as the contract boundary:
-
-- constructor `theme` and `themeVariant` for the runtime chart
-- `ChartUI` `theme` prop for UI chrome
-- `shareConfig` for export and share behavior
-
-Then use [Live theme creator](./live-theme-creator) when you want to tune colors visually and copy the resulting code.
+- [Live theme creator](./live-theme-creator) — interactive preview
+- [Advanced React UI integration](../advanced/react-ui-integration) — toolbar toggles
+- [Theming hub](../theming/)

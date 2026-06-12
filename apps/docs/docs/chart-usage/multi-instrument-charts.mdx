@@ -1,56 +1,60 @@
 ---
 sidebar_position: 6
-title: Multi-instrument charts
-description: Overlay multiple symbols on one chart, load their data, and customize line appearance per symbol.
+title: Multi-Instrument Charts
+description: Compare two or more symbols on one chart — main candles plus overlay lines.
 ---
+
+import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
 
 # Multi-instrument charts
 
-A single chart can display more than one instrument (symbol). The first instrument in `instrumentsSeries` is the **main series** — it drives the primary price scale, viewport synchronization, and candle or bar rendering. Additional instruments are drawn as **overlay series**, typically as lines on the same time axis.
+One chart, **multiple symbols** — for example Bitcoin as candles and Ethereum as a line on the same dates. Great for comparison articles, screeners, and “vs benchmark” views.
 
-## Data model
+<ChartQuickstartExample />
 
-The runtime keeps one entry per instrument in `model.instrumentsSeries`. Each entry has:
+The demo above shows **one** symbol. This page explains how to add a second (and style it differently).
 
-- `seriesId` — unique key used by `getSeriesManager()` and panel `SeriesObject` plotters
-- `instrument` — symbol metadata (`symbol`, `precision`, `currency`, …)
-- `title` — legend label (usually the symbol)
+Live product example: [Market news demo](/starters/market-news) — embeddable comparison charts.
 
-The main series id is also stored in `model.mainSeries` and matches `instrumentsSeries[0].seriesId`.
+Tutorial walkthrough: [Multi-instrument overlay](../tutorials/multi-instrument-overlay).
+
+---
+
+## The idea in plain terms
+
+| Role | Usually drawn as | Example |
+| --- | --- | --- |
+| **Main series** (first symbol) | Candles or bars | BTCUSD |
+| **Overlay** (extra symbols) | Line on same time axis | ETHUSD, SPY |
+
+Everyone shares one horizontal time axis. Each symbol has its own price data array.
+
+---
+
+## What lives in the chart model
+
+Behind the scenes the runtime keeps a list of instruments:
 
 ```ts
-// Simplified shape
+// Simplified — you rarely build this by hand
 {
   mainSeries: "series-a",
   instrumentsSeries: [
     { seriesId: "series-a", instrument: { symbol: "BTCUSD", precision: 2 } },
     { seriesId: "series-b", instrument: { symbol: "ETHUSD", precision: 2 } },
   ],
-  panels: [
-    {
-      main: true,
-      objects: [
-        { type: "SeriesObject", dataLink: "series-a", renderAs: "OHLC", /* … */ },
-        { type: "SeriesObject", dataLink: "series-b", renderAs: "Line", /* … */ },
-      ],
-    },
-  ],
 }
 ```
 
-OHLC data for every instrument lives in `chart.getSeriesManager()[seriesId].data`.
+OHLC arrays sit in `chart.getSeriesManager()[seriesId].data`.
 
-## Adding an instrument
+---
 
-Pass a chart `model` that already lists every symbol, or extend the live model from your host app. A new overlay requires **three** pieces:
+## Load main + overlay data
 
-1. An entry in `instrumentsSeries` (any index after the main series).
-2. A `SeriesObject` on the main panel with `dataLink` set to that `seriesId` (`renderAs: "Line"` is typical for overlays).
-3. OHLC data in `getSeriesManager()[seriesId].data`.
+Typical flow when your model already lists two symbols:
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
-
 const chart = createChart({
   container,
   model: persistedModelWithTwoSymbols,
@@ -59,50 +63,73 @@ const chart = createChart({
 chart.init();
 await chart.setMainSeriesData(btcCandles, interval);
 
-// Load overlay data into its own series id
 const seriesManager = chart.getSeriesManager();
 seriesManager["series-b"].data = ethCandles;
 chart.render();
 ```
 
-The internal Fusion builder also exposes `addInstrument()` for engine rebuilds when you use the runtime `Chart` class directly. That path is intended for advanced integrations — see [Chart runtime access](../advanced/chart-class-runtime).
+**Rules of thumb:**
 
-`multiInstrumentChart` in chart config defaults to `true` and signals that the host app may expose compare / add-symbol flows.
+- Load the **main** symbol with `setMainSeriesData`.
+- Put overlay candles in the overlay’s `seriesId`.
+- Use the **same interval** (both hourly, both daily, …) so timestamps line up.
+- Call `chart.render()` after updating overlay data.
 
-## Synchronizing time
+Missing bars for one symbol are forward-filled from the last close so series stay aligned.
 
-When multiple instruments share one chart, candle timestamps are aligned in `synchronizeAllWithAll()`. Missing bars for one symbol are forward-filled from the last close so all series share the same stamp index range. Keep intervals consistent (`model.interval`) when loading overlay data.
+---
 
-## Chart settings per symbol
+## Style each symbol
 
-Open **Chart settings** from the React UI toolbar. Appearance is split by symbol:
-
-| Symbol | Settings available |
-|--------|-------------------|
-| Main (`instrumentsSeries[0]`) | Candles, line, fill, last-price line and label |
-| Each additional symbol | Line color and line style (solid, dashed, dotted, …) |
-
-Runtime API:
+Make overlays easy to tell apart — color, dashed line, etc.:
 
 ```ts
-const overlays = chart.getChartInstrumentSettings();
+const instruments = chart.getChartInstrumentSettings();
 // [{ seriesId, symbol, lineColor, lineDash }, …]
 
-chart.applyChartInstrumentSettings(overlays[0].seriesId, {
+chart.applyChartInstrumentSettings(instruments[1].seriesId, {
   lineColor: "#ff9800",
   lineDash: [3, 3],
 });
 ```
 
-`getChartAppearanceSettings()` / `applyChartAppearanceSettings()` continue to control only the **main** symbol and global canvas theme.
+| Symbol | What you can customize |
+| --- | --- |
+| Main (first) | Candles, line, fill, last-price label |
+| Each overlay | Line color and dash style |
 
-## Removing an overlay
+Main-symbol **theme** colors still use `getChartAppearanceSettings()` / `applyChartAppearanceSettings()`.
 
-Removing the overlay `SeriesObject` (via the legend close control or `ObjectsManager.removeInstrument`) also removes the instrument from `instrumentsSeries` and deletes its series data. The main series cannot be removed.
+With **ChartUI**, users can also open **Chart settings** from the toolbar.
 
-## Related topics
+---
 
-- [Data model](../core-concepts/data-model) — `Instrument`, `Candle`, and `Interval`
-- [Loading data](./loading-data) — `setMainSeriesData()` for the primary series
-- [Realtime updates](./realtime-updates) — `appendTick()` on the main series
-- [React UI integration](../advanced/react-ui-integration) — chart settings dialog in `ChartUI`
+## Remove an overlay
+
+Close the symbol from the legend or remove it via the objects manager — the overlay’s data is deleted. The **main** symbol cannot be removed.
+
+---
+
+## When is this worth it?
+
+| Build this | Multi-instrument? |
+| --- | --- |
+| News embed “AAPL vs S&P” | Yes |
+| Single-asset trading terminal | Often no |
+| Screener comparing many pairs | Yes (one or two visible at a time) |
+
+---
+
+## Advanced: add symbols at runtime
+
+The runtime `Chart` class exposes `addInstrument()` for engine rebuilds. That path is for advanced hosts — see [Chart runtime access](../advanced/chart-class-runtime).
+
+`multiInstrumentChart` in chart config defaults to `true` — signals that your app may offer “compare symbol” flows.
+
+---
+
+## What is next?
+
+- [Data model](../core-concepts/data-model) — candle and instrument shapes
+- [Loading data](./loading-data) — main series load
+- [Realtime updates](./realtime-updates) — ticks on the main series

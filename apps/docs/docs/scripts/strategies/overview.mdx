@@ -1,91 +1,143 @@
 ---
-sidebar_position: 4
+sidebar_position: 1
 title: Strategies Overview
-description: Add built-in strategy scripts programmatically, inspect their signal-oriented metadata, and understand which ones need deeper input wiring.
+description: What chart strategies are, standard signal vocabulary, and how to chain rules on your series.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Strategies overview
 
-Strategies are built-in Fusion scripts that emit trading-signal or position-oriented series.
+A **strategy** is a rule set that watches chart data and places **signal markers** — Buy, Sell, exits — when conditions are met.
 
-## Add strategies programmatically
+If you have only used **indicators** before, strategies are the new idea: output is **discrete trading actions**, not just a line.
 
-The public entry point is the same as for indicators: initialize the chart, load candles, then add a built-in strategy key.
+<TutorialChartDemo scene="indicators" caption="Strategies draw signal markers; start from CROSS or EXCEED with defaults." />
+
+## What you see on the chart
+
+Strategies render as **arrows or markers** on the main price panel (most keys) or in a **dedicated panel** (`POSITION`, `DIFFER`).
+
+They do **not** place real orders — your app handles execution. The chart visualizes **when** a rule would fire.
+
+## Standard signal vocabulary
+
+Every strategy input/output uses the same Fusion signal set:
+
+| Signal | Typical meaning |
+| --- | --- |
+| `Buy` | Open / add long |
+| `Sell` | Open / add short |
+| `Exit long` | Close long |
+| `Exit short` | Close short |
+| `Exit all` | Flatten everything |
+| `Do nothing` | No action this bar |
+
+List inputs (e.g. `ONDN`, `ONUP`) let you pick which signal fires for each rule branch.
+
+## Strategies vs indicators vs functions
+
+| Question | Indicator | Function | Strategy |
+| --- | --- | --- | --- |
+| Output type? | Numeric series | Numeric series | **Signals** |
+| Example output | RSI 0–100 | Shifted EMA | **Buy** arrow |
+| Good for | Analysis | Custom math | Rules & backtest UX |
+| Default chart | Line / histogram | Line | **Markers** |
+
+```mermaid
+flowchart LR
+  Price["Price / indicators"]
+  Strat["Strategy rules"]
+  Markers["Buy / Sell markers"]
+  Pos["POSITION panel"]
+
+  Price --> Strat --> Markers
+  Strat --> Pos
+```
+
+## All 11 built-in strategies
+
+| Key | Display name | What it does (plain English) |
+| --- | --- | --- |
+| `CROSS` | Cross | Signal when series A crosses series B |
+| `EXCEED` | Exceed | Signal when price/series breaks above/below bands |
+| `REBOUND` | Rebound | Signal when series returns inside a band range |
+| `GREATERLESS` | Greater-Less | Signal when A &gt;, &lt;, or = B |
+| `CANDLESTICKPATTERNS` | Candlestick Patterns | Pattern detected on OHLC → signal |
+| `SINGLE` | Single Signals | Remove duplicate consecutive signals |
+| `JOIN` | Join | Combine two strategies (fixed matrix) |
+| `DOUBLECHECK` | Double Check | Fire only when both strategies agree |
+| `MIX` | Selective Signals | Combine two strategies (editable matrix) |
+| `POSITION` | Position Size | Turn signals into position-size line (new panel) |
+| `DIFFER` | Buy Sell Size | Turn position size into buy/sell deltas (new panel) |
+
+Full inputs: [Strategy catalog](./catalog).
+
+## Tier 1 — try with defaults
+
+These ship with sensible default series (often MACD or Bollinger + OHLC):
 
 ```ts
-import { createChart } from "@efixdata/exeria-chart";
-
-const chart = createChart({ container, instrument });
-chart.init();
-
-await chart.setMainSeriesData(candles, interval);
-
 chart.addScript("CROSS");
 chart.addScript("EXCEED");
-chart.addScript("POSITION");
+chart.addScript("CANDLESTICKPATTERNS");
 ```
 
-Each key maps to a built-in script definition in the Fusion strategy registry.
+`CROSS` defaults to **MACD line vs MACD signal** — add `MACD` first or change series inputs to EMA/SMA in settings.
 
-## Inspect strategy metadata
+## Tier 2 — composition strategies
 
-Use `getScripts()` when you want to inspect the strategy definition before adding it or when you need to see whether a strategy opens in a new pane.
+Use after you have **strategy output series** on the chart:
 
-```ts
-const scripts = chart.getScripts();
-const cross = scripts.CROSS;
+| Key | Needs |
+| --- | --- |
+| `JOIN`, `DOUBLECHECK`, `MIX` | Two strategy streams (`X`, `Y`) |
+| `SINGLE` | One strategy stream to dedupe |
+| `POSITION` | Strategy stream → position histogram |
+| `DIFFER` | Position-size stream → trade deltas |
 
-console.log(cross.title);
-console.log(cross.newPane);
-console.log(cross.inputs);
-console.log(cross.outputs);
-```
+Example chain:
 
-The runtime localizes titles and descriptions, but the stable programmatic keys stay the same, for example `CROSS`, `EXCEED`, `REBOUND`, `MIX`, and `POSITION`.
+1. `CROSS` on EMA vs SMA → signals  
+2. `POSITION` on that stream → position panel  
+3. `DIFFER` on position → sized buy/sell markers  
 
-## What strategy outputs represent
+[Programmatic wiring](../programmatic-wiring) has copy-paste code.
 
-Most strategies output Fusion signal values rather than plain numeric overlays. The standard signal set used across the registry is:
+## Pick input series (critical)
 
-- `Buy`
-- `Sell`
-- `Exit long`
-- `Exit short`
-- `Exit all`
-- `Do nothing`
+Strategies are only as good as their **series inputs**:
 
-Several strategy inputs, such as `ONDN`, `ONUP`, and `RT`, are list inputs over that same signal set.
+- `CROSS` → `LINE` (A) and `SIGNAL` (B)
+- `EXCEED` → upper/lower bands + price series
+- `GREATERLESS` → compare any two lines
 
-## Main-panel strategies vs pane strategies
+In ChartUI, each **series** input is a dropdown — same system as indicators ([Series and panels](../series-and-panels)).
 
-Most strategy definitions render on the main chart with a `StrategyObject`-style plotter. Examples: `CROSS`, `EXCEED`, `REBOUND`, `JOIN`, `MIX`, `SINGLE`, and `CANDLESTICKPATTERNS`.
+## Panel behavior
 
-Two strategies open in their own panes:
+| Keys | Default placement |
+| --- | --- |
+| Main chart markers | `CROSS`, `EXCEED`, `REBOUND`, `GREATERLESS`, `JOIN`, `MIX`, `SINGLE`, `DOUBLECHECK`, `CANDLESTICKPATTERNS` |
+| New panel | `POSITION`, `DIFFER` |
 
-- `POSITION` turns a strategy stream into a running position-size series.
-- `DIFFER` turns a position-size series into buy/sell delta signals.
+Override with **Panel** in settings.
 
-## Default-ready strategies vs wiring-heavy strategies
+## Visibility
 
-Some strategies ship with useful default inputs right away.
+**Chart settings → On chart → Strategies** toggles signal visibility.
 
-- `CROSS` defaults to `MACDLine` and `MACDSignal`.
-- `EXCEED` defaults to Bollinger-band outputs plus main-series high/low.
-- `CANDLESTICKPATTERNS` defaults to `o`, `h`, `l`, and `c`.
+API: `setChartStrategyVisibility`, `removeChartStrategy`.
 
-Other strategies are mostly composition tools and become more useful once you wire them to other strategy outputs.
+## Add from ChartUI
 
-- `JOIN`, `DOUBLECHECK`, and `MIX` combine two strategy series.
-- `SINGLE` filters or reverses a strategy stream.
-- `POSITION` and `DIFFER` transform strategy/position streams into new derived outputs.
+1. Toolbar → **Indicators** → tab **Strategy**.
+2. Pick a strategy → configure series and signal lists.
+3. Choose **Panel** → OK.
 
-The public docs cover the stable keys, default inputs, and high-level behavior first. Deeper input rewiring lives closer to runtime-level script management.
+## What is next?
 
-If you need a net-new strategy key instead of an input override on an existing one, use [Custom strategy authoring](./custom-strategies).
-
-## Continue reading
-
-- [Custom strategy authoring](./custom-strategies)
+- [Strategy catalog](./catalog) — all 11 keys detailed
+- [Key strategies](./key-strategies) — CROSS, EXCEED, POSITION
+- [Functions overview](../functions/overview) — build custom series first
 - [Programmatic wiring](../programmatic-wiring)
-- [Strategy catalog](./catalog)
-- [Key strategies](./key-strategies)

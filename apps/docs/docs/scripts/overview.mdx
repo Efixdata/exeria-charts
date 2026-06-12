@@ -1,85 +1,156 @@
 ---
 sidebar_position: 1
 title: Overview
-description: Start from the built-in Fusion script model before drilling into indicator, strategy, and function pages.
+description: Indicators vs functions vs strategies — what each type is, when to use it, and how they connect.
 ---
 
-# Indicators, strategies, and functions
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
-The chart runtime ships with a built-in Fusion script registry. Today the source tree is grouped into four categories:
+# Scripts overview
 
-- functions
-- indicators
-- strategies
-- hidden scripts used by the runtime itself
+Exeria charts run on a **Fusion script engine**. Everything in this section — RSI, MACD, `IF`, `CROSS` — is a **script** with a stable string key.
 
-The public-first documentation pass focuses on the visible categories: indicators, strategies, and functions.
+You do not install them separately. They ship inside `@exeria/charts` and mount with `chart.addScript("KEY")`.
 
-## Current documentation status
+<TutorialChartDemo scene="indicators" caption="Two indicators on one chart — overlay + separate panel." />
 
-The first public documentation pass now covers all three visible script categories.
+## Indicators — the familiar ones
 
-- [Programmatic wiring](./programmatic-wiring)
-- [Fusion script authoring conventions](./authoring-conventions)
-- [Indicators overview](./indicators/overview)
-- [Custom indicator authoring](./indicators/custom-indicators)
-- [Indicator catalog](./indicators/catalog)
-- [Key indicators](./indicators/key-indicators)
-- [Strategies overview](./strategies/overview)
-- [Custom strategy authoring](./strategies/custom-strategies)
-- [Strategy catalog](./strategies/catalog)
-- [Key strategies](./strategies/key-strategies)
-- [Functions overview](./functions/overview)
-- [Custom function authoring](./functions/custom-functions)
-- [Function catalog](./functions/catalog)
-- [Key functions](./functions/key-functions)
+An **indicator** reads price (or volume), runs a formula, and draws the result as lines, bands, or histograms.
 
-## What the runtime exposes
+Examples:
 
-Use `getScripts()` to inspect the registered script definitions.
+- `EMA` — moving average **on top of** candles
+- `RSI` — oscillator in a **panel below** the chart
+- `BBAND` — upper/middle/lower bands around price
 
 ```ts
-const scripts = chart.getScripts();
-
-console.log(Object.keys(scripts));
-```
-
-Use `addScript()` to add a built-in script by key.
-
-```ts
-chart.addScript("RSI");
 chart.addScript("EMA");
+chart.addScript("RSI");
 ```
 
-The runtime uses script metadata to decide inputs, outputs, plotters, and whether a script should open in a new pane.
+Indicators are what most trading apps mean by “add a study.” Full list: [Indicator catalog](./indicators/catalog).
 
-## Category differences at a glance
+## Functions — formulas between series
 
-- Indicators usually compute derived market series such as moving averages, bands, oscillators, and volume studies.
-- Strategies usually emit Fusion signal values such as `Buy`, `Sell`, `Exit long`, `Exit short`, `Exit all`, or `Do nothing`.
-- Functions usually transform, combine, offset, or condition one or more existing series.
+A **function** is **not** a classic indicator. It does not “analyze the market” on its own — it **operates on series** that already exist:
 
-## Current catalog scope
+- raw OHLC from the main symbol
+- output lines from indicators you added earlier
+- output from other functions or strategies
 
-The repository currently contains:
+| Function | Plain English |
+| --- | --- |
+| `HIGHEST` | Rolling highest high over N bars |
+| `LOWEST` | Rolling lowest low over N bars |
+| `DISPLACE` | Shift a series forward/back in time |
+| `IGLUE` | Add, subtract, multiply, or divide two series |
+| `IF` | If A > B return X, if A = B return Y, else Z |
+| `SUM` / `AVERAGE` | Combine up to 10 inputs |
+| `FIBONACCI` | Fib levels from rolling high/low |
+| `1x` | Reciprocal 1/x of a series |
 
-- 10 built-in functions
-- 80+ built-in indicators
-- 11 built-in strategies
+**Why they exist:** build custom math without writing C++ or TypeScript. Example pipeline:
 
-Some scripts are usable immediately with their baked-in default inputs, while others are more useful after runtime-level input rewiring to connect them to other script outputs.
+1. `EMA` on close
+2. `DISPLACE` that EMA by 5 bars
+3. `IF` comparing displaced EMA to original EMA
 
-## What to expect next
+Deep dive: [Functions overview](./functions/overview).
 
-The item-level pages will document:
+## Strategies — rules that fire signals
 
-- script key
-- purpose
-- inputs and defaults
-- outputs
-- pane behavior
-- how to add the script programmatically
+A **strategy** watches one or more series and outputs **discrete signals**, not just numbers:
 
-If you need the runtime wiring now, start with [Programmatic wiring](./programmatic-wiring), then go deeper with [ChartInstance](../api-reference/chart-instance) and [Chart runtime access](../advanced/chart-class-runtime).
+| Signal | Meaning |
+| --- | --- |
+| `Buy` | Enter long |
+| `Sell` | Enter short |
+| `Exit long` | Close long |
+| `Exit short` | Close short |
+| `Exit all` | Flatten |
+| `Do nothing` | No action |
 
-If you are adding brand-new script keys inside the package source, read [Fusion script authoring conventions](./authoring-conventions) before the category-specific authoring pages.
+They render as **markers/arrows** on the chart (main panel by default).
+
+Examples:
+
+- `CROSS` — signal when series A crosses series B (default: MACD line vs signal)
+- `EXCEED` — price pushes outside a band
+- `CANDLESTICKPATTERNS` — hammer, doji, engulfing, …
+- `POSITION` — turn a signal stream into a **position size** line in a new panel
+- `MIX` — combine two strategies with a custom truth table
+
+**Why they exist:** backtesting visuals, alert UX, and chaining logic without a separate rules engine.
+
+Deep dive: [Strategies overview](./strategies/overview).
+
+## Series inputs — what gets calculated
+
+Almost every script asks: **“Calculate from which data?”**
+
+In the settings dialog, **series** inputs appear as dropdowns like:
+
+- `BTCUSDT.Close`
+- `EMA.EMA`
+- `RSI.RSI`
+
+Under the hood each value is `seriesId:field` (for example `main:c`).
+
+You can point an RSI at:
+
+- main symbol **close** (default)
+- **high** or **low** instead
+- another indicator’s output line
+- a second overlay symbol if multi-instrument mode is on
+
+Full guide: [Series and panels](./series-and-panels).
+
+## Panel placement — where it draws
+
+Each script has a default:
+
+- **Overlay** — draws on the main price panel (`newPane: false`)
+- **New panel** — opens a row below (`newPane: true`)
+
+You **override** this in the settings dialog with the **Panel** dropdown:
+
+- **New panel** — dedicated strip (good for RSI, MACD, ATR)
+- **Main chart** — draw on candles (good for EMA, BBAND)
+- **Existing panel** — stack on another study’s pane (e.g. two oscillators sharing one strip)
+
+Details: [Series and panels](./series-and-panels).
+
+## Visibility layers in Chart settings
+
+After adding scripts, open **Chart settings → On chart** ([Chart settings](../chart-usage/chart-settings)):
+
+| Tab | Controls |
+| --- | --- |
+| Indicators | Plot / scale label / visible |
+| Functions | Same |
+| Strategies | Visible (signals on/off) |
+| Drawings | User shapes |
+
+API: `setChartIndicatorVisibility`, `setChartFunctionVisibility`, `setChartStrategyVisibility` — [ChartInstance](../api-reference/chart-instance).
+
+## Wiring scripts together
+
+When a function or strategy needs **another script’s output**, clone the definition and set input values — do not mutate `getScripts()` templates in place.
+
+```ts
+const cross = cloneScript(chart.getScripts().CROSS);
+cross.inputs.LINE.value = "abc123:EMA";
+cross.inputs.SIGNAL.value = "abc123:SMA";
+chart.addScript("CROSS", cross);
+```
+
+Walkthrough with live chart: [Programmatic wiring](./programmatic-wiring).
+
+## What is next?
+
+- [Series and panels](./series-and-panels) — UI and API for inputs and placement
+- [Indicators overview](./indicators/overview)
+- [Functions overview](./functions/overview)
+- [Strategies overview](./strategies/overview)
+- [Authoring conventions](./authoring-conventions) — add new keys to the package source

@@ -1,0 +1,897 @@
+.page {
+  /* page-specific styles only; base layout from marketingLayout.module.css */
+}
+
+.page :global(.button.button--primary) {
+  background: var(--doc-accent);
+  color: #ffffff;
+  border-color: var(--doc-accent);
+}
+
+.page :global(.button.button--primary:hover) {
+  background: var(--doc-accent-hover);
+  color: #ffffff;
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+/* Catalog sits on the same page background; one bordered panel holds search + table */
+.catalogBand {
+  scroll-margin-top: 88px;
+  padding: 64px 0 96px;
+  border-top: 1px solid var(--doc-border);
+}
+
+.catalogBandInner {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.catalogIntro {
+  margin-bottom: 28px;
+}
+
+.catalogIntro h2 {
+  margin: 0 0 10px;
+  color: var(--doc-text);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.catalogIntro p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--doc-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.55;
+}
+
+.catalogExplorer {
+  border-radius: var(--doc-radius-lg);
+  border: 1px solid var(--doc-accent-muted-border);
+  background: var(--doc-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 8%, transparent);
+  overflow: hidden;
+}
+
+.catalogExplorerToolbar {
+  padding: 24px 28px;
+}
+
+.catalogExplorerMeta {
+  display: flex;
+  align-items: center;
+  padding: 12px 28px;
+  border-top: 1px solid var(--doc-border);
+  border-bottom: 1px solid var(--doc-border);
+}
+
+.catalogExplorerMeta p {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.integrationCaption {
+  margin: 0 0 16px;
+  color: var(--doc-text-secondary);
+  font-size: 0.9375rem;
+}
+
+.integrationCaption strong {
+  color: var(--doc-accent);
+  font-weight: 600;
+}
+
+/* ── Chip system (semantic variants, neutral palette) ── */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Metadata: pricing, license — smaller, quieter */
+.chipMeta {
+  padding: 6px 12px;
+  border: 1px solid var(--doc-border);
+  background: transparent;
+  color: var(--doc-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.chipMetaLink:hover {
+  border-color: var(--doc-accent-muted-border);
+  color: var(--doc-accent);
+  text-decoration: none;
+}
+
+/* Status: availability — same size as data chips, stronger weight */
+.chipStatus {
+  padding: 9px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.chipStatusAvailable {
+  border: 1px solid var(--doc-accent-muted-border);
+  background: var(--doc-accent-muted-bg);
+  color: var(--doc-accent);
+}
+
+.chipStatusComingSoon {
+  border: 1px dashed color-mix(in srgb, var(--doc-border) 70%, var(--doc-text-secondary));
+  background: transparent;
+  color: var(--doc-text-secondary);
+}
+
+/* Coverage — filled */
+.chipData {
+  padding: 9px 16px;
+  border: 1px solid var(--doc-border);
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Protocol — outline */
+.chipProtocol {
+  padding: 9px 16px;
+  border: 1px dashed color-mix(in srgb, var(--doc-border) 70%, var(--doc-text-secondary));
+  background: transparent;
+  color: var(--doc-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Filter segment control — legacy chipBar kept for other uses if needed */
+.chipBar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 48px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--doc-bg);
+  border: 1px solid var(--doc-border);
+}
+
+
+.searchField {
+  display: block;
+  width: 100%;
+}
+
+.searchLabel {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--doc-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--doc-border);
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font-family: var(--ifm-font-family-base);
+  font-size: 1rem;
+  line-height: 1.2;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+html[data-theme="dark"] .searchInput {
+  border-color: color-mix(in srgb, var(--doc-text) 36%, var(--doc-border));
+}
+
+.searchInput::placeholder {
+  color: color-mix(in srgb, var(--doc-text-secondary) 85%, transparent);
+}
+
+.searchInput:focus-visible {
+  outline: none;
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-muted-bg);
+}
+
+.filterButton:focus-visible,
+.compareProviderLink:focus-visible,
+.connectorCard:focus-visible,
+.installCommand:focus-visible,
+.chipMetaLink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doc-accent-muted-bg);
+}
+
+.filterButtonSelected:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--doc-bg),
+    0 0 0 4px color-mix(in srgb, var(--doc-accent) 45%, transparent);
+}
+
+.toolbarDivider {
+  height: 1px;
+  margin: 24px 0;
+  background: color-mix(in srgb, var(--doc-text) 20%, var(--doc-border));
+}
+
+.toolbarFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+
+.toolbarFilterLabel {
+  flex-shrink: 0;
+  min-width: 52px;
+  color: var(--doc-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.filterGroup {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filterButton {
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--doc-border);
+  background: var(--doc-bg);
+  color: var(--doc-text-secondary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+html[data-theme="dark"] .filterButton {
+  border-color: color-mix(in srgb, var(--doc-text) 36%, var(--doc-border));
+}
+
+.filterButton:hover {
+  border-color: color-mix(in srgb, var(--doc-text) 45%, var(--doc-border));
+  color: var(--doc-text);
+}
+
+.filterButtonSelected {
+  border-color: var(--doc-accent);
+  background: var(--doc-accent);
+  color: #ffffff;
+}
+
+.filterButtonSelected:hover {
+  border-color: var(--doc-accent-hover);
+  background: var(--doc-accent-hover);
+  color: #ffffff;
+}
+
+.chipCompact {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+.compareList {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.compareHeader,
+.compareRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.1fr) minmax(180px, 1.4fr) minmax(120px, 0.8fr) minmax(140px, 0.9fr);
+  gap: 20px 24px;
+  align-items: center;
+  padding: 18px 28px;
+}
+
+.compareHeader {
+  border-bottom: 1px solid var(--doc-border);
+  color: var(--doc-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.compareRow {
+  border-bottom: 1px solid var(--doc-border);
+  transition: background 0.15s ease;
+}
+
+.compareRow:last-child {
+  border-bottom: none;
+}
+
+.compareRow:hover {
+  background: color-mix(in srgb, var(--doc-bg) 35%, var(--doc-surface));
+}
+
+.compareProviderCell {
+  min-width: 0;
+}
+
+.compareProviderLink {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--doc-accent);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.compareProviderLink:hover {
+  color: var(--doc-accent-hover);
+  text-decoration: underline;
+}
+
+.comparePricing {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.compareCoverageCell {
+  min-width: 0;
+}
+
+.compareCoverage {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.compareChipCell {
+  min-width: 0;
+}
+
+.compareChipCell .chipRow {
+  gap: 6px;
+}
+
+.catalogGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px 28px 28px;
+  border-top: 1px solid var(--doc-border);
+}
+
+/* Cards inside the explorer share the same surface — border only, no extra gray layer */
+.catalogGrid .connectorCard {
+  margin-top: 0;
+  background: transparent;
+}
+
+/* ── Bridge card ── */
+
+.connectorCard {
+  padding: 40px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.connectorCardActive {
+  border-color: color-mix(in srgb, var(--doc-accent) 50%, var(--doc-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 22%, transparent);
+}
+
+.connectorCardHighlighted {
+  animation: connectorCardHighlight 2.4s ease-out;
+}
+
+@keyframes connectorCardHighlight {
+  0%,
+  35% {
+    border-color: color-mix(in srgb, var(--doc-accent) 65%, var(--doc-border));
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--doc-accent) 30%, transparent),
+      0 0 0 6px color-mix(in srgb, var(--doc-accent) 12%, transparent);
+  }
+
+  100% {
+    border-color: var(--doc-border);
+    box-shadow: none;
+  }
+}
+
+.cardTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--doc-text);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.cardTopRow .chipRow {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.cardDescription {
+  margin: 0 0 28px;
+  max-width: 72ch;
+  color: var(--doc-text-secondary);
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.tagSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tagGroup {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px 16px;
+}
+
+.tagGroupLabel {
+  padding-top: 9px;
+  color: var(--doc-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.featureDetails {
+  margin-top: 28px;
+  border-top: 1px solid var(--doc-border);
+}
+
+.featureDetails summary {
+  padding: 20px 0 0;
+  color: var(--doc-text);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+
+.featureDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.featureDetails summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 4px;
+  color: var(--doc-text-secondary);
+  font-weight: 400;
+}
+
+.featureDetails[open] summary::before {
+  content: "−";
+}
+
+.featureList {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--doc-text-secondary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--doc-text-secondary);
+}
+
+.cardFooter {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--doc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardFooterActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.installCommand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-sm);
+  background: var(--doc-chart-surface);
+  color: #c9d1d9;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.installCommand:hover {
+  border-color: color-mix(in srgb, var(--doc-text) 20%, var(--doc-border));
+}
+
+.installCommandText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.installCopyIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.cardFooterLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+
+.textLink {
+  color: var(--doc-accent);
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.textLink:hover {
+  color: var(--doc-accent-hover);
+  text-decoration: underline;
+}
+
+.cardPartnerCode {
+  color: var(--doc-text-secondary);
+  font-size: 0.95rem;
+}
+
+.cardPartnerCode code {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--doc-code-bg);
+  color: var(--doc-code-text);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+}
+
+.licenseLink {
+  color: var(--doc-accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.licenseLink:hover {
+  color: var(--doc-accent-hover);
+}
+
+.integrationPanel {
+  padding: 32px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-accent-muted-border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 8%, transparent);
+}
+
+.integrationPanel pre {
+  margin: 0;
+  padding: 24px;
+  overflow-x: auto;
+  border-radius: var(--doc-radius-sm);
+  background: var(--doc-chart-surface);
+  color: #e6edf3;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.licenseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.licenseCard {
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+}
+
+.licenseCardFeatured {
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 12%, transparent);
+}
+
+.licenseCard h3 {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.licenseCard p {
+  margin: 0 0 16px;
+  color: var(--doc-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.licenseCard ul {
+  flex-grow: 1;
+  margin: 0 0 28px;
+  padding-left: 1.1rem;
+  color: var(--doc-text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.licenseCard li + li {
+  margin-top: 8px;
+}
+
+.licenseCardAction {
+  align-self: flex-start;
+}
+
+.eulaPanel {
+  margin-top: 24px;
+  padding: 32px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+}
+
+.eulaPanel summary {
+  cursor: pointer;
+  color: var(--doc-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.eulaPanel summary::marker {
+  color: var(--doc-text-secondary);
+}
+
+.eulaContent {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--doc-border);
+}
+
+.eulaSection + .eulaSection {
+  margin-top: 24px;
+}
+
+.eulaSection h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.eulaSection p {
+  margin: 0 0 10px;
+  color: var(--doc-text-secondary);
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.eulaSection p:last-child {
+  margin-bottom: 0;
+}
+
+.ctaSection {
+  padding-top: 120px;
+  padding-bottom: 140px;
+}
+
+.ctaPanel {
+  padding: 48px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-accent-muted-border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 8%, transparent);
+  text-align: center;
+}
+
+.ctaPanel h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.ctaPanel p {
+  max-width: 620px;
+  margin: 0 auto 24px;
+  color: var(--doc-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.emptyState {
+  padding: 48px 32px;
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+  border: 1px dashed var(--doc-border);
+  text-align: center;
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+  .licenseGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .catalogBand {
+    padding: 40px 0 72px;
+  }
+
+  .catalogBandInner {
+    width: min(1200px, calc(100% - 32px));
+  }
+
+  .catalogExplorerToolbar {
+    padding: 20px;
+  }
+
+  .catalogExplorerMeta {
+    padding: 10px 20px;
+  }
+
+  .catalogGrid {
+    padding: 0 20px 20px;
+  }
+
+  .connectorCard,
+  .integrationPanel,
+  .licenseCard,
+  .eulaPanel,
+  .ctaPanel {
+    padding: 24px;
+  }
+
+  .cardTopRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .cardTopRow .chipRow {
+    justify-content: flex-start;
+  }
+
+  .cardTitle {
+    font-size: 1.5rem;
+  }
+
+  .cardDescription {
+    font-size: 1.1rem;
+  }
+
+  .tagGroup {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tagGroupLabel {
+    padding-top: 0;
+  }
+
+  .compareHeader {
+    display: none;
+  }
+
+  .compareRow {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 24px;
+  }
+
+  .toolbarFilterRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filterGroup {
+    width: 100%;
+  }
+
+  .filterButton {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

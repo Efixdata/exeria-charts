@@ -1,38 +1,77 @@
 ---
 sidebar_position: 1
 title: Vanilla Quickstart
-description: Mount your first Exeria chart with the core runtime only.
+description: Your first chart with plain JavaScript — install, paste, done.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # Vanilla quickstart
 
-Use the core package when you want the shortest path from market data to a chart on screen.
+**Vanilla** means no React, no framework — just JavaScript (or TypeScript) and a `<div>` on your page. You get the chart engine only: no toolbar, no menus. Perfect when you bring your own buttons or embed a small chart in an article.
 
-## Install
+<GettingStartedDemo
+  variant="vanilla"
+  caption="What you will build: candles loaded from a short array of numbers."
+/>
+
+## What you need
+
+- Node.js installed (for `npm`)
+- Any web page with a empty box for the chart
+
+## Step 1 — Install
+
+Open a terminal in your project folder and run:
 
 ```bash
-npm install @efixdata/exeria-chart
+npm install @exeria/charts
 ```
 
-## Mount a chart
+This downloads the chart library. One package, nothing else required.
+
+## Step 2 — Add a container on your page
+
+The chart draws **inside** a normal HTML element. Give it width and **height** — without height you get a blank page:
+
+```html
+<div id="chart-root" style="width: 100%; height: 480px;"></div>
+```
+
+Think of this div as a picture frame. The chart fills the frame.
+
+## Step 3 — Prepare sample data
+
+A **candle** is one bar on the chart — prices during one time slice (here: one hour):
 
 ```ts
-import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
+import { type Candle, type Interval } from "@exeria/charts";
 
 const candles: Candle[] = [
+  // stamp = start time (UTC, milliseconds)
+  // o,h,l,c = open, high, low, close
+  // v = volume (0 is fine if you do not have it)
   { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
   { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
 ];
 
 const interval: Interval = {
   symbol: "1h",
-  milis: 60 * 60 * 1000,
+  milis: 60 * 60 * 1000, // one hour in milliseconds
 };
+```
+
+Later you will replace this array with data from your API. The shape stays the same.
+
+## Step 4 — Create and show the chart
+
+```ts
+import { createChart } from "@exeria/charts";
 
 const container = document.getElementById("chart-root");
 
 if (!container) {
-  throw new Error("Missing chart container");
+  throw new Error("Add a #chart-root div to your HTML first");
 }
 
 const chart = createChart({ container });
@@ -42,11 +81,29 @@ chart.init();
 await chart.setMainSeriesData(candles, interval);
 ```
 
-## Update the chart at runtime
+What each line does:
+
+| Line | Plain English |
+| --- | --- |
+| `createChart` | Attach the engine to your div |
+| `init()` | Wake the chart up (do this **once**) |
+| `setMainSeriesData` | Paint the candles |
+
+After this runs, you should see a chart like the preview above.
+
+## Step 5 — Change how it looks (optional)
+
+Switch from candles to a simple line:
 
 ```ts
 chart.setMainDrawMode("Line");
+```
 
+## Step 6 — Move the last price (optional)
+
+When a new price arrives, nudge the rightmost bar:
+
+```ts
 chart.appendTick({
   stamp: Date.now(),
   price: 104.12,
@@ -54,22 +111,37 @@ chart.appendTick({
 });
 ```
 
-## Clean up on unmount
+Full live-feed patterns: [Live data stream](../tutorials/live-data-stream).
+
+## Step 7 — Clean up
+
+When the user navigates away or you remove the chart:
 
 ```ts
 chart.destroy();
 ```
 
-## Notes
+Skipping this in a single-page app can cause slow leaks over time.
 
-- Call `init()` before `setMainSeriesData()`. The runtime model is created during initialization.
-- Give the container a non-zero height before mounting the chart.
-- Use [Chart lifecycle](../core-concepts/chart-lifecycle) and [Loading data](../chart-usage/loading-data) when you move beyond a static example.
+## When things go wrong
 
-## Use this path when
+| Symptom | Fix |
+| --- | --- |
+| Empty white box | Set `height` on `#chart-root` |
+| Error before candles appear | Call `init()` **before** `setMainSeriesData` |
+| Bars look shifted | Use UTC millisecond timestamps at bar **open** time |
 
-- you already have your own toolbar and controls
-- you want to wire chart actions into an existing application shell
-- you need the smallest integration surface first
+## Is vanilla right for you?
 
-Next step: read [React quickstart](./react) if you want the prebuilt UI layer.
+Choose this path when:
+
+- You already have your own toolbar and buttons
+- You want the **smallest** possible install
+- You embed a chart in a blog post or CMS (see [Market news demo](/starters/market-news))
+
+Want a ready-made toolbar? Continue to [React quickstart](./react).
+
+## What is next?
+
+- [Chart with your data](../tutorials/chart-with-your-data) — load from your API
+- [Chart lifecycle](../core-concepts/chart-lifecycle) — deeper reference when you need it

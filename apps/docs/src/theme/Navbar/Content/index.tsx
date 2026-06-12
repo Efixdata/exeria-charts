@@ -4,9 +4,7 @@ import { splitNavbarItems } from "@docusaurus/theme-common/internal";
 import NavbarItem from "@theme/NavbarItem";
 import type { Props as NavbarItemProps } from "@theme/NavbarItem";
 import NavbarColorModeToggle from "@theme/Navbar/ColorModeToggle";
-import SearchBar from "@theme/SearchBar";
 import NavbarLogo from "@theme/Navbar/Logo";
-import NavbarSearch from "@theme/Navbar/Search";
 import GitHubNavbarButton from "@site/src/components/GitHubNavbarButton";
 import MobileNav from "@site/src/components/MobileNav";
 import styles from "./styles.module.css";
@@ -65,9 +63,8 @@ function NavbarContentLayout({
 }
 
 export default function NavbarContent(): JSX.Element {
-  const items = useNavbarItems();
+  const items = useNavbarItems().filter((item) => item.type !== "search");
   const [leftItems, rightItems] = splitNavbarItems(items);
-  const searchBarItem = items.find((item) => item.type === "search");
 
   return (
     <NavbarContentLayout
@@ -78,11 +75,6 @@ export default function NavbarContent(): JSX.Element {
           <NavbarColorModeToggle className={styles.colorModeToggle ?? ""} />
           <GitHubNavbarButton />
           <NavbarItems items={rightItems} />
-          {!searchBarItem && (
-            <NavbarSearch>
-              <SearchBar />
-            </NavbarSearch>
-          )}
         </>
       }
       mobileRight={

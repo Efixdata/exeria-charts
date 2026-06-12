@@ -10,6 +10,7 @@ import {
   between,
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
+import { formatFullAxisPrice } from "../../utils/formatPriceLabel";
 import { renderPriceText, measurePriceTextWidth } from "../../utils/objects-lib";
 import {
   createShapeAnchorOverlayDelegate,
@@ -353,7 +354,7 @@ function PriceTagObject(this: ShapeTagRuntime) {
     ctx.setLineDash(o.dash ? o.dash : []);
 
     var value = o.anchors[0].value;
-    var valueS = LIB.nFormatter(value, resolvePriceTagPrecision(renderer, model, panel));
+    var valueS = formatFullAxisPrice(value, resolvePriceTagPrecision(renderer, model, panel));
     var w =
       this.defaultLineLen +
       15 +

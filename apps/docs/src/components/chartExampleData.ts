@@ -1,6 +1,6 @@
 import btcUsdHourly from "../../../web/data/BTCUSD.json";
 import bnbUsdHourly from "../../../web/data/BNBUSD.json";
-import type { Candle, Interval } from "@efixdata/exeria-chart";
+import type { Candle, Interval } from "@exeria/charts";
 
 export type ExampleDatasetKey = "trend" | "range";
 

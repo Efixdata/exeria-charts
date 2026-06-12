@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
-import type { ChartInstance } from "@efixdata/exeria-chart";
+import type { ChartInstance } from "@exeria/charts";
 import { docsInterval } from "../chartExampleData";
 import {
   type ChartColorKey,
@@ -106,7 +106,7 @@ export default function LiveThemeCreator() {
       setChart(null);
       chartRef.current = null;
 
-      const chartModule = await import("@efixdata/exeria-chart");
+      const chartModule = await import("@exeria/charts");
       if (disposed) {
         return;
       }

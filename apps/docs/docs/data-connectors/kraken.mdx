@@ -1,0 +1,209 @@
+---
+sidebar_position: 5
+title: Kraken
+description: Live and historical crypto charts from Kraken Spot — no API key required.
+---
+
+import KrakenConnectorExample from "@site/src/components/KrakenConnectorExample";
+
+# Kraken Data Connector
+
+Want Bitcoin, Ethereum, or altcoin **USD spot** charts with **live prices** and **no API key**? The Kraken connector talks to Kraken public Spot endpoints — history over REST, candle updates over WebSocket v2.
+
+<KrakenConnectorExample />
+
+Use the controls above to change symbol and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [Kraken live demo](/kraken-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public Kraken Spot market data |
+| **History** | Up to 720 candles per REST request |
+| **Live ticks** | WebSocket v2 `ohlc` channel with heartbeat |
+| **Pairs** | USD spot symbols (`BTC/USD`, `ETH/USD`, …) |
+| **Symbol helper** | Accepts `BTCUSD`, `XBTUSD`, and `BTC/USD` |
+| **Timeframes** | 1m through weekly (`1M` maps to Kraken 21600-minute bars) |
+
+Perfect for crypto dashboards, USD-denominated portfolios, and Kraken-native trading apps. For **Node.js multi-exchange backends**, see [CCXT](./ccxt).
+
+## Install
+
+```bash
+npm install @exeria/charts @efix-data/adapter-kraken
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@exeria/charts";
+import { KrakenAdapter } from "@efix-data/adapter-kraken";
+
+const connector = new KrakenAdapter({ pageDelayMs: 1000 });
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTC/USD", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("BTC/USD", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new KrakenAdapter({ pageDelayMs: 1000 });
+```
+
+Uses Kraken public URLs by default. Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTC/USD", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` |
+| `limit` | How many recent bars (up to 720 per REST page) |
+| `from` / `to` | Optional date range filter after fetch |
+
+### 4 — Go live
+
+```ts
+chart.subscribeToUpdates("BTC/USD");
+// or with a callback:
+chart.subscribeToUpdates("BTC/USD", (tick) => { /* update UI */ });
+```
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular symbols
+
+| Symbol | Market |
+| --- | --- |
+| `BTC/USD` | Bitcoin / USD |
+| `ETH/USD` | Ethereum / USD |
+| `SOL/USD` | Solana / USD |
+| `ADA/USD` | Cardano / USD |
+| `XRP/USD` | XRP / USD |
+
+Kraken WebSocket v2 uses **`BTC/USD`** (not `XBT/USD`). The adapter maps compact forms like `BTCUSD` and `XBTUSD` automatically.
+
+## Kraken symbols vs other exchanges
+
+| Binance / Bybit | OKX | Kraken (WS v2) |
+| --- | --- | --- |
+| `BTCUSDT` | `BTC-USDT` | `BTC/USD` |
+| USDT quote | USDT quote | USD fiat quote |
+| REST + WS | REST + WS | REST + WS v2 |
+
+## Switch pair
+
+```ts
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+```ts
+const connector = new KrakenAdapter({
+  baseUrl: "https://api.kraken.com",
+  wsUrl: "wss://ws.kraken.com/v2",
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+  pageDelayMs: 1000,
+  heartbeatDeadlineMs: 5000,
+});
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("BTC/USD", { interval: "1d", limit: 500 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("Unknown asset pair")) {
+    console.error("Symbol not found on Kraken");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — users on bad networks will thank you.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Candles per REST request | 720 max |
+| REST OHLC rate | ~1 request/second per IP and pair |
+| WebSocket | v2 only — `wss://ws.kraken.com/v2` |
+| Intervals | No native `2h`, `3m`, `6h`, or `12h` |
+| `1M` | Maps to 21600-minute bars (~15 days), not calendar month |
+
+For heavy traffic: cache history server-side and keep `pageDelayMs` at 1000 or higher.
+
+## Kraken vs CCXT
+
+| | Dedicated Kraken connector | CCXT connector |
+| --- | --- | --- |
+| Runtime | Browser + Node.js | **Node.js only** |
+| Symbol | `BTC/USD` | `exchangeId: "kraken"` |
+| Live | WebSocket v2 OHLC | Polling via CCXT |
+
+Need Kraken in the browser? Use this connector. Need 100+ exchanges on your backend? Use [CCXT](./ccxt).
+
+## What is next?
+
+- [Overview](./overview) — lifecycle and custom connectors
+- [Binance](./binance) · [Bybit](./bybit) · [OKX](./okx) · [KuCoin](./kucoin) · [CoinGecko](./coingecko)
+- [CCXT](./ccxt) — multi-exchange on Node.js
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Data Connectors catalog](/data-connectors) — compare providers

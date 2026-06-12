@@ -1,0 +1,210 @@
+---
+sidebar_position: 9
+title: Twelve Data
+description: Forex, stocks, and crypto OHLCV through Twelve Data — API key required.
+---
+
+import TwelveDataConnectorExample from "@site/src/components/TwelveDataConnectorExample";
+
+# Twelve Data Connector
+
+Building **forex** charts (`EUR/USD`, `GBP/USD`) or multi-asset fintech apps? The Twelve Data connector wraps the [Twelve Data API](https://twelvedata.com/docs) and implements the same `DataAdapter` contract as [Binance](./binance) and [Kraken](./kraken).
+
+<TwelveDataConnectorExample />
+
+Use the controls above to switch forex pair and timeframe. This docs demo routes requests through `/api/twelve-data` so your API key stays on the server.
+
+:::tip Standalone demo
+Full-page version with sample code: [Twelve Data live demo](/twelve-data-example).
+:::
+
+:::info API key required
+Unlike public crypto connectors, Twelve Data requires an **API key** in production. Store it in `TWELVE_DATA_API_KEY` and run the adapter on your **server** or behind a proxy — never ship the key in a browser bundle. The docs demo uses a server-side proxy (defaults to Twelve Data `demo` key when unset).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Forex** | Majors, minors, exotics (`EUR/USD`, `USD/JPY`, …) |
+| **Multi-asset** | Same API also covers stocks, crypto, ETFs |
+| **History** | OHLCV via `/time_series` |
+| **Live ticks** | WebSocket price stream |
+| **Symbols** | Accepts `EUR/USD`, `EUR-USD`, `EURUSD` |
+
+Perfect for forex dashboards, wealth apps, and multi-asset prototypes.
+
+## Twelve Data vs crypto connectors
+
+| | Twelve Data | Binance / Kraken |
+| --- | --- | --- |
+| Asset class | Forex, stocks, crypto | Crypto spot |
+| API key | **Required** | Not required (public endpoints) |
+| Live transport | WebSocket | WebSocket |
+| Best for | FX + multi-asset backends | Browser crypto charts |
+
+## Licensing
+
+| Tier | Typical use |
+| --- | --- |
+| **Free / Basic** | Development, personal testing |
+| **Paid** | Production apps with **external display** |
+
+Free tiers are **not** a substitute for a production license when end users see the data. Check [Twelve Data pricing](https://twelvedata.com/pricing) and [attribution guidelines](https://support.twelvedata.com/en/articles/12647398-attribution-guidelines-for-using-twelve-data).
+
+## Install
+
+```bash
+npm install @exeria/charts @efix-data/adapter-twelve-data
+```
+
+## Minimal example (Node.js)
+
+```ts
+import { createChart } from "@exeria/charts";
+import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+
+const connector = new TwelveDataAdapter({
+  apiKey: process.env.TWELVE_DATA_API_KEY!,
+});
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("EUR/USD", {
+  interval: "1h",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("EUR/USD", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Get an API key
+
+Sign up at [twelvedata.com](https://twelvedata.com/), generate a key, and store it securely:
+
+```bash
+export TWELVE_DATA_API_KEY=your_key_here
+```
+
+### 2 — Create the connector
+
+```ts
+const connector = new TwelveDataAdapter({
+  apiKey: process.env.TWELVE_DATA_API_KEY!,
+});
+```
+
+### 3 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+### 4 — Load history
+
+```ts
+await chart.loadData("EUR/USD", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` (mapped to Twelve Data intervals) |
+| `limit` | Recent N candles (`outputsize`, max 5000) |
+| `from` / `to` | Optional ISO date range |
+
+### 5 — Go live
+
+```ts
+chart.subscribeToUpdates("EUR/USD");
+```
+
+Uses Twelve Data WebSocket price events. On free tiers, WebSocket symbol limits may apply.
+
+### 6 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular forex symbols
+
+| Symbol | Market |
+| --- | --- |
+| `EUR/USD` | Euro / US Dollar |
+| `GBP/USD` | British Pound / US Dollar |
+| `USD/JPY` | US Dollar / Japanese Yen |
+| `USD/CHF` | US Dollar / Swiss Franc |
+| `AUD/USD` | Australian Dollar / US Dollar |
+
+Compact forms (`EURUSD`, `EUR-USD`) are normalized automatically.
+
+## Next.js API route (browser-safe pattern)
+
+```ts
+// app/api/forex/ohlcv/route.ts
+import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+import { NextResponse } from "next/server";
+
+const connector = new TwelveDataAdapter({
+  apiKey: process.env.TWELVE_DATA_API_KEY!,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") ?? "EUR/USD";
+  const interval = searchParams.get("interval") ?? "1h";
+  const limit = Number(searchParams.get("limit") ?? "500");
+
+  await connector.initialize({});
+  const candles = await connector.getHistoricalData(symbol, { interval, limit });
+
+  return NextResponse.json({ candles });
+}
+```
+
+Your frontend can call `/api/forex/ohlcv` or wrap responses in a custom `DataAdapter` that proxies your API.
+
+## Configuration
+
+```ts
+const connector = new TwelveDataAdapter({
+  apiKey: process.env.TWELVE_DATA_API_KEY!,
+  baseUrl: "https://api.twelvedata.com",
+  wsUrl: "wss://ws.twelvedata.com/v1/quotes/price",
+  requestTimeout: 10000,
+  maxRetries: 3,
+  onError: (error) => console.error("Twelve Data error:", error),
+});
+```
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| API credits | Plan-specific; `/time_series` costs more than `/price` |
+| Rate limits | Free tier is low (~8 req/min); cache history server-side |
+| Forex hours | Market trades 24/5; weekend shows last available quote |
+| Browser | Use a backend proxy; do not expose `apiKey` client-side |
+| WebSocket | Paid plans unlock more concurrent symbols |
+
+## What is next?
+
+- [Overview](./overview) — connector lifecycle
+- [Binance](./binance) · [Kraken](./kraken) · [KuCoin](./kucoin) — public crypto connectors
+- [CCXT](./ccxt) — many crypto exchanges via one package
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — tutorial walkthrough
+- [Data Connectors catalog](/data-connectors) — compare providers

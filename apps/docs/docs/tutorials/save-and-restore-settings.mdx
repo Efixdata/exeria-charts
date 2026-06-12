@@ -1,0 +1,74 @@
+---
+sidebar_position: 9
+title: Save and Restore Settings
+description: Let users come back to the same colors, draw mode, and layout.
+---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
+
+# Save and restore settings
+
+People customize charts — dark mode, line vs candles, grid color. **Settings templates** let you save that look and bring it back when they return.
+
+## What you are building
+
+1. User tweaks the chart.
+2. Your app stores a JSON blob (browser storage or your database).
+3. Next visit, the chart looks the same.
+
+## Export current settings
+
+```ts
+const template = chart.exportChartSettingsTemplate("my-workspace");
+
+localStorage.setItem("chart-workspace", JSON.stringify(template));
+```
+
+In a real app you might `POST` that JSON to your API instead of `localStorage`.
+
+The template includes:
+
+- **appearance** — draw mode, candle colors, grid
+- **volume** — volume pane options (when enabled)
+- **theme** — runtime color snapshot
+
+## Restore on next visit
+
+```ts
+const raw = localStorage.getItem("chart-workspace");
+
+if (raw) {
+  chart.importChartSettingsTemplate(JSON.parse(raw));
+}
+```
+
+Call this **after** `init()` and your first data load if you want the saved look to win over defaults.
+
+## What gets saved?
+
+Colors, draw mode, grid, volume pane — everything that affects how the chart **looks**:
+
+<TutorialChartDemo
+  scene="custom-theme"
+  caption="A themed chart like this is exactly what exportChartSettingsTemplate captures."
+/>
+
+Users can also tweak settings from the ChartUI toolbar. For a visual playground, try the [live theme creator](../theming/live-theme-creator).
+
+## Drawings and indicators
+
+The template focuses on **look and feel**. Drawings and indicator configs are separate:
+
+```ts
+const drawings = chart.getChartDrawingSettings();
+const indicators = chart.getChartIndicatorSettings();
+
+// store next to the template in your "workspace" document
+```
+
+Reapply drawings with `toolDrawer.drawTool()` or your own restore logic.
+
+## What is next?
+
+- [Crypto terminal demo](/starters/crypto-terminal) — saved terminal presets in action
+- [ChartInstance reference](../api-reference/chart-instance) — all export/import methods

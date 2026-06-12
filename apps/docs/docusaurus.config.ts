@@ -1,6 +1,8 @@
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import { themes as prismThemes } from "prism-react-renderer";
+import legacyRedirectsPlugin from "./legacyRedirectsPlugin";
+import { legacyRedirects } from "./legacyRedirects";
 
 const config: Config = {
   title: "Exeria Charts",
@@ -20,7 +22,26 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
-  plugins: [require("./chartUiMonorepoPlugin")],
+  plugins: [
+    require("./chartUiMonorepoPlugin"),
+    require("./apiProxyPlugin"),
+    require("./searchDevPlugin"),
+    legacyRedirectsPlugin,
+    ["@docusaurus/plugin-client-redirects", { redirects: legacyRedirects }],
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        language: ["en"],
+        indexDocs: true,
+        indexPages: false,
+        docsRouteBasePath: "docs",
+        searchBarPosition: "left",
+        searchBarShortcutHint: false,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
   presets: [
     [
       "classic",
@@ -63,12 +84,12 @@ const config: Config = {
           label: "Docs",
         },
         {
-          to: "/#features",
+          to: "/features",
           label: "Features",
           position: "left",
         },
         {
-          to: "/#case-studies",
+          to: "/case-studies",
           label: "Case studies",
           position: "left",
         },
@@ -78,8 +99,8 @@ const config: Config = {
           position: "left",
         },
         {
-          to: "/data-bridges",
-          label: "Data Bridges",
+          to: "/data-connectors",
+          label: "Data Connectors",
           position: "left",
         },
       ],
@@ -103,8 +124,8 @@ const config: Config = {
               label: "GitHub Repo",
               href: "https://github.com/Efixdata/exeria-charts",
             },
-            { label: "Data Bridges", to: "/data-bridges" },
-            { label: "Case studies", to: "/#case-studies" },
+            { label: "Data Connectors", to: "/data-connectors" },
+            { label: "Case studies", to: "/case-studies" },
             { label: "Playground", to: "/playground" },
           ],
         },
@@ -112,11 +133,13 @@ const config: Config = {
           title: "Resources",
           items: [
             { label: "Documentation", to: "/docs/intro" },
+            { label: "FAQ & Troubleshooting", to: "/docs/guides/faq-and-troubleshooting" },
             { label: "Vanilla Quickstart", to: "/docs/getting-started/vanilla" },
             { label: "React Quickstart", to: "/docs/getting-started/react" },
+            { label: "Tutorials", to: "/docs/tutorials/" },
             {
               label: "NPM Package",
-              href: "https://www.npmjs.com/package/@efixdata/exeria-chart",
+              href: "https://www.npmjs.com/package/@exeria/charts",
             },
           ],
         },

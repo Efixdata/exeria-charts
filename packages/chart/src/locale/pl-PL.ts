@@ -284,6 +284,7 @@ const locale: Record<string, unknown> = {
   context_go_to_end: "Przejdź na koniec",
   context_toggle_autoscale: "Autoskalowanie",
   context_toggle_crosshair: "Krzyżyk",
+  context_place_order: "Złóż zlecenie",
   toolbar_more_actions: "Więcej akcji wykresu",
   toolbar_currency: "Waluta",
   chart_type_candles: "Świeczki",

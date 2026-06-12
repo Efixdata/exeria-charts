@@ -1,43 +1,141 @@
 ---
-sidebar_position: 5
+sidebar_position: 2
 title: Strategy Catalog
-description: Browse the current built-in strategy families and the keys you add with chart.addScript().
+description: All 11 built-in Fusion strategies — keys, signals, default pane, and when to wire custom inputs.
 ---
 
 # Strategy catalog
 
-The source of truth for built-in strategy keys is the Fusion strategy registry in `packages/chart/src/fusion-scripts/strategies/index.ts`. This page groups the current keys by the kind of signal work they do.
+Complete list of built-in **strategies**. Pass **Key** to `chart.addScript("KEY")`.
 
-## Direct event and threshold strategies
+New to strategies? Read [Strategies overview](./overview) first.
 
-- `CROSS`: emits signals when one series crosses another.
-- `EXCEED`: emits signals when price or another series pushes beyond upper or lower bounds.
-- `REBOUND`: emits signals when a series moves back inside upper or lower bounds.
-- `GREATERLESS`: emits a chosen signal when one series is greater than, less than, or equal to another.
-- `CANDLESTICKPATTERNS`: scans OHLC candles for a built-in set of candlestick patterns and renders pattern markers.
+## Summary table
 
-## Signal combination and cleanup strategies
+| Key | Display name | Default pane | Primary inputs | Ready with defaults? |
+| --- | --- | --- | --- | --- |
+| `CROSS` | Cross | Main | `LINE`, `SIGNAL`, `ONDN`, `ONUP` | ✅ MACD lines |
+| `EXCEED` | Exceed | Main | Bands A/B, series C/D, signal lists | ✅ BBAND + OHLC |
+| `REBOUND` | Rebound | Main | Upper/lower bands, return signals | ⚙️ wire bands |
+| `GREATERLESS` | Greater-Less | Main | `A`, `B`, comparison mode, signals | ⚙️ wire series |
+| `CANDLESTICKPATTERNS` | Candlestick Patterns | Main | OHLC + pattern checklist | ✅ OHLC |
+| `SINGLE` | Single Signals | Main | `STRATEGY`, simple/reverse mode | ⚙️ needs strategy stream |
+| `JOIN` | Join | Main | `X`, `Y` strategies, join matrix | ⚙️ composition |
+| `DOUBLECHECK` | Double Check | Main | `X`, `Y` strategies | ⚙️ composition |
+| `MIX` | Selective Signals | Main | `X`, `Y` strategies, custom matrix | ⚙️ composition |
+| `POSITION` | Position Size | **New panel** | `STRATEGY`, `WEIGHT`, `MULTIPLIER` | ⚙️ needs strategy stream |
+| `DIFFER` | Buy Sell Size | **New panel** | Position / strategy series | ⚙️ needs position stream |
 
-- `SINGLE`: suppresses repeated signals and can optionally reverse behavior.
-- `JOIN`: combines two strategy series with the default Fusion signal matrix.
-- `DOUBLECHECK`: combines two strategy series with the runtime double-check matrix.
-- `MIX`: combines two strategy series with an editable matrix.
+## Signal rule strategies
 
-## Position and size transforms
+### `CROSS` — Cross
 
-- `POSITION`: converts a signal stream into a running position-size series using weight and multiplier inputs.
-- `DIFFER`: converts a position-size series into buy/sell deltas based on position changes.
+Fires when **series A** crosses **series B**.
 
-## How to use the catalog
+| Input | Role |
+| --- | --- |
+| `LINE` | Series A (default: MACD line) |
+| `SIGNAL` | Series B (default: MACD signal) |
+| `ONDN` | Signal when A crosses **down** through B |
+| `ONUP` | Signal when A crosses **up** through B |
 
-The runtime key is the string you pass into `addScript()`.
+```ts
+chart.addScript("MACD");
+chart.addScript("CROSS");
+```
+
+Custom: point `LINE` / `SIGNAL` at EMA and SMA outputs — [Programmatic wiring](../programmatic-wiring).
+
+### `EXCEED` — Exceed
+
+Fires when a series **pushes beyond** an upper or lower band.
+
+Defaults tie to Bollinger outputs and main high/low. Good for breakout-style markers.
+
+```ts
+chart.addScript("BBAND");
+chart.addScript("EXCEED");
+```
+
+### `REBOUND` — Rebound
+
+Opposite flavor: signal when price **returns inside** a band after being outside.
+
+Wire upper (`A`) and lower (`B`) band series plus the series you monitor (often close).
+
+### `GREATERLESS` — Greater-Less
+
+Emits chosen signals when A is **greater than**, **less than**, or **equal to** B — without requiring a cross event.
+
+### `CANDLESTICKPATTERNS` — Candlestick Patterns
+
+Scans **open, high, low, close** for enabled patterns (hammer, doji, stars, harami, …). Marks bars where patterns match.
+
+```ts
+chart.addScript("CANDLESTICKPATTERNS");
+```
+
+Toggle patterns in the settings checklist.
+
+## Signal hygiene and composition
+
+### `SINGLE` — Single Signals
+
+**Dedupes** repeated identical signals. Optional **Reverse** mode flips position sizing interpretation (long-only +1 / short -1 style).
+
+Input: one **strategy** series.
+
+### `JOIN` — Join
+
+Combines strategy **X** and **Y** using the built-in Fusion join matrix (fixed lookup table).
+
+### `DOUBLECHECK` — Double Check
+
+Fires only when **both** input strategies emit the **same** signal on a bar.
+
+### `MIX` — Selective Signals
+
+Like `JOIN`, but you edit the **mixing table** — full control over X×Y signal combinations.
+
+## Position transforms
+
+### `POSITION` — Position Size
+
+Converts a **strategy signal stream** into a running **position size** histogram in a **new panel**.
+
+| Input | Role |
+| --- | --- |
+| `STRATEGY` | Source strategy output |
+| `WEIGHT` | Scalar weight |
+| `MULTIPLIER` | Constant or series multiplier |
+
+```ts
+chart.addScript("CROSS");
+// wire POSITION.STRATEGY to CrossValue — see programmatic wiring
+chart.addScript("POSITION");
+```
+
+### `DIFFER` — Buy Sell Size
+
+Transforms **position size** changes into **Buy** / **Sell** markers with strength from the delta.
+
+Use after `POSITION` or another position-size series.
+
+## Usage
 
 ```ts
 chart.addScript("CROSS");
 chart.addScript("EXCEED");
-chart.addScript("MIX");
+chart.addScript("POSITION");
 ```
 
-Some strategy keys are immediately useful with their default input definitions, while composition keys such as `MIX`, `JOIN`, `DOUBLECHECK`, `POSITION`, and `DIFFER` usually make more sense after runtime-level input configuration.
+## Wiring matrix / boolean inputs
 
-If you want concrete defaults and behavior for the most useful built-ins, continue with [Key strategies](./key-strategies).
+`JOIN`, `DOUBLECHECK`, and `MIX` use **matrix** inputs; `CANDLESTICKPATTERNS` uses a **boolean list**. Configure in ChartUI settings dialogs — programmatic examples coming in a dedicated follow-up; start in UI or see [Programmatic wiring](../programmatic-wiring) for `CROSS` / `POSITION`.
+
+## What is next?
+
+- [Strategies overview](./overview)
+- [Key strategies](./key-strategies)
+- [Series and panels](../series-and-panels)
+- [Custom strategy authoring](./custom-strategies)

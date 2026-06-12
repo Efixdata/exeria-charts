@@ -6,7 +6,7 @@ import type {
   Candle,
   Instrument,
   Interval,
-} from "@efixdata/exeria-chart";
+} from "@exeria/charts";
 import { buildChartUiTheme } from "../../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets, docsInterval, getCandleAtRatio } from "../chartExampleData";
 
@@ -480,8 +480,8 @@ export function formatApplySnippet(
   themeVariant: ThemeVariant
 ) {
   return [
-    'import { createChart } from "@efixdata/exeria-chart";',
-    'import { ChartUI } from "@efixdata/exeria-chart-ui-react";',
+    'import { createChart } from "@exeria/charts";',
+    'import { ChartUI } from "@exeria/charts-ui";',
     "",
     formatCodeBlock("runtimeTheme", runtimeTheme),
     "",

@@ -1,0 +1,116 @@
+---
+sidebar_position: 11
+title: Massive
+description: Stocks, forex, and crypto OHLCV through Massive (Polygon.io adapter) — API key required.
+---
+
+import MassiveConnectorExample from "@site/src/components/MassiveConnectorExample";
+
+# Massive Connector
+
+Building **multi-asset** charts — US stocks (`AAPL`), forex (`EUR/USD`), and crypto (`BTC-USD`)? The Massive connector (formerly the **Polygon.io adapter**) wraps the [Massive API](https://massive.com/docs) and implements the same `DataAdapter` contract as [Twelve Data](./twelve-data) and [Finage](./finage).
+
+<MassiveConnectorExample />
+
+Use the controls above to switch asset class, symbol, and timeframe. This docs demo routes requests through `/api/massive` so your API key stays on the server.
+
+:::tip Standalone demo
+Full-page version with sample code: [Massive live demo](/massive-example).
+:::
+
+:::info API key required
+Massive requires an **API key** in production. Store it in `MASSIVE_API_KEY` (or legacy `POLYGON_API_KEY`) and run the adapter on your **server** or behind a proxy — never ship the key in a browser bundle. For local docs demos, add the key to `apps/docs/.env.local`.
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Stocks** | US equities (`AAPL`, `MSFT`, …) |
+| **Forex** | Major pairs (`EUR/USD`, `GBP/USD`, …) → `C:EURUSD` tickers |
+| **Crypto** | Pairs like `BTC-USD` → `X:BTCUSD` tickers |
+| **History** | OHLCV via `/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}` |
+| **Live ticks** | WebSocket per market (`stocks`, `crypto`, `forex`) or REST polling in docs proxy |
+
+Perfect for wealth apps, trading terminals, and multi-asset dashboards on a single vendor.
+
+## Massive vs Twelve Data / Finage
+
+| | Massive | [Twelve Data](./twelve-data) | [Finage](./finage) |
+| --- | --- | --- | --- |
+| Stocks | ✅ Native US equities | ✅ | Limited |
+| Forex | ✅ `C:` prefix | ✅ `EUR/USD` style | ✅ `EURUSD` compact |
+| Crypto | ✅ `X:` prefix | ✅ | ✅ |
+| Symbol format | `AAPL`, `C:EURUSD`, `X:BTCUSD` | `EUR/USD` | `EURUSD` |
+| Best for | US stocks + multi-asset on one key | Quick multi-asset demo | UK forex vendor |
+
+## Licensing
+
+| Tier | Typical use |
+| --- | --- |
+| **Free / trial** | Development, personal testing |
+| **Paid** | Production apps with **external display** |
+
+Check [Massive pricing](https://massive.com/pricing) before shipping to end users.
+
+## Install
+
+```bash
+npm install @exeria/charts @efix-data/adapter-massive
+```
+
+## Quick start
+
+```tsx
+import { createChart } from "@exeria/charts";
+import { MassiveAdapter } from "@efix-data/adapter-massive";
+
+const connector = new MassiveAdapter({
+  apiKey: process.env.MASSIVE_API_KEY!,
+});
+
+const chart = createChart({
+  container: document.getElementById("chart")!,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+// Stocks
+await chart.loadData("AAPL", { interval: "1d", limit: 500 });
+
+// Forex
+await chart.loadData("EUR/USD", { interval: "1h", limit: 500 });
+
+// Crypto
+await chart.loadData("BTC-USD", { interval: "1h", limit: 500 });
+
+chart.subscribeToUpdates("AAPL");
+```
+
+## API key setup
+
+Sign up at [massive.com](https://massive.com/), generate an API key, and store it securely:
+
+```bash
+# apps/docs/.env.local (local demos only)
+MASSIVE_API_KEY=your_key_here
+```
+
+The docs dev server exposes `/api/massive/ohlcv` and `/api/massive/ticker` through `massiveProxyPlugin.js`.
+
+## Symbol reference
+
+| You pass | Massive REST ticker | WebSocket channel |
+| --- | --- | --- |
+| `AAPL` | `AAPL` | `AM.AAPL` |
+| `EUR/USD` | `C:EURUSD` | `CA.C:EURUSD` |
+| `BTC-USD` | `X:BTCUSD` | `XA.X:BTCUSD` |
+
+The adapter detects asset class from the symbol string. You can also pass explicit `X:` / `C:` tickers.
+
+## Related
+
+- [Twelve Data connector](./twelve-data) — alternative multi-asset vendor
+- [Finage connector](./finage) — forex-focused UK vendor
+- [Connect with a data connector](../tutorials/connect-with-data-connector) — tutorial

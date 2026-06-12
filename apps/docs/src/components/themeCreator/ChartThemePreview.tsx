@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
-import type { ChartInstance } from "@efixdata/exeria-chart";
+import type { ChartInstance } from "@exeria/charts";
 import { docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import {
@@ -120,7 +120,7 @@ export default function ChartThemePreview({
       setChart(null);
       chartRef.current = null;
 
-      const chartModule = await import("@efixdata/exeria-chart");
+      const chartModule = await import("@exeria/charts");
       if (disposed) {
         return;
       }

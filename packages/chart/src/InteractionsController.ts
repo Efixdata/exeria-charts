@@ -1478,6 +1478,8 @@ var InteractionsController: CoreInteractorConstructor = function (
     }
 
     this.currentMode.onMouseDrag(e);
+    // Drawing tools and anchors are painted on the overlay while dragged; the main
+    // canvas skips objects with isBeingDragged (see Renderer.renderPlotPane).
     this.controller.renderOverlay();
   };
 

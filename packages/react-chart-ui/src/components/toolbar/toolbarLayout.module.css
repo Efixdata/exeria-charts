@@ -109,17 +109,14 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: clip;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(127, 157, 204, 0.35) transparent;
+  /* Hide scrollbar — on compact mobile the rail is only 44px wide and the thumb
+     reads as a bright vertical seam between tools and chart. Touch scroll still works. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .leftMenuScroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.leftMenuScroll::-webkit-scrollbar-thumb {
-  background: rgba(127, 157, 204, 0.35);
-  border-radius: 4px;
+  display: none;
 }
 
 .leftMenuStack {

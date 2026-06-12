@@ -1,42 +1,106 @@
 ---
-sidebar_position: 8
+sidebar_position: 2
 title: Function Catalog
-description: Browse the current built-in function families and the keys you add with chart.addScript().
+description: All 10 built-in Fusion functions — keys, purpose, default pane, and main inputs.
 ---
 
 # Function catalog
 
-The source of truth for built-in function keys is the Fusion function registry in `packages/chart/src/fusion-scripts/functions/index.ts`. This page groups the current keys by the kind of series transformation they perform.
+Complete list of built-in **functions** in `@exeria/charts`. Pass **Key** to `chart.addScript("KEY")`.
 
-## Price-range and level helpers
+Functions transform series — see [Functions overview](./overview) if this concept is new.
 
-- `HIGHEST`: rolling highest-high series with default input `h` and default `PERIODS = 25`.
-- `LOWEST`: rolling lowest-low series with default input `l` and default `PERIODS = 25`.
-- `FIBONACCI`: rolling retracement and extension levels derived from default `h` and `l` inputs with `PERIODS = 24`.
+## Summary table
 
-## Arithmetic and transform helpers
+| Key | Display name | Default pane | Main inputs | Output |
+| --- | --- | --- | --- | --- |
+| `HIGHEST` | Highest | Overlay | `HIGH` (def `h`), `PERIODS` (25) | Rolling max series |
+| `LOWEST` | Lowest | Overlay | `LOW` (def `l`), `PERIODS` (25) | Rolling min series |
+| `FIBONACCI` | Fibonacci | Overlay | `HIGH`, `LOW`, `PERIODS` (24), level toggles | Multiple Fib level lines |
+| `DISPLACE` | Displace | Overlay | `DSERIES`, `PERIODS`, `VALUE` offset | Time-shifted series |
+| `IGLUE` | Indicator Glue | Overlay | `FIRST`, `SECOND`, `OPERATION` list | Combined series |
+| `IMOD` | Indicator Modifier | Overlay | `SERIES`, `OPERATION`, `MODIFIER` | Modified series |
+| `IF` | IF | New panel | `VAL_A`, `VAL_B` (conditional), `VAL_X/Y/Z` | Regime series |
+| `SUM` | Sum | New panel | `INDICATOR1`…`INDICATOR10` (conditional) | Sum series |
+| `AVERAGE` | Average | New panel | `INDICATOR1`…`INDICATOR10` (conditional) | Mean series |
+| `1x` | 1/x | New panel | `SERIES` | Reciprocal series |
 
-- `DISPLACE`: shifts a source series by `PERIODS` and adds an optional numeric offset.
-- `IGLUE`: applies `Add`, `Substract`, `Multiply`, `Divide`, or `Power of` between two series.
-- `IMOD`: applies the same operation set between a series and a constant modifier.
-- `1x`: outputs the reciprocal of the input series.
+## Per-function reference
 
-## Conditional and aggregation helpers
+### `HIGHEST` — Highest
 
-- `IF`: selects one of three results based on whether `VAL_A` is greater than, equal to, or less than `VAL_B`.
-- `SUM`: adds up to ten conditional inputs.
-- `AVERAGE`: averages up to ten conditional inputs while skipping missing values.
-
-## How to use the catalog
-
-The runtime key is the string you pass into `addScript()`.
+Rolling maximum of the chosen series (default: **high**). Draws an upper envelope line on the main chart.
 
 ```ts
 chart.addScript("HIGHEST");
-chart.addScript("DISPLACE");
-chart.addScript("IF");
 ```
 
-Keys with price-based defaults are the easiest first steps. Generic transformer keys often become more useful when you can wire them to other script outputs.
+### `LOWEST` — Lowest
 
-If you want concrete defaults and behavior for the highest-value built-ins, continue with [Key functions](./key-functions).
+Rolling minimum (default: **low**). Lower envelope on the main chart.
+
+```ts
+chart.addScript("LOWEST");
+```
+
+### `FIBONACCI` — Fibonacci
+
+Rolling Fibonacci retracement/extension levels from rolling high/low windows. Overlay bands.
+
+```ts
+chart.addScript("FIBONACCI");
+```
+
+### `DISPLACE` — Displace
+
+Shifts a **source series** by N bars and adds a numeric offset. Wire `DSERIES` to any output (e.g. EMA).
+
+```ts
+chart.addScript("DISPLACE"); // set DSERIES in UI after EMA exists
+```
+
+### `IGLUE` — Indicator Glue
+
+Element-wise math between two series: Add, Subtract, Multiply, Divide, Power.
+
+```ts
+chart.addScript("IGLUE"); // pick FIRST + SECOND series in settings
+```
+
+### `IMOD` — Indicator Modifier
+
+Same operation list as `IGLUE`, but second operand is a **constant** modifier.
+
+### `IF` — IF
+
+Compares `VAL_A` and `VAL_B` (number or series). Outputs `VAL_X` if A &gt; B, `VAL_Y` if equal, `VAL_Z` if A &lt; B. Opens in a **new panel** by default.
+
+### `SUM` — Sum
+
+Adds up to ten conditional inputs (constants or series). Skips unset slots.
+
+### `AVERAGE` — Average
+
+Averages up to ten conditional inputs; ignores missing values.
+
+### `1x` — 1/x
+
+Reciprocal `1 / x` for each bar of the input series. New panel.
+
+## Wiring reminder
+
+Series inputs use `seriesId:field` strings. Clone definitions before mutating:
+
+```ts
+const fn = structuredClone(chart.getScripts().DISPLACE);
+fn.inputs.DSERIES.value = emaReference;
+chart.addScript("DISPLACE", fn);
+```
+
+[Programmatic wiring](../programmatic-wiring) · [Series and panels](../series-and-panels).
+
+## What is next?
+
+- [Functions overview](./overview)
+- [Key functions](./key-functions)
+- [Strategy catalog](../strategies/catalog) — turn series into Buy/Sell signals

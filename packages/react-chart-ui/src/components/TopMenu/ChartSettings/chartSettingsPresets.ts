@@ -220,7 +220,7 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
     "Default dark theme",
     baseAppearance({
       backgroundColor: "#0B0C10",
-      gridColor: "#455A64",
+      gridColor: "#171E21",
       axisTextColor: "#CFD8DC",
       axisBackgroundColor: "#0B0C10",
       chartLineColor: "#00C8C8",
@@ -295,7 +295,7 @@ export const CHART_SETTINGS_PRESETS: ChartSettingsPreset[] = [
       axisBackgroundColor: "#1E222D",
       chartLineColor: "#D97706",
       chartFillColor: "rgba(217, 119, 6, 0.24)",
-      chartLineFillVisible: false,
+      chartLineFillVisible: true,
       chartLineFillMode: "gradient",
       chartFillGradientColor: "#D97706",
       chartFillGradientOpacity: 0.38,

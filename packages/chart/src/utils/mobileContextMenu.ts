@@ -218,6 +218,11 @@ export function showMobileContextMenu(options: {
   };
 }
 
+export type ChartContextMenuPointer = {
+  clientX: number;
+  clientY: number;
+};
+
 export function handleMobileChartContextAction(
   actionId: string,
   controller: {
@@ -228,7 +233,11 @@ export function handleMobileChartContextAction(
     onCrosshair: () => boolean;
     rerender: () => void;
     renderOverlay: () => void;
+    options?: {
+      placeOrderFromChartCallback?: (pointer: ChartContextMenuPointer) => void;
+    };
   },
+  pointer?: ChartContextMenuPointer,
 ): void {
   switch (actionId) {
     case "goStart":
@@ -246,6 +255,11 @@ export function handleMobileChartContextAction(
       controller.onCrosshair();
       controller.renderOverlay();
       break;
+    case "placeOrder":
+      if (pointer) {
+        controller.options?.placeOrderFromChartCallback?.(pointer);
+      }
+      break;
     default:
       break;
   }
@@ -261,6 +275,9 @@ export function openMobileChartContextMenu(
     onCrosshair: () => boolean;
     rerender: () => void;
     renderOverlay: () => void;
+    options?: {
+      placeOrderFromChartCallback?: (pointer: ChartContextMenuPointer) => void;
+    };
   },
   clientX: number,
   clientY: number,
@@ -285,11 +302,20 @@ export function openMobileChartContextMenu(
     },
   ];
 
+  if (controller.options?.placeOrderFromChartCallback) {
+    items.push({
+      id: "placeOrder",
+      label: controller.translate("context_place_order"),
+    });
+  }
+
+  const pointer: ChartContextMenuPointer = { clientX, clientY };
+
   showMobileContextMenu({
     x: clientX,
     y: clientY,
     items,
-    onSelect: (id) => handleMobileChartContextAction(id, controller),
+    onSelect: (id) => handleMobileChartContextAction(id, controller, pointer),
     dismissGraceMs,
   });
 }

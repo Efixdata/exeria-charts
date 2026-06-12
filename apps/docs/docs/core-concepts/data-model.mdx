@@ -1,25 +1,45 @@
 ---
 sidebar_position: 2
 title: Data Model
-description: Learn the core data shapes used by the runtime chart and script system.
+description: Candles, ticks, intervals, and instruments — the four shapes your app must speak.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Data model
 
-The main chart runtime works with four concepts first: `Candle`, `Tick`, `Interval`, and `Instrument`.
+The chart does not read your database directly. It expects data in a few simple **shapes**. If your API returns these fields, everything else tends to work.
 
-## Candle
+<TutorialChartDemo
+  scene="basic"
+  caption="Each bar on this chart is one Candle object — six numbers and a timestamp."
+/>
 
-Use candles when you already have aggregated OHLCV data.
+## The four building blocks
+
+| Concept | One-line meaning |
+| --- | --- |
+| **Candle** | One bar of history (open, high, low, close) |
+| **Tick** | One live price update |
+| **Interval** | How long each candle lasts (1h, 1d, …) |
+| **Instrument** | Symbol info (name, decimals, available timeframes) |
+
+You use candles + interval for history. Ticks for live updates. Instrument for labels and formatting.
+
+---
+
+## Candle — one bar on the chart
+
+A candle is a single time slice — like “what happened during this hour”:
 
 ```ts
 type Candle = {
-  o: number;
-  h: number;
-  l: number;
-  c: number;
-  stamp: number;
-  v?: number;
+  stamp: number; // when the bar opens (UTC, milliseconds)
+  o: number;     // open
+  h: number;     // high
+  l: number;     // low
+  c: number;     // close
+  v?: number;    // volume (optional — use 0 if missing)
 };
 ```
 
@@ -36,40 +56,84 @@ const candle = {
 };
 ```
 
-## Tick
+Load many candles at once:
 
-Use ticks when your feed is arriving trade by trade or quote by quote.
+```ts
+await chart.setMainSeriesData([candle, /* … */], interval);
+```
+
+**Tip for your backend:** return JSON in exactly this shape. Your frontend can pass it straight through.
+
+---
+
+## Tick — one live price
+
+When prices stream in (WebSocket, polling), you usually send **ticks**, not full candles:
 
 ```ts
 type Tick = {
   stamp: number;
+  price?: number;  // simple last price
+  c?: number;      // same thing, alternate field name
+  v?: number;
   o?: number;
   h?: number;
   l?: number;
-  c?: number;
-  v?: number;
-  price?: number;
 };
 ```
 
-`appendTick()` can work from a `price` field or from explicit OHLC fields depending on your feed shape.
+```ts
+chart.appendTick({
+  stamp: Date.now(),
+  price: 102.45,
+  v: 120,
+});
+```
 
-## Interval
+The chart merges ticks into the **current** candle or starts a new one based on `stamp` and your interval.
 
-`Interval` describes the active timeframe.
+| Situation | Use |
+| --- | --- |
+| Initial page load | Candles → `setMainSeriesData` |
+| Price just moved | Tick → `appendTick` |
+| Bar fully closed | Candle → `appendMainSeriesData` |
+
+Tutorial: [Live data stream](../tutorials/live-data-stream).
+
+---
+
+## Interval — candle length
+
+Tells the chart how wide each bar is in time:
 
 ```ts
 const interval = {
-  symbol: "1h",
-  milis: 60 * 60 * 1000,
+  symbol: "1h",              // label for UI ("1 hour")
+  milis: 60 * 60 * 1000,     // length in milliseconds
 };
 ```
 
-Pass the interval when you call `setMainSeriesData()` if the chart should emit the correct interval change event and keep the main series metadata aligned.
+Pass it with your data:
 
-## Instrument
+```ts
+await chart.setMainSeriesData(candles, interval);
+```
 
-`Instrument` carries symbol-level metadata such as display symbol, price precision, default interval, and available intervals.
+When the user switches from 1h to 1d, fetch new candles and call `setMainSeriesData` again with the new interval.
+
+Common values:
+
+| UI label | `symbol` | `milis` |
+| --- | --- | --- |
+| 5 minutes | `"5m"` | `5 * 60 * 1000` |
+| 1 hour | `"1h"` | `60 * 60 * 1000` |
+| 1 day | `"1d"` | `24 * 60 * 60 * 1000` |
+
+---
+
+## Instrument — symbol metadata
+
+Describes **what** you are charting — not the prices themselves:
 
 ```ts
 const instrument = {
@@ -83,18 +147,59 @@ const instrument = {
 };
 ```
 
-Set the instrument in the constructor or later with `setInstrument()`.
+Set at create time or later:
 
-## Multiple instruments on one chart
+```ts
+const chart = createChart({ container, instrument });
+// or
+chart.setInstrument(instrument);
+```
 
-The chart model supports more than one instrument through `instrumentsSeries`. The first entry is the main symbol; additional entries are overlay series on the same time axis. Each instrument has its own `seriesId` and OHLC array in `getSeriesManager()`.
+`precision` controls decimal places on the price axis. `availableIntervals` can populate your timeframe dropdown.
 
-Use `getChartInstrumentSettings()` and `applyChartInstrumentSettings()` to read or change line color and dash style for overlay symbols. Main-symbol candle and theme settings use `getChartAppearanceSettings()`.
+---
 
-See [Multi-instrument charts](../chart-usage/multi-instrument-charts) for adding symbols, synchronizing data, and UI settings.
+## Multiple symbols on one chart
 
-## Data and scripts
+Compare two assets (BTC vs ETH) on the same dates:
 
-The runtime also exposes script definitions through `getScripts()` and data series through `getSeriesManager()`. Those become relevant when you start adding built-in indicators, strategies, or custom scripts.
+- First symbol = **main series** (usually candles).
+- Others = **overlays** (usually lines).
 
-Next step: read [Rendering and scales](./rendering-and-scales) and [Realtime updates](../chart-usage/realtime-updates).
+Each symbol has its own id in `getSeriesManager()`. Style overlays with `getChartInstrumentSettings()` / `applyChartInstrumentSettings()`.
+
+Tutorial: [Multi-instrument overlay](../tutorials/multi-instrument-overlay).  
+Reference: [Multi-instrument charts](../chart-usage/multi-instrument-charts).
+
+---
+
+## Scripts and series (when you add indicators)
+
+Indicators and strategies read from **series** — computed lines derived from price. You do not manage those arrays by hand at first:
+
+```ts
+chart.addScript("EMA");
+chart.addScript("RSI");
+```
+
+Under the hood, `getScripts()` lists available recipes and `getSeriesManager()` holds the data. Explore when you customize indicators: [Customize a built-in indicator](../tutorials/customize-built-in-indicator).
+
+---
+
+## Data model cheat sheet
+
+```mermaid
+flowchart LR
+  API["Your API"]
+  Candles["Candle[]"]
+  Ticks["Tick"]
+  Chart["Chart runtime"]
+
+  API -->|"history"| Candles -->|"setMainSeriesData"| Chart
+  API -->|"live"| Ticks -->|"appendTick"| Chart
+```
+
+## What is next?
+
+- [Rendering and scales](./rendering-and-scales) — candles vs line, linear vs log scale
+- [Realtime updates](../chart-usage/realtime-updates) — tick behavior in detail

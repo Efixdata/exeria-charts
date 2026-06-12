@@ -1,0 +1,58 @@
+---
+sidebar_position: 0
+title: Getting Started
+description: Your first Exeria chart in minutes — pick vanilla JS or React and follow plain steps.
+---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
+
+# Getting started
+
+You want a chart on screen. This section gets you there — no trading jargon, no assumptions that you have built charts before.
+
+Each guide includes **copy-paste code**, **plain explanations**, and a **live preview** so you know what you are aiming for.
+
+<GettingStartedDemo
+  variant="vanilla"
+  caption="Your first goal: a chart like this, running in your app."
+/>
+
+## Pick your path
+
+Not sure where to start? Use this table:
+
+| You are building… | Start here | Why |
+| --- | --- | --- |
+| Plain HTML/JS, or your own UI | [Vanilla quickstart](./vanilla) | Smallest install — just the chart engine |
+| Any React app | [React quickstart](./react) | Chart + built-in toolbar and menus |
+| Brand-new Vite + React project | [Vite + React](./vite-react) | Scaffold → install → paste one file |
+| Next.js (App Router) | [Next.js App Router](./nextjs-app-router) | Safe client-only mounting for SSR |
+
+**Vibe coding?** Tell your AI: *“Follow the Exeria Vanilla quickstart”* or *“Follow the Exeria React quickstart”* and paste the code blocks from that page.
+
+## The whole flow in four steps
+
+Every path — vanilla or React — follows the same idea:
+
+1. **Install** the npm package(s).
+2. **Add a `<div>`** with a fixed height (the chart draws inside it).
+3. **Call `createChart` → `init()` → `setMainSeriesData`** with your candles.
+4. **Call `destroy()`** when the user leaves the page (or React unmounts).
+
+That is the entire integration loop. Everything else — live prices, indicators, themes — builds on top.
+
+## After your first chart
+
+- [Tutorials](../tutorials/) — step-by-step recipes (live data, indicators, themes, …)
+- [Chart with your data](../tutorials/chart-with-your-data) — load candles from your API
+- [Choosing a package](../guides/choosing-a-package) — core only vs React UI
+
+## Quick checklist
+
+| Check | Why it matters |
+| --- | --- |
+| Container has `height: 480px` (or similar) | Zero height = invisible chart |
+| `init()` before loading data | Chart needs to wake up first |
+| `destroy()` on teardown | Avoids memory leaks in SPAs |
+
+Ready? Open [Vanilla quickstart](./vanilla) or [React quickstart](./react) and build something you can show off in the next ten minutes.

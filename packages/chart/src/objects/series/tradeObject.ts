@@ -466,19 +466,10 @@ var TradeObject = class TradeObject {
       interactor.doModifyTradeObject(o, parent);
     } else if (o.relatedAllowed && o.related) {
       interactor.doAddTradeObject(o);
-      const orderCandidate = {
-        //temporary add to chart model
-        id: "empty",
-        price: o.related.price,
-        instrument: o.object.instrument,
-        parentId: o.id,
-        selected: true,
-        title: o.related.title,
-        type: o.related.type,
-      };
-      model.orders.list.push(orderCandidate);
       o.related = null;
     }
+
+    o.drag = false;
   }
 
   mouseDrag(
@@ -500,13 +491,31 @@ var TradeObject = class TradeObject {
       "SELL TAKE_PROFIT",
       "BUY TAKE_PROFIT_MARKET",
       "SELL TAKE_PROFIT_MARKET",
+      "SL",
     ];
     const limitTypes = [
       "BUY LIMIT",
       "SELL LIMIT",
       "BUY TAKE_PROFIT_LIMIT",
       "SELL TAKE_PROFIT_LIMIT",
+      "TP",
     ];
+    if (o._hitDragHandler && o.relatedAllowed) {
+      let relatedType = "SL";
+      if (o.operation === "SELL" && dragPrice > o.price) relatedType = "SL";
+      else if (o.operation === "SELL" && dragPrice < o.price) relatedType = "TP";
+      else if (o.operation === "BUY" && dragPrice > o.price) relatedType = "TP";
+      else if (o.operation === "BUY" && dragPrice < o.price) relatedType = "SL";
+
+      o.related = {
+        price: dragPrice,
+        title: relatedType,
+        type: relatedType,
+        object: o.object,
+      };
+      return;
+    }
+
     //drag object
     if (o.modifyAllowed && !o._hitCloseButton && !o._hitDragHandler) {
       o.modified = true;
@@ -514,6 +523,9 @@ var TradeObject = class TradeObject {
       else if (limitTypes.includes(o.type)) o.limitPrice = o.price = dragPrice;
       else o.modified = false;
     }
+
+    // Hide the in-model copy on the main canvas while the overlay paints the drag preview.
+    o.drag = true;
   }
 
   mouseOut(
@@ -527,6 +539,7 @@ var TradeObject = class TradeObject {
   ) {
     o.related = null;
     o.modified = false;
+    o.drag = false;
   }
 
   getDragPrice(
@@ -561,8 +574,20 @@ var TradeObject = class TradeObject {
     return WEBRCP.utils.roundPrice(dragPrice, priceChangeStep, precision);
 
     function getOffset(event: SeriesPointerEvent) {
-      var x = (event.pageX ?? 0) - (relativeOffset?.x ?? 0);
-      var y = (event.pageY ?? 0) - (relativeOffset?.y ?? 0);
+      if (event._offset) {
+        return event._offset;
+      }
+
+      const center = event.center as { x?: number; y?: number } | undefined;
+      if (typeof center?.x === "number" && typeof center?.y === "number") {
+        return {
+          offsetX: center.x - (relativeOffset?.x ?? 0),
+          offsetY: center.y - (relativeOffset?.y ?? 0),
+        };
+      }
+
+      var x = (event.clientX ?? event.pageX ?? 0) - (relativeOffset?.x ?? 0);
+      var y = (event.clientY ?? event.pageY ?? 0) - (relativeOffset?.y ?? 0);
       return {
         offsetX: x,
         offsetY: y,

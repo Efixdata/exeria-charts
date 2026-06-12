@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance } from "@efixdata/exeria-chart";
+import type { ChartInstance } from "@exeria/charts";
 import {
   docsCandleCount,
   docsInterval,
@@ -35,12 +35,57 @@ type DrawingPresetKey =
   | "cycle"
   | "textAnnotation"
   | "hLine"
+  | "vLine"
   | "hRay"
   | "vRay"
   | "crossLine"
+  | "mLine"
+  | "hRange"
+  | "vRange"
   | "timeRange"
   | "timeBet"
-  | "priceTag";
+  | "priceTag"
+  | "fixedRangeVolumeProfile"
+  | "longShortPosition";
+
+/** Every interactive preset in this showcase — use for the full tool reference page. */
+export const allDrawingShowcasePresets: DrawingPresetKey[] = [
+  "trendLine",
+  "trendRay",
+  "hLine",
+  "vLine",
+  "hRay",
+  "vRay",
+  "crossLine",
+  "mLine",
+  "parallelChannel",
+  "pitchfork",
+  "regressionChannel",
+  "fibonLines",
+  "fibonExtension",
+  "fibonTimeZone",
+  "fibonChannel",
+  "fibonArcs",
+  "fibonCircles",
+  "abcd",
+  "gannFan",
+  "gannGrid",
+  "gannBox",
+  "hRange",
+  "vRange",
+  "timeRange",
+  "timeBet",
+  "priceTag",
+  "arrow",
+  "brush",
+  "ellipse",
+  "triangle",
+  "box",
+  "cycle",
+  "textAnnotation",
+  "fixedRangeVolumeProfile",
+  "longShortPosition",
+];
 
 interface DrawingToolShowcaseProps {
   visiblePresets?: DrawingPresetKey[];
@@ -958,6 +1003,142 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       );
     },
   },
+  vLine: {
+    label: "Vertical line",
+    api: 'toolDrawer.drawTool({ type: "vLine" })',
+    runtimeType: "vLine",
+    description: "Mark a moment in time with a vertical line across the full panel height.",
+    draw(chart) {
+      const anchor = candleAt(0.38);
+
+      return collectToolIds(
+        chart.toolDrawer.drawTool({
+          type: "vLine",
+          color: palette.warning,
+          anchors: [{ stamp: anchor.stamp, offset: 0, value: anchor.c, _index: 0 }],
+        })
+      );
+    },
+  },
+  mLine: {
+    label: "Multi-line",
+    api: 'toolDrawer.drawTool({ type: "mLine" })',
+    runtimeType: "mLine",
+    description: "Connect three or more anchor points with a custom polyline.",
+    draw(chart) {
+      const a = candleAt(0.2);
+      const b = candleAt(0.42);
+      const c = candleAt(0.58);
+
+      return collectToolIds(
+        chart.toolDrawer.drawTool({
+          type: "mLine",
+          color: palette.accent,
+          width: 2,
+          anchors: [
+            { stamp: a.stamp, offset: 0, value: a.l, _index: 0 },
+            { stamp: b.stamp, offset: 0, value: b.h, _index: 0 },
+            { stamp: c.stamp, offset: 0, value: c.c, _index: 0 },
+          ],
+        })
+      );
+    },
+  },
+  hRange: {
+    label: "Horizontal range",
+    api: 'toolDrawer.drawTool({ type: "hRange" })',
+    runtimeType: "hRange",
+    description: "Measure and label a price distance between two horizontal levels.",
+    draw(chart) {
+      const low = candleAt(0.48);
+      const high = candleAt(0.56);
+
+      return collectToolIds(
+        chart.toolDrawer.drawTool({
+          type: "hRange",
+          color: palette.success,
+          text: "Price span",
+          anchors: [
+            { stamp: low.stamp, offset: 0, value: low.l, _index: 0 },
+            { stamp: high.stamp, offset: 0, value: high.h, _index: 0 },
+          ],
+        })
+      );
+    },
+  },
+  vRange: {
+    label: "Vertical range",
+    api: 'toolDrawer.drawTool({ type: "vRange" })',
+    runtimeType: "vRange",
+    description: "Measure and label a time distance between two vertical positions.",
+    draw(chart) {
+      const start = candleAt(0.44);
+      const end = candleAt(0.62);
+
+      return collectToolIds(
+        chart.toolDrawer.drawTool({
+          type: "vRange",
+          color: palette.accent,
+          text: "Time span",
+          anchors: [
+            { stamp: start.stamp, offset: 0, value: start.l, _index: 0 },
+            { stamp: end.stamp, offset: 0, value: end.h, _index: 0 },
+          ],
+        })
+      );
+    },
+  },
+  fixedRangeVolumeProfile: {
+    label: "Volume profile",
+    api: 'toolDrawer.drawTool({ type: "fixedRangeVolumeProfile" })',
+    runtimeType: "fixedRangeVolumeProfile",
+    description:
+      "Histogram of traded volume between two time anchors, with optional POC and value-area shading.",
+    draw(chart) {
+      const start = candleAt(0.3);
+      const end = candleAt(0.7);
+
+      return collectToolIds(
+        chart.toolDrawer.drawTool({
+          type: "fixedRangeVolumeProfile",
+          color: palette.accent,
+          fillBg: true,
+          showPoc: true,
+          showValueArea: true,
+          valueAreaPercent: 70,
+          anchors: [
+            { stamp: start.stamp, offset: 0, value: start.l, _index: 0 },
+            { stamp: end.stamp, offset: 0, value: end.h, _index: 0 },
+          ],
+        })
+      );
+    },
+  },
+  longShortPosition: {
+    label: "Long / short position",
+    api: "toolDrawer.drawLongShortPosition()",
+    runtimeType: "longShortPosition",
+    description:
+      "Paper-trade planning box with entry, stop, and target — separate from live broker order lines.",
+    draw(chart) {
+      const entry = candleAt(0.5);
+      const stop = candleAt(0.42);
+      const target = candleAt(0.62);
+
+      return collectToolIds(
+        chart.toolDrawer.drawLongShortPosition({
+          direction: "LONG",
+          startStamp: entry.stamp,
+          endStamp: target.stamp,
+          entryPrice: entry.c,
+          stopPrice: stop.l,
+          targetPrice: target.h,
+          riskPercent: 1,
+          config: { color: palette.success },
+        })
+      );
+    },
+  },
 };
 
 export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
@@ -1006,7 +1187,7 @@ export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
       setError(null);
 
       try {
-        const chartModule = await import("@efixdata/exeria-chart");
+        const chartModule = await import("@exeria/charts");
         if (disposed) {
           return;
         }

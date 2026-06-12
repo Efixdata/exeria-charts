@@ -1,25 +1,52 @@
 ---
 sidebar_position: 3
 title: Vite + React
-description: Mount Exeria Charts in a Vite React app with the optional React UI wrapper.
+description: Create a new Vite React app and mount your first Exeria chart.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # Vite + React
 
-Use this path when you want a browser-only React app with the smallest amount of bundler setup.
+**Vite** is a fast way to start a React app in the browser. This guide goes from zero to a working chart in one sitting — scaffold the project, install Exeria, paste one file, run `npm run dev`.
 
-## Scaffold the app
+<GettingStartedDemo
+  variant="react"
+  caption="End result: a Vite app with chart and toolbar, running locally."
+/>
+
+## What you will do
+
+1. Create a fresh Vite + React + TypeScript project
+2. Install Exeria packages
+3. Replace `App.tsx` with a chart component
+4. Open `localhost:5173` and see candles
+
+No server-side rendering tricks needed — everything runs in the browser.
+
+## Step 1 — Scaffold the app
+
+In a terminal:
 
 ```bash
 npm create vite@latest exeria-vite -- --template react-ts
 cd exeria-vite
 npm install
-npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
-## Mount the runtime and UI wrapper
+You now have a minimal React app in the `exeria-vite` folder.
 
-Replace `src/App.tsx` with a chart surface that mounts the runtime in an effect and keeps the chart container inside `ChartUI`.
+## Step 2 — Install Exeria
+
+Still in that folder:
+
+```bash
+npm install @exeria/charts @exeria/charts-ui
+```
+
+## Step 3 — Replace `src/App.tsx`
+
+Delete the default Vite content and paste this entire file:
 
 ```tsx
 import { useEffect, useRef, useState } from "react";
@@ -28,8 +55,8 @@ import {
   type Candle,
   type ChartInstance,
   type Interval,
-} from "@efixdata/exeria-chart";
-import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+} from "@exeria/charts";
+import { ChartUI } from "@exeria/charts-ui";
 
 const candles: Candle[] = [
   { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
@@ -72,6 +99,7 @@ export default function App() {
 
   return (
     <main style={{ padding: 24 }}>
+      <h1>My first Exeria chart</h1>
       <div style={{ height: 560 }}>
         <ChartUI chart={chart}>
           <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
@@ -82,11 +110,35 @@ export default function App() {
 }
 ```
 
-## Notes
+This is the same pattern as the [React quickstart](./react) — Vite just happens to be the bundler.
 
-- Vite runs this surface fully on the client, so you do not need an SSR guard around the chart module.
-- Keep a non-zero height on the wrapper that contains `ChartUI`, otherwise the chart has nothing to size against.
-- Keep the chart container as a child of `ChartUI`. The wrapper renders the toolbar and menus around that child surface.
-- If you do not need the built-in toolbar and left menu, remove `ChartUI` and keep the `createChart()` lifecycle exactly the same.
+## Step 4 — Run it
 
-Next step: continue with [React quickstart](./react) for the generic wrapper pattern, then [Theming overview](../theming/overview) when you want to style both the runtime and the React chrome.
+```bash
+npm run dev
+```
+
+Open the URL Vite prints (usually `http://localhost:5173`). You should see candles and a toolbar.
+
+## Do you need ChartUI?
+
+| Yes — keep ChartUI | No — remove ChartUI |
+| --- | --- |
+| You want toolbar, drawings, settings out of the box | You build your own controls |
+| Trading-style or analytics apps | Minimal embeds, custom UI |
+
+Without ChartUI, keep `createChart` + `useEffect` and drop the wrapper — same as [Vanilla quickstart](./vanilla), but inside React.
+
+## Common issues
+
+| Problem | Fix |
+| --- | --- |
+| Blank chart area | The `div` around ChartUI needs `height: 560px` (or any non-zero value) |
+| TypeScript errors on import | Run `npm install` again; restart the dev server |
+| Hot reload looks broken after edits | Refresh the page — chart mounts in `useEffect` |
+
+## What is next?
+
+- [React quickstart](./react) — explains the wrapper pattern in more detail
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — live crypto prices
+- [Theming overview](../theming/overview) — colors for chart and toolbar

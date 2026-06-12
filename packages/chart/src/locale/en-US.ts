@@ -1017,6 +1017,7 @@ const locale: Record<string, unknown> = {
   context_go_to_end: "Go to latest data",
   context_toggle_autoscale: "Auto scale",
   context_toggle_crosshair: "Crosshair",
+  context_place_order: "Place order",
   toolbar_more_actions: "More chart actions",
   toolbar_currency: "Currency",
   chart_type_candles: "Candles",

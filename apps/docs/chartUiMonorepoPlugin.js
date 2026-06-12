@@ -1,6 +1,17 @@
 const path = require("path");
 const fs = require("fs");
 
+function isBenignResizeObserverError(message) {
+  if (!message) {
+    return false;
+  }
+
+  return (
+    message.includes("ResizeObserver loop completed with undelivered notifications.") ||
+    message.includes("ResizeObserver loop limit exceeded")
+  );
+}
+
 /**
  * Bundle Chart UI from monorepo sources instead of the prebuilt UMD dist.
  * The dist bundle does not expose named exports correctly to Docusaurus/webpack.
@@ -15,19 +26,19 @@ module.exports = function chartUiMonorepoPlugin() {
   const transpileInclude = [chartRoot, chartUiRoot, uiRoot];
 
   const aliases = {
-    "@efixdata/exeria-chart$": chartEntry,
-    "@efixdata/exeria-chart": chartEntry,
-    "@efixdata/exeria-chart-ui-react$": chartUiEntry,
-    "@efixdata/exeria-chart-ui-react": chartUiEntry,
+    "@exeria/charts$": chartEntry,
+    "@exeria/charts": chartEntry,
+    "@exeria/charts-ui$": chartUiEntry,
+    "@exeria/charts-ui": chartUiEntry,
     ui: uiRoot,
   };
 
   return {
     name: "chart-ui-monorepo-plugin",
-    configureWebpack(config) {
+    configureWebpack(config, isServer) {
       const existingAlias = config.resolve?.alias ?? {};
 
-      return {
+      const webpackConfig = {
         mergeStrategy: {
           "resolve.alias": "merge",
         },
@@ -54,6 +65,18 @@ module.exports = function chartUiMonorepoPlugin() {
           ],
         },
       };
+
+      if (!isServer && process.env.NODE_ENV === "development") {
+        webpackConfig.devServer = {
+          client: {
+            overlay: {
+              runtimeErrors: (error) => !isBenignResizeObserverError(error?.message),
+            },
+          },
+        };
+      }
+
+      return webpackConfig;
     },
   };
 };

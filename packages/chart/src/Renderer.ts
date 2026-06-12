@@ -1615,7 +1615,7 @@ const Renderer: CoreRendererConstructor = function (
         precision = this.getPrecision(model, panel);
       }
 
-      var v = LIB.nFormatter(field, precision);
+      var v = formatFullAxisPrice(field, precision);
 
       valueToRender.label.text = resolveChartLocaleMessage(label, label) + ": ";
       if (series.fields.length == 1 && label == "value") valueToRender.label.text = "";
@@ -1992,7 +1992,7 @@ const Renderer: CoreRendererConstructor = function (
       let vp1 = v1;
       if (panel.valueAxisMode == "log" && valueType != "real")
         vp1 = logConverter.axisToReal?.(v1, 1) ?? v1;
-      var vs1 = LIB.nFormatter(vp1, this.getPrecision(model, panel));
+      var vs1 = formatFullAxisPrice(vp1, this.getPrecision(model, panel));
       const previousBaseline = ctx.textBaseline;
       ctx.textBaseline = "middle";
       renderPriceText({
@@ -2098,7 +2098,7 @@ const Renderer: CoreRendererConstructor = function (
       let vp2 = v2;
       if (panel.valueAxisMode == "log" && valueType != "real")
         vp2 = logConverter.axisToReal?.(v2, 1) ?? v2;
-      var vs2 = LIB.nFormatter(vp2, this.getPrecision(model, panel));
+      var vs2 = formatFullAxisPrice(vp2, this.getPrecision(model, panel));
 
       ctx.fillStyle = textColor;
       renderPriceText({

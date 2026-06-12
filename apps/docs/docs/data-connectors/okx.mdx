@@ -1,0 +1,208 @@
+---
+sidebar_position: 4
+title: OKX
+description: Live and historical crypto charts from OKX — no API key required.
+---
+
+import OkxConnectorExample from "@site/src/components/OkxConnectorExample";
+
+# OKX Data Connector
+
+Want Bitcoin, Ethereum, or altcoin charts with **live prices** and **no API key**? The OKX connector talks to OKX public v5 endpoints — history over REST, candle updates over WebSocket.
+
+<OkxConnectorExample />
+
+Use the controls above to change symbol and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [OKX live demo](/okx-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public OKX spot market data |
+| **History** | Up to 300 candles per REST request (adapter paginates for more) |
+| **Live ticks** | WebSocket candle channel on `/ws/v5/business` |
+| **Pairs** | Major spot symbols (`BTC-USDT`, `ETH-USDT`, …) |
+| **Timeframes** | 1m through monthly |
+| **Symbol helper** | Accepts `BTCUSDT` and normalizes to `BTC-USDT` |
+
+Perfect for crypto dashboards, multi-exchange terminals, and Asia-focused products.
+
+## Install
+
+```bash
+npm install @exeria/charts @efix-data/adapter-okx
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@exeria/charts";
+import { OkxAdapter } from "@efix-data/adapter-okx";
+
+const connector = new OkxAdapter();
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTC-USDT", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("BTC-USDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new OkxAdapter();
+```
+
+Uses OKX public URLs by default. Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTC-USDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` |
+| `limit` | How many recent bars (adapter paginates above 300) |
+| `from` / `to` | Optional date range instead of “latest N” |
+
+### 4 — Go live
+
+```ts
+chart.subscribeToUpdates("BTC-USDT");
+// or with a callback:
+chart.subscribeToUpdates("BTC-USDT", (tick) => { /* update UI */ });
+```
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular symbols
+
+| Symbol | Market |
+| --- | --- |
+| `BTC-USDT` | Bitcoin / USDT |
+| `ETH-USDT` | Ethereum / USDT |
+| `SOL-USDT` | Solana / USDT |
+| `XRP-USDT` | XRP / USDT |
+| `BNB-USDT` | BNB / USDT |
+
+OKX uses **BASE-QUOTE** with a hyphen (`BTC-USDT`). The adapter also accepts compact symbols like `BTCUSDT`.
+
+## Switch cryptocurrency
+
+```ts
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+```ts
+const connector = new OkxAdapter({
+  baseUrl: "https://www.okx.com",
+  wsUrl: "wss://ws.okx.com:8443/ws/v5/business",
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+  pageDelayMs: 120,
+});
+```
+
+For demo trading:
+
+```ts
+const connector = new OkxAdapter({
+  baseUrl: "https://www.okx.com",
+  wsUrl: "wss://wspap.okx.com:8443/ws/v5/business",
+});
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("BTC-USDT", { interval: "1d", limit: 500 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("Invalid instrument")) {
+    console.error("Symbol not found on OKX");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — users on bad networks will thank you.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Candles per REST request | 300 max (adapter paginates automatically) |
+| REST rate | 20 requests / 2 seconds per IP (OKX policy) |
+| WebSocket | Candle channel uses `/ws/v5/business` |
+| Browser | Needs WebSocket support (all modern browsers) |
+
+For heavy traffic: cache history server-side.
+
+## Exchange comparison
+
+| | Binance / Bybit | OKX |
+| --- | --- | --- |
+| Symbol | `BTCUSDT` | `BTC-USDT` |
+| REST limit | 1,000 / request | 300 / request |
+| API key (public data) | No | No |
+
+Need `BTCUSDT` format? See [Binance](./binance) or [Bybit](./bybit).
+
+## What is next?
+
+- [Overview](./overview) — lifecycle and custom connectors
+- [Binance](./binance) · [Bybit](./bybit) · [Kraken](./kraken) · [KuCoin](./kucoin) · [CoinGecko](./coingecko) — alternative connectors
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Live data stream](../tutorials/live-data-stream) — what happens under the hood
+- [Data Connectors catalog](/data-connectors) — compare providers

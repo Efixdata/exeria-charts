@@ -1,0 +1,349 @@
+.section {
+  border-top: 1px solid var(--doc-border);
+  background: var(--doc-surface);
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.inner {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.inner h2 {
+  margin: 0 0 0.5rem;
+  color: var(--doc-text);
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.inner h3 {
+  margin: 0 0 0.45rem;
+  color: var(--doc-text);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.inner h4 {
+  margin: 0 0 0.35rem;
+  color: var(--doc-text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.lead {
+  max-width: 72ch;
+  margin: 0 0 2rem;
+  color: var(--doc-text-secondary);
+  line-height: 1.7;
+  font-size: 1.02rem;
+}
+
+.stepsSection {
+  margin-bottom: 2.25rem;
+  padding: 1.35rem 1.4rem;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-bg);
+}
+
+.stepsIntro {
+  margin: 0 0 1.15rem;
+  max-width: 68ch;
+  color: var(--doc-text-secondary);
+  line-height: 1.65;
+}
+
+.stepsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+}
+
+.stepItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem 1rem;
+  align-items: start;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--doc-link) 14%, var(--doc-surface));
+  color: var(--doc-link);
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stepTitle {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--doc-text);
+  font-size: 0.98rem;
+}
+
+.stepBody {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.stepBody a {
+  color: var(--doc-link);
+}
+
+.stepsAlt {
+  margin: 1.15rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--doc-border);
+  color: var(--doc-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.whatSection {
+  margin-bottom: 2rem;
+}
+
+.whatIntro {
+  max-width: 72ch;
+  margin: 0 0 1.15rem;
+  color: var(--doc-text-secondary);
+  line-height: 1.7;
+}
+
+.whatGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.whatCard {
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-bg);
+}
+
+.whatCard h4 {
+  margin-top: 0.55rem;
+}
+
+.whatCard > p {
+  margin: 0 0 0.65rem;
+  color: var(--doc-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.whatCard ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--doc-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.whatCard li + li {
+  margin-top: 0.3rem;
+}
+
+.whatCard a {
+  color: var(--doc-link);
+}
+
+.whatLink {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.whatLink:hover {
+  text-decoration: underline;
+}
+
+.whatBadgeLive,
+.whatBadgeDemo,
+.whatBadgeYours {
+  display: inline-flex;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.whatBadgeLive {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+}
+
+.whatBadgeDemo {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.whatBadgeYours {
+  background: rgba(100, 116, 139, 0.14);
+  color: var(--doc-text-secondary);
+}
+
+.sourcePanel {
+  padding: 1.25rem 1.3rem;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-bg);
+}
+
+.sourceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sourceHeader h3 {
+  font-size: 1.15rem;
+}
+
+.sourceHeader p {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--doc-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.sourceActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.actionButton,
+.actionButtonPrimary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 8px;
+  background: var(--doc-surface);
+  color: var(--doc-text);
+  font-size: 0.86rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actionButtonPrimary {
+  border-color: color-mix(in srgb, var(--doc-link) 45%, var(--doc-border));
+  background: color-mix(in srgb, var(--doc-link) 12%, var(--doc-surface));
+  color: var(--doc-link);
+  font-weight: 600;
+}
+
+.actionButton:hover,
+.actionButtonPrimary:hover {
+  border-color: color-mix(in srgb, var(--doc-link) 35%, var(--doc-border));
+  color: var(--doc-link);
+}
+
+.tabLegend {
+  margin: 0 0 0.55rem;
+  color: var(--doc-text-secondary);
+  font-size: 0.88rem;
+}
+
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.tab {
+  padding: 0.38rem 0.75rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--doc-text-secondary);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.tabActive {
+  border-color: color-mix(in srgb, var(--doc-link) 40%, var(--doc-border));
+  background: color-mix(in srgb, var(--doc-link) 10%, transparent);
+  color: var(--doc-text);
+}
+
+.tabHint {
+  margin: 0 0 0.75rem;
+  color: var(--doc-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.runHeading {
+  margin: 0 0 0.55rem;
+  color: var(--doc-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.codeBlock,
+.runSteps {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 10px;
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.codeBlock {
+  max-height: 420px;
+  margin-bottom: 1rem;
+}
+
+.runSteps {
+  color: #cbd5e1;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 960px) {
+  .whatGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .sourceHeader {
+    flex-direction: column;
+  }
+
+  .sourceActions {
+    justify-content: flex-start;
+  }
+}

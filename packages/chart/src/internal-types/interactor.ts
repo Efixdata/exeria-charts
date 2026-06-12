@@ -18,6 +18,7 @@ export interface InteractorChartHost extends HTMLDivElement {
     doAddRelatedOrder: (payload: unknown) => void;
     openAddSLWidget: (payload: unknown) => void;
     openAddTPWidget: (payload: unknown) => void;
+    placeOrderFromChartCallback?: (pointer: { clientX: number; clientY: number }) => void;
   };
   canvas: HTMLCanvasElement;
   model: CoreChartModel;

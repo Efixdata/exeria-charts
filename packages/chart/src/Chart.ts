@@ -158,6 +158,7 @@ export default class Chart implements CoreChartController {
   private lastCanvasDeviceRatio = 1;
   currentAnimationFrame?: number;
   resizeObserver?: ResizeObserver;
+  private resizeObserverFrame?: number;
   private environmentUnsubscribe?: () => void;
   private layoutOptions?: ChartLayoutOptions;
   private layoutModeOverride: ChartLayoutModeOverride = "auto";
@@ -345,8 +346,19 @@ export default class Chart implements CoreChartController {
     this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
 
     const onSizeChange = () => {
-      this.fit();
-      this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+      if (this.resizeObserverFrame !== undefined) {
+        window.cancelAnimationFrame(this.resizeObserverFrame);
+      }
+
+      this.resizeObserverFrame = window.requestAnimationFrame(() => {
+        this.resizeObserverFrame = undefined;
+        if (!this.initialized) {
+          return;
+        }
+
+        this.fit();
+        this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
+      });
     };
 
     this.resizeObserver = new ResizeObserver(onSizeChange);
@@ -370,6 +382,11 @@ export default class Chart implements CoreChartController {
     this.currentAnimationFrame !== undefined &&
       window.cancelAnimationFrame(this.currentAnimationFrame);
     this.currentAnimationFrame = undefined;
+
+    if (this.resizeObserverFrame !== undefined) {
+      window.cancelAnimationFrame(this.resizeObserverFrame);
+    }
+    this.resizeObserverFrame = undefined;
 
     if (this.interactor?.currentAnimationFrame !== undefined) {
       window.cancelAnimationFrame(this.interactor.currentAnimationFrame);
@@ -1762,6 +1779,10 @@ export default class Chart implements CoreChartController {
 
   getInteractor() {
     return this.interactor;
+  }
+
+  get options() {
+    return (this.container as InteractorChartHost).options;
   }
 
   onCancelTool() {

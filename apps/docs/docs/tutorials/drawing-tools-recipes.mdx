@@ -1,0 +1,79 @@
+---
+sidebar_position: 6
+title: Drawing Tools Recipes
+description: Draw trend lines and price levels on your chart — with a live example.
+---
+
+import { TutorialDrawingDemo } from "@site/src/components/TutorialChartDemo";
+import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
+
+# Drawing tools recipes
+
+Sometimes you want to mark up a chart — a trend line, a support level, a price zone. You can draw with the mouse (React UI toolbar) or place shapes **in code** (great for alerts, shared layouts, or AI-generated annotations).
+
+<TutorialDrawingDemo />
+
+## Draw a trend line
+
+Connect two points in time and price:
+
+```ts
+chart.toolDrawer.drawTrendLine({
+  startStamp: candles[10].stamp,
+  endStamp: candles[30].stamp,
+  startPrice: candles[10].l,
+  endPrice: candles[30].h,
+  config: { color: "#5cc8ff" },
+});
+```
+
+Pick any two candles from your data for the coordinates. The preview above uses low/high points so the line is easy to see.
+
+## Draw a horizontal level
+
+Useful for support, resistance, or target prices:
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "hLine",
+  color: "#14f7ab",
+  priceTag: true,
+  anchors: [
+    {
+      stamp: candles.at(-1)!.stamp,
+      offset: 0,
+      value: 42000,
+      _index: 0,
+    },
+  ],
+});
+```
+
+`priceTag: true` shows the price label on the line.
+
+## Draw with the mouse (ChartUI)
+
+Prefer clicking and dragging? Wrap your chart in `ChartUI` and use the **left toolbar** — trend lines, Fibonacci, rectangles, and more. Details: [Drawing tools overview](../drawing-tools/overview).
+
+## Remove a shape you added in code
+
+`drawTrendLine` returns an id. Keep it if you might delete later:
+
+```ts
+const id = chart.toolDrawer.drawTrendLine({ /* … */ });
+
+if (id !== undefined) {
+  chart.toolDrawer.deleteTool(id);
+}
+```
+
+## Try more shapes
+
+<DrawingToolShowcase visiblePresets={["trendLine", "fibonLines", "hLine", "timeRange"]} />
+
+Each button loads a different built-in tool. Source for every type: [Drawing tools catalog](../drawing-tools/catalog).
+
+## What is next?
+
+- [Forex platforms demo](/starters/forex-platforms) — drawings in a full platform shell
+- [Custom drawing tool authoring](./custom-drawing-tool-authoring) — only if you need a **brand-new** shape type inside the library
