@@ -24,9 +24,20 @@ export default function MenuSelect<T extends string>({
   className,
 }: MenuSelectProps<T>) {
   const [open, setOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listId = useId();
   const selected = options.find((option) => option.value === value) ?? options[0];
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
+
+  useEffect(() => {
+    if (open) {
+      setHighlightedIndex(selectedIndex);
+    }
+  }, [open, selectedIndex]);
 
   useEffect(() => {
     if (!open) {
@@ -42,6 +53,32 @@ export default function MenuSelect<T extends string>({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
+        return;
+      }
+
+      if (!rootRef.current?.contains(event.target as Node)) {
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setHighlightedIndex((current) => (current + 1) % options.length);
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setHighlightedIndex((current) => (current - 1 + options.length) % options.length);
+        return;
+      }
+
+      if (event.key === "Enter" && open) {
+        event.preventDefault();
+        const option = options[highlightedIndex];
+        if (option) {
+          onChange(option.value);
+          setOpen(false);
+        }
       }
     };
 
@@ -52,7 +89,12 @@ export default function MenuSelect<T extends string>({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open]);
+  }, [highlightedIndex, onChange, open, options]);
+
+  const selectOption = (nextValue: T) => {
+    onChange(nextValue);
+    setOpen(false);
+  };
 
   return (
     <div
@@ -67,6 +109,12 @@ export default function MenuSelect<T extends string>({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
       >
         <span>{selected?.label}</span>
         <span className={styles.menuSelectCaret} aria-hidden>
@@ -75,8 +123,9 @@ export default function MenuSelect<T extends string>({
       </button>
       {open ? (
         <div id={listId} className={styles.menuSelectPanel} role="listbox" aria-label={label}>
-          {options.map((option) => {
+          {options.map((option, index) => {
             const active = option.value === value;
+            const highlighted = index === highlightedIndex;
             return (
               <button
                 key={option.value}
@@ -86,13 +135,12 @@ export default function MenuSelect<T extends string>({
                 className={[
                   styles.menuSelectOption,
                   active ? styles.menuSelectOptionActive : undefined,
+                  highlighted && !active ? styles.menuSelectOptionHighlighted : undefined,
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                onClick={() => selectOption(option.value)}
               >
                 {option.label}
               </button>

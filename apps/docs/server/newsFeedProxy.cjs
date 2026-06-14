@@ -60,6 +60,19 @@ async function loadBundle(instrument) {
   return bundle;
 }
 
+function parseQueryLimit(searchParams) {
+  if (!searchParams.has("limit")) {
+    return undefined;
+  }
+
+  const limitParam = parseInt(searchParams.get("limit"), 10);
+  if (Number.isNaN(limitParam)) {
+    return MAX_LIMIT;
+  }
+
+  return Math.min(MAX_LIMIT, Math.max(0, limitParam));
+}
+
 function filterEvents(events, { from, to, limit }) {
   let filtered = [...events];
 
@@ -73,7 +86,7 @@ function filterEvents(events, { from, to, limit }) {
 
   filtered.sort((left, right) => left.releasedAt - right.releasedAt);
 
-  if (limit != null && limit > 0) {
+  if (Number.isFinite(limit) && limit > 0) {
     filtered = filtered.slice(-limit);
   }
 
@@ -85,9 +98,7 @@ async function handleNewsFeed(req, res) {
   const instrument = assertInstrument(url.searchParams.get("instrument"));
   const from = url.searchParams.has("from") ? Number(url.searchParams.get("from")) : undefined;
   const to = url.searchParams.has("to") ? Number(url.searchParams.get("to")) : undefined;
-  const limit = url.searchParams.has("limit")
-    ? Math.min(MAX_LIMIT, Number(url.searchParams.get("limit")))
-    : undefined;
+  const limit = parseQueryLimit(url.searchParams);
 
   const bundle = await loadBundle(instrument);
   const events = filterEvents(bundle.events ?? [], { from, to, limit });

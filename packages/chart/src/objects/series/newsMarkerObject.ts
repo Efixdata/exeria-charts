@@ -108,27 +108,28 @@ function getMarkerY(
   );
 }
 
-function drawMarkerShape(
+function appendMarkerShape(
   ctx: CanvasRenderingContext2D,
   shape: string,
   x: number,
   y: number,
   radius: number,
 ) {
-  ctx.beginPath();
-
   if (shape === "Square") {
     ctx.rect(x - radius, y - radius, radius * 2, radius * 2);
-  } else if (shape === "Triangle") {
+    return;
+  }
+
+  if (shape === "Triangle") {
     ctx.moveTo(x, y - radius);
     ctx.lineTo(x + radius, y + radius);
     ctx.lineTo(x - radius, y + radius);
     ctx.closePath();
-  } else {
-    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    return;
   }
 
-  ctx.fill();
+  ctx.moveTo(x + radius, y);
+  ctx.arc(x, y, radius, 0, Math.PI * 2, false);
 }
 
 const NewsMarkerObject = function (this: SeriesRuntime) {
@@ -157,10 +158,13 @@ const NewsMarkerObject = function (this: SeriesRuntime) {
       return false;
     }
 
-    const radius = getMarkerRadius(o);
     const shape = o.markerShape ?? "Circle";
-
-    ctx.save();
+    const markers: Array<{
+      midX: number;
+      valueY: number;
+      strategyValue: number;
+      pointRadius: number;
+    }> = [];
 
     for (let index = model._leftIndex; index <= model._rightIndex; index += 1) {
       if (index > linkedSeries.data.length - 1) {
@@ -182,12 +186,55 @@ const NewsMarkerObject = function (this: SeriesRuntime) {
         continue;
       }
 
-      const pointRadius = getMarkerRadius(o, dataPoint as { strength?: number });
+      markers.push({
+        midX,
+        valueY,
+        strategyValue,
+        pointRadius: getMarkerRadius(o, dataPoint as { strength?: number }),
+      });
+    }
 
-      ctx.fillStyle = getMarkerColor(o, strategyValue);
-      ctx.strokeStyle = "#0f172a";
-      ctx.lineWidth = 1.5;
-      drawMarkerShape(ctx, shape, midX, valueY, pointRadius);
+    ctx.save();
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineWidth = 1.5;
+
+    const groups = new Map<
+      string,
+      {
+        color: string;
+        shape: string;
+        pointRadius: number;
+        items: Array<{ midX: number; valueY: number }>;
+      }
+    >();
+
+    for (const marker of markers) {
+      const color = getMarkerColor(o, marker.strategyValue);
+      const groupKey = `${color}|${shape}|${marker.pointRadius}`;
+      const group = groups.get(groupKey);
+
+      if (group) {
+        group.items.push({ midX: marker.midX, valueY: marker.valueY });
+        continue;
+      }
+
+      groups.set(groupKey, {
+        color,
+        shape,
+        pointRadius: marker.pointRadius,
+        items: [{ midX: marker.midX, valueY: marker.valueY }],
+      });
+    }
+
+    for (const group of groups.values()) {
+      ctx.fillStyle = group.color;
+      ctx.beginPath();
+
+      for (const item of group.items) {
+        appendMarkerShape(ctx, group.shape, item.midX, item.valueY, group.pointRadius);
+      }
+
+      ctx.fill();
       ctx.stroke();
     }
 

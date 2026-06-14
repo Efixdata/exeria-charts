@@ -28,19 +28,32 @@ function datasetFile(instrument, timeframe) {
   return path.join(DATA_DIR, `${slug}-${timeframe}.json`);
 }
 
-function findBarIndex(candles, stamp) {
-  let best = 0;
-  let bestDiff = Number.POSITIVE_INFINITY;
+function resolveBarIndex(candles, stamp) {
+  if (!candles.length || !Number.isFinite(stamp)) {
+    return 0;
+  }
 
-  for (let index = 0; index < candles.length; index += 1) {
-    const diff = Math.abs(candles[index].stamp - stamp);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      best = index;
+  let lo = 0;
+  let hi = candles.length - 1;
+  let candidate = -1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const candleStamp = candles[mid]?.stamp;
+
+    if (candleStamp === undefined) {
+      break;
+    }
+
+    if (candleStamp <= stamp) {
+      candidate = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
     }
   }
 
-  return best;
+  return candidate >= 0 ? candidate : 0;
 }
 
 function sliceSparkline(candles, endIndex, points) {
@@ -65,7 +78,7 @@ async function main() {
   for (const signal of bundle.signals) {
     const { instrument, timeframe } = signal.chartScene;
     const candles = await loadCandles(instrument, timeframe);
-    const barIndex = findBarIndex(candles, signal.detectedAt);
+    const barIndex = resolveBarIndex(candles, signal.detectedAt);
 
     signal.sparkline =
       signal.category === "event"

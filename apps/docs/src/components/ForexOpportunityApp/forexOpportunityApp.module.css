@@ -590,7 +590,8 @@
   cursor: pointer;
 }
 
-.menuSelectOption:hover {
+.menuSelectOption:hover,
+.menuSelectOptionHighlighted {
   color: var(--text);
   border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
   background: color-mix(in srgb, var(--accent) 6%, transparent);

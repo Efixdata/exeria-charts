@@ -33,10 +33,10 @@ class EnforceMonorepoAliasesPlugin {
         ? resolve.conditionNames
         : ["import", "require", "default"];
 
-      resolve.conditionNames = [
-        "development",
-        ...baseConditions.filter((name) => name !== "development"),
-      ];
+      resolve.conditionNames =
+        process.env.NODE_ENV === "development"
+          ? ["development", ...baseConditions.filter((name) => name !== "development")]
+          : baseConditions.filter((name) => name !== "development");
 
       compiler.options.resolve = resolve;
     });
@@ -97,7 +97,10 @@ module.exports = function chartUiMonorepoPlugin() {
         },
         resolve: {
           alias: aliases,
-          conditionNames: ["development", "import", "require", "default"],
+          conditionNames:
+            process.env.NODE_ENV === "development"
+              ? ["development", "import", "require", "default"]
+              : ["import", "require", "default"],
         },
         plugins: [
           new EnforceMonorepoAliasesPlugin(aliases),
