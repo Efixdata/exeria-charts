@@ -59,22 +59,37 @@ export const starterProjects: StarterProject[] = [
   },
   {
     id: "forex-platforms",
-    title: "Next-Gen Forex Platforms",
-    body: "Upgrade your users from clunky legacy interfaces. Visualize fractional pip movements, dynamic bid/ask spreads, and complex technical indicators with zero latency and pixel-perfect precision.",
-    image: "/img/case-studies/forex-platforms.jpg",
-    imageAlt: "Forex chart with Heikin-Ashi candles and advanced drawing tools",
+    title: "FX Opportunity Radar",
+    body: "An opportunity radar you can run locally in minutes: FX chart, discovery feed, strategy markers, and news dots on the canvas. Download the zip, edit React files, and grow it into your own platform.",
+    image: "/img/starters/forex-opportunity-hero.jpg",
+    imageAlt:
+      "FX Opportunity Radar with opportunity feed, multi-line arb chart, news callout, and signal brief",
     demoPath: "/starters/forex-platforms",
-    stack: ["React", "ChartUI", "Custom data feed", "Drawing tools"],
+    liveAppPath: "/starters/forex-platforms/app",
+    liveAppBlurb:
+      "Try the finished UI first — same patterns you get in the downloadable starter. Opportunities and news are demo data; candles ship as static fixtures.",
+    previewImage: {
+      src: "/img/starters/forex-opportunity-hero.jpg",
+      alt: "FX Opportunity Radar with opportunity feed, multi-line arb chart, news callout, and signal brief",
+    },
+    caseStudy: {
+      title: "FX Opportunity Radar",
+      body: "Surface triangular mispricings, rare setups, strategy markers, and macro news dots on one canvas — then download the starter and wire your own opportunity feed.",
+      image: "/img/starters/forex-opportunity-hero.jpg",
+      imageAlt:
+        "FX Opportunity Radar with opportunity feed, multi-line arb chart, news callout, and signal brief",
+    },
+    stack: ["Vite + React", "ChartUI", "Static FX bundles", "Copy-paste starter zip"],
     highlights: [
-      "Heikin-Ashi and precision pip formatting",
-      "Fibonacci, channels, and trend tools",
-      "Bid/ask overlay and spread-aware price tags",
-      "Drag-to-modify stop and limit lines",
+      "Run locally with npm install && npm run dev",
+      "Bundled EUR/USD candles — no API keys to start",
+      "Opportunity feed + news-on-chart patterns",
+      "Step-by-step guide in the For developers section",
     ],
     relatedDocs: [
-      { label: "Drawing tools catalog", href: "/docs/drawing-tools/catalog" },
-      { label: "Autoscale and value axis", href: "/docs/chart-usage/autoscale-and-value-axis" },
-      { label: "Trade from chart", href: "/docs/tutorials/trade-from-chart" },
+      { label: "Strategies overview", href: "/docs/scripts/strategies/overview" },
+      { label: "Loading your data", href: "/docs/tutorials/chart-with-your-data" },
+      { label: "Kraken connector", href: "/docs/data-connectors/kraken" },
     ],
   },
   {

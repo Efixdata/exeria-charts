@@ -1,0 +1,130 @@
+---
+title: News Feed data model
+sidebar_position: 6
+---
+
+# News Feed data model
+
+News Feed is a **second data stream** attached to a chart instrument — parallel to OHLCV from a `DataAdapter`. Users add it like the built-in `NEWSFEED` indicator: markers on the main series, with rich metadata for callouts.
+
+## Design principles
+
+1. **Time-native records** — each event carries `releasedAt` (UTC ms). The chart maps it to a bar index at runtime for the active interval (M15, H1, 1D, …).
+2. **Instrument-scoped** — every record belongs to one symbol (`EUR/USD`, `AAPL`, …).
+3. **Provider-agnostic** — static JSON bundles and REST APIs share the same schema.
+4. **Thin chart contract** — the `NEWSFEED` indicator still consumes `{ id, barIndex, sentiment }`; full records live in a registry for UI overlays.
+
+## Single event (`NewsFeedRecord`)
+
+| Field | Type | Required | Role |
+| --- | --- | --- | --- |
+| `id` | `string` | yes | Stable id for marker click + callout |
+| `instrument` | `string` | yes | e.g. `EUR/USD` |
+| `releasedAt` | `number` | yes | UTC ms — **primary placement key** |
+| `source` | `{ name, url? }` | yes | Publisher |
+| `title` | `string` | yes | Headline in callout |
+| `summary` | `string` | yes | Body text |
+| `url` | `string` | no | Link to full article |
+| `sentiment` | `positive \| negative \| neutral` | yes | Marker color |
+| `importance` | `low \| medium \| high` | no | Marker size weighting |
+| `categories` | `string[]` | no | Filters (`central-bank`, `employment`, …) |
+| `impact` | `{ horizon, pips?, direction? }[]` | no | Pre-computed move for callout |
+| `ingestedAt` | `number` | no | Provider ingest time (live feeds) |
+
+Types are exported from `@exeria/charts` as `NewsFeedRecord`, `NewsFeedBundle`, and `NewsFeedAdapter`.
+
+## Historical bundle file
+
+Static history ships as one JSON file per instrument:
+
+```json
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-eur-usd",
+  "instrument": "EUR/USD",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": { "from": 1780063200000, "to": 1781307900000 },
+  "events": [ /* NewsFeedRecord[] */ ]
+}
+```
+
+Example in the FX Opportunity demo:
+
+`apps/docs/src/components/ForexOpportunityApp/data/eur-usd-news-feed.json`
+
+## REST API (optional)
+
+```
+GET /api/news-feed?instrument=EUR/USD&from=1780000000000&to=1782000000000&limit=100
+```
+
+Response:
+
+```json
+{
+  "instrument": "EUR/USD",
+  "events": [ /* NewsFeedRecord[] sorted by releasedAt */ ],
+  "nextCursor": null
+}
+```
+
+The docs dev server exposes this route via `newsFeedProxy.cjs` (serves the same EUR/USD bundle).
+
+## Provider contract (`NewsFeedAdapter`)
+
+Mirrors `DataAdapter` for prices:
+
+```ts
+interface NewsFeedAdapter {
+  initialize(config?: Record<string, unknown>): Promise<void>;
+  getHistoricalEvents(query: NewsFeedQuery): Promise<NewsFeedRecord[]>;
+  subscribe?(instrument: string, onEvent: (event: NewsFeedRecord) => void): () => void;
+  disconnect?(): Promise<void>;
+}
+```
+
+Live providers push new `NewsFeedRecord` objects; the app re-runs bar mapping and updates `setInstrumentNewsFeed()`.
+
+## Bar placement (any timeframe)
+
+```ts
+import { resolveNewsBarIndex, setInstrumentNewsFeed } from "@exeria/charts";
+
+const barIndex = resolveNewsBarIndex(event.releasedAt, candles);
+// last candle with open time <= releasedAt
+```
+
+When the user switches M15 → H1 → 1D, **re-map** the same events against the new candle array. Do not store `barIndex` in the provider payload.
+
+## Chart integration
+
+```ts
+import { setInstrumentNewsFeed } from "@exeria/charts";
+
+// After candles load or interval changes:
+setInstrumentNewsFeed(events, candles);
+
+// Add NEWSFEED indicator (once) — reads external feed points internally
+await chart.addScript("NEWSFEED", proto);
+await chart.recalculateScripts({ rerender: true });
+```
+
+Callout UI resolves full records via `getNewsFeedEvent(id)` or `getNewsFeedEventByBarIndex(barIndex)`.
+
+## FX Opportunity demo wiring
+
+| Piece | Path |
+| --- | --- |
+| Bundle | `data/eur-usd-news-feed.json` |
+| Loader | `newsFeedLoader.ts` |
+| View model | `chartNews.ts` → `mapNewsFeedToChartEvents()` |
+| Indicator sync | `forexNewsIndicator.ts` → `syncForexNewsFeed()` |
+| Overlay | `NewsTimelineLayer.tsx` |
+
+## Adding a feed to your app
+
+1. Implement `NewsFeedAdapter` or ship a static `NewsFeedBundle`.
+2. On instrument / interval change: fetch events for `[candle.from, candle.to]`.
+3. `setInstrumentNewsFeed(events, candles)` + ensure `NEWSFEED` script is on the chart.
+4. Subscribe to `NEWS_FEED_MARKER_CLICK` for callouts; use registry helpers for metadata.

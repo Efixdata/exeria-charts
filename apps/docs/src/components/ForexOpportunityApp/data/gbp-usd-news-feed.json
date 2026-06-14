@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-gbp-usd",
+  "instrument": "GBP/USD",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "events": [
+    {
+      "id": "gbpusd-uk-pmi-beat-2026-06-01",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780297200000,
+      "source": {
+        "name": "S&P Global",
+        "url": "https://www.spglobal.com"
+      },
+      "title": "UK services PMI rises to 54.2",
+      "summary": "Activity surprise keeps sterling supported at the London open. Cable bids as EUR/GBP drifts lower on relative UK resilience.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["pmi", "activity"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": 5.4, "direction": "up" },
+        { "horizon": "1h", "pips": 8.1, "direction": "up" }
+      ]
+    },
+    {
+      "id": "gbpusd-boe-hold-2026-06-02",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780416000000,
+      "source": {
+        "name": "Bank of England",
+        "url": "https://www.bankofengland.co.uk"
+      },
+      "title": "BoE holds Bank Rate at 5.25%",
+      "summary": "Vote 7-2 to keep policy unchanged. Statement flags persistent services inflation — initial GBP spike fades as cuts stay on the table for autumn.",
+      "sentiment": "neutral",
+      "importance": "high",
+      "categories": ["central-bank", "rates"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": 2.8, "direction": "up" },
+        { "horizon": "1h", "pips": -4.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "gbpusd-uk-cpi-hot-2026-06-03",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780466400000,
+      "source": {
+        "name": "ONS",
+        "url": "https://www.ons.gov.uk"
+      },
+      "title": "UK CPI +0.3% m/m vs +0.2% expected",
+      "summary": "Core stickier than forecast — markets trim BoE cut bets for July. Cable extends gains through the European morning.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 11.6, "direction": "up" },
+        { "horizon": "1h", "pips": 15.3, "direction": "up" }
+      ]
+    },
+    {
+      "id": "gbpusd-uk-gdp-miss-2026-06-05",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780648200000,
+      "source": {
+        "name": "ONS",
+        "url": "https://www.ons.gov.uk"
+      },
+      "title": "UK GDP −0.1% q/q vs +0.1% expected",
+      "summary": "Soft growth print drags sterling lower into NY. Traders fade earlier CPI-led rally as recession chatter picks up.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["gdp", "growth"],
+      "impact": [
+        { "horizon": "15m", "pips": -9.7, "direction": "down" },
+        { "horizon": "1h", "pips": -14.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "gbpusd-boe-mann-hawkish-2026-06-05",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780698600000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "BoE's Mann: no rush to cut rates",
+      "summary": "Hawkish cable commentary after US CPI lifts the dollar — GBP holds better than EUR on relative policy divergence.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["central-bank", "speech"],
+      "impact": [
+        { "horizon": "15m", "pips": 3.9, "direction": "up" },
+        { "horizon": "1h", "pips": 6.4, "direction": "up" }
+      ]
+    },
+    {
+      "id": "gbpusd-uk-wages-hot-2026-06-09",
+      "instrument": "GBP/USD",
+      "releasedAt": 1780993800000,
+      "source": {
+        "name": "ONS",
+        "url": "https://www.ons.gov.uk"
+      },
+      "title": "UK wage growth +5.9% vs +5.5% expected",
+      "summary": "Labour market tightness keeps BoE on hold narrative alive. Sterling outperforms G10 into London lunch.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["employment", "wages"],
+      "impact": [
+        { "horizon": "15m", "pips": 7.2, "direction": "up" },
+        { "horizon": "1h", "pips": 10.5, "direction": "up" }
+      ]
+    },
+    {
+      "id": "gbpusd-bailey-hawkish-2026-06-11",
+      "instrument": "GBP/USD",
+      "releasedAt": 1781181000000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Bailey: inflation vigilance remains essential",
+      "summary": "Governor pushes back on aggressive easing bets ahead of NFP. Cable grinds higher despite broad USD bid.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["central-bank", "speech"],
+      "impact": [
+        { "horizon": "15m", "pips": 4.6, "direction": "up" },
+        { "horizon": "1h", "pips": 5.8, "direction": "up" }
+      ]
+    },
+    {
+      "id": "gbpusd-nfp-cable-drop-2026-06-12",
+      "instrument": "GBP/USD",
+      "releasedAt": 1781234100000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Cable slides on blowout US NFP",
+      "summary": "Payrolls beat drives USD bid across the board. GBP/USD breaks 1.3380 support as rate-differential trades reload.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["employment", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": -14.8, "direction": "down" },
+        { "horizon": "1h", "pips": -11.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "gbpusd-cable-stabilizes-2026-06-12",
+      "instrument": "GBP/USD",
+      "releasedAt": 1781241300000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "GBP/USD steadies after NFP-led selloff",
+      "summary": "Profit-taking on dollar longs helps cable consolidate. Pair holds above intraday lows as London traders fade the move.",
+      "sentiment": "neutral",
+      "importance": "low",
+      "categories": ["market-color"],
+      "impact": [
+        { "horizon": "15m", "pips": 4.1, "direction": "up" },
+        { "horizon": "1h", "pips": 6.3, "direction": "up" }
+      ]
+    }
+  ]
+}

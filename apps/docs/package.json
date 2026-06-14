@@ -15,7 +15,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
-    "generate:fintech-equity": "node scripts/generate-fintech-equity-csv.mjs"
+    "generate:fintech-equity": "node scripts/generate-fintech-equity-csv.mjs",
+    "generate:forex-static": "node scripts/generate-forex-static-data.mjs",
+    "generate:arb-signal-sparklines": "node scripts/generate-arb-signal-sparklines.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.1",

@@ -6,6 +6,11 @@ import LIB from "./utils/chartingCommons";
 import WEBRCP from "./WebRCP";
 import defaultTheme from "./themes/swipper";
 import { resolveChartTipThemeColors } from "./utils/chartThemeColors";
+import {
+  DEFAULT_CHART_LEGEND_SETTINGS,
+  resolveChartLegendSettings,
+  type ChartLegendSettings,
+} from "./chartLegendVisibility";
 import type { ChartTheme, DrawMode } from "./types";
 import type { CoreChartPanel } from "./internal-types/chart";
 import type { ChartPanelObject, ChartRuntimeObject } from "./internal-types/objects";
@@ -38,6 +43,8 @@ export interface ChartAppearanceSettings {
   lastPriceLineVisible: boolean;
   lastPriceLabelVisible: boolean;
 }
+
+export type { ChartLegendSettings } from "./chartLegendVisibility";
 
 export interface ChartVolumeSettings {
   available: boolean;
@@ -102,6 +109,7 @@ export interface ChartSettingsTemplate {
   version: 1;
   name?: string;
   appearance: ChartAppearanceSettings;
+  legend?: ChartLegendSettings;
   volume: ChartVolumeSettings | null;
   theme?: ChartTheme;
 }
@@ -120,6 +128,7 @@ interface ChartSettingsHost {
       title?: string;
       instrument?: { symbol?: string; name?: string };
     }>;
+    legendVisibility?: Partial<ChartLegendSettings>;
   };
   renderer: {
     objects: Record<string, unknown>;
@@ -527,6 +536,18 @@ export function applyChartTheme(
 
   chart.rerender();
   return theme;
+}
+
+export function getChartLegendSettings(chart: ChartSettingsHost): ChartLegendSettings {
+  return resolveChartLegendSettings(chart.model);
+}
+
+export function applyChartLegendSettings(
+  chart: ChartSettingsHost,
+  settings: ChartLegendSettings,
+): void {
+  chart.model.legendVisibility = { ...settings };
+  chart.rerender();
 }
 
 export function getChartVolumeSettings(chart: ChartSettingsHost): ChartVolumeSettings {
@@ -997,6 +1018,7 @@ export function exportChartSettingsTemplate(
     version: 1,
     name,
     appearance: getChartAppearanceSettings(chart, storedTheme),
+    legend: getChartLegendSettings(chart),
     volume: volume.available ? volume : null,
     theme: storedTheme ? (JSON.parse(JSON.stringify(storedTheme)) as ChartTheme) : undefined,
   };
@@ -1010,6 +1032,13 @@ export function importChartSettingsTemplate(
   let theme = storedTheme ? (JSON.parse(JSON.stringify(storedTheme)) as ChartTheme) : undefined;
 
   theme = applyChartAppearanceSettings(chart, template.appearance, theme);
+
+  if (template.legend) {
+    applyChartLegendSettings(chart, {
+      ...DEFAULT_CHART_LEGEND_SETTINGS,
+      ...template.legend,
+    });
+  }
 
   if (template.volume?.available) {
     applyChartVolumeSettings(chart, template.volume);

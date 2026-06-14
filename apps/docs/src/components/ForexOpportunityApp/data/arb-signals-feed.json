@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-arb-signals",
+  "provider": "Exeria Demo Arb Service",
+  "generatedAt": "2026-06-14T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "signals": [
+    {
+      "id": "arb-triangular",
+      "category": "arb",
+      "title": "Triangular mispricing",
+      "pair": "EUR/USD · GBP/USD · EUR/GBP",
+      "edgeLabel": "+2.1 pips",
+      "ageMinutes": 4,
+      "unusualScore": 84,
+      "detectedAt": 1781279100000,
+      "sparkline": [
+        1.15722,
+        1.15715,
+        1.15666,
+        1.15683,
+        1.15662,
+        1.15619,
+        1.1564,
+        1.15639,
+        1.15701,
+        1.15666,
+        1.15656,
+        1.15675,
+        1.15666,
+        1.15685,
+        1.15742,
+        1.15721,
+        1.15713,
+        1.15719,
+        1.15746,
+        1.15714,
+        1.15698,
+        1.15647,
+        1.15636,
+        1.15582
+      ],
+      "lastSeenDays": 47,
+      "linkedNewsId": "eurusd-us-nfp-2026-06-12",
+      "confluenceChecks": [
+        "Implied cross",
+        "Quoted EUR/GBP",
+        "Edge > 2 pips",
+        "NFP news dot"
+      ],
+      "playbook": "Typical window 3–6 min. Scale out into quoted cross convergence.",
+      "brief": {
+        "unusualBecause": [
+          "Implied EUR/GBP deviates > 2 pips from quoted cross",
+          "Last similar window was 47 sessions ago",
+          "GBP/USD overlay confirms cable-led move",
+          "NFP release dot — legs moved by different amounts"
+        ],
+        "thesis": "Synthetic cross from EUR/USD ÷ GBP/USD trades rich vs spot EUR/GBP — three % lines on one chart.",
+        "confluence": 84
+      },
+      "arbMetrics": {
+        "impliedEurGbp": 0.86241,
+        "quotedEurGbp": 0.86219,
+        "edgePips": 2.1
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "EUR/USD",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "Line",
+        "mainInstrumentColor": "#38bdf8",
+        "mainLineFillMode": "gradient",
+        "valueAxisMode": "perc",
+        "overlays": [
+          {
+            "symbol": "GBP/USD",
+            "renderAs": "Line",
+            "color": "#f59e0b",
+            "valueAxisMode": "%",
+            "lineFillMode": "gradient",
+            "fillOpacity": 0.28
+          },
+          {
+            "symbol": "EUR/GBP",
+            "renderAs": "Line",
+            "color": "#c084fc",
+            "valueAxisMode": "%",
+            "lineFillMode": "gradient",
+            "fillOpacity": 0.28
+          }
+        ],
+        "scripts": [
+          {
+            "key": "NEWSFEED"
+          }
+        ],
+        "highlights": {
+          "newsIds": [
+            "eurusd-us-nfp-2026-06-12",
+            "eurusd-nfp-follow-2026-06-12"
+          ]
+        },
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "arb-corr-break",
+      "category": "arb",
+      "title": "USD/CHF correlation break",
+      "pair": "USD/CHF vs EUR/USD",
+      "edgeLabel": "+1.6 pips",
+      "ageMinutes": 19,
+      "unusualScore": 62,
+      "detectedAt": 1781182800000,
+      "sparkline": [
+        0.79916,
+        0.7981,
+        0.79831,
+        0.79856,
+        0.79905,
+        0.79847,
+        0.79872,
+        0.79924,
+        0.79809,
+        0.79741,
+        0.79791,
+        0.79848,
+        0.79866,
+        0.79886,
+        0.79917,
+        0.79988,
+        0.80006,
+        0.79954,
+        0.80024,
+        0.80009,
+        0.79931,
+        0.79838,
+        0.79865,
+        0.79871
+      ],
+      "lastSeenDays": 18,
+      "confluenceChecks": [
+        "30-bar ρ < 0.4",
+        "Cross-pair lag",
+        "Mean-revert zone"
+      ],
+      "playbook": "CHF lag vs EUR move — convergence trades cluster at 1.5–2.5 pip edge.",
+      "brief": {
+        "unusualBecause": [
+          "30-bar correlation dropped below 0.4",
+          "CHF lagging EUR move by 1.6 pips",
+          "% overlay shows divergence vs EUR/USD"
+        ],
+        "thesis": "Correlation break — EUR/USD overlay on USD/CHF highlights the lag.",
+        "confluence": 62
+      },
+      "arbMetrics": {
+        "edgePips": 1.6,
+        "label": "CHF lag vs EUR"
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "USD/CHF",
+        "timeframe": "h1",
+        "dataSource": "static",
+        "mainDrawMode": "Line",
+        "valueAxisMode": "perc",
+        "scripts": [
+          {
+            "key": "SMA",
+            "inputs": {
+              "PERIODS": 50
+            }
+          }
+        ],
+        "overlays": [
+          {
+            "symbol": "EUR/USD",
+            "renderAs": "Line",
+            "color": "#f59e0b",
+            "valueAxisMode": "%"
+          }
+        ],
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.52
+        }
+      }
+    },
+    {
+      "id": "arb-gbp-cable",
+      "category": "arb",
+      "title": "Cable vs fiber spread",
+      "pair": "GBP/USD · EUR/USD",
+      "edgeLabel": "+1.9 pips",
+      "ageMinutes": 11,
+      "unusualScore": 71,
+      "detectedAt": 1781213400000,
+      "sparkline": [
+        1.33835,
+        1.33798,
+        1.33775,
+        1.338,
+        1.33782,
+        1.33824,
+        1.33891,
+        1.33855,
+        1.3384,
+        1.338,
+        1.33736,
+        1.337,
+        1.33649,
+        1.33642,
+        1.33638,
+        1.33627,
+        1.33654,
+        1.33573,
+        1.33559,
+        1.33562,
+        1.33602,
+        1.33642,
+        1.33635,
+        1.33643
+      ],
+      "lastSeenDays": 22,
+      "confluenceChecks": [
+        "Cable-led impulse",
+        "Fiber lag",
+        "Spread > 1.5 pips"
+      ],
+      "playbook": "Fade extreme cable spikes when EUR/USD catches up within 2–4 bars.",
+      "brief": {
+        "unusualBecause": [
+          "GBP/USD moved 12 pips while EUR/USD lagged",
+          "Spread widened to 1.9 pips vs 30-bar median",
+          "London open liquidity thin on fiber"
+        ],
+        "thesis": "Cable impulse with fiber catch-up trade — EUR/USD overlay on GBP/USD chart.",
+        "confluence": 71
+      },
+      "arbMetrics": {
+        "edgePips": 1.9,
+        "label": "Cable vs fiber"
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "GBP/USD",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "Bars",
+        "valueAxisMode": "perc",
+        "scripts": [
+          {
+            "key": "EMA",
+            "inputs": {
+              "PERIODS": 9
+            }
+          }
+        ],
+        "overlays": [
+          {
+            "symbol": "EUR/USD",
+            "renderAs": "Line",
+            "color": "#38bdf8",
+            "valueAxisMode": "%"
+          }
+        ],
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "rare-squeeze",
+      "category": "rare",
+      "title": "52-week vol squeeze",
+      "pair": "USD/JPY H1",
+      "edgeLabel": "Rare · 3σ",
+      "ageMinutes": 12,
+      "unusualScore": 76,
+      "detectedAt": 1781146800000,
+      "sparkline": [
+        160.35675,
+        160.42164,
+        160.3675,
+        160.34821,
+        160.40715,
+        160.39811,
+        160.37429,
+        160.3921,
+        160.37529,
+        160.36126,
+        160.37125,
+        160.34944,
+        160.37987,
+        160.39882,
+        160.4248,
+        160.44723,
+        160.47398,
+        160.49943,
+        160.42878,
+        160.41103,
+        160.49329,
+        160.48237,
+        160.48913,
+        160.50826
+      ],
+      "lastSeenDays": 31,
+      "confluenceChecks": [
+        "BBAND width",
+        "EXCEED armed",
+        "Session: London"
+      ],
+      "playbook": "Break participation on upper band tag — fade only on failed break.",
+      "brief": {
+        "unusualBecause": [
+          "Bollinger width at 52-week percentile: 3%",
+          "Compression > 18 sessions without resolution",
+          "EXCEED strategy markers on band break"
+        ],
+        "thesis": "Volatility coil on USD/JPY — chart zooms to squeeze zone with annotation.",
+        "confluence": 76
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "USD/JPY",
+        "timeframe": "h1",
+        "dataSource": "static",
+        "mainDrawMode": "OHLC",
+        "scripts": [
+          {
+            "key": "BBAND"
+          },
+          {
+            "key": "EXCEED"
+          },
+          {
+            "key": "ATR",
+            "inputs": {
+              "PERIODS": 14
+            }
+          }
+        ],
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "signal-double",
+      "category": "signal",
+      "title": "MACD cross + band exceed",
+      "pair": "EUR/USD M15",
+      "edgeLabel": "Confluence +71",
+      "ageMinutes": 26,
+      "unusualScore": 71,
+      "detectedAt": 1781235900000,
+      "sparkline": [
+        1.15339,
+        1.15253,
+        1.15269,
+        1.15374,
+        1.15273,
+        1.15311,
+        1.15328,
+        1.15303,
+        1.1522,
+        1.15228,
+        1.15188,
+        1.15181,
+        1.15182,
+        1.15247,
+        1.15192,
+        1.15147,
+        1.15102,
+        1.15108,
+        1.15101,
+        1.15088,
+        1.15049,
+        1.15176,
+        1.15626,
+        1.15519
+      ],
+      "lastSeenDays": 12,
+      "confluenceChecks": [
+        "MACD CROSS",
+        "BBAND EXCEED",
+        "Same bar cluster"
+      ],
+      "playbook": "Median follow-through +18 pips / 1h on similar dual-fire setups.",
+      "brief": {
+        "unusualBecause": [
+          "CROSS and EXCEED fired within 2 bars",
+          "Navigates to real strategy marker on chart",
+          "Price holding above session VWAP"
+        ],
+        "thesis": "Momentum cross confirmed by volatility breakout — publisher signal on canvas.",
+        "confluence": 71
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "EUR/USD",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "OHLC",
+        "scripts": [
+          {
+            "key": "MACD"
+          },
+          {
+            "key": "CROSS",
+            "crossOnMacdPanel": true
+          },
+          {
+            "key": "BBAND"
+          },
+          {
+            "key": "EXCEED"
+          }
+        ],
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "signal-eurgbp",
+      "category": "signal",
+      "title": "EUR/GBP range break",
+      "pair": "EUR/GBP M15",
+      "edgeLabel": "Confluence +64",
+      "ageMinutes": 33,
+      "unusualScore": 64,
+      "detectedAt": 1780297200000,
+      "sparkline": [
+        0.86656,
+        0.86654,
+        0.86648,
+        0.86646,
+        0.86648,
+        0.86644,
+        0.86646,
+        0.8665,
+        0.8665,
+        0.86648,
+        0.86647,
+        0.8665,
+        0.86652,
+        0.86652,
+        0.86685,
+        0.86601,
+        0.86628,
+        0.86607,
+        0.8663,
+        0.86639,
+        0.86654,
+        0.8666,
+        0.86624,
+        0.86606
+      ],
+      "lastSeenDays": 15,
+      "confluenceChecks": [
+        "EMA reclaim",
+        "London open",
+        "Cross momentum"
+      ],
+      "playbook": "Break holds above 21 EMA — target prior session high.",
+      "brief": {
+        "unusualBecause": [
+          "Close reclaimed 21 EMA after 9-bar compression",
+          "Sterling weakness vs euro on PMI divergence",
+          "Break aligns with London liquidity window"
+        ],
+        "thesis": "EUR/GBP range break with EMA confirmation — signal tag on breakout bar.",
+        "confluence": 64
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "EUR/GBP",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "OHLC",
+        "scripts": [
+          {
+            "key": "EMA",
+            "inputs": {
+              "PERIODS": 21
+            }
+          },
+          {
+            "key": "CROSS"
+          }
+        ],
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "event-cpi",
+      "category": "event",
+      "title": "US CPI beat",
+      "pair": "EUR/USD",
+      "edgeLabel": "−18 pips / 15m",
+      "ageMinutes": 38,
+      "unusualScore": 68,
+      "detectedAt": 1780698600000,
+      "sparkline": [
+        1.16405,
+        1.16418,
+        1.16412,
+        1.16402,
+        1.16379,
+        1.16394,
+        1.16369,
+        1.16406,
+        1.16407,
+        1.16361,
+        1.16104,
+        1.15911,
+        1.15975,
+        1.15859,
+        1.15784,
+        1.15768,
+        1.15216,
+        1.15215,
+        1.15213,
+        1.15155,
+        1.15182,
+        1.15183,
+        1.15184,
+        1.15183
+      ],
+      "linkedNewsId": "eurusd-us-cpi-hot-2026-06-05",
+      "lastSeenDays": 9,
+      "confluenceChecks": [
+        "CPI > 2σ",
+        "News dot",
+        "Impact zone"
+      ],
+      "playbook": "Median CPI beat reaction: −15 to −22 pips / 15m on EUR/USD.",
+      "brief": {
+        "unusualBecause": [
+          "CPI surprise > 2σ vs consensus",
+          "Largest 15m move in 9 sessions",
+          "Red news dot + impact arrow on chart"
+        ],
+        "thesis": "Hot inflation print — expand the news dot for release line and measured move.",
+        "confluence": 68
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "EUR/USD",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "OHLC",
+        "scripts": [
+          {
+            "key": "NEWSFEED"
+          },
+          {
+            "key": "CEX"
+          }
+        ],
+        "highlights": {
+          "newsIds": [
+            "eurusd-us-cpi-hot-2026-06-05"
+          ]
+        },
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    },
+    {
+      "id": "event-nfp",
+      "category": "event",
+      "title": "US NFP blowout",
+      "pair": "EUR/USD",
+      "edgeLabel": "−22 pips / 1h",
+      "ageMinutes": 95,
+      "unusualScore": 80,
+      "detectedAt": 1781234100000,
+      "sparkline": [
+        1.15181,
+        1.15182,
+        1.15247,
+        1.15192,
+        1.15147,
+        1.15102,
+        1.15108,
+        1.15101,
+        1.15088,
+        1.15049,
+        1.15176,
+        1.15626,
+        1.15519,
+        1.15519,
+        1.15553,
+        1.15574,
+        1.1562,
+        1.15691,
+        1.15808,
+        1.1584,
+        1.15798,
+        1.15796,
+        1.15791,
+        1.15783
+      ],
+      "linkedNewsId": "eurusd-us-nfp-2026-06-12",
+      "lastSeenDays": 5,
+      "confluenceChecks": [
+        "NFP beat",
+        "1h impact",
+        "Red dot"
+      ],
+      "playbook": "NFP beat > 80k vs consensus — typical EUR/USD −18 to −28 pips / 1h.",
+      "brief": {
+        "unusualBecause": [
+          "NFP beat by +92k vs consensus",
+          "Largest hourly move this week",
+          "Impact arrow to reaction low on chart"
+        ],
+        "thesis": "Macro headline on canvas — expand dot for release line and pip measurement.",
+        "confluence": 80
+      },
+      "chartScene": {
+        "version": 1,
+        "instrument": "EUR/USD",
+        "timeframe": "m15",
+        "dataSource": "static",
+        "mainDrawMode": "Line",
+        "scripts": [
+          {
+            "key": "NEWSFEED"
+          },
+          {
+            "key": "RSI",
+            "inputs": {
+              "PERIOD": 14
+            }
+          }
+        ],
+        "highlights": {
+          "newsIds": [
+            "eurusd-us-nfp-2026-06-12"
+          ]
+        },
+        "focus": {
+          "at": "detectedAt",
+          "plotCenterRatio": 0.5
+        }
+      }
+    }
+  ]
+}

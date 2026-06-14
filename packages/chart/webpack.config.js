@@ -40,6 +40,7 @@ module.exports = (_env, argv = {}) => {
       output: {
         filename: "index.js",
         path: distPath,
+        clean: true,
         library: {
           type: "umd",
         },

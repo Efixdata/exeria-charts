@@ -48,7 +48,9 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                 <strong>
                   {projectId === "fintech-integration"
                     ? "Open the consumer demo"
-                    : "Open the live terminal"}
+                    : projectId === "forex-platforms"
+                      ? "Open the live FX radar"
+                      : "Open the live terminal"}
                 </strong>
                 <p>
                   {project.liveAppBlurb ??
@@ -56,7 +58,11 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                 </p>
               </div>
               <Link className={styles.liveAppButton} to={project.liveAppPath}>
-                {projectId === "fintech-integration" ? "Open demo" : "Open live terminal"}{" "}
+                {projectId === "fintech-integration"
+                  ? "Open demo"
+                  : projectId === "forex-platforms"
+                    ? "Open live radar"
+                    : "Open live terminal"}{" "}
                 <span aria-hidden>→</span>
               </Link>
             </div>
@@ -122,6 +128,12 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                 <Link to="/starters/fintech-integration/app-bank">light banking demo</Link>, then
                 scroll to <strong>For developers</strong> to download the ZIP or copy snippets. More
                 recipes in the <Link to="/docs/tutorials/">tutorials</Link>.
+              </>
+            ) : projectId === "forex-platforms" ? (
+              <>
+                Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
+                wire your opportunity API and live FX feed when you are ready. More recipes in the{" "}
+                <Link to="/docs/tutorials/">tutorials</Link>.
               </>
             ) : (
               <>

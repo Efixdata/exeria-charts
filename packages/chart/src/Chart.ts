@@ -12,6 +12,7 @@ import ToolDrawer from "./ToolDrawer";
 import {
   applyChartAppearanceSettings,
   applyChartInstrumentSettings,
+  applyChartLegendSettings,
   applyChartTheme as applyChartThemeColors,
   applyChartVolumeSettings,
   exportChartSettingsTemplate,
@@ -21,6 +22,7 @@ import {
   getChartInstrumentSettings,
   getInstrumentDrawMode as readInstrumentDrawMode,
   getChartFunctionSettings,
+  getChartLegendSettings,
   getChartStrategySettings,
   getChartVolumeSettings,
   importChartSettingsTemplate,
@@ -52,6 +54,7 @@ import type {
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
   ChartInstrumentSettingsItem,
+  ChartLegendSettings,
   ChartSettingsTemplate,
   ChartStrategySettingsItem,
   ChartVolumeSettings,
@@ -1138,6 +1141,18 @@ export default class Chart implements CoreChartController {
       plotter.sellColor = source.sellColor;
     }
 
+    if (typeof source?.neutralColor === "string" && source.neutralColor.length > 0) {
+      plotter.neutralColor = source.neutralColor;
+    }
+
+    if (typeof source?.markerShape === "string" && source.markerShape.length > 0) {
+      plotter.markerShape = source.markerShape;
+    }
+
+    if (typeof source?.width === "number" && source.width > 0) {
+      plotter.width = source.width;
+    }
+
     const fieldKey = plotter.dataField ? String(plotter.dataField) : undefined;
     if (fieldKey && plotterColors?.[fieldKey]) {
       plotter.color = plotterColors[fieldKey];
@@ -1218,6 +1233,7 @@ export default class Chart implements CoreChartController {
       "StrategyObject",
       "CandlestickPatternStrategyObject",
       "FractalsObject",
+      "NewsMarkerObject",
     ]);
 
     for (const panel of this.model.panels) {
@@ -1398,6 +1414,10 @@ export default class Chart implements CoreChartController {
         this.resolvePlotterColorForUi(paneObject?.sellColor) ??
         this.resolvePlotterColorForUi(templatePlotter.sellColor) ??
         this.resolvePlotterColorForUi("sellColor");
+      const resolvedNeutralColor =
+        this.resolvePlotterColorForUi(paneObject?.neutralColor) ??
+        this.resolvePlotterColorForUi(templatePlotter.neutralColor) ??
+        resolvedColor;
 
       plotters.push({
         ...JSON.parse(JSON.stringify(templatePlotter)),
@@ -1407,6 +1427,13 @@ export default class Chart implements CoreChartController {
         color: resolvedColor,
         buyColor: resolvedBuyColor,
         sellColor: resolvedSellColor,
+        neutralColor: resolvedNeutralColor,
+        markerShape:
+          typeof paneObject?.markerShape === "string"
+            ? paneObject.markerShape
+            : typeof templatePlotter.markerShape === "string"
+              ? templatePlotter.markerShape
+              : undefined,
         dash: Array.isArray(paneObject?.dash)
           ? [...(paneObject?.dash as number[])]
           : Array.isArray(templatePlotter.dash)
@@ -1675,6 +1702,7 @@ export default class Chart implements CoreChartController {
 
     this.recalculateScripts();
     await this.rerender();
+    this.emitEvent({ topic: "SCRIPTS_CHANGE", data: {} });
     // this.onResize();
     // if(this.options.controller)
     // 	this.options.controller.chartStructureChanged();
@@ -2102,6 +2130,7 @@ export default class Chart implements CoreChartController {
 
   removeChartIndicator(scriptId: string | number): void {
     removeChartIndicator(this.getChartSettingsHost(), scriptId);
+    this.emitEvent({ topic: "SCRIPTS_CHANGE", data: {} });
   }
 
   getChartFunctionSettings(): ChartFunctionSettingsItem[] {
@@ -2149,6 +2178,14 @@ export default class Chart implements CoreChartController {
 
   getChartVolumeSettings(): ChartVolumeSettings {
     return getChartVolumeSettings(this.getChartSettingsHost());
+  }
+
+  getChartLegendSettings(): ChartLegendSettings {
+    return getChartLegendSettings(this.getChartSettingsHost());
+  }
+
+  applyChartLegendSettings(settings: ChartLegendSettings): void {
+    applyChartLegendSettings(this.getChartSettingsHost(), settings);
   }
 
   applyChartVolumeSettings(settings: ChartVolumeSettings): void {
@@ -2258,6 +2295,23 @@ export default class Chart implements CoreChartController {
 
   setObjectSelectionAllowed(isAllowed: boolean) {
     this.interactor.setObjectSelectionAllowed(isAllowed);
+  }
+
+  requestIndicatorEdit(scriptId: string | number): void {
+    const modelScript = this.objectsManager.getScriptModelById(scriptId);
+    if (!modelScript?.key || modelScript.key === "VOLUME" || modelScript.locked === true) {
+      return;
+    }
+
+    const template = FUSION.getScript(String(modelScript.key));
+    if (!template || !["indicators", "functions", "strategies"].includes(String(template.type))) {
+      return;
+    }
+
+    this.emitEvent({
+      topic: "INDICATOR_EDIT_REQUEST",
+      data: { scriptId },
+    });
   }
 
   getDrawingMagnetEnabled(): boolean {

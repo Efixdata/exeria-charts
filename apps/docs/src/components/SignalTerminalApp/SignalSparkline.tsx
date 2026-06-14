@@ -5,12 +5,19 @@ type SignalSparklineProps = {
   points: number[];
   signalPrice: number;
   side: "buy" | "sell";
+  /** When false, connect closes with straight segments (better for OHLC sparklines). */
+  smooth?: boolean;
 };
 
 const W = 120;
 const H = 36;
 
-export default function SignalSparkline({ points, signalPrice, side }: SignalSparklineProps) {
+export default function SignalSparkline({
+  points,
+  signalPrice,
+  side,
+  smooth = true,
+}: SignalSparklineProps) {
   const gradientId = useId();
   const tone = side === "buy" ? styles.sparkUp : styles.sparkDown;
 
@@ -32,11 +39,17 @@ export default function SignalSparkline({ points, signalPrice, side }: SignalSpa
     const sy = pad + (H - pad * 2) * (1 - (signalPrice - min) / range);
 
     let path = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
-    for (let i = 1; i < coords.length; i += 1) {
-      const prev = coords[i - 1];
-      const cur = coords[i];
-      const midX = (prev.x + cur.x) / 2;
-      path += ` C ${midX.toFixed(1)} ${prev.y.toFixed(1)}, ${midX.toFixed(1)} ${cur.y.toFixed(1)}, ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
+    if (smooth) {
+      for (let i = 1; i < coords.length; i += 1) {
+        const prev = coords[i - 1];
+        const cur = coords[i];
+        const midX = (prev.x + cur.x) / 2;
+        path += ` C ${midX.toFixed(1)} ${prev.y.toFixed(1)}, ${midX.toFixed(1)} ${cur.y.toFixed(1)}, ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
+      }
+    } else {
+      for (let i = 1; i < coords.length; i += 1) {
+        path += ` L ${coords[i].x.toFixed(1)} ${coords[i].y.toFixed(1)}`;
+      }
     }
 
     const last = coords[coords.length - 1];
@@ -44,7 +57,7 @@ export default function SignalSparkline({ points, signalPrice, side }: SignalSpa
     const area = `${path} L ${last.x.toFixed(1)} ${H} L ${first.x.toFixed(1)} ${H} Z`;
 
     return { linePath: path, signalY: sy, areaPath: area };
-  }, [points, signalPrice]);
+  }, [points, signalPrice, smooth]);
 
   if (!linePath) {
     return <div className={styles.sparkEmpty} aria-hidden />;

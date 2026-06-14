@@ -1,0 +1,1426 @@
+.shell {
+  --bg: #141820;
+  --surface: #1a1e28;
+  --surface-raised: #222836;
+  --border: rgba(71, 85, 105, 0.45);
+  --text: #cbd5e1;
+  --muted: #7b8a9a;
+  --muted-strong: #94a3b8;
+  --accent: #d97706;
+  --accent-soft: rgba(217, 119, 6, 0.14);
+  --up: #22c55e;
+  --down: #ef4444;
+  --neutral: #3b82f6;
+  --news-callout-bg: rgba(15, 23, 42, 0.94);
+  --news-callout-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(217, 119, 6, 0.08), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.08), transparent 32%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.45;
+  color-scheme: dark;
+}
+
+.shellLight {
+  /* Aligned with chart preset "day" */
+  --bg: #f0f3fa;
+  --surface: #f0f3fa;
+  --surface-raised: #ffffff;
+  --border: #e0e3eb;
+  --text: #131722;
+  --muted: #787b86;
+  --muted-strong: #5d606b;
+  --accent: #2962ff;
+  --accent-soft: rgba(41, 98, 255, 0.12);
+  --up: #089981;
+  --down: #f23645;
+  --neutral: #2962ff;
+  --news-callout-bg: #ffffff;
+  --news-callout-shadow: 0 12px 32px rgba(19, 23, 34, 0.12);
+  color-scheme: light;
+  background: var(--bg);
+}
+
+.shellLight .topBar,
+.shellLight .leftColumn,
+.shellLight .chartColumn,
+.shellLight .briefPanel,
+.shellLight .briefSlot,
+.shellLight .drawer {
+  background: var(--surface);
+}
+
+.shellLight .filterChipActive,
+.shellLight .tabButtonActive {
+  color: #2962ff;
+  background: #e0eaff;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.shellLight .badge {
+  color: #2962ff;
+}
+
+.shellLight .feedEdge,
+.shellLight .newsCalloutImpact,
+.shellLight .menuSelectOptionActive,
+.shellLight .welcomeStepNum,
+.shellLight .confluenceHeader strong,
+.shellLight .briefScore strong {
+  color: var(--accent);
+}
+
+.shellLight .newsCallout {
+  backdrop-filter: none;
+}
+
+.shellLight .newsCalloutHeadline {
+  color: var(--text);
+}
+
+.shellLight .activityCellActive {
+  outline-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.shellLight .confluenceTrack {
+  background: #e0e3eb;
+}
+
+.shellLight .confluenceFill {
+  background: linear-gradient(90deg, #2962ff, #6d93ff);
+}
+
+.shellLight .confluenceCheckMark,
+.shellLight .dataModeBadge[data-mode="live"] {
+  color: var(--up);
+}
+
+.shellLight .welcomeBanner {
+  background: linear-gradient(90deg, rgba(41, 98, 255, 0.08), transparent);
+}
+
+.shellLight .primaryButton {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  color: #ffffff;
+}
+
+.shellLight .primaryButton:hover {
+  background: #4d7dff;
+}
+
+.shellLight .ghostButton:hover {
+  background: color-mix(in srgb, var(--border) 42%, var(--surface));
+}
+
+.shellLight .chartFrame :global(.UI-container) {
+  padding: 0;
+  background: var(--bg);
+}
+
+.shellLight .codeBlock,
+.shellLight .runSteps {
+  background: #ffffff;
+  color: #3d4f65;
+}
+
+.shellLight .toast {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(19, 23, 34, 0.12);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.625rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.backLink {
+  color: var(--muted-strong);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.brandTitle {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: color-mix(in srgb, var(--accent) 60%, #fff);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.topBarActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.filterBar::-webkit-scrollbar {
+  display: none;
+}
+
+.filterChip {
+  min-height: 2rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.filterChipActive {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: #fde68a;
+}
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(240px, 300px);
+}
+
+.leftColumn {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.feedPanel {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.feedList {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.feedItem {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--surface-raised);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.feedItem:hover {
+  border-color: var(--border);
+}
+
+.feedItemActive {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.feedItemTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.feedCategory {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.feedEdge {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #fde68a;
+}
+
+.feedTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.feedTitle {
+  display: block;
+  font-size: 13px;
+}
+
+.feedPair {
+  margin: 0 0 0.45rem;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.feedMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.feedEmpty {
+  padding: 1rem;
+  color: var(--muted-strong);
+}
+
+.chartColumn {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.chartStack {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.chartFrame {
+  position: relative;
+  z-index: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.chartCanvas {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+}
+
+.chartLoading,
+.chartError {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(20, 24, 32, 0.72);
+  font-size: 13px;
+}
+
+.chartError {
+  color: #fca5a5;
+}
+
+.newsLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: visible;
+}
+
+.newsDot {
+  position: absolute;
+  z-index: 3;
+  width: 11px;
+  height: 11px;
+  margin: -5px 0 0 -5px;
+  border: 2px solid #0f172a;
+  border-radius: 999px;
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 120ms ease;
+}
+
+.newsDot:hover {
+  transform: scale(1.15);
+}
+
+.newsDotActive {
+  transform: scale(1.2);
+}
+
+.newsCalloutBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.newsCallout {
+  position: absolute;
+  z-index: 101;
+  width: min(248px, calc(100% - 24px));
+  padding: 0.75rem 0.85rem;
+  padding-right: 2.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--news-callout-bg);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  box-shadow: var(--news-callout-shadow);
+  color: var(--text);
+}
+
+.newsCalloutActions {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.newsCalloutIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-strong);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.newsCalloutIconBtn:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.newsCalloutMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  font-size: 11px;
+  color: var(--muted-strong);
+}
+
+.newsCalloutDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.newsCalloutHeadline {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+  color: var(--text);
+}
+
+.newsCalloutBody {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+.newsCalloutImpact {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #fde68a;
+}
+
+.marketControls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.marketField,
+.scenarioField {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.marketLabel {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.marketSelect {
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.menuSelect {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.menuSelectTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.menuSelectTrigger:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.menuSelectCaret {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.menuSelectPanel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 7.5rem;
+  padding: 0.35rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  box-shadow: 0 12px 32px color-mix(in srgb, #000 35%, transparent);
+}
+
+.menuSelectOption {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuSelectOption:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.menuSelectOptionActive {
+  color: #fde68a;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--accent-soft);
+}
+
+.dataModeBadge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  color: var(--muted-strong);
+}
+
+.dataModeBadge[data-mode="live"] {
+  border-color: color-mix(in srgb, #22c55e 40%, var(--border));
+  color: #86efac;
+}
+
+.calendarStrip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.calendarItem {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 160px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendarItemActive {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised));
+}
+
+.calendarDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.calendarTitle {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendarTime {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.activityHeatmap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.activityLabel {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.activityCells {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.activityCell {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.activityCellActive {
+  outline: 2px solid #fde68a;
+  outline-offset: 1px;
+}
+
+.strategyStack {
+  border-top: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
+}
+
+.strategyStackTitle {
+  margin: 0 0 0.4rem;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.strategyStackList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.strategyStackList li {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 0.35rem;
+  font-size: 11px;
+  color: var(--muted-strong);
+}
+
+.strategyStackList strong {
+  color: var(--text);
+}
+
+.strategyStackList em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.welcomeBanner {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.1), transparent);
+}
+
+.welcomeEyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.welcomeTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.welcomeLead {
+  margin: 0 0 0.65rem;
+  color: var(--muted-strong);
+  font-size: 13px;
+}
+
+.welcomeSteps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.welcomeSteps li {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+.welcomeStepNum {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: #fde68a;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.welcomeActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.inlineLink {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.confluenceMeter {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+.confluenceHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  font-size: 12px;
+}
+
+.confluenceHeader strong {
+  font-family: var(--mono);
+  color: #fde68a;
+}
+
+.confluenceTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.confluenceFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d97706, #fde68a);
+}
+
+.confluenceChecks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 11px;
+  color: var(--muted-strong);
+}
+
+.confluenceCheckMark {
+  color: #86efac;
+  margin-right: 0.35rem;
+}
+
+.briefLastSeen,
+.briefPlaybook {
+  margin: 0 0 1rem;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+.arbCalculator {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, #f59e0b 35%, var(--border));
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.arbCalculator dl {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.arbCalculator div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 12px;
+}
+
+.arbCalculator dt {
+  color: var(--muted);
+}
+
+.arbCalculator dd {
+  margin: 0;
+  font-family: var(--mono);
+}
+
+.alertPreviewButton {
+  width: 100%;
+  min-height: 2rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.alertPreviewButton:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.tourOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: end center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.tourCard {
+  width: min(420px, 100%);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+
+.tourMeta {
+  margin: 0 0 0.25rem;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tourTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.tourBody {
+  margin: 0 0 0.75rem;
+  font-size: 13px;
+  color: var(--muted-strong);
+}
+
+.tourActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.briefPanel {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.briefSlot {
+  min-height: 0;
+  min-width: 0;
+}
+
+.mobileTabs {
+  display: none;
+  flex-shrink: 0;
+}
+
+.mobileTab {
+  flex: 1 0 auto;
+  min-width: 5.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mobileTabActive {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: #fde68a;
+}
+
+.shellLight .mobileTabActive {
+  color: #2962ff;
+  background: #e0eaff;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.briefEyebrow {
+  margin: 0 0 0.45rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.briefList {
+  margin: 0 0 1rem;
+  padding-left: 1.1rem;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.briefList li + li {
+  margin-top: 0.35rem;
+}
+
+.briefScore {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
+.briefScore strong {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: #fde68a;
+}
+
+.briefThesis {
+  margin-bottom: 1rem;
+}
+
+.briefThesis p:last-child {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.briefNews {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.briefNews strong {
+  display: block;
+  margin-bottom: 0.65rem;
+  font-size: 13px;
+}
+
+.briefNewsMeta {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.briefNewsMeta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 12px;
+}
+
+.briefNewsMeta dt {
+  color: var(--muted);
+}
+
+.briefNewsMeta dd {
+  margin: 0;
+  font-family: var(--mono);
+  color: var(--muted-strong);
+}
+
+.briefEmpty {
+  color: var(--muted-strong);
+}
+
+.ghostButton,
+.primaryButton {
+  min-height: 2rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primaryButton {
+  background: color-mix(in srgb, var(--accent) 85%, #000);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  color: #fff7ed;
+}
+
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 41;
+  width: min(440px, 100vw);
+  height: 100dvh;
+  overflow: auto;
+  padding: 1rem 1.1rem 1.5rem;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.drawerTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.drawerLead {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 13px;
+}
+
+.drawerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.tabButton {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-strong);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tabButtonActive {
+  background: var(--accent-soft);
+  color: #fde68a;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.tabHint {
+  margin: 0 0 0.65rem;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.codeBlock,
+.runSteps {
+  margin: 0;
+  padding: 0.9rem;
+  border-radius: 8px;
+  background: #11151d;
+  border: 1px solid var(--border);
+  color: #d6deeb;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  overflow: auto;
+  white-space: pre;
+}
+
+.runSteps {
+  padding-left: 1.5rem;
+}
+
+.runHeading {
+  margin: 1rem 0 0.5rem;
+  font-size: 13px;
+}
+
+.drawerFooter {
+  margin-top: 1rem;
+  font-size: 12px;
+  color: var(--muted-strong);
+}
+
+.drawerFooter a {
+  color: var(--accent);
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .leftColumn {
+    border-right: 0;
+  }
+
+  .briefSlot {
+    grid-column: 1 / -1;
+  }
+
+  .briefSlot .briefPanel {
+    border-top: 1px solid var(--border);
+    border-right: 0;
+    max-height: min(36dvh, 280px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .topBar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem 0.65rem;
+    padding: 0.5rem max(0.75rem, env(safe-area-inset-right, 0px)) 0.5rem
+      max(0.75rem, env(safe-area-inset-left, 0px));
+  }
+
+  .topBarLeft {
+    min-width: 0;
+  }
+
+  .topBarActions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .marketControls {
+    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.1rem;
+  }
+
+  .marketControls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filterBar,
+  .calendarStrip {
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .filterBar {
+    flex-wrap: nowrap;
+  }
+
+  .filterChip {
+    flex: 0 0 auto;
+  }
+
+  .mobileTabs {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.45rem max(0.75rem, env(safe-area-inset-right, 0px)) 0.45rem
+      max(0.75rem, env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobileTabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .leftColumn,
+  .chartColumn,
+  .briefSlot {
+    display: none;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border-right: 0;
+    border-bottom: 0;
+    max-height: none;
+  }
+
+  .leftColumn.panelVisible,
+  .chartColumn.panelVisible,
+  .briefSlot.panelVisible {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .briefSlot .briefPanel {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    border-top: 0;
+  }
+
+  .chartCanvas {
+    min-height: 0;
+  }
+
+  .welcomeBanner {
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .welcomeActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .toast {
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    width: min(calc(100vw - 2rem), 420px);
+  }
+
+  .tourOverlay {
+    padding: max(1rem, env(safe-area-inset-bottom, 0px)) max(0.75rem, env(safe-area-inset-right, 0px))
+      max(1rem, env(safe-area-inset-left, 0px));
+  }
+}
+
+@media (max-width: 640px) {
+  .badge,
+  .dataModeBadge {
+    display: none;
+  }
+
+  .topBarLeft {
+    gap: 0.45rem;
+  }
+
+  .backLink {
+    font-size: 12px;
+  }
+
+  .brandTitle {
+    font-size: 13px;
+  }
+
+  .ghostButton,
+  .primaryButton,
+  .filterChip,
+  .mobileTab {
+    min-height: 2.5rem;
+  }
+
+  .feedItem {
+    padding: 0.65rem;
+  }
+
+  .calendarItem {
+    min-width: 140px;
+  }
+
+  .briefPanel {
+    padding: 0.85rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .mobileTab {
+    min-width: 4.75rem;
+    padding-inline: 0.45rem;
+    font-size: 11px;
+  }
+}
