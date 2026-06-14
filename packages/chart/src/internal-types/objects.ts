@@ -41,6 +41,7 @@ export type KnownRendererObjectType =
   | "StrategyObject"
   | "CandlestickPatternStrategyObject"
   | "FractalsObject"
+  | "NewsMarkerObject"
   | "IndicatorObject"
   | "TradeObject"
   | "StopLimitObject"
@@ -237,6 +238,7 @@ export interface RendererObjectsRegistry extends Record<string, CoreRendererObje
   StrategyObject: CoreRendererObject;
   CandlestickPatternStrategyObject: CoreRendererObject;
   FractalsObject: CoreRendererObject;
+  NewsMarkerObject: CoreRendererObject;
   IndicatorObject: CoreRendererObject;
   TradeObject: CoreRendererObject;
   StopLimitObject: CoreRendererObject;

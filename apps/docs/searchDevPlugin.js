@@ -9,14 +9,20 @@ const pluginSearchByWorker = path.resolve(
 module.exports = function searchDevPlugin() {
   return {
     name: "search-dev-plugin",
-    configureWebpack() {
+    configureWebpack(config) {
       if (process.env.NODE_ENV === "production") {
         return {};
       }
 
+      const existingAlias =
+        typeof config?.resolve?.alias === "object" && !Array.isArray(config.resolve.alias)
+          ? config.resolve.alias
+          : {};
+
       return {
         resolve: {
           alias: {
+            ...existingAlias,
             [pluginSearchByWorker]: path.resolve(__dirname, "src/search/searchByWorker.ts"),
           },
         },

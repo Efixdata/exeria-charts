@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-eur-usd",
+  "instrument": "EUR/USD",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "events": [
+    {
+      "id": "eurusd-ecb-hold-2026-06-04",
+      "instrument": "EUR/USD",
+      "releasedAt": 1780416000000,
+      "source": {
+        "name": "ECB",
+        "url": "https://www.ecb.europa.eu"
+      },
+      "title": "ECB holds rates at 4.50%",
+      "summary": "No change in the main refinancing rate. Statement balanced — euro fades the initial spike as markets price fewer cuts this year.",
+      "url": "https://www.ecb.europa.eu/press/pr/date/2026/html/index.en.html",
+      "sentiment": "neutral",
+      "importance": "high",
+      "categories": ["central-bank", "rates"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": -3.2, "direction": "down" },
+        { "horizon": "1h", "pips": -5.8, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurusd-lagarde-hawkish-2026-06-04",
+      "instrument": "EUR/USD",
+      "releasedAt": 1780607700000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "Lagarde: disinflation ahead of schedule",
+      "summary": "Hawkish tone on EUR resilience — cable and fiber bid euro crosses after the press conference.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["central-bank", "speech"],
+      "impact": [
+        { "horizon": "15m", "pips": 4.1, "direction": "up" },
+        { "horizon": "1h", "pips": 7.5, "direction": "up" }
+      ]
+    },
+    {
+      "id": "eurusd-us-cpi-hot-2026-06-05",
+      "instrument": "EUR/USD",
+      "releasedAt": 1780698600000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "US CPI +0.4% m/m vs +0.3% exp",
+      "summary": "Hotter inflation print pressures EUR/USD lower as Fed-cut bets are pushed out. Dollar strength broad-based across G10.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": -18.4, "direction": "down" },
+        { "horizon": "1h", "pips": -24.6, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurusd-eu-pmi-beat-2026-06-08",
+      "instrument": "EUR/USD",
+      "releasedAt": 1780953300000,
+      "source": {
+        "name": "S&P Global",
+        "url": "https://www.spglobal.com"
+      },
+      "title": "EU PMIs beat — services expansion",
+      "summary": "Activity surprise supports EUR after soft US data earlier in the week. Composite PMI back above the 50 line.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["pmi", "activity"],
+      "impact": [
+        { "horizon": "15m", "pips": 6.2, "direction": "up" },
+        { "horizon": "1h", "pips": 9.8, "direction": "up" }
+      ]
+    },
+    {
+      "id": "eurusd-us-nfp-2026-06-12",
+      "instrument": "EUR/USD",
+      "releasedAt": 1781234100000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "US NFP +272k vs +180k expected",
+      "summary": "Dollar strength broad-based. EUR/USD breaks session range to the downside on the payroll surprise.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["employment", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": -12.7, "direction": "down" },
+        { "horizon": "1h", "pips": -8.3, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurusd-ecb-wieland-2026-06-02",
+      "instrument": "EUR/USD",
+      "releasedAt": 1780308000000,
+      "source": {
+        "name": "ECB",
+        "url": "https://www.ecb.europa.eu"
+      },
+      "title": "ECB's Schnabel warns on sticky services inflation",
+      "summary": "Pre-meeting rhetoric leans hawkish. EUR/USD holds bid into the Thursday policy decision.",
+      "sentiment": "positive",
+      "importance": "low",
+      "categories": ["central-bank", "speech"],
+      "impact": [
+        { "horizon": "15m", "pips": 1.8, "direction": "up" },
+        { "horizon": "1h", "pips": 2.4, "direction": "up" }
+      ]
+    },
+    {
+      "id": "eurusd-us-claims-2026-06-11",
+      "instrument": "EUR/USD",
+      "releasedAt": 1781146800000,
+      "source": {
+        "name": "US DOL",
+        "url": "https://www.dol.gov"
+      },
+      "title": "US jobless claims fall to cycle low",
+      "summary": "Tight labour market keeps USD supported into Friday NFP. EUR/USD drifts lower in NY afternoon.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["employment"],
+      "impact": [
+        { "horizon": "15m", "pips": -2.9, "direction": "down" },
+        { "horizon": "1h", "pips": -4.1, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurusd-nfp-follow-2026-06-12",
+      "instrument": "EUR/USD",
+      "releasedAt": 1781241300000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "EUR/USD stabilizes after NFP whipsaw",
+      "summary": "Profit-taking caps the dollar rally. Pair consolidates above 1.1570 as London fixes pass.",
+      "sentiment": "neutral",
+      "importance": "low",
+      "categories": ["market-color"],
+      "impact": [
+        { "horizon": "15m", "pips": 3.5, "direction": "up" },
+        { "horizon": "1h", "pips": 5.1, "direction": "up" }
+      ]
+    }
+  ]
+}

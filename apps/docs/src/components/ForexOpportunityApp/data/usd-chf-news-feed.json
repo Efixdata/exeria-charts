@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-usd-chf",
+  "instrument": "USD/CHF",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "events": [
+    {
+      "id": "usdchf-snb-rhetoric-2026-06-01",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780297200000,
+      "source": {
+        "name": "SNB",
+        "url": "https://www.snb.ch"
+      },
+      "title": "SNB's Schlegel: franc still too strong",
+      "summary": "Officials push back on CHF appreciation. USD/CHF lifts as intervention risk priced for EUR/CHF leg.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["central-bank", "fx-policy"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": 5.2, "direction": "up" },
+        { "horizon": "1h", "pips": 7.8, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdchf-safe-haven-bid-2026-06-02",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780416000000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "Risk-off flows lift franc despite higher USD",
+      "summary": "Equity dip sends CHF bid on crosses. USD/CHF chops as dual safe-haven flows collide.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["risk-sentiment", "flows"],
+      "impact": [
+        { "horizon": "15m", "pips": -4.6, "direction": "down" },
+        { "horizon": "1h", "pips": -6.9, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdchf-swiss-cpi-soft-2026-06-03",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780466400000,
+      "source": {
+        "name": "FSO",
+        "url": "https://www.bfs.admin.ch"
+      },
+      "title": "Swiss CPI +0.1% m/m vs +0.2% expected",
+      "summary": "Disinflation surprise reduces SNB tightening bets. Franc softens — USD/CHF grinds higher.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 8.4, "direction": "up" },
+        { "horizon": "1h", "pips": 11.7, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdchf-us-data-usd-bid-2026-06-05",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780648200000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "US activity beats lift dollar bloc",
+      "summary": "CHF lags as USD outperforms on growth divergence. Pair clears 0.7890 resistance.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["growth", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 6.1, "direction": "up" },
+        { "horizon": "1h", "pips": 9.3, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdchf-us-cpi-chf-lag-2026-06-05",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780698600000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "Hot US CPI — USD/CHF outruns EUR/CHF",
+      "summary": "Dollar leg dominates as franc fails to catch full safe-haven bid. Rate differential trade extends.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 10.5, "direction": "up" },
+        { "horizon": "1h", "pips": 14.2, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdchf-snb-jordan-2026-06-08",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780953300000,
+      "source": {
+        "name": "SNB",
+        "url": "https://www.snb.ch"
+      },
+      "title": "SNB Jordan: ready to act on excessive CHF strength",
+      "summary": "Verbal FX guidance caps franc gains. USD/CHF dips as markets price latent SNB sales.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["central-bank", "fx-policy"],
+      "impact": [
+        { "horizon": "15m", "pips": -7.8, "direction": "down" },
+        { "horizon": "1h", "pips": -5.4, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdchf-geopol-risk-bid-2026-06-09",
+      "instrument": "USD/CHF",
+      "releasedAt": 1780993800000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Geopolitical headlines revive CHF haven demand",
+      "summary": "Franc outperforms dollar briefly on flight-to-quality flows. USD/CHF retraces toward 0.7970.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["risk-sentiment", "geopolitics"],
+      "impact": [
+        { "horizon": "15m", "pips": -5.9, "direction": "down" },
+        { "horizon": "1h", "pips": -8.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdchf-nfp-usd-surge-2026-06-12",
+      "instrument": "USD/CHF",
+      "releasedAt": 1781234100000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "NFP beat powers USD/CHF through 0.8000",
+      "summary": "Payrolls surprise overwhelms haven franc bid. Pair posts largest hourly gain of the week.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["employment", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 12.6, "direction": "up" },
+        { "horizon": "1h", "pips": 16.4, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdchf-snb-pushback-2026-06-12",
+      "instrument": "USD/CHF",
+      "releasedAt": 1781241300000,
+      "source": {
+        "name": "SNB",
+        "url": "https://www.snb.ch"
+      },
+      "title": "USD/CHF fades as SNB watchers cite intervention risk",
+      "summary": "Profit-taking after 0.80 test. Officials repeat willingness to sell franc if needed — pair slips sub-0.7960.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["fx-policy", "market-color"],
+      "impact": [
+        { "horizon": "15m", "pips": -8.7, "direction": "down" },
+        { "horizon": "1h", "pips": -6.1, "direction": "down" }
+      ]
+    }
+  ]
+}

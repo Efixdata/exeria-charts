@@ -20,6 +20,7 @@ import type {
   ChartInstrumentSettingsItem,
   ChartLineFillMode,
   ChartIndicatorSettingsItem,
+  ChartLegendSettings,
   ChartStrategySettingsItem,
   ChartVolumeColorMode,
   ChartVolumeSettings,
@@ -81,6 +82,8 @@ type ChartWithSettings = NullableChartInstance & {
   getInstrument?: () => { symbol?: string } | undefined;
   getChartVolumeSettings?: () => ChartVolumeSettings;
   applyChartVolumeSettings?: (settings: ChartVolumeSettings) => void;
+  getChartLegendSettings?: () => ChartLegendSettings;
+  applyChartLegendSettings?: (settings: ChartLegendSettings) => void;
   getChartIndicatorSettings?: () => ChartIndicatorSettingsItem[];
   setChartIndicatorVisibility?: (scriptId: string | number, visible: boolean) => void;
   setChartIndicatorPriceTagVisibility?: (scriptId: string | number, visible: boolean) => void;
@@ -215,6 +218,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
   const [appearance, setAppearance] = useState<ChartAppearanceSettings | null>(null);
   const [instrumentSettings, setInstrumentSettings] = useState<ChartInstrumentSettingsItem[]>([]);
   const [volume, setVolume] = useState<ChartVolumeSettings | null>(null);
+  const [legend, setLegend] = useState<ChartLegendSettings | null>(null);
   const [indicators, setIndicators] = useState<ChartIndicatorSettingsItem[]>([]);
   const [functions, setFunctions] = useState<ChartFunctionSettingsItem[]>([]);
   const [strategies, setStrategies] = useState<ChartStrategySettingsItem[]>([]);
@@ -238,6 +242,7 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
       setMainDrawMode(chart.getInstrumentDrawMode(mainSeriesId));
     }
     setVolume(chart.getChartVolumeSettings?.() ?? null);
+    setLegend(chart.getChartLegendSettings?.() ?? null);
     setIndicators(chart.getChartIndicatorSettings?.() ?? []);
     setFunctions(chart.getChartFunctionSettings?.() ?? []);
     setStrategies(chart.getChartStrategySettings?.() ?? []);
@@ -272,10 +277,14 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
         refreshFromChart();
       },
     );
+    const scriptsSubscription = chart.subscribe("SCRIPTS_CHANGE", () => {
+      refreshFromChart();
+    });
 
     return () => {
       unsubscribeChartTopic(localeSubscription);
       unsubscribeChartTopic(drawModeSubscription);
+      unsubscribeChartTopic(scriptsSubscription);
     };
   }, [chart, refreshFromChart]);
 
@@ -349,6 +358,17 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
     const next = { ...volume, ...patch };
     setVolume(next);
     chart.applyChartVolumeSettings(next);
+  };
+
+  const applyLegend = (patch: Partial<ChartLegendSettings>) => {
+    if (!legend || !chart?.applyChartLegendSettings) {
+      return;
+    }
+
+    setActivePresetId(null);
+    const next = { ...legend, ...patch };
+    setLegend(next);
+    chart.applyChartLegendSettings(next);
   };
 
   const applyPreset = (presetId: string) => {
@@ -973,6 +993,33 @@ export const ChartSettingsDialog = (props: ChartSettingsDialogProps) => {
               t("chart_settings_last_price_label_hint"),
               appearance.lastPriceLabelVisible,
               (lastPriceLabelVisible) => applyAppearance({ lastPriceLabelVisible }),
+              t("action_show"),
+              t("action_hide"),
+            )}
+          </DialogSection>
+
+          <DialogSection title={t("chart_settings_legend")} hint={t("chart_settings_legend_hint")}>
+            {renderToggle(
+              t("chart_settings_legend_main_instrument"),
+              t("chart_settings_legend_main_instrument_hint"),
+              legend?.mainInstrumentVisible ?? true,
+              (mainInstrumentVisible) => applyLegend({ mainInstrumentVisible }),
+              t("action_show"),
+              t("action_hide"),
+            )}
+            {renderToggle(
+              t("chart_settings_legend_overlay_instruments"),
+              t("chart_settings_legend_overlay_instruments_hint"),
+              legend?.overlayInstrumentsVisible ?? true,
+              (overlayInstrumentsVisible) => applyLegend({ overlayInstrumentsVisible }),
+              t("action_show"),
+              t("action_hide"),
+            )}
+            {renderToggle(
+              t("chart_settings_legend_indicators"),
+              t("chart_settings_legend_indicators_hint"),
+              legend?.indicatorsVisible ?? true,
+              (indicatorsVisible) => applyLegend({ indicatorsVisible }),
               t("action_show"),
               t("action_hide"),
             )}

@@ -43,6 +43,43 @@ export {
   isModelCompactLayout,
 } from "./utils/compactLayout";
 export { Chart };
+export {
+  clearExternalNewsFeed,
+  findExternalNewsFeedPoint,
+  getExternalNewsFeed,
+  setExternalNewsFeed,
+  type ExternalNewsFeedPoint,
+  type ExternalNewsSentiment,
+} from "./externalNewsFeed";
+export type {
+  NewsFeedAdapter,
+  NewsFeedBundle,
+  NewsFeedImpactDirection,
+  NewsFeedImpactHorizon,
+  NewsFeedImpactMeasure,
+  NewsFeedImportance,
+  NewsFeedPage,
+  NewsFeedQuery,
+  NewsFeedRecord,
+  NewsFeedSentiment,
+  NewsFeedSource,
+} from "./newsFeedTypes";
+export type {
+  ArbChartScene,
+  ArbMetrics,
+  ArbSignalBundle,
+  ArbSignalCategory,
+  ArbSignalQuery,
+  ArbSignalRecord,
+} from "./arbSignalTypes";
+export {
+  clearInstrumentNewsFeed,
+  getNewsFeedEvent,
+  getNewsFeedEventByBarIndex,
+  mapNewsFeedToMarkerPoints,
+  resolveNewsBarIndex,
+  setInstrumentNewsFeed,
+} from "./newsFeedRuntime";
 
 export function createChart(options: ChartOptions): ChartInstance {
 	return new Chart(options);

@@ -1,0 +1,39 @@
+{
+  "endStamp": 1781307900000,
+  "candleCount": 1000,
+  "pairs": [
+    "EUR/USD",
+    "GBP/USD",
+    "USD/JPY",
+    "USD/CHF",
+    "EUR/GBP"
+  ],
+  "timeframes": [
+    "m15",
+    "h1"
+  ],
+  "files": [
+    "eur-usd-m15.json",
+    "eur-usd-h1.json",
+    "gbp-usd-m15.json",
+    "gbp-usd-h1.json",
+    "usd-jpy-m15.json",
+    "usd-jpy-h1.json",
+    "usd-chf-m15.json",
+    "usd-chf-h1.json",
+    "eur-gbp-m15.json",
+    "eur-gbp-h1.json"
+  ],
+  "sources": {
+    "eur-usd-m15.json": "twelvedata",
+    "eur-usd-h1.json": "twelvedata",
+    "gbp-usd-m15.json": "twelvedata",
+    "gbp-usd-h1.json": "twelvedata",
+    "usd-jpy-m15.json": "twelvedata",
+    "usd-jpy-h1.json": "twelvedata",
+    "usd-chf-m15.json": "twelvedata",
+    "usd-chf-h1.json": "twelvedata",
+    "eur-gbp-m15.json": "twelvedata",
+    "eur-gbp-h1.json": "twelvedata"
+  }
+}

@@ -21,6 +21,7 @@ import {
   showPropertiesDialog,
 } from "./adapters/propertiesDialog";
 import { renderPriceText, measurePriceTextWidth, roundAndTranslate } from "./utils/objects-lib";
+import { findExternalNewsFeedPoint } from "./externalNewsFeed";
 import { logChartInteraction } from "./utils/interactionDebug";
 import { runWithChartLocale } from "./chartLocaleRuntime";
 import type { ChartConfig } from "./types";
@@ -141,6 +142,9 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.lastDragWasChartPan = false;
   this.currentStagingObject = null;
   this.suppressDrawingEditDoubleClick = false;
+  this.pressedNewsMarker = null as { type?: string; _hit?: false | { x: number; y: number } } | null;
+  this.pressedNewsMarkerBarIndex = null as number | null;
+  this.pendingNewsMarkerClick = null as { barIndex: number; eventId?: string } | null;
   this.model = model;
   this.renderer = renderer;
   this.isObjectSelectionAllowed = true;
@@ -282,6 +286,9 @@ var InteractionsController: CoreInteractorConstructor = function (
     self.valueAxisClicked = false;
     self.touchGestureMoved = false;
     self.lastDragWasChartPan = false;
+    self.pressedNewsMarker = null;
+    self.pressedNewsMarkerBarIndex = null;
+    self.pendingNewsMarkerClick = null;
     self.isRightButton = false;
     self.isRightButtonDrag = false;
   };
@@ -1118,6 +1125,29 @@ var InteractionsController: CoreInteractorConstructor = function (
       self.currentMode.onMouseDown(e);
     }
 
+    if (self.currentHitObject?.type === "NewsMarkerObject") {
+      self.pressedNewsMarker = self.currentHitObject;
+      const markerBarIndex = (self.currentHitObject as { _newsBarIndex?: number })._newsBarIndex;
+      self.pressedNewsMarkerBarIndex =
+        typeof markerBarIndex === "number" ? markerBarIndex : null;
+      if (typeof markerBarIndex === "number") {
+        const feedPoint = findExternalNewsFeedPoint(markerBarIndex);
+        const sourceEvent = (e as { srcEvent?: MouseEvent }).srcEvent ?? e;
+        self.pendingNewsMarkerClick = {
+          barIndex: markerBarIndex,
+          eventId: feedPoint?.id,
+          clientX: sourceEvent.clientX,
+          clientY: sourceEvent.clientY,
+        };
+      } else {
+        self.pendingNewsMarkerClick = null;
+      }
+    } else {
+      self.pressedNewsMarker = null;
+      self.pressedNewsMarkerBarIndex = null;
+      self.pendingNewsMarkerClick = null;
+    }
+
     self.controller.renderOverlay();
   };
 
@@ -1203,6 +1233,43 @@ var InteractionsController: CoreInteractorConstructor = function (
     }, 280);
   };
 
+  const emitNewsFeedIndicatorEdit = function (hitObject: {
+    type?: string;
+    dataLink?: string;
+  } | null) {
+    if (!hitObject?.dataLink || hitObject.type !== "NewsMarkerObject") {
+      return false;
+    }
+
+    const scriptController = self.controller.objectsManager.isThisSeriesOutputOfScript(
+      String(hitObject.dataLink),
+    );
+    if (!scriptController?.id) {
+      return false;
+    }
+
+    const modelScript = self.controller.objectsManager.getScriptModelById(scriptController.id);
+    if (modelScript?.locked === true) {
+      return false;
+    }
+
+    const scriptKey = modelScript?.key;
+    if (typeof scriptKey !== "string" || scriptKey === "VOLUME") {
+      return false;
+    }
+
+    const template = FUSION.getScript(scriptKey);
+    if (!template || !["indicators", "functions", "strategies"].includes(String(template.type))) {
+      return false;
+    }
+
+    self.controller.emitEvent({
+      topic: "INDICATOR_EDIT_REQUEST",
+      data: { scriptId: scriptController.id },
+    });
+    return true;
+  };
+
   this.onDoubleClick = function (e: MouseEvent) {
     if (self.controller.isChartEmpty(self.chart)) return;
 
@@ -1242,6 +1309,12 @@ var InteractionsController: CoreInteractorConstructor = function (
       return;
     }
 
+    if (hitObject.type === "NewsMarkerObject" && emitNewsFeedIndicatorEdit(hitObject)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     const shapeRenderer = self.controller.renderer.objects[hitObject.type];
     if (shapeRenderer && typeof shapeRenderer.renderAnchorsOverlay === "function") {
       self.controller.emitEvent({
@@ -1259,6 +1332,7 @@ var InteractionsController: CoreInteractorConstructor = function (
       "StrategyObject",
       "CandlestickPatternStrategyObject",
       "FractalsObject",
+      "NewsMarkerObject",
     ];
     if (!hitObject.dataLink || !scriptPlotterTypes.includes(String(hitObject.type))) {
       return;
@@ -1314,6 +1388,16 @@ var InteractionsController: CoreInteractorConstructor = function (
     const sourceEvent = evt ?? e;
     const isStagingPlacement =
       self.currentMode.symbol === "STAGING" && self.currentStagingObject != null;
+
+    if (self.pendingNewsMarkerClick && !self.controller.isChartEmpty(self.chart)) {
+      self.controller.emitEvent({
+        topic: "NEWS_FEED_MARKER_CLICK",
+        data: self.pendingNewsMarkerClick,
+      });
+      self.pendingNewsMarkerClick = null;
+      self.pressedNewsMarker = null;
+      self.pressedNewsMarkerBarIndex = null;
+    }
 
     if (!self.isMouseDown && !isStagingPlacement) {
       return;
@@ -1376,6 +1460,9 @@ var InteractionsController: CoreInteractorConstructor = function (
       isMouseDown: self.isMouseDown,
       viewportLeft: self.model.viewportLeft,
     });
+
+    self.pressedNewsMarker = null;
+    self.pressedNewsMarkerBarIndex = null;
 
     self.initialMouseEvent = null;
     self.touchGestureMoved = false;
@@ -2077,8 +2164,22 @@ var InteractionsController: CoreInteractorConstructor = function (
     if (!this.isObjectSelectionAllowed) return null;
 
     var lastObjectIndex = this.currentPanel.objects.length - 1;
+    for (var newsIndex = lastObjectIndex; newsIndex > -1; --newsIndex) {
+      const candidate = this.currentPanel.objects[newsIndex];
+      if (candidate?.type !== "NewsMarkerObject") {
+        continue;
+      }
+      if (this.hit(x, y, candidate)) {
+        return candidate;
+      }
+    }
+
     for (var i = lastObjectIndex; i > -1; --i) {
-      if (this.hit(x, y, this.currentPanel.objects[i])) return this.currentPanel.objects[i];
+      const candidate = this.currentPanel.objects[i];
+      if (candidate?.type === "NewsMarkerObject") {
+        continue;
+      }
+      if (this.hit(x, y, candidate)) return candidate;
     }
 
     return null;
@@ -2667,6 +2768,13 @@ function DefaultTool(this: CoreInteractionMode, interactor: CoreInteractor) {
     this.finishEvent = e;
 
     if (interactor.currentHandler > -1) return this.interactor.onDragHandler(e);
+
+    if (
+      interactor.pressedNewsMarker?.type === "NewsMarkerObject" ||
+      typeof interactor.pressedNewsMarkerBarIndex === "number"
+    ) {
+      return;
+    }
 
     const hitObject = interactor.currentHitObject;
     if (

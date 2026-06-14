@@ -23,7 +23,6 @@ const config: Config = {
     locales: ["en"],
   },
   plugins: [
-    require("./chartUiMonorepoPlugin"),
     require("./apiProxyPlugin"),
     require("./searchDevPlugin"),
     legacyRedirectsPlugin,
@@ -41,6 +40,7 @@ const config: Config = {
         highlightSearchTermsOnTargetPage: true,
       },
     ],
+    require("./chartUiMonorepoPlugin"),
   ],
   presets: [
     [

@@ -122,7 +122,8 @@ export default class ObjectsManager {
       object.type === "SeriesObject" ||
       object.type === "StrategyObject" ||
       object.type === "CandlestickPatternStrategyObject" ||
-      object.type === "FractalsObject"
+      object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
     ) {
       this.detachSeriesObject(object);
     } else {
@@ -152,7 +153,8 @@ export default class ObjectsManager {
           object.type === "SeriesObject" ||
           object.type === "StrategyObject" ||
           object.type === "CandlestickPatternStrategyObject" ||
-          object.type === "FractalsObject"
+          object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
         ) {
           const script = this.isThisSeriesOutputOfScript(object.dataLink);
           if (script) {
@@ -204,7 +206,8 @@ export default class ObjectsManager {
           object.type === "SeriesObject" ||
           object.type === "StrategyObject" ||
           object.type === "CandlestickPatternStrategyObject" ||
-          object.type === "FractalsObject"
+          object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
       ).length;
       if (count === 0) {
         this.chart.removePanelFromModel(panels[index]);

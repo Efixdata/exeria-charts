@@ -6,6 +6,7 @@ const { registerMassiveRoutes } = require("./server/massiveProxy.cjs");
 const { registerCoinbaseRoutes } = require("./server/coinbaseProxy.cjs");
 const { registerEodhdRoutes } = require("./server/eodhdProxy.cjs");
 const { registerGateRoutes } = require("./server/gateProxy.cjs");
+const { registerNewsFeedRoutes } = require("./server/newsFeedProxy.cjs");
 
 /**
  * Registers all docs API proxy routes during `docusaurus start`.
@@ -32,6 +33,7 @@ module.exports = function apiProxyPlugin() {
               registerCoinbaseRoutes(devServer.app);
               registerEodhdRoutes(devServer.app);
               registerGateRoutes(devServer.app);
+              registerNewsFeedRoutes(devServer.app);
             }
 
             return middlewares;

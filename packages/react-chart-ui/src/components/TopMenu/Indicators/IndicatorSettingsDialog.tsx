@@ -107,6 +107,8 @@ const STRATEGY_PLOTTER_TYPES = new Set([
   "FractalsObject",
 ]);
 
+const NEWS_MARKER_PLOTTER_TYPES = new Set(["NewsMarkerObject"]);
+
 const LayerIconToggle = (props: {
   active: boolean;
   label: string;
@@ -137,6 +139,7 @@ const LayerIconToggle = (props: {
 
 const DEFAULT_STRATEGY_BUY_COLOR = "#3CC3AF";
 const DEFAULT_STRATEGY_SELL_COLOR = "#CE3E5B";
+const DEFAULT_NEWS_MARKER_NEUTRAL_COLOR = "#3b82f6";
 const DEFAULT_CANDLE_UP_COLOR = "#3CC3AF";
 const DEFAULT_CANDLE_DOWN_COLOR = "#CE3E5B";
 const DEFAULT_CANDLE_UP_STROKE_COLOR = "#2A9D8F";
@@ -150,6 +153,9 @@ const isOhlcPlotter = (plotter: IndicatorPlotter) =>
 
 const isStrategyPlotter = (plotter: IndicatorPlotter) =>
   plotter.type != null && STRATEGY_PLOTTER_TYPES.has(String(plotter.type));
+
+const isNewsMarkerPlotter = (plotter: IndicatorPlotter) =>
+  plotter.type != null && NEWS_MARKER_PLOTTER_TYPES.has(String(plotter.type));
 
 type ScriptCatalogType = "indicators" | "functions" | "strategies";
 
@@ -280,6 +286,41 @@ const mergePlottersForDialog = (
               ? templatePlotter.sellColor
               : DEFAULT_STRATEGY_SELL_COLOR,
         ),
+      };
+    }
+
+    if (isNewsMarkerPlotter(plotter)) {
+      return {
+        ...plotter,
+        buyColor: normalizeHexColor(
+          typeof plotter.buyColor === "string"
+            ? plotter.buyColor
+            : typeof templatePlotter?.buyColor === "string"
+              ? templatePlotter.buyColor
+              : DEFAULT_STRATEGY_BUY_COLOR,
+        ),
+        sellColor: normalizeHexColor(
+          typeof plotter.sellColor === "string"
+            ? plotter.sellColor
+            : typeof templatePlotter?.sellColor === "string"
+              ? templatePlotter.sellColor
+              : DEFAULT_STRATEGY_SELL_COLOR,
+        ),
+        neutralColor: normalizeHexColor(
+          typeof plotter.neutralColor === "string"
+            ? plotter.neutralColor
+            : typeof templatePlotter?.neutralColor === "string"
+              ? templatePlotter.neutralColor
+              : typeof plotter.color === "string"
+                ? plotter.color
+                : DEFAULT_NEWS_MARKER_NEUTRAL_COLOR,
+        ),
+        markerShape:
+          typeof plotter.markerShape === "string"
+            ? plotter.markerShape
+            : typeof templatePlotter?.markerShape === "string"
+              ? templatePlotter.markerShape
+              : "Circle",
       };
     }
 
@@ -417,6 +458,29 @@ const buildAddScriptPayload = (
 
   if (layerSettings) {
     applyLayerSettingsToPlotters(plotters, layerSettings);
+  }
+
+  const markerShapeInput = config.inputs?.MARKER_SHAPE?.value;
+  const markerSizeRaw = config.inputs?.MARKER_SIZE?.value;
+  const markerSizeInput =
+    typeof markerSizeRaw === "number"
+      ? markerSizeRaw
+      : typeof markerSizeRaw === "string"
+        ? parseInt(markerSizeRaw, 10)
+        : null;
+
+  for (const plotter of plotters) {
+    if (!isNewsMarkerPlotter(plotter)) {
+      continue;
+    }
+
+    if (typeof markerShapeInput === "string" && markerShapeInput.length > 0) {
+      plotter.markerShape = markerShapeInput;
+    }
+
+    if (typeof markerSizeInput === "number" && markerSizeInput > 0) {
+      plotter.width = markerSizeInput;
+    }
   }
 
   return {
@@ -671,6 +735,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       index: number;
     } =>
       !isStrategyPlotter(entry.plotter) &&
+      !isNewsMarkerPlotter(entry.plotter) &&
       !isBandPlotter(entry.plotter) &&
       !isOhlcPlotter(entry.plotter) &&
       typeof entry.plotter.color === "string" &&
@@ -682,6 +747,10 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   const ohlcPlotterEntries = plotterEntries.filter((entry) => isOhlcPlotter(entry.plotter));
 
   const strategyPlotterEntries = plotterEntries.filter((entry) => isStrategyPlotter(entry.plotter));
+
+  const newsMarkerPlotterEntries = plotterEntries.filter((entry) =>
+    isNewsMarkerPlotter(entry.plotter),
+  );
 
   const renderParameterInputs = () => {
     const inputs: (JSX.Element | null)[] = [];
@@ -745,6 +814,42 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     }
 
     plotter.sellColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerBuyColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.buyColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerSellColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.sellColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerNeutralColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.neutralColor = normalizeHexColor(value);
     setConfig({ ...config, plotters });
   };
 
@@ -1039,6 +1144,54 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
             label={`${label} — ${resolvedSellLabel}`}
             value={sellColor}
             onChange={(value) => onStrategySellColorChange(index, value)}
+          />
+        </div>
+      );
+    });
+
+  const renderNewsMarkerColorInputs = () =>
+    newsMarkerPlotterEntries.map(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const positiveColor = normalizeHexColor(
+        typeof plotter.buyColor === "string" ? plotter.buyColor : DEFAULT_STRATEGY_BUY_COLOR,
+      );
+      const negativeColor = normalizeHexColor(
+        typeof plotter.sellColor === "string" ? plotter.sellColor : DEFAULT_STRATEGY_SELL_COLOR,
+      );
+      const neutralColor = normalizeHexColor(
+        typeof plotter.neutralColor === "string"
+          ? plotter.neutralColor
+          : DEFAULT_NEWS_MARKER_NEUTRAL_COLOR,
+      );
+      const positiveLabel = translate("newsFeedPositiveColor");
+      const negativeLabel = translate("newsFeedNegativeColor");
+      const neutralLabel = translate("newsFeedNeutralColor");
+      const resolvedPositiveLabel =
+        positiveLabel !== "newsFeedPositiveColor" ? positiveLabel : "Positive";
+      const resolvedNegativeLabel =
+        negativeLabel !== "newsFeedNegativeColor" ? negativeLabel : "Negative";
+      const resolvedNeutralLabel =
+        neutralLabel !== "newsFeedNeutralColor" ? neutralLabel : "Neutral";
+
+      return (
+        <div
+          key={`news-marker-colors-${index}-${plotter.dataField || "news"}`}
+          className={dialogSectionStyles.fieldRow}
+        >
+          <ColorField
+            label={`${label} — ${resolvedPositiveLabel}`}
+            value={positiveColor}
+            onChange={(value) => onNewsMarkerBuyColorChange(index, value)}
+          />
+          <ColorField
+            label={`${label} — ${resolvedNegativeLabel}`}
+            value={negativeColor}
+            onChange={(value) => onNewsMarkerSellColorChange(index, value)}
+          />
+          <ColorField
+            label={`${label} — ${resolvedNeutralLabel}`}
+            value={neutralColor}
+            onChange={(value) => onNewsMarkerNeutralColorChange(index, value)}
           />
         </div>
       );
@@ -1356,7 +1509,8 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       linePlotterEntries.length > 0 ||
       bandPlotterEntries.length > 0 ||
       ohlcPlotterEntries.length > 0 ||
-      strategyPlotterEntries.length > 0;
+      strategyPlotterEntries.length > 0 ||
+      newsMarkerPlotterEntries.length > 0;
     const hasPanelSelector = props.chart != null && buildPanelOptions(props.chart, translate).length > 0;
     const showAppearanceSection = hasAppearanceFields || hasPanelSelector;
     return (
@@ -1387,6 +1541,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
                   {renderBandFillInputs()}
                   {renderOhlcCandleColorInputs()}
                   {renderStrategyArrowColorInputs()}
+                  {renderNewsMarkerColorInputs()}
                 </div>
               ) : null}
               {renderPanelSelector()}

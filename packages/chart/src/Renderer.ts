@@ -1,4 +1,5 @@
 import WEBRCP from "./WebRCP";
+import { isChartLegendVisibleForObject } from "./chartLegendVisibility";
 import { resolveChartLocaleMessage, resolveCatalogLocaleMessage } from "./chartLocaleRuntime";
 import { getCatalogTypeForScriptId } from "./locale/catalogTranslator";
 import LIB from "./utils/chartingCommons";
@@ -9,6 +10,7 @@ import {
   IndicatorObject,
   CandlestickPatternStrategyObject,
   FractalsObject,
+  NewsMarkerObject,
   TradeObject,
   StopLimitObject,
   MovePaneArrows,
@@ -307,6 +309,7 @@ const Renderer: CoreRendererConstructor = function (
   var series = new Series(); //instancja bazowa
   SeriesObject.prototype = series;
   StrategyObject.prototype = series;
+  NewsMarkerObject.prototype = series;
   IndicatorObject.prototype = series;
 
   var shape = new Shape(); //instancja bazowa
@@ -354,6 +357,7 @@ const Renderer: CoreRendererConstructor = function (
     StrategyObject: new StrategyObject(),
     CandlestickPatternStrategyObject: new CandlestickPatternStrategyObject(),
     FractalsObject: new FractalsObject(),
+    NewsMarkerObject: new NewsMarkerObject(),
     IndicatorObject: new StrategyObject(),
     TradeObject: new TradeObject(this.settings.positions),
     StopLimitObject: new StopLimitObject(this.settings.positions),
@@ -1495,6 +1499,7 @@ const Renderer: CoreRendererConstructor = function (
     const series = seriesManager[dataLink];
     if (!series) return false;
     const script = isThisSeriesOutputOfScript(dataLink);
+    if (!isChartLegendVisibleForObject(object, model, script)) return false;
     const catalogType = getCatalogTypeForScriptId(model.scripts, script?.id);
 
     this.validateSeriesBeforeRender(series);

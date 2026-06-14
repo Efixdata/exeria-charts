@@ -8,6 +8,7 @@ export {
   IndicatorObject,
   CandlestickPatternStrategyObject,
   FractalsObject,
+  NewsMarkerObject,
   TradeObject,
   StopLimitObject,
   MovePaneArrows,

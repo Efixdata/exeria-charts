@@ -62,11 +62,20 @@ export type {
   ChartLineFillMode,
   ChartFunctionSettingsItem,
   ChartIndicatorSettingsItem,
+  ChartLegendSettings,
   ChartSettingsTemplate,
   ChartStrategySettingsItem,
   ChartVolumeColorMode,
   ChartVolumeSettings,
 } from "./chartSettings";
+export type {
+  ArbChartScene,
+  ArbMetrics,
+  ArbSignalBundle,
+  ArbSignalCategory,
+  ArbSignalQuery,
+  ArbSignalRecord,
+} from "./arbSignalTypes";
 
 export type { ChartDrawingEditConfig, ChartDrawingEditPatch } from "./drawingEdit";
 
@@ -269,6 +278,13 @@ export interface ChartEventPayloads {
   CURSOR_CHANGE: { cursor: string };
   INTERVAL_CHANGE: Interval;
   INDICATOR_EDIT_REQUEST: { scriptId: string | number };
+  NEWS_FEED_MARKER_CLICK: {
+    barIndex: number;
+    eventId?: string;
+    clientX?: number;
+    clientY?: number;
+  };
+  SCRIPTS_CHANGE: Record<string, never>;
   DRAWING_EDIT_REQUEST: { objectId: string | number };
   OBJECT_SELECTION_ALLOWED_CHANGE: boolean;
   DRAWING_MAGNET_CHANGE: { enabled: boolean };
@@ -336,6 +352,8 @@ export interface ChartInstance {
   updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  getChartLegendSettings(): import("./chartSettings").ChartLegendSettings;
+  applyChartLegendSettings(settings: import("./chartSettings").ChartLegendSettings): void;
   getChartInstrumentSettings(): import("./chartSettings").ChartInstrumentSettingsItem[];
   applyChartInstrumentSettings(
     seriesId: string,
@@ -393,6 +411,7 @@ export interface ChartInstance {
   subscribe(topic: string, callback: (data: unknown) => void): ChartSubscription | void;
   setCursor(mode: string): void;
   setObjectSelectionAllowed(isAllowed: boolean): void;
+  requestIndicatorEdit(scriptId: string | number): void;
   getDrawingMagnetEnabled(): boolean;
   setDrawingMagnetEnabled(enabled: boolean): void;
   getAllDrawingsLocked(): boolean;
