@@ -1,0 +1,805 @@
+/* Light default — warm editorial shell + chart preset "onyx" */
+.shell {
+  --mn-bg: #f7f4ef;
+  --mn-surface: #ffffff;
+  --mn-surface-soft: #fffdf8;
+  --mn-border: #e7e5e4;
+  --mn-text: #1c1917;
+  --mn-text-secondary: #44403c;
+  --mn-muted: #78716c;
+  --mn-accent: #2962ff;
+  --mn-accent-soft: #eff6ff;
+  --mn-eyebrow: #b45309;
+  --mn-up: #089981;
+  --mn-down: #f23645;
+  --mn-flat: #57534e;
+  --mn-chart-frame: #ffffff;
+  --mn-chart-state-bg: rgba(255, 255, 255, 0.78);
+  --mn-mini-bg: #faf8f5;
+  --mn-mini-overlay: rgba(247, 244, 239, 0.88);
+  --mn-callout-bg: #ffffff;
+  --mn-callout-text: #1c1917;
+  --mn-callout-muted: #57534e;
+  --mn-callout-impact: #44403c;
+  --mn-callout-shadow: 0 12px 32px rgba(28, 25, 23, 0.1);
+  --mn-pull-border: #b45309;
+
+  min-height: 100vh;
+  background: var(--mn-bg);
+  color: var(--mn-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: light;
+  overflow-x: clip;
+  --mn-page-gutter: clamp(1rem, 4vw, 2rem);
+}
+
+.shellDark {
+  --mn-bg: #141820;
+  --mn-surface: #1a1e28;
+  --mn-surface-soft: #1e222d;
+  --mn-border: rgba(71, 85, 105, 0.45);
+  --mn-text: #cbd5e1;
+  --mn-text-secondary: #94a3b8;
+  --mn-muted: #7b8a9a;
+  --mn-accent: #6d93ff;
+  --mn-accent-soft: rgba(109, 147, 255, 0.14);
+  --mn-eyebrow: #f59e0b;
+  --mn-up: #22c55e;
+  --mn-down: #ef4444;
+  --mn-flat: #94a3b8;
+  --mn-chart-frame: #1e222d;
+  --mn-chart-state-bg: rgba(30, 34, 45, 0.72);
+  --mn-mini-bg: #1e222d;
+  --mn-mini-overlay: rgba(30, 34, 45, 0.72);
+  --mn-callout-bg: rgba(15, 23, 42, 0.96);
+  --mn-callout-text: #e2e8f0;
+  --mn-callout-muted: #94a3b8;
+  --mn-callout-impact: #cbd5e1;
+  --mn-callout-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --mn-pull-border: #f59e0b;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(109, 147, 255, 0.08), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.06), transparent 32%),
+    var(--mn-bg);
+  color: var(--mn-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: dark;
+  overflow-x: clip;
+  --mn-page-gutter: clamp(1rem, 4vw, 2rem);
+}
+
+.demoBanner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid #d6d3d1;
+  background: rgba(28, 25, 23, 0.96);
+  color: #fafaf9;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.86rem;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.demoBannerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 0.65rem var(--mn-page-gutter);
+}
+
+.demoBanner strong {
+  font-weight: 600;
+}
+
+.demoBannerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.demoBannerActions a {
+  color: #e7e5e4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.demoBannerActions a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.masthead {
+  border-bottom: 1px solid var(--mn-border);
+  background: var(--mn-surface-soft);
+}
+
+.mastheadInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 1.1rem var(--mn-page-gutter);
+}
+
+.mastheadRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.themeToggle {
+  flex-shrink: 0;
+  border: 1px solid var(--mn-border);
+  border-radius: 999px;
+  background: var(--mn-surface);
+  color: var(--mn-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+}
+
+.themeToggle:hover {
+  border-color: var(--mn-accent);
+  color: var(--mn-accent);
+}
+
+.brand {
+  font-family: inherit;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mn-text);
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  color: var(--mn-muted);
+  font-size: 0.92rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 2rem;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 2rem var(--mn-page-gutter) calc(3rem + env(safe-area-inset-bottom, 0px));
+}
+
+.article {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--mn-eyebrow);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 0.85rem;
+  color: var(--mn-text);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.dek {
+  margin: 0 0 1rem;
+  color: var(--mn-text-secondary);
+  font-size: 1.18rem;
+  line-height: 1.55;
+}
+
+.byline {
+  margin: 0 0 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--mn-border);
+  color: var(--mn-muted);
+  font-size: 0.92rem;
+}
+
+.bodyCopy {
+  font-size: 1.08rem;
+  line-height: 1.78;
+}
+
+.bodyCopy p {
+  margin: 0 0 1.2rem;
+}
+
+.bodyCopy code {
+  word-break: break-word;
+}
+
+.pullQuote {
+  margin: 1.5rem 0;
+  padding: 0.2rem 0 0.2rem 1rem;
+  border-left: 3px solid var(--mn-pull-border);
+  color: var(--mn-text-secondary);
+  font-size: 1.22rem;
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.sectionHeading {
+  margin: 2rem 0 0.75rem;
+  color: var(--mn-text);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.chartFigure {
+  margin: 1.5rem 0 2rem;
+  flex-shrink: 0;
+}
+
+.chartToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.84rem;
+}
+
+.chartToolbarLabel {
+  color: var(--mn-muted);
+}
+
+.chartCodeLink {
+  color: var(--mn-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chartCodeLink:hover {
+  text-decoration: underline;
+}
+
+.periodPills {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.periodPill {
+  border: 1px solid var(--mn-border);
+  border-radius: 999px;
+  background: var(--mn-surface);
+  color: var(--mn-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.28rem 0.7rem;
+}
+
+.periodPillActive {
+  border-color: var(--mn-accent);
+  background: var(--mn-accent-soft);
+  color: var(--mn-accent);
+}
+
+.chartFrame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--mn-border);
+  border-radius: 12px;
+  background: var(--mn-chart-frame);
+  height: 320px;
+  max-height: 320px;
+  flex-shrink: 0;
+  contain: layout paint;
+}
+
+.chartStack {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chartCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.chartState,
+.chartStateError {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.92rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chartState {
+  color: var(--mn-muted);
+  background: var(--mn-chart-state-bg);
+}
+
+.chartStateError {
+  color: #b91c1c;
+  background: var(--mn-chart-state-bg);
+}
+
+.chartCaption {
+  margin-top: 0.7rem;
+  color: var(--mn-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.chartCaption p {
+  margin: 0.35rem 0 0;
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--mn-text-secondary);
+}
+
+.legendSwatch {
+  width: 14px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.legendSwatchDashed {
+  width: 14px;
+  border-top: 2px dashed;
+}
+
+.up {
+  color: var(--mn-up);
+}
+
+.down {
+  color: var(--mn-down);
+}
+
+.flat {
+  color: var(--mn-flat);
+}
+
+.newsPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.newsChip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 1px solid var(--mn-border);
+  border-left: 3px solid var(--news-chip-color, var(--mn-border));
+  border-radius: 10px;
+  background: var(--mn-surface-soft);
+  cursor: pointer;
+  max-width: 100%;
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+}
+
+.newsChipActive {
+  border-color: var(--news-chip-color, var(--mn-accent));
+  border-left-color: var(--news-chip-color, var(--mn-accent));
+  box-shadow: 0 0 0 1px var(--news-chip-color, var(--mn-accent));
+}
+
+.newsChipSource {
+  color: var(--mn-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.newsChipTitle {
+  color: var(--mn-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sidebarCard {
+  border: 1px solid var(--mn-border);
+  border-radius: 12px;
+  background: var(--mn-surface-soft);
+  padding: 1rem;
+}
+
+.sidebarCard h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: var(--mn-text);
+}
+
+.sidebarHint {
+  margin: 0;
+  color: var(--mn-muted);
+  font-size: 0.86rem;
+}
+
+.quoteList,
+.tipList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quoteList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.quoteCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.quoteHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.quoteHeader strong {
+  font-size: 0.88rem;
+  color: var(--mn-text);
+}
+
+.quotePrice {
+  color: var(--mn-text-secondary);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.miniChartWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mn-border) 85%, var(--mini-accent, #2962ff) 15%);
+  background: var(--mn-mini-bg);
+  touch-action: none;
+}
+
+.miniChartPlot {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.miniChartCanvas {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.miniChartOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.86rem;
+  color: var(--mn-muted);
+  background: var(--mn-mini-overlay);
+  pointer-events: none;
+}
+
+.newsLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.newsCalloutBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.newsCallout {
+  position: absolute;
+  z-index: 2;
+  width: min(248px, calc(100% - 24px));
+  padding: 0.75rem 0.85rem;
+  padding-right: 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--mn-border);
+  background: var(--mn-callout-bg);
+  color: var(--mn-callout-text);
+  pointer-events: auto;
+  box-shadow: var(--mn-callout-shadow);
+}
+
+.newsCalloutActions {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.newsCalloutIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mn-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.newsCalloutIconBtn:hover {
+  color: var(--mn-callout-text);
+  background: color-mix(in srgb, var(--mn-callout-text) 8%, transparent);
+}
+
+.newsCalloutMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  font-size: 11px;
+  color: var(--mn-callout-muted);
+}
+
+.newsCalloutDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.newsCalloutHeadline {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+  color: var(--mn-callout-text);
+}
+
+.newsCalloutBody {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
+  color: var(--mn-callout-muted);
+  line-height: 1.45;
+}
+
+.newsCalloutImpact {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--mn-callout-impact);
+}
+
+.newsCalloutCentered {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(280px, calc(100% - 1.5rem));
+}
+
+.tipList {
+  display: grid;
+  gap: 0.55rem;
+  color: var(--mn-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.tipList code {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .article {
+    order: 1;
+  }
+
+  .demoBannerInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .mastheadInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding-block: 0.95rem;
+  }
+
+  .mastheadRight {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .demoBanner {
+    font-size: 0.8rem;
+  }
+
+  .demoBannerActions {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .brand {
+    font-size: 1.35rem;
+  }
+
+  .dek {
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  .byline {
+    font-size: 0.86rem;
+    margin-bottom: 1.35rem;
+    padding-bottom: 1rem;
+  }
+
+  .bodyCopy {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .pullQuote {
+    font-size: 1.08rem;
+    margin: 1.15rem 0;
+  }
+
+  .sectionHeading {
+    font-size: 1.2rem;
+    margin-top: 1.5rem;
+  }
+
+  .chartFigure {
+    margin: 1.15rem 0 1.5rem;
+  }
+
+  .chartToolbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .chartCodeLink {
+    white-space: normal;
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .periodPill {
+    min-height: 2.25rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .chartFrame {
+    height: min(52vw, 280px);
+    max-height: 280px;
+    min-height: 220px;
+    border-radius: 10px;
+  }
+
+  .legendRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .newsPicker {
+    flex-direction: column;
+  }
+
+  .newsChip {
+    width: 100%;
+    max-width: none;
+  }
+
+  .newsCallout {
+    width: min(300px, calc(100% - 1.25rem));
+  }
+
+  .newsCalloutHeadline {
+    font-size: 12px;
+  }
+
+  .sidebarCard {
+    padding: 0.85rem;
+  }
+
+  .miniChartWrap {
+    height: 108px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    display: none;
+  }
+
+  .mastheadRight {
+    justify-content: flex-end;
+  }
+
+  .demoBannerInner span {
+    line-height: 1.45;
+  }
+}

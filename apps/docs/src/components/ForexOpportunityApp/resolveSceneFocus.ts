@@ -1,5 +1,5 @@
 import type { Candle } from "@exeria/charts";
-import { resolveNewsBarIndex } from "@exeria/charts";
+import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import type {
   ArbChartSceneFocus,
   ArbSceneAnchor,
