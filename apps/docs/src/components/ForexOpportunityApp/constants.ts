@@ -10,6 +10,9 @@ export function getForexChartPresetId(theme: ForexAppTheme): string {
 
 export const PIP_SIZE = 0.0001;
 
+/** Default H1 bar length for news highlight overlays (ms). */
+export const FOREX_INTERVAL_MILIS = 60 * 60 * 1000;
+
 export type OpportunityFilter = "all" | "arb" | "rare" | "signals" | "events";
 
 export const OPPORTUNITY_FILTERS: Array<{ id: OpportunityFilter; label: string }> = [

@@ -50,7 +50,11 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                     ? "Open the consumer demo"
                     : projectId === "forex-platforms"
                       ? "Open the live FX radar"
-                      : "Open the live terminal"}
+                      : projectId === "market-news"
+                        ? "Open the live article demo"
+                        : projectId === "quant-analytics"
+                          ? "Open the live dashboard"
+                          : "Open the live terminal"}
                 </strong>
                 <p>
                   {project.liveAppBlurb ??
@@ -62,7 +66,11 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                   ? "Open demo"
                   : projectId === "forex-platforms"
                     ? "Open live radar"
-                    : "Open live terminal"}{" "}
+                    : projectId === "market-news"
+                      ? "Open live article"
+                      : projectId === "quant-analytics"
+                        ? "Open dashboard"
+                        : "Open live terminal"}{" "}
                 <span aria-hidden>→</span>
               </Link>
             </div>
@@ -133,6 +141,12 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
               <>
                 Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
                 wire your opportunity API and live FX feed when you are ready. More recipes in the{" "}
+                <Link to="/docs/tutorials/">tutorials</Link>.
+              </>
+            ) : projectId === "market-news" ? (
+              <>
+                Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
+                wire your CMS headlines when you are ready. More recipes in the{" "}
                 <Link to="/docs/tutorials/">tutorials</Link>.
               </>
             ) : (

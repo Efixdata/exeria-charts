@@ -150,6 +150,11 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.isObjectSelectionAllowed = true;
   this.drawingMagnetEnabled = false;
 
+  this.isPointerOnChart = function (node: EventTarget | null | undefined) {
+    if (!node || !(node instanceof Node)) return false;
+    return self.chart.contains(node) || self.topLayer.contains(node);
+  };
+
   this.pinch = { trackedIndex: null, leftGrabbedIndex: null, rightGrabbedIndex: null };
   this.pinchFramePending = false;
   this.swipe = {
@@ -1484,8 +1489,12 @@ var InteractionsController: CoreInteractorConstructor = function (
   this.onBodyMouseOut = function (evt) {
     var eventElement = evt.toElement || evt.target;
 
-    // TODO: check if following code works properly
     if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
+
+    var relatedTarget = evt.relatedTarget;
+    if (relatedTarget && self.isPointerOnChart(relatedTarget)) return;
+    if (!self.isPointerOnChart(evt.target)) return;
+
     self.onMouseOut(evt);
   };
 
@@ -1513,8 +1522,13 @@ var InteractionsController: CoreInteractorConstructor = function (
 
   this.onBodyMouseMove = function (evt) {
     var eventElement = evt.toElement || evt.target;
-    // TODO: check if following code works properly
     if (eventElement.closest(".webrcp-chart-tools, .webrcp-new-chart, .chart-watermark")) return;
+
+    if (!self.isMouseDown) {
+      var path = evt.composedPath?.();
+      if (!path || !path.includes(self.topLayer)) return;
+    }
+
     self.onMouseMove(evt);
   };
 

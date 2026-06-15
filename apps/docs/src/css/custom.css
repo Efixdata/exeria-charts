@@ -627,8 +627,97 @@ html[data-forex-opportunity-app] .container {
   min-height: 0;
 }
 
-html[data-forex-opportunity-app] .container > .row,
 html[data-forex-opportunity-app] .container > .row > .col {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Market News live app — hide site chrome, keep page scrollable */
+html[data-market-news-app] {
+  --ifm-navbar-height: 0px;
+}
+
+html[data-market-news-app] .navbar {
+  display: none !important;
+}
+
+html[data-market-news-app] .footer {
+  display: none !important;
+}
+
+html[data-market-news-app] body {
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+html[data-market-news-app] .main-wrapper {
+  min-height: 100dvh;
+}
+
+html[data-market-news-app] main {
+  margin: 0;
+  padding: 0;
+}
+
+html[data-market-news-app] .container {
+  max-width: none;
+  padding: 0;
+}
+
+html[data-market-news-app] .container > .row,
+html[data-market-news-app] .container > .row > .col {
+  margin: 0;
+  padding: 0;
+}
+
+html[data-market-news-app] h1,
+html[data-market-news-app] h2,
+html[data-market-news-app] h3 {
+  color: inherit;
+}
+
+/* Quant Analytics live app — full viewport, no site chrome */
+html[data-quant-analytics-app] {
+  --ifm-navbar-height: 0px;
+}
+
+html[data-quant-analytics-app] .navbar {
+  display: none !important;
+}
+
+html[data-quant-analytics-app] .footer {
+  display: none !important;
+}
+
+html[data-quant-analytics-app] body {
+  overflow: hidden;
+}
+
+html[data-quant-analytics-app] .main-wrapper {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+html[data-quant-analytics-app] main {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-quant-analytics-app] .container {
+  max-width: none;
+  padding: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-quant-analytics-app] .container > .row,
+html[data-quant-analytics-app] .container > .row > .col {
   height: 100%;
   min-height: 0;
   margin: 0;

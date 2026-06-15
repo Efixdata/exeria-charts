@@ -126,6 +126,9 @@ export const starterProjects: StarterProject[] = [
     image: "/img/case-studies/quant-analytics.jpg",
     imageAlt: "Quant dashboard with trade markers and equity curve panel",
     demoPath: "/starters/quant-analytics",
+    liveAppPath: "/starters/quant-analytics/app",
+    liveAppBlurb:
+      "Full-screen backtest workbench — strategy presets, equity curve pane, and copy-paste wiring snippets. Five FX pairs on M15 and H1 static data.",
     stack: ["Vanilla JS or React", "Core runtime", "Strategies", "Multi-pane scripts"],
     highlights: [
       "Strategy overlays and signal markers",
@@ -142,21 +145,34 @@ export const starterProjects: StarterProject[] = [
   {
     id: "market-news",
     title: "Interactive Market News",
-    body: "Keep your readers engaged with dynamic, embeddable charts. Showcase comparative asset performance, historical trends, and live quotes inside your articles with a minimal footprint and maximum clarity.",
-    image: "/img/case-studies/market-news.jpg",
-    imageAlt: "Comparison chart showing asset performance against a benchmark index",
+    body: "An editorial article layout you can run locally in minutes: compare chart, news markers on the canvas, and copy-paste embeds for your CMS. Download the zip, edit React files, and drop charts into your newsroom template.",
+    image: "/img/starters/market-news-hero.jpeg",
+    imageAlt: "Interactive market news article with compare chart, sidebar sparklines, and news markers on the chart",
     demoPath: "/starters/market-news",
-    stack: ["Vanilla JS embed", "Multi-instrument", "Lightweight mount"],
+    liveAppPath: "/starters/market-news/app",
+    liveAppBlurb:
+      "Try the finished article first — compare chart, EUR/USD news dots, sidebar sparklines. Static FX fixtures; no API keys to start.",
+    previewImage: {
+      src: "/img/starters/market-news-hero.jpeg",
+      alt: "Interactive market news article with compare chart, sidebar sparklines, and news markers on the chart",
+    },
+    caseStudy: {
+      title: "Interactive Market News",
+      body: "Keep readers on the story — embed indexed compare charts and headline markers without a trading terminal. Download the starter and wire your CMS feed.",
+      image: "/img/starters/market-news-hero.jpeg",
+      imageAlt: "Interactive market news article with compare chart, sidebar sparklines, and news markers on the chart",
+    },
+    stack: ["Vite + React", "createChart embed", "Static FX JSON", "Copy-paste starter zip"],
     highlights: [
-      "Multiple symbols on one chart",
-      "Small embed footprint without ChartUI",
-      "Static or slow-refresh data from your CMS",
-      "Share and export snapshots",
+      "Run locally with npm install && npm run dev",
+      "Bundled EUR/USD + GBP/USD H1 data — no API keys",
+      "Compare pairs + NEWSFEED markers in one article",
+      "Step-by-step guide in the For developers section",
     ],
     relatedDocs: [
-      { label: "Multi-instrument charts", href: "/docs/chart-usage/multi-instrument-charts" },
       { label: "Vanilla quickstart", href: "/docs/getting-started/vanilla" },
-      { label: "Theming overview", href: "/docs/theming/overview" },
+      { label: "Multi-instrument charts", href: "/docs/chart-usage/multi-instrument-charts" },
+      { label: "News feed data model", href: "/docs/advanced/news-feed-data-model" },
     ],
   },
   {
