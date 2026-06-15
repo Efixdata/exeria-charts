@@ -1,6 +1,11 @@
 import type { Candle } from "@exeria/charts";
 
-/** SSR-safe copy of @exeria/charts resolveNewsBarIndex (binary search on candle stamps). */
+/**
+ * SSR-safe copy of @exeria/charts resolveNewsBarIndex (binary search on candle stamps).
+ *
+ * @param candles Must be sorted in ascending order by `stamp`. Passing unsorted or
+ *   raw API data will produce incorrect bar indices.
+ */
 export function resolveNewsBarIndex(releasedAt: number, candles: Candle[]): number | null {
   if (!candles.length || !Number.isFinite(releasedAt)) {
     return null;

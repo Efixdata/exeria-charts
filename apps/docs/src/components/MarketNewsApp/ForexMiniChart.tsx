@@ -53,6 +53,7 @@ export default function ForexMiniChart({ symbol, color }: ForexMiniChartProps) {
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           setVisible(true);
+          observer.disconnect();
         }
       },
       { rootMargin: "120px" },

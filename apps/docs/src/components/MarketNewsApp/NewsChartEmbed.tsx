@@ -140,6 +140,7 @@ export default function NewsChartEmbed() {
 
   useEffect(() => {
     let disposed = false;
+    let cancelRelayout: (() => void) | undefined;
     const container = containerRef.current;
     if (!container) {
       return undefined;
@@ -211,7 +212,7 @@ export default function NewsChartEmbed() {
           focusMarketNewsOnChart(instance, defaultNews.barIndex);
         }
 
-        scheduleNewsChartRelayout(instance);
+        cancelRelayout = scheduleNewsChartRelayout(instance, chartRef);
         setChartReady(true);
         setLoading(false);
       } catch (nextError) {
@@ -226,6 +227,7 @@ export default function NewsChartEmbed() {
 
     return () => {
       disposed = true;
+      cancelRelayout?.();
       chartRef.current?.destroy();
       chartRef.current = null;
       setChart(null);
@@ -241,7 +243,17 @@ export default function NewsChartEmbed() {
       return undefined;
     }
 
-    return observeChartContainer(container, chartRef, scheduleNewsChartRelayout);
+    let cancelRelayout: (() => void) | undefined;
+    const scheduleRelayout = (instance: ChartInstance) => {
+      cancelRelayout?.();
+      cancelRelayout = scheduleNewsChartRelayout(instance, chartRef);
+    };
+
+    const observer = observeChartContainer(container, chartRef, scheduleRelayout);
+    return () => {
+      cancelRelayout?.();
+      observer.disconnect();
+    };
   }, [chartReady]);
 
   useEffect(() => {

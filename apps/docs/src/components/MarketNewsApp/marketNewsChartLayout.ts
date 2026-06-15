@@ -7,40 +7,64 @@ export function waitForChartContainerReady(
   timeoutMs = 2_000,
 ): Promise<void> {
   return new Promise((resolve) => {
-    const started = performance.now();
+    if (container.clientWidth > 0 && container.clientHeight > 0) {
+      resolve();
+      return;
+    }
 
-    const tick = () => {
+    let timeoutId: number;
+    const observer = new ResizeObserver(() => {
       if (container.clientWidth > 0 && container.clientHeight > 0) {
+        observer.disconnect();
+        clearTimeout(timeoutId);
         resolve();
-        return;
       }
+    });
 
-      if (performance.now() - started >= timeoutMs) {
-        resolve();
-        return;
-      }
-
-      window.requestAnimationFrame(tick);
-    };
-
-    tick();
+    observer.observe(container);
+    timeoutId = window.setTimeout(() => {
+      observer.disconnect();
+      resolve();
+    }, timeoutMs);
   });
 }
 
 export function relayoutNewsChart(chart: ChartInstance): void {
-  chart.fit();
-  scrollChartToEnd(chart);
-  chart.render();
+  try {
+    chart.fit();
+    scrollChartToEnd(chart);
+    chart.render();
+  } catch {
+    // Chart may already be destroyed.
+  }
 }
 
-export function scheduleNewsChartRelayout(chart: ChartInstance): void {
-  relayoutNewsChart(chart);
+export function scheduleNewsChartRelayout(
+  chart: ChartInstance,
+  chartRef?: { current: ChartInstance | null },
+): () => void {
+  const relayout = () => {
+    if (chartRef && chartRef.current !== chart) {
+      return;
+    }
+    relayoutNewsChart(chart);
+  };
 
+  relayout();
+
+  let rafId = 0;
   if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(() => relayoutNewsChart(chart));
+    rafId = requestAnimationFrame(relayout);
   }
 
-  window.setTimeout(() => relayoutNewsChart(chart), 320);
+  const timeoutId = window.setTimeout(relayout, 320);
+
+  return () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
+    clearTimeout(timeoutId);
+  };
 }
 
 export function observeChartContainer(
