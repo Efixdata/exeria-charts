@@ -1,0 +1,234 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  text-align: left;
+}
+
+.fieldset {
+  margin: 0;
+  padding: 28px;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-md, 16px);
+  background: var(--doc-surface);
+}
+
+.fieldsetLegend {
+  padding: 0 4px;
+  color: var(--doc-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.fieldsetHint {
+  margin: 8px 0 20px;
+  color: var(--doc-text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  color: var(--doc-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.optional {
+  color: var(--doc-text-secondary);
+  font-weight: 400;
+}
+
+.fieldInput,
+.fieldSelect,
+.fieldTextarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--doc-text) 28%, var(--doc-border));
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font-family: var(--ifm-font-family-base);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+html[data-theme="dark"] .fieldInput,
+html[data-theme="dark"] .fieldSelect,
+html[data-theme="dark"] .fieldTextarea {
+  border-color: color-mix(in srgb, var(--doc-text) 36%, var(--doc-border));
+}
+
+.fieldSelect {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--doc-text-secondary) 50%),
+    linear-gradient(135deg, var(--doc-text-secondary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(50% + 2px),
+    calc(100% - 14px) calc(50% + 2px);
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+}
+
+.fieldInput:focus-visible,
+.fieldSelect:focus-visible,
+.fieldTextarea:focus-visible,
+.form button:focus-visible {
+  outline: none;
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-muted-bg);
+}
+
+.fieldTextarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.checkboxCard {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--doc-text) 20%, var(--doc-border));
+  background: var(--doc-bg);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.checkboxCard:has(input:checked) {
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 35%, transparent);
+}
+
+.checkboxCard input {
+  margin-top: 3px;
+  accent-color: var(--doc-accent);
+}
+
+.checkboxContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkboxTitle {
+  color: var(--doc-text);
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.checkboxDescription {
+  color: var(--doc-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #ff6b6b 45%, var(--doc-border));
+  background: color-mix(in srgb, #ff6b6b 12%, var(--doc-surface));
+  color: var(--doc-text);
+  font-size: 0.98rem;
+}
+
+.submitRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.privacyNote {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.privacyNote a {
+  color: var(--doc-accent);
+}
+
+.successPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.successTitle {
+  margin: 0;
+  color: var(--doc-text);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.successText {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .fieldset {
+    padding: 20px;
+  }
+
+  .fieldGrid,
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+}

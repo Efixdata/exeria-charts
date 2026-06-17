@@ -1,9 +1,19 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "FINNHUB_API_KEY",
+    "FINAGE_API_KEY",
+    "FINAGE_WS_URL",
+    "TWELVE_DATA_API_KEY",
+    "MASSIVE_API_KEY",
+    "POLYGON_API_KEY",
+    "EODHD_API_KEY"
+  ],
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**", "build/**"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],

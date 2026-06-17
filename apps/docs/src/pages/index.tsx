@@ -84,7 +84,7 @@ const pricingPlans = [
       { label: "Enterprise data connectors & integrations", emphasized: false },
     ],
     cta: "Contact Us",
-    href: "/docs/guides/licensing#commercial-license",
+    href: "/contact",
     variant: "secondary" as const,
     featured: false,
   },

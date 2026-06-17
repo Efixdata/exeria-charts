@@ -146,7 +146,7 @@ const config: Config = {
         {
           title: "Legal",
           items: [
-            { label: "Contact Us", to: "/docs/guides/licensing#commercial-license" },
+            { label: "Contact Us", to: "/contact" },
             {
               label: "AGPL v3 License",
               href: "https://www.gnu.org/licenses/agpl-3.0.html",

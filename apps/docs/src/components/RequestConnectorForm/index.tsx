@@ -3,7 +3,7 @@ import Link from "@docusaurus/Link";
 import { trackMarketingEvent } from "@site/src/utils/marketingAnalytics";
 import styles from "./styles.module.css";
 
-const CONTACT_PATH = "/docs/guides/licensing#commercial-license";
+import { CONTACT_PATH } from "@site/src/constants/contact";
 
 export default function RequestConnectorForm(): JSX.Element {
   const [provider, setProvider] = useState("");

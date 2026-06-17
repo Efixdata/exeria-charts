@@ -32,7 +32,7 @@
   "devDependencies": {
     "eslint-config-custom": "*",
     "prettier": "latest",
-    "turbo": "latest"
+    "turbo": "^2.9.18"
   },
   "engines": {
     "npm": ">=7.0.0",
@@ -42,5 +42,5 @@
     "@changesets/cli": "^2.24.3",
     "fuse.js": "^6.6.2"
   },
-  "packageManager": "yarn@1.22.17"
+  "packageManager": "npm@10.8.2"
 }

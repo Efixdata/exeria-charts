@@ -1,0 +1,76 @@
+.page {
+  padding-bottom: 120px;
+}
+
+.hero {
+  padding-bottom: 48px;
+}
+
+.title {
+  margin: 0 0 12px;
+  color: var(--doc-text);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: min(960px, 100%);
+  margin-top: 8px;
+}
+
+.highlightCard {
+  padding: 20px 22px;
+  border-radius: var(--doc-radius-md, 16px);
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface);
+  text-align: left;
+}
+
+.highlightCard h2 {
+  margin: 0 0 8px;
+  color: var(--doc-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.highlightCard p {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.formSection {
+  padding-top: 0;
+}
+
+.licensingNote {
+  width: min(760px, 100%);
+  margin: 28px auto 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.licensingNote a {
+  color: var(--doc-accent);
+}
+
+@media (max-width: 900px) {
+  .highlights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 140px;
+  }
+}
