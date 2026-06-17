@@ -15,10 +15,10 @@ export default function createEQUITYIndicatorScript(FUSION: CoreFusionStatic) {
       STRATEGY: { type: "series", name: "equityStrategy", properties: {}, value: null },
       SPREAD: { type: "double", name: "spread", properties: { step: 0.0001 }, value: 0.0 },
       COMMISION: { type: "double", name: "commision", properties: { step: 0.01 }, value: 0.0 },
-      INITEQ: { type: "double", name: "initialEquity", properties: { step: 1 }, value: 100000 },
+      INITEQ: { type: "double", name: "initialEquity", properties: { step: 1 }, value: 0 },
       LOTSIZE: { type: "double", name: "lotSize", properties: { step: 1000 }, value: 100000 },
       CAPITAL: { type: "boolean", name: "equityCapital", properties: {}, value: false },
-      PERC: { type: "boolean", name: "equityPerc", properties: {}, value: false },
+      PERC: { type: "boolean", name: "equityPerc", properties: {}, value: true },
     },
 
     outputs: {
@@ -54,8 +54,13 @@ export default function createEQUITYIndicatorScript(FUSION: CoreFusionStatic) {
         color: "#2d566d",
         width: 2,
         dash: [],
-        priceTag: false,
+        priceTag: true,
         priceLine: false,
+        lineFillVisible: true,
+        lineFillMode: "gradient",
+        fillColor: "#2d566d",
+        fillGradientColor: "#2d566d",
+        lineFillGradientOpacity: 0.4,
       },
     ],
 

@@ -1,4 +1,4 @@
-import type { Interval } from "@exeria/charts";
+import type { Interval } from "@efixdata/exeria-chart";
 
 export type ForexTimeframeId = "m15" | "h1";
 

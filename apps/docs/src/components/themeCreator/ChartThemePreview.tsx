@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import { alignDocsChartViewport } from "../docsChartTheme";
 import {
   applyChartSettingsPreset,
   buildChartSettingsPresetUiTheme,
@@ -33,6 +34,8 @@ type ChartThemePreviewProps = {
   /** When this key changes, `onChartReady` runs again on the existing chart instance. */
   sceneApplyKey?: string | null;
   onChartReady?: ChartSceneAction;
+  /** Fires when the live chart instance mounts or is destroyed. */
+  onChartInstance?: (chart: ChartInstance | null) => void;
   minHeight?: number;
   aspectRatio?: string;
   /** When true, sizing is controlled by `className` CSS (no inline height/aspect-ratio). */
@@ -48,6 +51,7 @@ export default function ChartThemePreview({
   usePresetTemplate = false,
   sceneApplyKey,
   onChartReady,
+  onChartInstance,
   minHeight = 520,
   aspectRatio,
   fluidSize = false,
@@ -56,6 +60,9 @@ export default function ChartThemePreview({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
   const onChartReadyRef = useRef(onChartReady);
+  const onChartInstanceRef = useRef(onChartInstance);
+  const sceneApplyKeyRef = useRef(sceneApplyKey);
+  const sceneApplyQueueRef = useRef(Promise.resolve());
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [chartUiLoading, setChartUiLoading] = useState(true);
@@ -83,6 +90,14 @@ export default function ChartThemePreview({
   useEffect(() => {
     onChartReadyRef.current = onChartReady;
   }, [onChartReady]);
+
+  useEffect(() => {
+    onChartInstanceRef.current = onChartInstance;
+  }, [onChartInstance]);
+
+  useEffect(() => {
+    sceneApplyKeyRef.current = sceneApplyKey;
+  }, [sceneApplyKey]);
 
   useEffect(() => {
     let disposed = false;
@@ -119,8 +134,9 @@ export default function ChartThemePreview({
       setPreviewError(null);
       setChart(null);
       chartRef.current = null;
+      onChartInstanceRef.current?.(null);
 
-      const chartModule = await import("@exeria/charts");
+      const chartModule = await import("@efixdata/exeria-chart");
       if (disposed) {
         return;
       }
@@ -135,8 +151,9 @@ export default function ChartThemePreview({
 
       try {
         chartInstance.init();
-        await chartInstance.setMainSeriesData(previewCandles, docsInterval);
+        await chartInstance.setMainSeriesData(previewCandles, docsInterval, false);
         chartInstance.setMainDrawMode("OHLC");
+        await alignDocsChartViewport(chartInstance);
 
         if (onChartReadyRef.current) {
           await onChartReadyRef.current(chartInstance);
@@ -149,6 +166,7 @@ export default function ChartThemePreview({
 
         chartRef.current = chartInstance;
         setChart(chartInstance);
+        onChartInstanceRef.current?.(chartInstance);
       } catch (error) {
         chartInstance.destroy();
 
@@ -169,6 +187,7 @@ export default function ChartThemePreview({
         return null;
       });
       chartRef.current = null;
+      onChartInstanceRef.current?.(null);
     };
   }, [ChartUIComponent]);
 
@@ -180,6 +199,7 @@ export default function ChartThemePreview({
 
     if (usePresetTemplate && presetId) {
       applyChartSettingsPreset(chartInstance, presetId);
+      chartInstance.applyChartTheme(runtimeTheme, themeVariant);
       return;
     }
 
@@ -195,11 +215,28 @@ export default function ChartThemePreview({
     }
 
     const chartInstance = chartRef.current;
-    if (!chartInstance || !onChartReadyRef.current) {
+    const sceneAction = onChartReadyRef.current;
+    if (!chartInstance || !sceneAction) {
       return;
     }
 
-    void onChartReadyRef.current(chartInstance);
+    const requestedKey = sceneApplyKey;
+
+    sceneApplyQueueRef.current = sceneApplyQueueRef.current
+      .catch(() => undefined)
+      .then(async () => {
+        if (sceneApplyKeyRef.current !== requestedKey) {
+          return;
+        }
+
+        const activeChart = chartRef.current;
+        const activeSceneAction = onChartReadyRef.current;
+        if (!activeChart || !activeSceneAction) {
+          return;
+        }
+
+        await activeSceneAction(activeChart);
+      });
   }, [sceneApplyKey]);
 
   const ChartUIPreview = ChartUIComponent;

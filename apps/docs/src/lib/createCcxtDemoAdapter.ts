@@ -1,4 +1,4 @@
-import type { DataAdapter } from "@exeria/charts";
+import type { DataAdapter } from "@efixdata/exeria-chart";
 import { BinanceAdapter } from "../../../../packages/adapter-binance/src";
 import { BybitAdapter } from "../../../../packages/adapter-bybit/src";
 import { OkxAdapter } from "../../../../packages/adapter-okx/src";

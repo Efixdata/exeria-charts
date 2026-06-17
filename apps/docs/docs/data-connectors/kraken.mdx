@@ -34,14 +34,14 @@ Perfect for crypto dashboards, USD-denominated portfolios, and Kraken-native tra
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-kraken
+npm install @efixdata/exeria-chart @efixdata/connector-kraken
 ```
 
 ## Minimal example
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { KrakenAdapter } from "@efix-data/adapter-kraken";
+import { createChart } from "@efixdata/exeria-chart";
+import { KrakenAdapter } from "@efixdata/connector-kraken";
 
 const connector = new KrakenAdapter({ pageDelayMs: 1000 });
 

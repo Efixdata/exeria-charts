@@ -13,6 +13,12 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "verify:release": "node scripts/verify-release-packages.mjs",
+    "verify:starters": "npx tsx scripts/verify-starter-zips.mts",
+    "build:packages": "turbo run build --filter=./packages/*",
+    "lint:packages": "turbo run lint --filter=./packages/*",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build --filter=./packages/* && changeset publish",
     "test:mobile": "npm --prefix packages/chart test && npm --prefix packages/react-chart-ui test",
     "typecheck:packages": "npm --prefix packages/chart run typecheck && npm --prefix packages/react-chart-ui run typecheck && npm --prefix apps/web run typecheck && npm --prefix apps/docs run typecheck",
     "check:ts-suppressions": "node scripts/check-ts-suppressions.mjs",
@@ -30,7 +36,7 @@
   },
   "engines": {
     "npm": ">=7.0.0",
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@changesets/cli": "^2.24.3",

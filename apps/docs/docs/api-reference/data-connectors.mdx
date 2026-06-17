@@ -44,9 +44,9 @@ import type {
   Tick,
   DataAdapter,
   LoadDataOptions,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 
-import { intervalFromSymbol, milisFromIntervalSymbol } from "@exeria/charts";
+import { intervalFromSymbol, milisFromIntervalSymbol } from "@efixdata/exeria-chart";
 ```
 
 ## DataAdapter — the contract
@@ -190,20 +190,20 @@ Guide: [Realtime updates](../chart-usage/realtime-updates).
 
 | Package | Doc |
 | --- | --- |
-| `@efix-data/adapter-binance` | [Binance](../data-connectors/binance) · [live demo](/binance-example) |
-| `@efix-data/adapter-bybit` | [Bybit](../data-connectors/bybit) · [live demo](/bybit-example) |
-| `@efix-data/adapter-okx` | [OKX](../data-connectors/okx) · [live demo](/okx-example) |
-| `@efix-data/adapter-kraken` | [Kraken](../data-connectors/kraken) · [live demo](/kraken-example) |
-| `@efix-data/adapter-kucoin` | [KuCoin](../data-connectors/kucoin) · [live demo](/kucoin-example) |
-| `@efix-data/adapter-coinbase` | [Coinbase](../data-connectors/coinbase) · [live demo](/coinbase-example) |
-| `@efix-data/adapter-gate` | [Gate.io](../data-connectors/gate) · [live demo](/gate-example) |
-| `@efix-data/adapter-ccxt` | [CCXT (multi-exchange)](../data-connectors/ccxt) · [live demo](/ccxt-example) |
-| `@efix-data/adapter-twelve-data` | [Twelve Data](../data-connectors/twelve-data) · [live demo](/twelve-data-example) |
-| `@efix-data/adapter-finage` | [Finage](../data-connectors/finage) · [live demo](/finage-example) |
-| `@efix-data/adapter-finnhub` | [Finnhub](../data-connectors/finnhub) · [live demo](/finnhub-example) |
-| `@efix-data/adapter-eodhd` | [EODHD](../data-connectors/eodhd) · [live demo](/eodhd-example) |
-| `@efix-data/adapter-massive` | [Massive](../data-connectors/massive) · [live demo](/massive-example) |
-| `@efix-data/adapter-coingecko` | [CoinGecko](../data-connectors/coingecko) · [live demo](/coingecko-example) |
+| `@efixdata/connector-binance` | [Binance](../data-connectors/binance) · [live demo](/binance-example) |
+| `@efixdata/connector-bybit` | [Bybit](../data-connectors/bybit) · [live demo](/bybit-example) |
+| `@efixdata/connector-okx` | [OKX](../data-connectors/okx) · [live demo](/okx-example) |
+| `@efixdata/connector-kraken` | [Kraken](../data-connectors/kraken) · [live demo](/kraken-example) |
+| `@efixdata/connector-kucoin` | [KuCoin](../data-connectors/kucoin) · [live demo](/kucoin-example) |
+| `@efixdata/connector-coinbase` | [Coinbase](../data-connectors/coinbase) · [live demo](/coinbase-example) |
+| `@efixdata/connector-gate` | [Gate.io](../data-connectors/gate) · [live demo](/gate-example) |
+| `@efixdata/connector-ccxt` | [CCXT (multi-exchange)](../data-connectors/ccxt) · [live demo](/ccxt-example) |
+| `@efixdata/connector-twelve-data` | [Twelve Data](../data-connectors/twelve-data) · [live demo](/twelve-data-example) |
+| `@efixdata/connector-finage` | [Finage](../data-connectors/finage) · [live demo](/finage-example) |
+| `@efixdata/connector-finnhub` | [Finnhub](../data-connectors/finnhub) · [live demo](/finnhub-example) |
+| `@efixdata/connector-eodhd` | [EODHD](../data-connectors/eodhd) · [live demo](/eodhd-example) |
+| `@efixdata/connector-massive` | [Massive](../data-connectors/massive) · [live demo](/massive-example) |
+| `@efixdata/connector-coingecko` | [CoinGecko](../data-connectors/coingecko) · [live demo](/coingecko-example) |
 
 ## Build your own connector
 
@@ -224,7 +224,7 @@ Checklist: [Overview → build your own](../data-connectors/overview#build-your-
 | Candles out of order | Sort ascending by `stamp` |
 | Live bar jumps | Tick missing `stamp` or duplicate stamps |
 | Switch symbol stuck | `unsubscribeFromUpdates()` before new `loadData` |
-| Type not found | Import from `@exeria/charts`, not from adapter |
+| Type not found | Import from `@efixdata/exeria-chart`, not from adapter |
 
 ## What is next?
 

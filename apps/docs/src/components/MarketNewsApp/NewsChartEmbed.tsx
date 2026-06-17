@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "@docusaurus/Link";
-import type { Candle, ChartInstance, NewsFeedRecord } from "@exeria/charts";
+import type { Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { applyChartSettingsPreset } from "../themeCreator/applyChartSettingsPreset";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";
 import { buildChartTheme } from "../themeCreator/core";
@@ -164,7 +164,7 @@ export default function NewsChartEmbed() {
         setRecords(feedRecords);
         recordsRef.current = feedRecords;
 
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }

@@ -7,7 +7,7 @@ type ChartUIModule = {
 
 export async function loadChartUI(): Promise<ComponentType<unknown>> {
   const module = (await import(
-    "@exeria/charts-ui"
+    "@efixdata/exeria-chart-ui-react"
   )) as ChartUIModule;
 
   const ChartUI =
@@ -17,7 +17,7 @@ export async function loadChartUI(): Promise<ComponentType<unknown>> {
       : module.default?.ChartUI);
 
   if (!ChartUI) {
-    throw new Error("ChartUI export is missing from @exeria/charts-ui.");
+    throw new Error("ChartUI export is missing from @efixdata/exeria-chart-ui-react.");
   }
 
   return ChartUI;

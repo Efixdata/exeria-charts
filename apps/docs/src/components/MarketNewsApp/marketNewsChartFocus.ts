@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { focusChartOnBar } from "../ForexOpportunityApp/chartBarPosition";
 import { clearNewsChartLayer } from "../ForexOpportunityApp/newsChartLayer";
 

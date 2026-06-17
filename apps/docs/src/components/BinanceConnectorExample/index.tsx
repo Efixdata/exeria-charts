@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { BinanceAdapter } from "../../../../../packages/adapter-binance/src";
 import styles from "./index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 const CRYPTO_SYMBOLS = [
   { id: "BTCUSDT", name: "Bitcoin (BTC)" },
@@ -51,7 +53,7 @@ export default function BinanceConnectorExample() {
   const adapterRef = useRef<BinanceAdapter | null>(null);
   const activeTimeframe =
     TIMEFRAMES.find((tf) => tf.id === selectedTimeframe) ?? TIMEFRAMES[1];
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   // Initialize chart once on mount
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function BinanceConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         
         if (disposed) {
           return;
@@ -79,13 +81,14 @@ export default function BinanceConnectorExample() {
             symbol: selectedSymbol,
             description: selectedSymbol,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -99,7 +102,12 @@ export default function BinanceConnectorExample() {
 
     return () => {
       disposed = true;
-      // Clean up chart on unmount
+      try {
+        chartRef.current?.unsubscribeFromUpdates?.();
+      } catch (e) {
+        console.error("Error unsubscribing chart updates:", e);
+      }
+
       if (chartRef.current) {
         try {
           chartRef.current.destroy?.();
@@ -107,12 +115,6 @@ export default function BinanceConnectorExample() {
           console.error("Error destroying chart:", e);
         }
         chartRef.current = null;
-      }
-      // Unsubscribe and disconnect connector
-      try {
-        chartRef.current?.unsubscribeFromUpdates?.();
-      } catch (e) {
-        console.error("Error unsubscribing chart updates:", e);
       }
 
       try {
@@ -122,7 +124,7 @@ export default function BinanceConnectorExample() {
       }
       adapterRef.current = null;
     };
-  }, [runtimeTheme]);
+  }, []);
 
   // Load data when symbol or timeframe changes
   useEffect(() => {
@@ -251,7 +253,7 @@ export default function BinanceConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -309,8 +311,8 @@ export default function BinanceConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { Chart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+              <code>{`import { Chart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const adapter = new BinanceAdapter();
 const chart = new Chart({

@@ -1,4 +1,4 @@
-import type { Candle, NewsFeedImpactMeasure, NewsFeedRecord } from "@exeria/charts";
+import type { Candle, NewsFeedImpactMeasure, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import { PIP_SIZE } from "./constants";
 import { getStaticNewsFeedBundle } from "./newsFeedLoader";

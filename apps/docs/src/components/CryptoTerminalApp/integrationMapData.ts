@@ -25,7 +25,7 @@ export const INTEGRATION_MAP_ITEMS: IntegrationMapItem[] = [
     label: "Chart",
     status: "live",
     component: "CryptoTerminalChartHost",
-    module: "@exeria/charts + ChartUI",
+    module: "@efixdata/exeria-chart + ChartUI",
     docsHref: "/docs/getting-started/react",
     docsLabel: "React quickstart",
   },
@@ -101,7 +101,7 @@ export const LAYOUT_TREE = `CryptoTerminalApp/
 └── resolveChartClickPrice.ts # Click chart → order price`;
 
 export const STACKBLITZ_STARTER_URL =
-  "https://stackblitz.com/fork/vitejs/vite/tree/main/packages/create-vite/template-react-ts";
+  "https://stackblitz.com/github/vitejs/vite/tree/main/packages/create-vite/template-react-ts";
 
 export const GITHUB_VITE_REACT_TEMPLATE_URL =
   "https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts";

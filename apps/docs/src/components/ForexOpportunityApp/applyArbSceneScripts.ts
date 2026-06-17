@@ -1,4 +1,4 @@
-import type { ArbChartSceneScript, ChartInstance, ScriptDefinition } from "@exeria/charts";
+import type { ArbChartSceneScript, ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
 import { ensureChartPointerMode } from "../SignalTerminalApp/chartPanInteraction";
 import {

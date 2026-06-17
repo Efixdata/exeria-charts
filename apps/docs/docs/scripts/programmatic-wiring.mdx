@@ -33,7 +33,7 @@ Treat the objects returned by `getScripts()` as reusable templates, not as one-o
 Use a clone before changing input values:
 
 ```ts
-import type { ChartInstance, ScriptDefinition } from "@exeria/charts";
+import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 
 function cloneScript(script: ScriptDefinition): ScriptDefinition {
   return JSON.parse(JSON.stringify(script));

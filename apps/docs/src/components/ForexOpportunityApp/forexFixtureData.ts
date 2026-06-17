@@ -1,4 +1,4 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import type { ForexTimeframeId } from "./forexInstruments";
 import { findForexTimeframe } from "./forexInstruments";
 import { intervalToForexTimeframeId, loadStaticForexCandles } from "./forexStaticData";

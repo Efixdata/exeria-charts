@@ -30,7 +30,7 @@ Without that line, Next.js runs your code on the server and the chart will crash
 In your Next.js project:
 
 ```bash
-npm install @exeria/charts @exeria/charts-ui
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
 ## Step 2 — Create the chart component
@@ -41,8 +41,8 @@ Add `app/components/chart-surface.tsx` (path can match your folder structure):
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Candle, ChartInstance, Interval } from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
+import type { Candle, ChartInstance, Interval } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const candles: Candle[] = [
   { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
@@ -69,7 +69,7 @@ export function ChartSurface() {
       }
 
       // Import only in the browser — avoids server-side evaluation
-      const { createChart } = await import("@exeria/charts");
+      const { createChart } = await import("@efixdata/exeria-chart");
       if (disposed) {
         return;
       }

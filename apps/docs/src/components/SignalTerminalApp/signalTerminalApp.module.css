@@ -399,6 +399,7 @@
 
 .signalPair {
   margin: 0;
+  color: var(--text);
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.02em;

@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-gate-dist] Building @efix-data/adapter-gate (dist is missing)...",
+  "[ensure-adapter-gate-dist] Building @efixdata/connector-gate (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

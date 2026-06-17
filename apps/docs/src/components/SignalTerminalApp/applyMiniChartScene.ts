@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import {
   applyScreenerStrategyScene,
   configureScreenerMiniChartVisibility,

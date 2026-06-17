@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsExampleDatasets, docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  docsChartUiTheme,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
 
 type GettingStartedDemoProps = {
@@ -72,16 +79,21 @@ export default function GettingStartedDemo({
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
 
-        const instance = chartModule.createChart({ container });
+        const instance = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
         chartRef.current = instance;
         instance.init();
-        await instance.setMainSeriesData(docsExampleDatasets.trend.candles, docsInterval);
+        await instance.setMainSeriesData(docsExampleDatasets.trend.candles, docsInterval, false);
+        applyDocsChartPreset(instance);
         instance.setMainDrawMode("OHLC");
+        await alignDocsChartViewport(instance);
 
         if (!disposed) {
           setChart(instance);
@@ -115,10 +127,13 @@ export default function GettingStartedDemo({
         height={height}
         loading={loading}
         error={error}
+        background={docsChartEmbedBackground}
         padded={variant === "react"}
       >
         {variant === "react" && ChartUI ? (
-          <ChartUI chart={chart}>{canvas}</ChartUI>
+          <ChartUI chart={chart} theme={docsChartUiTheme ?? undefined}>
+            {canvas}
+          </ChartUI>
         ) : (
           canvas
         )}

@@ -426,6 +426,11 @@
   width: 100%;
 }
 
+.chartStack {
+  position: relative;
+  width: 100%;
+}
+
 .examplesSection {
   display: grid;
   gap: 24px;

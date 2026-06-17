@@ -15,8 +15,8 @@ function buildPackageJson(): string {
         preview: "vite preview",
       },
       dependencies: {
-        "@exeria/charts": "^1.0.0",
-        "@exeria/charts-ui": "^1.0.0",
+        "@efixdata/exeria-chart": "^1.3.1",
+        "@efixdata/exeria-chart-ui-react": "^1.2.0",
         react: "^18.3.1",
         "react-dom": "^18.3.1",
       },
@@ -60,7 +60,7 @@ Default pair: **EUR/USD** — candles load from \`public/data/eur-usd-m15.json\`
 - **Demo:** opportunity list and macro copy are yours to replace with real APIs
 - **You add:** live data connector (e.g. Kraken), scorer service, alerts
 
-Docs: https://docs.exeria.charts/starters/forex-platforms
+Docs: https://exeria.dev/starters/forex-platforms
 `;
 }
 

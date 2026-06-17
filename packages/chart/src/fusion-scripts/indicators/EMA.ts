@@ -1,5 +1,6 @@
 import type { CoreFusionStatic } from "../../internal-types/fusion";
 import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { resolveScriptModelScalarInput } from "../../scriptInputUtils";
 import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createEMAIndicatorScript(FUSION: CoreFusionStatic) {
@@ -42,7 +43,9 @@ export default function createEMAIndicatorScript(FUSION: CoreFusionStatic) {
         this.init = function (this: any) {};
 
         this.calculate = function (this: any, index: any) {
-          this.EMA.setValue(index, FUSION.lib.getEMA(this.CLOSE, index, this.PERIODS, this.EMA));
+          const periods = Number(resolveScriptModelScalarInput(this.PERIODS, 14));
+          const result = FUSION.lib.getEMA(this.CLOSE, index, periods, this.EMA);
+          this.EMA.setValue(index, result);
         };
     }),
   });

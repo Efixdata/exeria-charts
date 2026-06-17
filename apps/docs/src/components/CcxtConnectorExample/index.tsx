@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance, DataAdapter } from "@exeria/charts";
+import type { ChartInstance, DataAdapter } from "@efixdata/exeria-chart";
 import {
   createCcxtDemoAdapter,
   usesCcxtProxy,
@@ -9,10 +9,12 @@ import {
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 const EXCHANGES = [
   { id: "kraken", name: "Kraken" },
@@ -67,7 +69,7 @@ export default function CcxtConnectorExample() {
     label: "1D",
     interval: "1d",
   };
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
   const proxyMode = usesCcxtProxy(selectedExchange);
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export default function CcxtConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -91,12 +93,13 @@ export default function CcxtConnectorExample() {
             symbol: selectedSymbol,
             description: selectedSymbol,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -135,7 +138,7 @@ export default function CcxtConnectorExample() {
       adapterRef.current = null;
       setChartReady(false);
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady || !chartRef.current) {
@@ -283,7 +286,7 @@ export default function CcxtConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -345,8 +348,8 @@ export default function CcxtConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { CcxtAdapter } from "@efix-data/adapter-ccxt";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
 
 const connector = new CcxtAdapter({ exchangeId: "${selectedExchange}" });
 const chart = createChart({ container, dataAdapter: connector });

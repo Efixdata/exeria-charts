@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "../chartExampleData";
 import { disableMiniChartPan, enableMiniChartPan } from "./enableMiniChartPan";
 import { applyChartSettingsPreset } from "../themeCreator/applyChartSettingsPreset";
@@ -72,7 +72,7 @@ export default function SignalMiniChart({ signal, marketPrice }: SignalMiniChart
       setError(false);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         const limit = miniChartFetchLimit(signal.timestamp);
         const allCandles = await fetchMiniChartCandles(signal.symbol, limit);
         const window = buildMiniChartWindow(allCandles, signal.timestamp);

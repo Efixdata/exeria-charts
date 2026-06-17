@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-coinbase-dist] Building @efix-data/adapter-coinbase (dist is missing)...",
+  "[ensure-adapter-coinbase-dist] Building @efixdata/connector-coinbase (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

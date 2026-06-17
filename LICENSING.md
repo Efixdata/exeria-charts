@@ -9,8 +9,28 @@ See the repository [`LICENSE`](LICENSE) file for the full license text.
 | Component | License | When you pay |
 | --- | --- | --- |
 | **Core** (`@efixdata/exeria-chart`, `@efixdata/exeria-chart-ui-react`) | AGPL v3 | Free if you comply with AGPL. **Commercial license** if you ship a closed-source product. |
+| **Free connectors** (`@efixdata/connector-*` for public/no-key data sources) | MIT | Always free, including in closed-source products. |
+| **Paid connectors** (`@efixdata/connector-*` for commercial data vendors) | EULA (source-available) | Source is public for evaluation; **production/commercial use requires a paid license**. |
 | **Plugins** (advanced indicators, drawing tools, data bridges) | Separate per-project license | One purchase per app or codebase that uses the plugin. |
 | **Enterprise** | Commercial agreement | Closed-source core + bundled plugins + data bridges and support as contracted. |
+
+## License map (directory → license)
+
+Each package directory carries its own `LICENSE` file, which governs that package.
+
+| Path | License |
+| --- | --- |
+| `packages/chart` | AGPL-3.0-or-later (+ commercial option) |
+| `packages/react-chart-ui` | AGPL-3.0-or-later (+ commercial option) |
+| `packages/adapter-binance`, `-bybit`, `-okx`, `-kraken`, `-kucoin`, `-coinbase`, `-gate`, `-ccxt`, `-coingecko` | MIT |
+| `packages/adapter-twelve-data`, `-finage`, `-finnhub`, `-eodhd`, `-massive` | EULA (source-available, paid) |
+
+The repository root `LICENSE` (AGPL v3) applies to the core. It does **not** override the
+per-package `LICENSE` files of the connectors. When in doubt, the `LICENSE` file inside a
+package directory is authoritative for that package.
+
+> The paid-connector EULA text in this repository is a template. Have it reviewed by legal
+> counsel before relying on it in production.
 
 ## AGPL v3 (core)
 

@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { CoingeckoAdapter } from "../../../../../packages/adapter-coingecko/src";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 const CRYPTO_COINS = [
   { id: "bitcoin", name: "Bitcoin (BTC)", label: "BTC" },
@@ -48,7 +50,7 @@ export default function CoingeckoConnectorExample() {
   const adapterRef = useRef<CoingeckoAdapter | null>(null);
   const activeTimeframe =
     TIMEFRAMES.find((tf) => tf.id === selectedTimeframe) ?? DEFAULT_TIMEFRAME;
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   useEffect(() => {
     let disposed = false;
@@ -59,7 +61,7 @@ export default function CoingeckoConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -73,13 +75,14 @@ export default function CoingeckoConnectorExample() {
             symbol: selectedCoin,
             description: selectedCoin,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -116,7 +119,7 @@ export default function CoingeckoConnectorExample() {
       }
       adapterRef.current = null;
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady) {
@@ -235,7 +238,7 @@ export default function CoingeckoConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -293,8 +296,8 @@ export default function CoingeckoConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { CoingeckoAdapter } from "@efix-data/adapter-coingecko";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { CoingeckoAdapter } from "@efixdata/connector-coingecko";
 
 const adapter = new CoingeckoAdapter({ pollIntervalMs: 60_000 });
 const chart = createChart({

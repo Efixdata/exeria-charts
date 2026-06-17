@@ -44,19 +44,19 @@ Perfect for multi-exchange backends, research tools, and rapid prototyping.
 | Bundle size | Large (full CCXT) | Small |
 | Best for | Many exchanges, backends | Production single-exchange UI |
 
-If you only ship Binance, Coinbase, or Gate.io in the browser, use [@efix-data/adapter-binance](./binance), [@efix-data/adapter-coinbase](./coinbase), or [@efix-data/adapter-gate](./gate). If you need Kraken tomorrow and KuCoin next week on your server, use CCXT.
+If you only ship Binance, Coinbase, or Gate.io in the browser, use [@efixdata/connector-binance](./binance), [@efixdata/connector-coinbase](./coinbase), or [@efixdata/connector-gate](./gate). If you need Kraken tomorrow and KuCoin next week on your server, use CCXT.
 
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-ccxt
+npm install @efixdata/exeria-chart @efixdata/connector-ccxt
 ```
 
 ## Minimal example (Node.js)
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { CcxtAdapter } from "@efix-data/adapter-ccxt";
+import { createChart } from "@efixdata/exeria-chart";
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
 
 const connector = new CcxtAdapter({ exchangeId: "kraken" });
 
@@ -130,7 +130,7 @@ Keep CCXT on the server and expose thin endpoints to your React chart:
 
 ```ts
 // app/api/ccxt/ohlcv/route.ts
-import { CcxtAdapter } from "@efix-data/adapter-ccxt";
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
 import { NextResponse } from "next/server";
 
 const connector = new CcxtAdapter({ exchangeId: "kraken" });

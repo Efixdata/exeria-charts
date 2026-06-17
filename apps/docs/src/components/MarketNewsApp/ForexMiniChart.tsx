@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { applyChartSettingsPreset } from "../themeCreator/applyChartSettingsPreset";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";
 import { buildChartTheme } from "../themeCreator/core";
@@ -81,7 +81,7 @@ export default function ForexMiniChart({ symbol, color }: ForexMiniChartProps) {
       setError(false);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         const candles = (await loadStaticForexCandles(symbol, MARKET_NEWS_TIMEFRAME_ID)).slice(
           -FOREX_MINI_CHART_BARS,
         );

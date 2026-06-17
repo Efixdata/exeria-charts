@@ -14,7 +14,7 @@ export const FINTECH_LAYOUT_TREE = `FintechWealthApp/
 └── useWatchlistSparklines.ts    # Sparkline data per market`;
 
 export const STACKBLITZ_STARTER_URL =
-  "https://stackblitz.com/fork/vitejs/vite/tree/main/packages/create-vite/template-react-ts";
+  "https://stackblitz.com/github/vitejs/vite/tree/main/packages/create-vite/template-react-ts";
 
 export const GITHUB_VITE_REACT_TEMPLATE_URL =
   "https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts";

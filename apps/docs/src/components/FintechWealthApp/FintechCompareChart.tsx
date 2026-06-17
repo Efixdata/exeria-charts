@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";
 import { buildChartTheme } from "../themeCreator/core";
 import type { FintechAsset, FintechPeriodId } from "./constants";
@@ -116,7 +116,7 @@ export default function FintechCompareChart({
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }

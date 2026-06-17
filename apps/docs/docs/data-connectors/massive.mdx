@@ -56,14 +56,14 @@ Check [Massive pricing](https://massive.com/pricing) before shipping to end user
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-massive
+npm install @efixdata/exeria-chart @efixdata/connector-massive
 ```
 
 ## Quick start
 
 ```tsx
-import { createChart } from "@exeria/charts";
-import { MassiveAdapter } from "@efix-data/adapter-massive";
+import { createChart } from "@efixdata/exeria-chart";
+import { MassiveAdapter } from "@efixdata/connector-massive";
 
 const connector = new MassiveAdapter({
   apiKey: process.env.MASSIVE_API_KEY!,

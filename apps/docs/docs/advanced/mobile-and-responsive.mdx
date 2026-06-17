@@ -61,7 +61,7 @@ The engine uses `ResizeObserver` and calls `fit()` when the box changes — you 
 Pass `layout` when creating the chart:
 
 ```ts
-import { createChart, CHART_COMPACT_BREAKPOINT_PX } from "@exeria/charts";
+import { createChart, CHART_COMPACT_BREAKPOINT_PX } from "@efixdata/exeria-chart";
 
 const chart = createChart({
   container: el,
@@ -104,7 +104,7 @@ Global breakpoint (all charts): `configureChartEnvironment({ compactBreakpoint: 
 React hook from the UI package:
 
 ```tsx
-import { useChartEnvironment } from "@exeria/charts-ui";
+import { useChartEnvironment } from "@efixdata/exeria-chart-ui-react";
 
 function MyToolbar() {
   const { isCompact, layoutMode, isTouch } = useChartEnvironment();
@@ -120,7 +120,7 @@ Types and helpers: [Chart environment reference](../api-reference/chart-environm
 import {
   ChartUI,
   applyChartUiEnvironmentOptions,
-} from "@exeria/charts-ui";
+} from "@efixdata/exeria-chart-ui-react";
 
 applyChartUiEnvironmentOptions({ compactBreakpoint: 600 });
 

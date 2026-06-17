@@ -1,18 +1,18 @@
 ---
 sidebar_position: 6
 title: Multi-Instrument Charts
-description: Compare two or more symbols on one chart — main candles plus overlay lines.
+description: Compare two or more symbols on one chart — indexed lines on a shared % axis.
 ---
 
-import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
+import MultiInstrumentOverlayDemo from "@site/src/components/MultiInstrumentOverlayDemo";
 
 # Multi-instrument charts
 
-One chart, **multiple symbols** — for example Bitcoin as candles and Ethereum as a line on the same dates. Great for comparison articles, screeners, and “vs benchmark” views.
+One chart, **multiple symbols** — for example **EUR/USD** next to **GBP/USD** on the same H1 timeline, indexed to 100% so both share one vertical scale. Great for comparison articles, screeners, and “vs benchmark” views.
 
-<ChartQuickstartExample />
+<MultiInstrumentOverlayDemo />
 
-The demo above shows **one** symbol. This page explains how to add a second (and style it differently).
+The demo above uses bundled, synchronized **EUR/USD** and **GBP/USD** H1 fixtures with the value axis in **percent** mode. The sections below explain how to add overlays and style them in your app.
 
 Live product example: [Market news demo](/starters/market-news) — embeddable comparison charts.
 
@@ -24,8 +24,8 @@ Tutorial walkthrough: [Multi-instrument overlay](../tutorials/multi-instrument-o
 
 | Role | Usually drawn as | Example |
 | --- | --- | --- |
-| **Main series** (first symbol) | Candles or bars | BTCUSD |
-| **Overlay** (extra symbols) | Line on same time axis | ETHUSD, SPY |
+| **Main series** (first symbol) | Line or candles | EUR/USD |
+| **Overlay** (extra symbols) | Line on same time axis | GBP/USD, SPY |
 
 Everyone shares one horizontal time axis. Each symbol has its own price data array.
 

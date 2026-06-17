@@ -1,6 +1,6 @@
-# @efix-data/adapter-okx
+# @efixdata/connector-okx
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from OKX public market data (API v5).
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from OKX public market data (API v5).
 
 ## Features
 
@@ -13,14 +13,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-okx
+npm install @efixdata/connector-okx
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { OkxAdapter } from "@efix-data/adapter-okx";
+import { OkxAdapter } from "@efixdata/connector-okx";
 
 const adapter = new OkxAdapter();
 

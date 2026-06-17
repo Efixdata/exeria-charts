@@ -35,7 +35,7 @@ If you want the chart to **fetch** market data for you instead, skip to [Connect
 ## Step 1 — Install the library
 
 ```bash
-npm install @exeria/charts
+npm install @efixdata/exeria-chart
 ```
 
 ## Step 2 — Add a box for the chart
@@ -51,7 +51,7 @@ The height matters. Without it the chart has nowhere to draw.
 ## Step 3 — Create the chart
 
 ```ts
-import { createChart, type Candle, type Interval } from "@exeria/charts";
+import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
 
 const container = document.getElementById("chart-root");
 if (!container) {

@@ -1,4 +1,4 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import type { SignalSide } from "./signalCatalog";
 
 export const SMA_CROSS_PERIOD = 24;

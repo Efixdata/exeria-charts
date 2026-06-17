@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
 import { resetForexSceneState } from "./applyOpportunityScene";
 

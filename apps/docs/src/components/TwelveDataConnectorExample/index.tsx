@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { ProxyTwelveDataAdapter } from "@site/src/lib/proxyTwelveDataAdapter";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 type DemoSymbol = {
   id: string;
@@ -102,7 +104,7 @@ export default function TwelveDataConnectorExample() {
     label: "1D",
     interval: "1d",
   };
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   useEffect(() => {
     let disposed = false;
@@ -113,7 +115,7 @@ export default function TwelveDataConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -127,13 +129,14 @@ export default function TwelveDataConnectorExample() {
             symbol: selectedSymbol,
             description: activeSymbol.name,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -172,7 +175,7 @@ export default function TwelveDataConnectorExample() {
       adapterRef.current = null;
       setChartReady(false);
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady || !chartRef.current) {
@@ -302,7 +305,7 @@ export default function TwelveDataConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -367,8 +370,8 @@ export default function TwelveDataConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { TwelveDataAdapter } from "@efixdata/connector-twelve-data";
 
 const connector = new TwelveDataAdapter({
   apiKey: process.env.TWELVE_DATA_API_KEY!,

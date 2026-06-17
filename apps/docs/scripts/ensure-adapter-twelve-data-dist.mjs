@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-twelve-data-dist] Building @efix-data/adapter-twelve-data (dist is missing)...",
+  "[ensure-adapter-twelve-data-dist] Building @efixdata/connector-twelve-data (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

@@ -11,7 +11,7 @@ Use this page when upgrading package versions or following old documentation lin
 ## Upgrading npm packages
 
 ```bash
-npm install @exeria/charts@latest @exeria/charts-ui@latest
+npm install @efixdata/exeria-chart@latest @efixdata/exeria-chart-ui-react@latest
 ```
 
 After upgrading:
@@ -23,7 +23,7 @@ After upgrading:
 ### Recommended integration pattern (all versions)
 
 ```ts
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 
 const chart = createChart({ container });
 chart.init();
@@ -53,12 +53,12 @@ No code changes required — only documentation URLs.
 | --- | --- |
 | Data Bridge / Adapter (docs) | **Data Connector** |
 | `setDataAdapter(adapter)` | Same method name — implements `DataAdapter` interface |
-| `@exeria/data-connector-binance` | Binance package — published as `@efix-data/adapter-binance` |
-| `@exeria/data-connector-bybit` | Bybit package — published as `@efix-data/adapter-bybit` |
-| `@exeria/data-connector-okx` | OKX package — published as `@efix-data/adapter-okx` |
-| `@exeria/data-connector-coingecko` | CoinGecko package — published as `@efix-data/adapter-coingecko` |
-| `@exeria/data-connector-kraken` | Kraken package — published as `@efix-data/adapter-kraken` |
-| `@exeria/data-connector-kucoin` | KuCoin package — published as `@efix-data/adapter-kucoin` |
+| `@efixdata/connector-binance` | Binance package — published as `@efixdata/connector-binance` |
+| `@efixdata/connector-bybit` | Bybit package — published as `@efixdata/connector-bybit` |
+| `@efixdata/connector-okx` | OKX package — published as `@efixdata/connector-okx` |
+| `@efixdata/connector-coingecko` | CoinGecko package — published as `@efixdata/connector-coingecko` |
+| `@efixdata/connector-kraken` | Kraken package — published as `@efixdata/connector-kraken` |
+| `@efixdata/connector-kucoin` | KuCoin package — published as `@efixdata/connector-kucoin` |
 
 The runtime API did not rename `setDataAdapter` or `DataAdapter` — only product and docs naming unified around **Data Connectors**.
 

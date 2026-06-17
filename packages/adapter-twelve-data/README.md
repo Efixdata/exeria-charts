@@ -1,6 +1,10 @@
-# @efix-data/adapter-twelve-data
+# @efixdata/connector-twelve-data
 
-Market data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) powered by [Twelve Data](https://twelvedata.com/) — forex, stocks, crypto, and ETFs through one API.
+Market data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) powered by [Twelve Data](https://twelvedata.com/) — forex, stocks, crypto, and ETFs through one API.
+
+> **License: paid, source-available (EULA).** The source is published for evaluation and
+> integration. **Production or commercial use requires a paid license** from Efix Data Sp. z o. o.
+> See the package `LICENSE` and the repository `LICENSING.md`.
 
 ## Features
 
@@ -17,14 +21,14 @@ Market data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/cha
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-twelve-data
+npm install @efixdata/connector-twelve-data
 ```
 
 ## Quick start
 
 ```typescript
-import { createChart } from "@exeria/charts";
-import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+import { createChart } from "@efixdata/exeria-chart";
+import { TwelveDataAdapter } from "@efixdata/connector-twelve-data";
 
 const connector = new TwelveDataAdapter({
   apiKey: process.env.TWELVE_DATA_API_KEY!,
@@ -74,6 +78,7 @@ Do **not** embed your API key in browser bundles — run this adapter on your se
 | US stocks (`AAPL`) in the same vendor | Native WebSocket, smallest bundle |
 | Multi-asset fintech backend | Browser-first live charts |
 
-## License
+## Licensing
 
-MIT (adapter code). Twelve Data data terms apply to market data usage.
+This adapter is paid, source-available software under an EULA. Market data is also subject to
+[Twelve Data pricing and terms](https://twelvedata.com/pricing).

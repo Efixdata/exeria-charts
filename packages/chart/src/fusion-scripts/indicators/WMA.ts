@@ -1,5 +1,6 @@
 import type { CoreFusionStatic } from "../../internal-types/fusion";
 import type { FusionScriptControllerRuntime } from "../../internal-types/scripts";
+import { resolveScriptModelScalarInput } from "../../scriptInputUtils";
 import { createController, defineScript } from "../helpers/scriptDefinition";
 
 export default function createWMAIndicatorScript(FUSION: CoreFusionStatic) {
@@ -43,7 +44,8 @@ export default function createWMAIndicatorScript(FUSION: CoreFusionStatic) {
         this.init = function (this: any) {};
 
         this.calculate = function (this: any, index: any) {
-          this.WMAValue.setValue(index, FUSION.lib.getWMA(this.CLOSE, index, this.PERIODS));
+          const periods = Number(resolveScriptModelScalarInput(this.PERIODS, 9));
+          this.WMAValue.setValue(index, FUSION.lib.getWMA(this.CLOSE, index, periods));
         };
     }),
   });

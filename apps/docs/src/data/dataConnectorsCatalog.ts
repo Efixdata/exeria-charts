@@ -1,4 +1,4 @@
-export type DataConnectorLicenseType = "mit";
+export type DataConnectorLicenseType = "mit" | "eula";
 
 export type DataConnectorStatus = "available" | "coming_soon";
 
@@ -62,7 +62,7 @@ function buildConnectorConstruction(connector: DataConnectorEntry): string {
 }
 
 export function getConnectorIntegrationSnippet(connector: DataConnectorEntry): string {
-  return `import { createChart } from "@exeria/charts";
+  return `import { createChart } from "@efixdata/exeria-chart";
 import { ${connector.integrationFactory} } from "${connector.packageName}";
 
 ${buildConnectorConstruction(connector)}
@@ -99,7 +99,7 @@ export function getConnectorPricingSummary(connector: DataConnectorEntry): strin
 }
 
 export function getConnectorLicenseShort(connector: DataConnectorEntry): string {
-  return connector.license === "mit" ? "MIT" : "Commercial";
+  return connector.license === "mit" ? "MIT" : "EULA";
 }
 
 export function getConnectorStatusLabel(connector: DataConnectorEntry): string {
@@ -129,17 +129,19 @@ export function connectorMatchesSearch(connector: DataConnectorEntry, query: str
 
 export const DATA_CONNECTOR_LICENSE_LABELS: Record<DataConnectorLicenseType, string> = {
   mit: "MIT License",
+  eula: "Commercial EULA (source-available)",
 };
 
 export const DATA_CONNECTOR_LICENSE_URLS: Record<DataConnectorLicenseType, string> = {
   mit: "https://opensource.org/license/mit",
+  eula: "/docs/guides/licensing",
 };
 
 export const dataConnectorCatalog: DataConnectorEntry[] = [
   {
     id: "binance-public",
-    packageName: "@exeria/data-connector-binance",
-    npmPackage: "@exeria/data-connector-binance",
+    packageName: "@efixdata/connector-binance",
+    npmPackage: "@efixdata/connector-binance",
     providerName: "Binance",
     dataTypes: ["Crypto spot", "Crypto futures", "Trades", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -166,8 +168,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "bybit-public",
-    packageName: "@efix-data/adapter-bybit",
-    npmPackage: "@efix-data/adapter-bybit",
+    packageName: "@efixdata/connector-bybit",
+    npmPackage: "@efixdata/connector-bybit",
     providerName: "Bybit",
     dataTypes: ["Crypto spot", "Crypto perps", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -194,8 +196,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "okx-public",
-    packageName: "@efix-data/adapter-okx",
-    npmPackage: "@efix-data/adapter-okx",
+    packageName: "@efixdata/connector-okx",
+    npmPackage: "@efixdata/connector-okx",
     providerName: "OKX",
     dataTypes: ["Crypto spot", "Crypto perps", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -222,8 +224,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "kraken-public",
-    packageName: "@efix-data/adapter-kraken",
-    npmPackage: "@efix-data/adapter-kraken",
+    packageName: "@efixdata/connector-kraken",
+    npmPackage: "@efixdata/connector-kraken",
     providerName: "Kraken",
     dataTypes: ["Crypto spot", "USD pairs", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -250,8 +252,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "kucoin-public",
-    packageName: "@efix-data/adapter-kucoin",
-    npmPackage: "@efix-data/adapter-kucoin",
+    packageName: "@efixdata/connector-kucoin",
+    npmPackage: "@efixdata/connector-kucoin",
     providerName: "KuCoin",
     dataTypes: ["Crypto spot", "USDT pairs", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -278,8 +280,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "coinbase-public",
-    packageName: "@efix-data/adapter-coinbase",
-    npmPackage: "@efix-data/adapter-coinbase",
+    packageName: "@efixdata/connector-coinbase",
+    npmPackage: "@efixdata/connector-coinbase",
     providerName: "Coinbase",
     dataTypes: ["Crypto spot", "USD / USDC pairs", "OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -306,8 +308,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "gate-public",
-    packageName: "@efix-data/adapter-gate",
-    npmPackage: "@efix-data/adapter-gate",
+    packageName: "@efixdata/connector-gate",
+    npmPackage: "@efixdata/connector-gate",
     providerName: "Gate.io",
     dataTypes: ["Crypto spot", "USDT pairs", "Klines / OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -334,8 +336,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "ccxt-universal",
-    packageName: "@efix-data/adapter-ccxt",
-    npmPackage: "@efix-data/adapter-ccxt",
+    packageName: "@efixdata/connector-ccxt",
+    npmPackage: "@efixdata/connector-ccxt",
     providerName: "CCXT (multi-exchange)",
     dataTypes: ["Crypto spot", "Crypto futures", "OHLCV", "100+ exchanges"],
     transport: ["REST"],
@@ -362,8 +364,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "twelve-data",
-    packageName: "@efix-data/adapter-twelve-data",
-    npmPackage: "@efix-data/adapter-twelve-data",
+    packageName: "@efixdata/connector-twelve-data",
+    npmPackage: "@efixdata/connector-twelve-data",
     providerName: "Twelve Data",
     dataTypes: ["Forex", "Stocks", "Crypto", "ETF", "OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -380,7 +382,7 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
       summary: "Free dev tier; paid for production display",
       providerPricingUrl: "https://twelvedata.com/pricing",
     },
-    license: "mit",
+    license: "eula",
     status: "available",
     integrationFactory: "createTwelveDataAdapter",
     integrationSymbol: "EUR/USD",
@@ -391,8 +393,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "finage",
-    packageName: "@efix-data/adapter-finage",
-    npmPackage: "@efix-data/adapter-finage",
+    packageName: "@efixdata/connector-finage",
+    npmPackage: "@efixdata/connector-finage",
     providerName: "Finage",
     dataTypes: ["Forex", "Stocks", "Crypto", "OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -409,7 +411,7 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
       summary: "Free API key; paid for higher limits / display",
       providerPricingUrl: "https://finage.co.uk/pricing",
     },
-    license: "mit",
+    license: "eula",
     status: "available",
     integrationFactory: "createFinageAdapter",
     integrationSymbol: "EURUSD",
@@ -420,8 +422,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "finnhub",
-    packageName: "@efix-data/adapter-finnhub",
-    npmPackage: "@efix-data/adapter-finnhub",
+    packageName: "@efixdata/connector-finnhub",
+    npmPackage: "@efixdata/connector-finnhub",
     providerName: "Finnhub",
     dataTypes: ["Stocks", "Forex", "Crypto", "OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -438,7 +440,7 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
       summary: "Free token for quotes; paid for OHLCV candles",
       providerPricingUrl: "https://finnhub.io/pricing",
     },
-    license: "mit",
+    license: "eula",
     status: "available",
     integrationFactory: "createFinnhubAdapter",
     integrationSymbol: "AAPL",
@@ -449,8 +451,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "eodhd",
-    packageName: "@efix-data/adapter-eodhd",
-    npmPackage: "@efix-data/adapter-eodhd",
+    packageName: "@efixdata/connector-eodhd",
+    npmPackage: "@efixdata/connector-eodhd",
     providerName: "EODHD",
     dataTypes: ["Stocks", "Forex", "Crypto", "ETF", "OHLCV"],
     transport: ["REST"],
@@ -467,7 +469,7 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
       summary: "Free EOD (~1 year); intraday on paid plans",
       providerPricingUrl: "https://eodhd.com/pricing",
     },
-    license: "mit",
+    license: "eula",
     status: "available",
     integrationFactory: "createEodhdAdapter",
     integrationSymbol: "AAPL",
@@ -478,8 +480,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "massive-public",
-    packageName: "@efix-data/adapter-massive",
-    npmPackage: "@efix-data/adapter-massive",
+    packageName: "@efixdata/connector-massive",
+    npmPackage: "@efixdata/connector-massive",
     providerName: "Massive",
     dataTypes: ["Stocks", "Forex", "Crypto", "OHLCV"],
     transport: ["REST", "WebSocket"],
@@ -496,7 +498,7 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
       summary: "Free trial; paid for production display",
       providerPricingUrl: "https://massive.com/pricing",
     },
-    license: "mit",
+    license: "eula",
     status: "available",
     integrationFactory: "MassiveAdapter",
     integrationSymbol: "AAPL",
@@ -507,8 +509,8 @@ export const dataConnectorCatalog: DataConnectorEntry[] = [
   },
   {
     id: "coingecko",
-    packageName: "@efix-data/adapter-coingecko",
-    npmPackage: "@efix-data/adapter-coingecko",
+    packageName: "@efixdata/connector-coingecko",
+    npmPackage: "@efixdata/connector-coingecko",
     providerName: "CoinGecko",
     dataTypes: ["Crypto OHLCV", "Market cap", "10,000+ assets"],
     transport: ["REST"],

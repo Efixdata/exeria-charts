@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type RefObject } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import type { ChartNewsEvent } from "../ForexOpportunityApp/chartNews";
 import { SENTIMENT_COLORS, formatNewsTime, formatPips } from "../ForexOpportunityApp/chartNews";
 import {
@@ -17,6 +17,8 @@ type MarketNewsChartCalloutProps = {
   stackRef: RefObject<HTMLDivElement | null>;
   anchor?: { clientX: number; clientY: number } | null;
   layoutToken?: number;
+  /** When set, applies callout colors without a Market News page shell wrapper. */
+  theme?: "dark" | "light";
   onClose: () => void;
 };
 
@@ -27,6 +29,7 @@ export default function MarketNewsChartCallout({
   stackRef,
   anchor,
   layoutToken = 0,
+  theme,
   onClose,
 }: MarketNewsChartCalloutProps) {
   const [position, setPosition] = useState<{ x: number; y: number }>(() => ({
@@ -69,9 +72,18 @@ export default function MarketNewsChartCallout({
   }, [anchor, layoutToken, containerRef, stackRef, fallbackPosition]);
 
   const stackWidth = stackRef.current?.clientWidth ?? 400;
+  const themeClass =
+    theme === "dark"
+      ? styles.newsCalloutThemeDark
+      : theme === "light"
+        ? styles.newsCalloutThemeLight
+        : undefined;
 
   return (
-    <div className={styles.newsLayer} aria-label="News detail overlay">
+    <div
+      className={[styles.newsLayer, themeClass].filter(Boolean).join(" ")}
+      aria-label="News detail overlay"
+    >
       <button
         type="button"
         className={styles.newsCalloutBackdrop}

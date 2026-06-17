@@ -44,6 +44,7 @@ import { DialogSection, dialogSectionStyles } from "../../dialog/DialogSection";
 import { useChartTranslate } from "../../../hooks/useChartTranslate";
 import { getIndicatorDialogCssVars } from "../../../utils/dialogThemeVars";
 import chartSettingsStyles from "../ChartSettings/chartSettings.module.css";
+import type { ChartLineFillMode } from "@efixdata/exeria-chart";
 
 interface IndicatorInput {
   type: string;
@@ -145,8 +146,21 @@ const DEFAULT_CANDLE_DOWN_COLOR = "#CE3E5B";
 const DEFAULT_CANDLE_UP_STROKE_COLOR = "#2A9D8F";
 const DEFAULT_CANDLE_DOWN_STROKE_COLOR = "#A83248";
 const DEFAULT_BAND_FILL_OPACITY = 0.3;
+const DEFAULT_LINE_FILL_GRADIENT_OPACITY = 0.4;
+
+const LINE_FILL_MODE_OPTIONS: {
+  id: ChartLineFillMode;
+  labelKey: string;
+  defaultLabel: string;
+}[] = [
+  { id: "solid", labelKey: "line_fill_mode_solid", defaultLabel: "Solid" },
+  { id: "gradient", labelKey: "line_fill_mode_gradient", defaultLabel: "Gradient" },
+];
 
 const isBandPlotter = (plotter: IndicatorPlotter) => plotter.renderAs === "Band";
+
+const isPureLinePlotter = (plotter: IndicatorPlotter) =>
+  plotter.renderAs === "Line" || plotter.renderAs == null || plotter.renderAs === "";
 
 const isOhlcPlotter = (plotter: IndicatorPlotter) =>
   plotter.renderAs === "OHLC" || plotter.renderAs === "Bars";
@@ -388,6 +402,56 @@ const mergePlottersForDialog = (
               ? templatePlotter.candleDownStrokeColor
               : DEFAULT_CANDLE_DOWN_STROKE_COLOR,
         ),
+      };
+    }
+
+    if (isPureLinePlotter(plotter)) {
+      const lineColor =
+        typeof plotter.color === "string"
+          ? plotter.color
+          : typeof templatePlotter?.color === "string"
+            ? templatePlotter.color
+            : "#5B6F8B";
+      const fillColor =
+        typeof plotter.fillColor === "string"
+          ? plotter.fillColor
+          : typeof templatePlotter?.fillColor === "string"
+            ? templatePlotter.fillColor
+            : lineColor;
+      const fillGradientColor =
+        typeof plotter.fillGradientColor === "string"
+          ? plotter.fillGradientColor
+          : typeof templatePlotter?.fillGradientColor === "string"
+            ? templatePlotter.fillGradientColor
+            : lineColor;
+
+      return {
+        ...plotter,
+        color: normalizeHexColor(lineColor),
+        dash: Array.isArray(plotter.dash)
+          ? [...plotter.dash]
+          : Array.isArray(templatePlotter?.dash)
+            ? [...templatePlotter.dash]
+            : [],
+        lineFillVisible:
+          typeof plotter.lineFillVisible === "boolean"
+            ? plotter.lineFillVisible
+            : templatePlotter?.lineFillVisible === true,
+        lineFillMode:
+          plotter.lineFillMode === "gradient" || plotter.lineFillMode === "solid"
+            ? plotter.lineFillMode
+            : templatePlotter?.lineFillMode === "gradient" ||
+                templatePlotter?.lineFillMode === "solid"
+              ? templatePlotter.lineFillMode
+              : "solid",
+        fillColor: normalizeHexColor(fillColor),
+        fillGradientColor: normalizeHexColor(fillGradientColor),
+        lineFillGradientOpacity:
+          typeof plotter.lineFillGradientOpacity === "number"
+            ? plotter.lineFillGradientOpacity
+            : typeof templatePlotter?.lineFillGradientOpacity === "number"
+              ? templatePlotter.lineFillGradientOpacity
+              : DEFAULT_LINE_FILL_GRADIENT_OPACITY,
       };
     }
 
@@ -657,7 +721,10 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   const scriptType = resolveScriptCatalogType(props.chart, config);
 
   const readLayerSettings = (indicatorConfig: IndicatorConfig) => {
-    const defaults = { visible: true, priceTagVisible: false, locked: false };
+    const plotterPriceTagVisible = (indicatorConfig.plotters || []).some(
+      (plotter) => plotter.priceTag === true,
+    );
+    const defaults = { visible: true, priceTagVisible: plotterPriceTagVisible, locked: false };
 
     if (!props.chart || indicatorConfig.id == null) {
       return defaults;
@@ -865,6 +932,66 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     setConfig({ ...config, plotters });
   };
 
+  const onPlotterLineFillVisibleChange = (index: number, lineFillVisible: boolean) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillVisible = lineFillVisible;
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterLineFillModeChange = (index: number, lineFillMode: ChartLineFillMode) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillMode = lineFillMode;
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterFillColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.fillColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterFillGradientColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.fillGradientColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterLineFillGradientOpacityChange = (index: number, value: number) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillGradientOpacity = value;
+    setConfig({ ...config, plotters });
+  };
+
   const onBandFillColorChange = (index: number, value: string) => {
     const plotters = clonePlotters(config.plotters);
     const plotter = plotters[index];
@@ -955,16 +1082,25 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     return options;
   };
 
+  const getLineFillModeOptionLabel = (option: (typeof LINE_FILL_MODE_OPTIONS)[number]) => {
+    const translated = translate(option.labelKey);
+    return translated !== option.labelKey ? translated : option.defaultLabel;
+  };
+
+  const lineFillModeOptions: DialogSelectOption[] = LINE_FILL_MODE_OPTIONS.map((option) => ({
+    value: option.id,
+    label: getLineFillModeOptionLabel(option),
+  }));
+
   const renderPlotterAppearanceInputs = () =>
-    linePlotterEntries.map(({ plotter, index }) => {
+    linePlotterEntries.flatMap(({ plotter, index }) => {
       const label = getPlotterLabel(plotter, config, translate);
       const color = normalizeHexColor(plotter.color);
       const lineStyleId = getPlotterLineStyleId(plotter.dash);
       const translatedLineStyle = translate("lineStyle");
       const lineStyleLabel =
         translatedLineStyle !== "lineStyle" ? translatedLineStyle : "Line style";
-
-      return (
+      const rows: JSX.Element[] = [
         <div
           key={`plotter-appearance-${index}-${plotter.dataField || "line"}`}
           className={dialogSectionStyles.fieldRow}
@@ -983,8 +1119,88 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
               ariaLabel={`${label} ${lineStyleLabel}`}
             />
           </Label>
-        </div>
+        </div>,
+      ];
+
+      if (!isPureLinePlotter(plotter)) {
+        return rows;
+      }
+
+      const fillColor = normalizeHexColor(
+        typeof plotter.fillColor === "string" ? plotter.fillColor : color,
       );
+      const fillGradientColor = normalizeHexColor(
+        typeof plotter.fillGradientColor === "string" ? plotter.fillGradientColor : color,
+      );
+      const fillOpacity =
+        typeof plotter.lineFillGradientOpacity === "number"
+          ? plotter.lineFillGradientOpacity
+          : DEFAULT_LINE_FILL_GRADIENT_OPACITY;
+      const lineFillMode =
+        plotter.lineFillMode === "gradient" || plotter.lineFillMode === "solid"
+          ? plotter.lineFillMode
+          : "solid";
+      const lineFillVisible = plotter.lineFillVisible === true;
+
+      rows.push(
+        <div
+          key={`plotter-line-fill-${index}-${plotter.dataField || "line"}`}
+          className={chartSettingsStyles.colorFieldWithToggle}
+        >
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={t("chart_settings_line_fill", "Fill")}
+              value={fillColor}
+              onChange={(value) => onPlotterFillColorChange(index, value)}
+            />
+            <div className={chartSettingsStyles.gradientFillColumn}>
+              <ColorField
+                label={t("chart_settings_line_fill_gradient", "Gradient fill")}
+                value={fillGradientColor}
+                onChange={(value) => onPlotterFillGradientColorChange(index, value)}
+              />
+              <Label
+                name={`${t("chart_settings_opacity", "Opacity")} · ${Math.round(fillOpacity * 100)}%`}
+              >
+                <input
+                  type="range"
+                  className={chartSettingsStyles.rangeInput}
+                  min={5}
+                  max={100}
+                  step={5}
+                  value={Math.round(fillOpacity * 100)}
+                  onChange={(event) =>
+                    onPlotterLineFillGradientOpacityChange(index, Number(event.target.value) / 100)
+                  }
+                />
+              </Label>
+            </div>
+          </div>
+          <div className={chartSettingsStyles.colorFieldWithToggleRow}>
+            <Label name={t("chart_settings_line_fill_mode", "Fill mode")}>
+              <DialogSelect
+                value={lineFillMode}
+                options={lineFillModeOptions}
+                onChange={(value) => onPlotterLineFillModeChange(index, value as ChartLineFillMode)}
+                ariaLabel={t("chart_settings_line_fill_mode", "Fill mode")}
+              />
+            </Label>
+            <LayerIconToggle
+              active={lineFillVisible}
+              label={
+                lineFillVisible
+                  ? t("chart_settings_hide_area_under_line", "Hide area under line")
+                  : t("chart_settings_show_area_under_line", "Show area under line")
+              }
+              onChange={(next) => onPlotterLineFillVisibleChange(index, next)}
+              activeIcon={<Eye size={18} weight="regular" />}
+              inactiveIcon={<EyeSlash size={18} weight="regular" />}
+            />
+          </div>
+        </div>,
+      );
+
+      return rows;
     });
 
   const getBandLinesLabel = () => {

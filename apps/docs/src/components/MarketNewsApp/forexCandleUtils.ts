@@ -1,4 +1,4 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import type { MarketNewsPeriodId } from "./constants";
 import { MARKET_NEWS_PERIODS } from "./constants";
 

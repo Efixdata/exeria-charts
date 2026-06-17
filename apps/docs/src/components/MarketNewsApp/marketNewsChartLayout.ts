@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { scrollChartToEnd } from "../ForexOpportunityApp/chartBarPosition";
 
 /** Wait until the chart container has non-zero dimensions (avoids blank first paint). */

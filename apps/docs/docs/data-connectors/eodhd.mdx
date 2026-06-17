@@ -61,14 +61,14 @@ Check [EODHD pricing](https://eodhd.com/pricing) before shipping to end users.
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-eodhd
+npm install @efixdata/exeria-chart @efixdata/connector-eodhd
 ```
 
 ## Quick start
 
 ```tsx
-import { createChart } from "@exeria/charts";
-import { EodhdAdapter } from "@efix-data/adapter-eodhd";
+import { createChart } from "@efixdata/exeria-chart";
+import { EodhdAdapter } from "@efixdata/connector-eodhd";
 
 const connector = new EodhdAdapter({
   apiKey: process.env.EODHD_API_KEY!,
@@ -125,7 +125,7 @@ const connector = new EodhdAdapter({
 
 ```ts
 // app/api/market/ohlcv/route.ts
-import { EodhdAdapter } from "@efix-data/adapter-eodhd";
+import { EodhdAdapter } from "@efixdata/connector-eodhd";
 import { NextResponse } from "next/server";
 
 const connector = new EodhdAdapter({

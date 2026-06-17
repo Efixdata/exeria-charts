@@ -1,21 +1,22 @@
 import { themePresets } from "./themeCreator/chartSettingsThemePresets";
+import { DOCS_CHART_PRESET_ID } from "./docsChartTheme";
 
-const tradingDark = themePresets.find((preset) => preset.id === "trading-dark");
-const chart = tradingDark?.chart.dark;
+const carbonPreset = themePresets.find((preset) => preset.id === DOCS_CHART_PRESET_ID);
+const chart = carbonPreset?.chart.dark;
 
-/** Runtime hex palette for docs chart demos — aligned with the Trading Dark preset. */
+/** Runtime hex palette for docs chart demos — aligned with the Carbon preset. */
 export const docsShowcasePalette = {
-  background: chart?.background ?? "#0B0C10",
-  accent: chart?.accent ?? "#00C8C8",
-  tool: chart?.tool ?? "#78909C",
-  success: chart?.candleUp ?? "#00C8C8",
-  danger: chart?.candleDown ?? "#DC0464",
-  crosshair: chart?.crosshair ?? "#00C8C8",
+  background: chart?.background ?? "#1E222D",
+  accent: chart?.accent ?? "#D97706",
+  tool: chart?.tool ?? "#D97706",
+  success: chart?.candleUp ?? "#2E7D52",
+  danger: chart?.candleDown ?? "#B91C1C",
+  crosshair: chart?.crosshair ?? "#D97706",
   warning: "#F0B429",
   violet: "#C084FC",
   violetSoft: "#A78BFA",
   orange: "#F97316",
-  label: "#F7FBFF",
-  positionWin: "#25AD98",
-  positionLoss: "#D12E59",
+  label: "#CBD5E1",
+  positionWin: "#2E7D52",
+  positionLoss: "#B91C1C",
 } as const;

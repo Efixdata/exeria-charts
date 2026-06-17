@@ -226,6 +226,48 @@ function getInstrumentSeriesPlotter(
   ) as ChartRuntimeObject | undefined;
 }
 
+function getAllInstrumentSeriesPlotters(chart: ChartSettingsHost): ChartRuntimeObject[] {
+  const plotters: ChartRuntimeObject[] = [];
+
+  for (const instrumentSeries of chart.model.instrumentsSeries) {
+    const plotter = getInstrumentSeriesPlotter(chart, instrumentSeries.seriesId);
+    if (plotter) {
+      plotters.push(plotter);
+    }
+  }
+
+  return plotters;
+}
+
+function readInstrumentSeriesLastPriceVisibility(chart: ChartSettingsHost): {
+  priceLineVisible: boolean;
+  priceTagVisible: boolean;
+} {
+  const plotters = getAllInstrumentSeriesPlotters(chart);
+  if (plotters.length === 0) {
+    return { priceLineVisible: false, priceTagVisible: false };
+  }
+
+  return {
+    priceLineVisible: plotters.every((plotter) => plotter.priceLine === true),
+    priceTagVisible: plotters.every((plotter) => plotter.priceTag === true),
+  };
+}
+
+export function setInstrumentSeriesLastPriceVisibility(
+  chart: ChartSettingsHost,
+  settings: { priceLine?: boolean; priceTag?: boolean },
+): void {
+  for (const plotter of getAllInstrumentSeriesPlotters(chart)) {
+    if (typeof settings.priceLine === "boolean") {
+      plotter.priceLine = settings.priceLine;
+    }
+    if (typeof settings.priceTag === "boolean") {
+      plotter.priceTag = settings.priceTag;
+    }
+  }
+}
+
 function getInstrumentSymbol(
   instrumentSeries: ChartSettingsHost["model"]["instrumentsSeries"][number],
 ): string {
@@ -392,6 +434,7 @@ export function getChartAppearanceSettings(
   const panel = getMainPanel(chart);
   const mainSeries = getMainSeriesObject(chart);
   const gridMode = gridModeFromPanel(!!panel.hGrid, !!panel.vGrid);
+  const instrumentLastPrice = readInstrumentSeriesLastPriceVisibility(chart);
 
   return {
     backgroundColor: colorManager.getColor("backgroundColor"),
@@ -422,8 +465,8 @@ export function getChartAppearanceSettings(
     gridMode,
     gridVisible: gridMode !== "none",
     gridLineStyle: gridLineStyleFromDash(panel.gridDash),
-    lastPriceLineVisible: mainSeries?.priceLine === true,
-    lastPriceLabelVisible: mainSeries?.priceTag === true,
+    lastPriceLineVisible: instrumentLastPrice.priceLineVisible,
+    lastPriceLabelVisible: instrumentLastPrice.priceTagVisible,
   };
 }
 
@@ -494,12 +537,15 @@ export function applyChartAppearanceSettings(
   if (mainSeries) {
     mainSeries.color = settings.chartLineColor;
     mainSeries.strokeStyle = settings.chartLineColor;
-    mainSeries.priceLine = settings.lastPriceLineVisible;
-    mainSeries.priceTag = settings.lastPriceLabelVisible;
     mainSeries.lineFillVisible = settings.chartLineFillVisible;
     mainSeries.lineFillMode = settings.chartLineFillMode;
     mainSeries.lineFillGradientOpacity = settings.chartFillGradientOpacity;
   }
+
+  setInstrumentSeriesLastPriceVisibility(chart, {
+    priceLine: settings.lastPriceLineVisible,
+    priceTag: settings.lastPriceLabelVisible,
+  });
 
   const panel = getMainPanel(chart);
   if (settings.gridVisible) {

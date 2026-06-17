@@ -37,6 +37,7 @@ import type {
 } from "./internal-types/scripts";
 import type { FusionSeriesRuntime } from "./internal-types/series";
 import type { UnknownFn } from "./internal-types/shared";
+import { resolveScriptModelScalarInput } from "./scriptInputUtils";
 
 type FusionInterval = FusionIntervalRuntime & {
   symbol: string;
@@ -76,6 +77,41 @@ type FusionStaticConstants = {
   EXIT_ALL: number;
   DO_NOTHING: number;
 };
+
+function syncScriptScalarInputsFromModel(
+  script: FusionScriptControllerRuntime,
+  scriptConfig: RuntimeScriptConfig,
+  scriptProto: RuntimeScriptDefinition | undefined,
+): void {
+  if (!scriptProto?.inputs) {
+    return;
+  }
+
+  for (const key in scriptConfig.inputs) {
+    const inputDef = scriptProto.inputs[key];
+    if (!inputDef) {
+      continue;
+    }
+
+    const type = inputDef.type;
+    if (
+      type === "series" ||
+      type === "conditional" ||
+      type === "object" ||
+      type === "booleanList" ||
+      type === "matrix"
+    ) {
+      continue;
+    }
+
+    const resolved = resolveScriptModelScalarInput(
+      scriptConfig.inputs[key],
+      inputDef.value,
+    );
+    scriptConfig.inputs[key] = resolved;
+    script[key] = resolved;
+  }
+}
 
 type FusionBootstrapStatic = Pick<CoreFusionStatic, "lib" | "scripts" | "signals"> &
   FusionStaticConstants;
@@ -968,7 +1004,7 @@ class FusionEngine implements CoreFusionRuntime {
 
         const row: FusionRecord = { stamp, strength: 0, tooltips: {} };
         for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-          row[String(fields[fieldIndex])] = 0;
+          row[String(fields[fieldIndex])] = null;
         }
         resynced.push(row);
       }
@@ -1015,7 +1051,12 @@ class FusionEngine implements CoreFusionRuntime {
           scriptModel.inputs[key] = normalized;
           wrappers[key] = normalized;
         } else {
-          wrappers[key] = scriptModel.inputs[key];
+          const resolved = resolveScriptModelScalarInput(
+            scriptModel.inputs[key],
+            scriptProto.inputs[key]?.value,
+          );
+          scriptModel.inputs[key] = resolved;
+          wrappers[key] = resolved;
         }
       }
     }
@@ -1464,6 +1505,15 @@ class FusionEngine implements CoreFusionRuntime {
     for (var key in this.model.scripts) {
       const scriptConfig = this.model.scripts[key] as RuntimeScriptConfig;
       var script = this.scriptsManager[String(scriptConfig.id)];
+      if (!script) {
+        continue;
+      }
+
+      syncScriptScalarInputsFromModel(
+        script,
+        scriptConfig,
+        FUSION.scripts[scriptConfig.key] as RuntimeScriptDefinition | undefined,
+      );
       this.calculate(script, this.getMainSeries());
     }
   }
@@ -1513,7 +1563,12 @@ class FusionEngine implements CoreFusionRuntime {
         s.inputs[key] = normalized;
         wrappers[key] = normalized;
       } else {
-        wrappers[key] = s.inputs[key];
+        const resolved = resolveScriptModelScalarInput(
+          s.inputs[key],
+          scriptProto.inputs[key]?.value,
+        );
+        s.inputs[key] = resolved;
+        wrappers[key] = resolved;
       }
 
       for (var i in this.model.scripts) {

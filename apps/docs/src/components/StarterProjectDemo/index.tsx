@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import type { StarterProject } from "@site/src/data/starterProjects";
 import { getStarterProjectRuntimeTheme } from "@site/src/data/starterProjectScenes";
 import { docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import { alignDocsChartViewport } from "../docsChartTheme";
 import { docsShowcasePalette } from "../docsShowcasePalette";
 import { buildChartTheme } from "../themeCreator/core";
 
@@ -37,7 +38,7 @@ export default function StarterProjectDemo({ projectId, minHeight = 520 }: Start
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
@@ -60,6 +61,8 @@ export default function StarterProjectDemo({ projectId, minHeight = 520 }: Start
         if (scene.applyScene) {
           await scene.applyScene(chart, scene.candles);
         }
+
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);

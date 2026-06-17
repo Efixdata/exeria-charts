@@ -1,6 +1,6 @@
-# @efix-data/adapter-kucoin
+# @efixdata/connector-kucoin
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from KuCoin public Spot API.
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from KuCoin public Spot API.
 
 ## Features
 
@@ -14,14 +14,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-kucoin
+npm install @efixdata/connector-kucoin
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { KucoinAdapter } from "@efix-data/adapter-kucoin";
+import { KucoinAdapter } from "@efixdata/connector-kucoin";
 
 const adapter = new KucoinAdapter();
 

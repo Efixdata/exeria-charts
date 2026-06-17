@@ -1,8 +1,8 @@
-import type { Candle, ChartInstance, NewsFeedRecord } from "@exeria/charts";
+import type { Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { getStaticNewsFeedBundle } from "./newsFeedLoader";
 
 async function getNewsFeedApi() {
-  return import("@exeria/charts");
+  return import("@efixdata/exeria-chart");
 }
 
 function resolveNewsFeedRecords(

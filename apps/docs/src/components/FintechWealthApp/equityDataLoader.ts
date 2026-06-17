@@ -1,4 +1,4 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import { MIN_CHART_BARS, type FintechPeriodId } from "./constants";
 
 const EQUITY_CSV_BASE = "/data/fintech-equity";

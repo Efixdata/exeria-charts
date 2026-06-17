@@ -332,6 +332,8 @@ export interface ChartInstance {
   appendMainSeriesData(data: Candle[]): void;
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;
+  recalculateScripts(options?: { rerender?: boolean; shortSynchronization?: boolean }): Promise<void>;
+  moveToEnd(options?: { rerender?: boolean }): void;
   setMainDrawMode(mode: DrawMode): void;
   getMainSeriesId(): string;
   getSelectedInstrumentSeriesId(): string;
@@ -349,7 +351,7 @@ export interface ChartInstance {
   getChartPanels(): Array<{ id: string; label: string; main?: boolean }>;
   getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null;
   addScript(scriptKey: string, proto?: ScriptDefinition): void | Promise<void>;
-  updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void;
+  updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void | Promise<void>;
   getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
   applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
   getChartLegendSettings(): import("./chartSettings").ChartLegendSettings;

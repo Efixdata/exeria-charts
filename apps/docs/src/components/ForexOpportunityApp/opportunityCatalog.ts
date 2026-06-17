@@ -1,10 +1,10 @@
-import type { ArbSignalRecord } from "@exeria/charts";
+import type { ArbSignalRecord } from "@efixdata/exeria-chart";
 import type { OpportunityFilter } from "./constants";
 import { loadArbSignals } from "./arbSignalLoader";
 import { getArbSignalTimeframe } from "./applyArbSignalScene";
 import type { ForexTimeframeId } from "./forexInstruments";
 
-/** @deprecated Use ArbSignalRecord from @exeria/charts */
+/** @deprecated Use ArbSignalRecord from @efixdata/exeria-chart */
 export type ForexOpportunity = ArbSignalRecord;
 
 export const FOREX_OPPORTUNITIES: ArbSignalRecord[] = loadArbSignals();

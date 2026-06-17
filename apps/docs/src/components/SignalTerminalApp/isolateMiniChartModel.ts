@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 
 type MutableChartModel = Record<string, unknown> & {
   panels: unknown[];

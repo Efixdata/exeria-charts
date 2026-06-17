@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import { computeChangePercent, readSparklineValues } from "./forexCandleUtils";
 import styles from "./marketNewsApp.module.css";
 

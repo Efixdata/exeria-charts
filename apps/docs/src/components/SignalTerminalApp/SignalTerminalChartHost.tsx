@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import { BinanceAdapter } from "../../../../../packages/adapter-binance/src";
 import type { ChartUITheme } from "../../../../../packages/react-chart-ui/src/chartTypes";
 import { loadChartUI } from "@site/src/utils/loadChartUI";
@@ -136,7 +136,7 @@ function SignalTerminalChartHost({
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }

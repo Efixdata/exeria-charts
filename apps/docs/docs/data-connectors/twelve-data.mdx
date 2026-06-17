@@ -55,14 +55,14 @@ Free tiers are **not** a substitute for a production license when end users see 
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-twelve-data
+npm install @efixdata/exeria-chart @efixdata/connector-twelve-data
 ```
 
 ## Minimal example (Node.js)
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+import { createChart } from "@efixdata/exeria-chart";
+import { TwelveDataAdapter } from "@efixdata/connector-twelve-data";
 
 const connector = new TwelveDataAdapter({
   apiKey: process.env.TWELVE_DATA_API_KEY!,
@@ -156,7 +156,7 @@ Compact forms (`EURUSD`, `EUR-USD`) are normalized automatically.
 
 ```ts
 // app/api/forex/ohlcv/route.ts
-import { TwelveDataAdapter } from "@efix-data/adapter-twelve-data";
+import { TwelveDataAdapter } from "@efixdata/connector-twelve-data";
 import { NextResponse } from "next/server";
 
 const connector = new TwelveDataAdapter({

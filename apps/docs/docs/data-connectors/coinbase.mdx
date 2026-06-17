@@ -1,7 +1,7 @@
 ---
 sidebar_position: 7
 title: Coinbase
-description: Coinbase adapter (@efix-data/adapter-coinbase) — live and historical crypto charts from Advanced Trade, no API key required.
+description: Coinbase adapter (@efixdata/connector-coinbase) — live and historical crypto charts from Advanced Trade, no API key required.
 ---
 
 import CoinbaseConnectorExample from "@site/src/components/CoinbaseConnectorExample";
@@ -43,14 +43,14 @@ Perfect for US-focused crypto apps and Coinbase-native trading surfaces. For **N
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-coinbase
+npm install @efixdata/exeria-chart @efixdata/connector-coinbase
 ```
 
 ## Minimal example
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { CoinbaseAdapter } from "@efix-data/adapter-coinbase";
+import { createChart } from "@efixdata/exeria-chart";
+import { CoinbaseAdapter } from "@efixdata/connector-coinbase";
 
 const connector = new CoinbaseAdapter({ pageDelayMs: 300 });
 

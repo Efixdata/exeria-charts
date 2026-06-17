@@ -13,11 +13,11 @@ const STEPS = [
     ),
   },
   {
-    title: "Copy a starter snippet",
+    title: "Download the starter project",
     body: (
       <>
-        Scroll to <strong>Starter code</strong> below, pick an example tab, and click{" "}
-        <strong>Copy snippet</strong>. Paste into a Vite + React app or your existing chart shell.
+        Scroll to <strong>Starter code</strong> below and click <strong>Download ZIP</strong>. You
+        get a ready-made Vite + React project — no need to clone this docs repo.
       </>
     ),
   },
@@ -25,8 +25,8 @@ const STEPS = [
     title: "Install dependencies",
     body: (
       <>
-        In your project folder run <code>npm install @exeria/charts @exeria/charts-ui @efix-data/adapter-binance</code>.
-        You need{" "}
+        Unzip the folder, open your terminal app (Terminal on Mac, PowerShell on Windows),{" "}
+        <code>cd</code> into the folder, and run <code>npm install</code>. You need{" "}
         <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer">
           Node.js 18+
         </a>
@@ -38,8 +38,9 @@ const STEPS = [
     title: "Run it locally",
     body: (
       <>
-        Run <code>npm run dev</code> and open the local URL. Load candles, attach built-in strategies
-        (<code>CROSS</code>, <code>EXCEED</code>), then wire your screener or alert backend.
+        Run <code>npm run dev</code>. Your browser will show a local URL (usually{" "}
+        <code>http://localhost:5173</code>) — open it. The chart should load with live Binance
+        candles and strategy markers (<code>CROSS</code>, <code>EXCEED</code>).
       </>
     ),
   },
@@ -60,7 +61,7 @@ export default function GettingStartedSteps() {
     <section className={styles.stepsSection} aria-labelledby="screener-signals-steps">
       <h3 id="screener-signals-steps">Get started in five steps</h3>
       <p className={styles.stepsIntro}>
-        You do not need to understand the whole docs repo — copy one file, run it, then iterate.
+        You do not need to understand the whole docs repo — download the zip, run it, then iterate.
       </p>
       <ol className={styles.stepsList}>
         {STEPS.map((step, index) => (

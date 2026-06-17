@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance, DrawMode } from "@exeria/charts";
+import type { ChartInstance, DrawMode } from "@efixdata/exeria-chart";
 import {
   docsCandleCount,
   docsExampleDatasets,
@@ -9,6 +9,12 @@ import {
   type ExampleDatasetKey,
 } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
 import showcaseStyles from "../docsShowcase.module.css";
 
 const drawModes: DrawMode[] = ["OHLC", "Line", "Histogram"];
@@ -48,18 +54,27 @@ export default function ChartQuickstartExample({ compact = false }: ChartQuickst
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
 
-        const chart = chartModule.createChart({ container });
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
         const initialState = chartStateRef.current;
         chartRef.current = chart;
 
         chart.init();
-        await chart.setMainSeriesData(docsExampleDatasets[initialState.datasetKey].candles, docsInterval);
+        await chart.setMainSeriesData(
+          docsExampleDatasets[initialState.datasetKey].candles,
+          docsInterval,
+          false,
+        );
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode(initialState.drawMode);
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);
@@ -87,8 +102,11 @@ export default function ChartQuickstartExample({ compact = false }: ChartQuickst
       return;
     }
 
-    void chart.setMainSeriesData(activeDataset.candles, docsInterval);
-    chart.setMainDrawMode(drawMode);
+    void (async () => {
+      await chart.setMainSeriesData(activeDataset.candles, docsInterval, false);
+      chart.setMainDrawMode(drawMode);
+      await alignDocsChartViewport(chart);
+    })();
   }, [activeDataset, drawMode]);
 
   return (
@@ -140,11 +158,17 @@ export default function ChartQuickstartExample({ compact = false }: ChartQuickst
       ) : null}
 
       {compact ? (
-        <DocChartEmbed nested background="var(--doc-chart-surface)" loading={loading} error={error}>
+        <DocChartEmbed nested background={docsChartEmbedBackground} loading={loading} error={error}>
           <div ref={containerRef} className={docChartEmbedStyles.canvas} />
         </DocChartEmbed>
       ) : (
-        <DocChartEmbed minHeight={420} height={420} loading={loading} error={error}>
+        <DocChartEmbed
+          minHeight={420}
+          height={420}
+          background={docsChartEmbedBackground}
+          loading={loading}
+          error={error}
+        >
           <div ref={containerRef} className={docChartEmbedStyles.canvas} />
         </DocChartEmbed>
       )}

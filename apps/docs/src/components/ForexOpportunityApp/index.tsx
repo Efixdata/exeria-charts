@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
-import type { ArbSignalRecord, Candle, ChartInstance, NewsFeedRecord } from "@exeria/charts";
+import type { ArbSignalRecord, Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { installBenignResizeObserverErrorSuppression } from "@site/src/utils/suppressBenignResizeObserverErrors";
 import { TERMINAL_UI_FONT_VARS } from "../CryptoTerminalApp/terminalTypography";
 import { applyArbSignalScene } from "./applyArbSignalScene";

@@ -25,7 +25,7 @@ import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 Open a terminal in your project folder and run:
 
 ```bash
-npm install @exeria/charts
+npm install @efixdata/exeria-chart
 ```
 
 This downloads the chart library. One package, nothing else required.
@@ -45,7 +45,7 @@ Think of this div as a picture frame. The chart fills the frame.
 A **candle** is one bar on the chart — prices during one time slice (here: one hour):
 
 ```ts
-import { type Candle, type Interval } from "@exeria/charts";
+import { type Candle, type Interval } from "@efixdata/exeria-chart";
 
 const candles: Candle[] = [
   // stamp = start time (UTC, milliseconds)
@@ -66,7 +66,7 @@ Later you will replace this array with data from your API. The shape stays the s
 ## Step 4 — Create and show the chart
 
 ```ts
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 
 const container = document.getElementById("chart-root");
 

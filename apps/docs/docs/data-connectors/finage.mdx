@@ -57,14 +57,14 @@ Check [Finage pricing](https://finage.co.uk/pricing) before shipping to end user
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-finage
+npm install @efixdata/exeria-chart @efixdata/connector-finage
 ```
 
 ## Minimal example (Node.js)
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { FinageAdapter } from "@efix-data/adapter-finage";
+import { createChart } from "@efixdata/exeria-chart";
+import { FinageAdapter } from "@efixdata/connector-finage";
 
 const connector = new FinageAdapter({
   apiKey: process.env.FINAGE_API_KEY!,
@@ -160,7 +160,7 @@ Slash and dash forms are normalized to compact Finage symbols.
 
 ```ts
 // app/api/forex/ohlcv/route.ts
-import { FinageAdapter } from "@efix-data/adapter-finage";
+import { FinageAdapter } from "@efixdata/connector-finage";
 import { NextResponse } from "next/server";
 
 const connector = new FinageAdapter({

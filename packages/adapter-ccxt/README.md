@@ -1,6 +1,6 @@
-# @efix-data/adapter-ccxt
+# @efixdata/connector-ccxt
 
-Universal multi-exchange data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) powered by [CCXT](https://github.com/ccxt/ccxt).
+Universal multi-exchange data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) powered by [CCXT](https://github.com/ccxt/ccxt).
 
 ## Features
 
@@ -21,16 +21,16 @@ Universal multi-exchange data adapter for [@efixdata/exeria-chart](https://githu
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-ccxt
+npm install @efixdata/connector-ccxt
 ```
 
-Requires a peer dependency on `@efixdata/exeria-chart` (or `@exeria/charts`).
+Requires a peer dependency on `@efixdata/exeria-chart` (or `@efixdata/exeria-chart`).
 
 ## Quick start (Node.js)
 
 ```typescript
-import { createChart } from "@exeria/charts";
-import { CcxtAdapter } from "@efix-data/adapter-ccxt";
+import { createChart } from "@efixdata/exeria-chart";
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
 
 const connector = new CcxtAdapter({ exchangeId: "kraken" });
 
@@ -74,7 +74,7 @@ Any exchange id supported by CCXT can be passed to `exchangeId` if it exists in 
 
 ## Browser usage
 
-Do **not** import CCXT directly in browser bundles for production charts. Most exchanges block cross-origin REST calls. Run CCXT on your server and proxy requests to the chart, or use a dedicated browser-friendly connector such as `@efix-data/adapter-binance`.
+Do **not** import CCXT directly in browser bundles for production charts. Most exchanges block cross-origin REST calls. Run CCXT on your server and proxy requests to the chart, or use a dedicated browser-friendly connector such as `@efixdata/connector-binance`.
 
 ## License
 

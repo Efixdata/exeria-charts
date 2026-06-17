@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-eodhd-dist] Building @efix-data/adapter-eodhd (dist is missing)...",
+  "[ensure-adapter-eodhd-dist] Building @efixdata/connector-eodhd (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

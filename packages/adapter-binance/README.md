@@ -1,6 +1,6 @@
-# @efix-data/adapter-binance
+# @efixdata/connector-binance
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from Binance.
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from Binance.
 
 ## Features
 
@@ -14,14 +14,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-binance
+npm install @efixdata/connector-binance
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 // Create adapter instance
 const adapter = new BinanceAdapter();
@@ -263,7 +263,7 @@ MIT - See LICENSE file for details
 ## Support
 
 For issues or questions:
-- GitHub Issues: [efixdata/chart-repo/issues](https://github.com/efixdata/chart-repo/issues)
+- GitHub Issues: [Efixdata/exeria-charts/issues](https://github.com/Efixdata/exeria-charts/issues)
 - Documentation: [Data Adapters Guide](../docs/)
 
 ## Disclaimer

@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance, Interval } from "@efixdata/exeria-chart";
 
 type ChartPanelObject = {
   id?: string;
@@ -97,6 +97,57 @@ export function removeChartOverlay(chart: ChartInstance, symbol: string): void {
   chart.render();
 }
 
+export function applyStaticChartOverlay(
+  chart: ChartInstance,
+  symbol: string,
+  label: string,
+  candles: Candle[],
+  interval: Interval,
+  color = "#f59e0b",
+): void {
+  const runtime = chart as ChartRuntime;
+  const seriesId = overlaySeriesId(symbol);
+  const instrument = createInstrument(symbol, label);
+  const mainPanel = getMainPanel(runtime);
+
+  const existingIndex = runtime.model.instrumentsSeries.findIndex(
+    (entry) => entry.seriesId === seriesId,
+  );
+
+  if (existingIndex < 0) {
+    runtime.model.instrumentsSeries.push({
+      seriesId,
+      title: label,
+      labels: ["O", "H", "L", "C", "V", "I"],
+      fields: ["o", "h", "l", "c", "v", "i"],
+      instrument,
+    });
+
+    if (mainPanel && !mainPanel.objects.some((object) => object.dataLink === seriesId)) {
+      mainPanel.objects.push(createLinePlotter(seriesId, color));
+    }
+  }
+
+  const seriesManager = chart.getSeriesManager();
+  seriesManager[seriesId] = {
+    seriesId,
+    title: label,
+    labels: ["O", "H", "L", "C", "V", "I"],
+    fields: ["o", "h", "l", "c", "v", "i"],
+    instrument,
+    interval,
+    data: candles,
+  };
+
+  runtime.fusion.fullSynchronization();
+  chart.setInstrumentDrawMode("Line", seriesId);
+  chart.applyChartInstrumentSettings(seriesId, {
+    lineColor: color,
+    lineDash: [4, 4],
+  });
+  chart.render();
+}
+
 export async function applyChartOverlay(
   chart: ChartInstance,
   symbol: string,
@@ -110,7 +161,7 @@ export async function applyChartOverlay(
   const mainPanel = getMainPanel(runtime);
 
   const [{ intervalFromSymbol }, { BinanceAdapter }] = await Promise.all([
-    import("@exeria/charts"),
+    import("@efixdata/exeria-chart"),
     import("../../../../../packages/adapter-binance/src"),
   ]);
   const chartInterval = intervalFromSymbol(interval);
