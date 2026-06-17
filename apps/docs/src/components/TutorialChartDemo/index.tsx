@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import {
   docsExampleDatasets,
   docsInterval,
@@ -8,6 +8,17 @@ import {
   getCandleAtRatio,
 } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
+import {
+  buildSimpleChartTheme,
+  type SimpleChartThemeColors,
+  type ThemeVariant,
+} from "../themeCreator/core";
 
 export type TutorialScene = "basic" | "indicators" | "live-stream" | "custom-theme";
 
@@ -20,7 +31,7 @@ type TutorialChartDemoProps = {
 
 const themePresets: Record<
   TutorialScene,
-  { theme?: Record<string, string>; themeVariant?: "dark" | "light" } | undefined
+  { theme?: SimpleChartThemeColors; themeVariant?: ThemeVariant } | undefined
 > = {
   basic: undefined,
   indicators: undefined,
@@ -37,15 +48,15 @@ const themePresets: Record<
 };
 
 async function applyScene(chart: ChartInstance, scene: TutorialScene) {
-  const candles = docsExampleDatasets.trend.candles;
-
   if (scene === "indicators") {
-    chart.addScript("EMA");
-    chart.addScript("RSI");
+    await chart.addScript("EMA");
+    await chart.addScript("RSI");
+    chart.setMainDrawMode("OHLC");
     return;
   }
 
   if (scene === "live-stream") {
+    const candles = docsExampleDatasets.trend.candles;
     const last = candles.at(-1);
     if (!last) {
       return;
@@ -74,6 +85,7 @@ async function applyScene(chart: ChartInstance, scene: TutorialScene) {
   }
 
   if (scene === "custom-theme") {
+    chart.setMainDrawMode("OHLC");
     return;
   }
 
@@ -113,7 +125,7 @@ export default function TutorialChartDemo({ scene, caption, height = 380 }: Tuto
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
@@ -121,13 +133,22 @@ export default function TutorialChartDemo({ scene, caption, height = 380 }: Tuto
         const preset = themePresets[scene];
         const chart = chartModule.createChart({
           container,
-          ...(preset?.theme ? { theme: preset.theme, themeVariant: preset.themeVariant } : {}),
+          ...(preset?.theme
+            ? {
+                theme: buildSimpleChartTheme(preset.theme, preset.themeVariant ?? "dark"),
+                themeVariant: preset.themeVariant,
+              }
+            : getDocsChartCreateOptions()),
         });
 
         chartRef.current = chart;
         chart.init();
-        await chart.setMainSeriesData(docsExampleDatasets.trend.candles, docsInterval);
+        await chart.setMainSeriesData(docsExampleDatasets.trend.candles, docsInterval, false);
+        if (!preset?.theme) {
+          applyDocsChartPreset(chart);
+        }
         await applyScene(chart, scene);
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);
@@ -152,7 +173,13 @@ export default function TutorialChartDemo({ scene, caption, height = 380 }: Tuto
 
   return (
     <figure style={styles.figure}>
-      <DocChartEmbed minHeight={height} height={height} loading={loading} error={error}>
+      <DocChartEmbed
+        minHeight={height}
+        height={height}
+        background={docsChartEmbedBackground}
+        loading={loading}
+        error={error}
+      >
         <div ref={containerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
       {caption ? <figcaption style={styles.caption}>{caption}</figcaption> : null}
@@ -180,15 +207,19 @@ export function TutorialDrawingDemo({ height = 380 }: { height?: number }) {
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
 
-        const chart = chartModule.createChart({ container });
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
         chartRef.current = chart;
         chart.init();
-        await chart.setMainSeriesData(drawingShowcaseCandles, docsInterval);
+        await chart.setMainSeriesData(drawingShowcaseCandles, docsInterval, false);
+        applyDocsChartPreset(chart);
 
         const start = getCandleAtRatio(drawingShowcaseCandles, 0.2);
         const end = getCandleAtRatio(drawingShowcaseCandles, 0.65);
@@ -208,6 +239,8 @@ export function TutorialDrawingDemo({ height = 380 }: { height?: number }) {
           priceTag: true,
           anchors: [{ stamp: support.stamp, offset: 0, value: support.l, _index: 0 }],
         });
+
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);
@@ -231,7 +264,13 @@ export function TutorialDrawingDemo({ height = 380 }: { height?: number }) {
 
   return (
     <figure style={styles.figure}>
-      <DocChartEmbed minHeight={height} height={height} loading={loading} error={error}>
+      <DocChartEmbed
+        minHeight={height}
+        height={height}
+        background={docsChartEmbedBackground}
+        loading={loading}
+        error={error}
+      >
         <div ref={containerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
       <figcaption style={styles.caption}>

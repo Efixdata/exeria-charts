@@ -19,11 +19,11 @@ Exeria has **two independent theme systems**. Mixing them up is the most common 
 
 ## Layer 1 — Chart runtime (the canvas)
 
-**Package:** `@exeria/charts`  
+**Package:** `@efixdata/exeria-chart`  
 **Controls:** candles, line chart, grid, axes, crosshair, default drawing colors, tooltips
 
 ```ts
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 
 const chart = createChart({
   container,
@@ -64,11 +64,11 @@ Guide: [Chart settings](../chart-usage/chart-settings). Tutorial: [Custom theme]
 
 ## Layer 2 — React UI (the chrome)
 
-**Package:** `@exeria/charts-ui`  
+**Package:** `@efixdata/exeria-chart-ui-react`  
 **Controls:** top toolbar, left drawing menu, dialogs, inputs, scrollbars, split buttons
 
 ```tsx
-import { ChartUI } from "@exeria/charts-ui";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 <ChartUI
   chart={chart}

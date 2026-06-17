@@ -2,13 +2,17 @@
 
 import { useMemo, useState } from "react";
 import Link from "@docusaurus/Link";
-import { STACKBLITZ_STARTER_URL } from "@site/src/components/CryptoTerminalApp/integrationMapData";
+import {
+  GITHUB_VITE_REACT_TEMPLATE_URL,
+  STACKBLITZ_STARTER_URL,
+} from "@site/src/components/CryptoTerminalApp/integrationMapData";
 import {
   RUN_LOCALLY_STEPS,
   SIGNAL_CODE_TABS,
   buildSignalStarterCode,
   type SignalCodeTabId,
 } from "@site/src/components/SignalTerminalApp/signalTerminalStarterCode";
+import { downloadSignalStarterZip } from "@site/src/components/SignalTerminalApp/signalTerminalStarterTemplateExport";
 import GettingStartedSteps from "./GettingStartedSteps";
 import WhatYouGet from "./WhatYouGet";
 import styles from "../CryptoTerminalDeveloperSection/cryptoTerminalDeveloperSection.module.css";
@@ -22,8 +26,9 @@ const CODE_TAB_HINTS: Partial<Record<SignalCodeTabId, string>> = {
 };
 
 export default function ScreenerSignalsDeveloperSection() {
-  const [activeTab, setActiveTab] = useState<SignalCodeTabId>("chartSignals");
+  const [activeTab, setActiveTab] = useState<SignalCodeTabId>("chartUi");
   const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const snippets = useMemo(() => buildSignalStarterCode(DEFAULT_SYMBOL, "hour"), []);
 
@@ -37,6 +42,15 @@ export default function ScreenerSignalsDeveloperSection() {
     }
   };
 
+  const handleDownloadZip = () => {
+    setExporting(true);
+    try {
+      downloadSignalStarterZip(DEFAULT_SYMBOL, "hour");
+    } finally {
+      window.setTimeout(() => setExporting(false), 600);
+    }
+  };
+
   const activeHint = CODE_TAB_HINTS[activeTab];
 
   return (
@@ -44,9 +58,9 @@ export default function ScreenerSignalsDeveloperSection() {
       <div className={styles.inner}>
         <h2 id="screener-signals-developer">For developers</h2>
         <p className={styles.lead}>
-          This page is your starting point: try the live screener, copy a React snippet, run it on
-          your machine, then connect your signal backend. Follow the steps below and edit one file at
-          a time.
+          This page is your starting point: try the live screener, download a small React project,
+          run it on your machine, then connect your signal backend. Follow the steps below and edit
+          one file at a time.
         </p>
 
         <GettingStartedSteps />
@@ -58,13 +72,14 @@ export default function ScreenerSignalsDeveloperSection() {
             <div>
               <h3>Starter code</h3>
               <p>
-                Copy a snippet into your app or open a blank Vite template. Strategies use built-in
-                keys (<code>CROSS</code>, <code>EXCEED</code>) — wire your screener feed next.
+                Download a zip, or copy a snippet into your own app. The zip includes{" "}
+                <code>src/App.tsx</code> with ChartUI and built-in strategy markers, plus extra
+                examples in <code>snippets/</code> for chart-only and signal-feed layouts.
               </p>
             </div>
             <div className={styles.sourceActions}>
-              <button type="button" className={styles.actionButtonPrimary} onClick={() => void handleCopy()}>
-                {copied ? "Copied" : "Copy snippet"}
+              <button type="button" className={styles.actionButtonPrimary} onClick={handleDownloadZip}>
+                {exporting ? "Preparing…" : "Download ZIP"}
               </button>
               <a
                 className={styles.actionButton}
@@ -74,9 +89,20 @@ export default function ScreenerSignalsDeveloperSection() {
               >
                 Open in StackBlitz
               </a>
+              <a
+                className={styles.actionButton}
+                href={GITHUB_VITE_REACT_TEMPLATE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Blank Vite template
+              </a>
               <Link className={styles.actionButton} to="/starters/screener-signals/app">
                 Open live screener
               </Link>
+              <button type="button" className={styles.actionButton} onClick={() => void handleCopy()}>
+                {copied ? "Copied" : "Copy snippet"}
+              </button>
             </div>
           </div>
 

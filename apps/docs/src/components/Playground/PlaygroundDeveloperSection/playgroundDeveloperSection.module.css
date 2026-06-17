@@ -1,0 +1,266 @@
+.section {
+  margin-bottom: 72px;
+  padding: 28px 24px 32px;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+}
+
+.inner {
+  display: grid;
+  gap: 28px;
+}
+
+.header {
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.lead {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--doc-text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.stepBlock {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  background: var(--doc-bg);
+}
+
+.stepHeading {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.stepNumber {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--doc-link) 14%, var(--doc-surface));
+  color: var(--doc-link);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.stepTitle {
+  margin: 0 0 4px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.stepText {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.stepText a {
+  color: var(--doc-link);
+}
+
+.installRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.installCode {
+  flex: 1 1 240px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--doc-border);
+  border-radius: 10px;
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.copyButton,
+.copyButtonPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 8px;
+  background: var(--doc-surface);
+  color: var(--doc-text);
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.copyButtonPrimary {
+  border-color: color-mix(in srgb, var(--doc-link) 45%, var(--doc-border));
+  background: color-mix(in srgb, var(--doc-link) 12%, var(--doc-surface));
+  color: var(--doc-link);
+  font-weight: 600;
+}
+
+.copyButton:hover,
+.copyButtonPrimary:hover {
+  border-color: color-mix(in srgb, var(--doc-link) 35%, var(--doc-border));
+  color: var(--doc-link);
+}
+
+.copyButton:focus-visible,
+.copyButtonPrimary:focus-visible,
+.tab:focus-visible,
+.nextLink:focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 2px;
+}
+
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tab,
+.tabActive {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.tab {
+  border: 1px solid var(--doc-border);
+  background: transparent;
+  color: var(--doc-text-secondary);
+}
+
+.tabActive {
+  border: 1px solid color-mix(in srgb, var(--doc-link) 40%, var(--doc-border));
+  background: color-mix(in srgb, var(--doc-link) 10%, transparent);
+  color: var(--doc-text);
+  font-weight: 600;
+}
+
+.tabHint {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.codeHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.copyStatus {
+  min-height: 1.25rem;
+  color: var(--doc-link);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 14px 16px;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--doc-border);
+  border-radius: 10px;
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chartSummary {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--doc-link) 8%, var(--doc-surface));
+  color: var(--doc-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.nextSteps {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.nextGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nextLink {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.nextLink:hover {
+  border-color: color-mix(in srgb, var(--doc-link) 35%, var(--doc-border));
+  transform: translateY(-1px);
+  color: var(--doc-text);
+  text-decoration: none;
+}
+
+.nextLinkTitle {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.nextLinkText {
+  color: var(--doc-text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 22px 16px 26px;
+  }
+
+  .nextGrid {
+    grid-template-columns: 1fr;
+  }
+}

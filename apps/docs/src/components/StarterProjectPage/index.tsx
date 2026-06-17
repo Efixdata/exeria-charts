@@ -21,7 +21,7 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
           <div className={styles.container}>
             <h1>Starter not found</h1>
             <p>
-              <Link to="/case-studies">Browse case studies</Link>
+              <Link to="/#case-studies">Browse case studies</Link>
             </p>
           </div>
         </main>
@@ -34,7 +34,7 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
       <main className={styles.page}>
         <div className={styles.container}>
           <p className={styles.eyebrow}>
-            <Link to="/case-studies">Case studies</Link>
+            <Link to="/#case-studies">Case studies</Link>
             <span aria-hidden> / </span>
             Live implementation
           </p>
@@ -54,7 +54,9 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                         ? "Open the live article demo"
                         : projectId === "quant-analytics"
                           ? "Open the live dashboard"
-                          : "Open the live terminal"}
+                          : projectId === "screener-signals"
+                            ? "Open the live screener"
+                            : "Open the live terminal"}
                 </strong>
                 <p>
                   {project.liveAppBlurb ??
@@ -70,7 +72,9 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                       ? "Open live article"
                       : projectId === "quant-analytics"
                         ? "Open dashboard"
-                        : "Open live terminal"}{" "}
+                        : projectId === "screener-signals"
+                          ? "Open live screener"
+                          : "Open live terminal"}{" "}
                 <span aria-hidden>→</span>
               </Link>
             </div>
@@ -126,8 +130,8 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
               </>
             ) : projectId === "screener-signals" ? (
               <>
-                Scroll to <strong>For developers</strong> to copy starter snippets and connect your
-                signal backend. More recipes in the{" "}
+                Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
+                wire your screener or alert backend when you are ready. More recipes in the{" "}
                 <Link to="/docs/tutorials/">tutorials</Link>.
               </>
             ) : projectId === "fintech-integration" ? (
@@ -147,6 +151,12 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
               <>
                 Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
                 wire your CMS headlines when you are ready. More recipes in the{" "}
+                <Link to="/docs/tutorials/">tutorials</Link>.
+              </>
+            ) : projectId === "quant-analytics" ? (
+              <>
+                Scroll to <strong>For developers</strong> to download the ZIP or copy snippets, then
+                wire your data feed and custom strategies when you are ready. More recipes in the{" "}
                 <Link to="/docs/tutorials/">tutorials</Link>.
               </>
             ) : (

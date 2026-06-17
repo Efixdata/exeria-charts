@@ -1,0 +1,33 @@
+Exeria Charts Connector — End User License Agreement (EULA)
+
+Copyright (c) 2026 Efix Data Sp. z o. o. All rights reserved.
+
+This package (the "Connector") is source-available commercial software. The
+source code is published for transparency, evaluation, and integration
+purposes. It is NOT open source and is NOT licensed under any OSI-approved
+license.
+
+1. Grant. Subject to a valid, paid license purchased from Efix Data Sp. z o. o.,
+   you are granted a non-exclusive, non-transferable right to use this Connector
+   in the application(s) covered by your license.
+
+2. Evaluation. Without a paid license you may view, download, and evaluate the
+   source code, and run it for local, non-production testing only. Any
+   production or commercial use requires a paid license.
+
+3. Restrictions. Except as expressly permitted by your license, you may not
+   redistribute, resell, sublicense, or publish the Connector or derivative
+   works, nor remove or alter any copyright or license notices.
+
+4. Ownership. Efix Data Sp. z o. o. retains all right, title, and interest in
+   and to the Connector.
+
+5. No Warranty. THE CONNECTOR IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED.
+
+6. Limitation of Liability. To the maximum extent permitted by applicable law,
+   Efix Data Sp. z o. o. shall not be liable for any damages arising from the
+   use of or inability to use the Connector.
+
+To obtain a license, contact Efix Data Sp. z o. o.
+See the repository LICENSING.md for the full licensing model.

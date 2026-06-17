@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 
 type ChartViewportHost = ChartInstance & {
   model: {
@@ -203,17 +203,66 @@ function isPlotPositionWithinCanvas(
 type ChartScrollHost = ChartInstance & {
   fit: () => void;
   moveToEnd?: (options?: { rerender?: boolean }) => void;
+  canvasWidth?: number;
+  canvas?: { clientWidth: number };
 };
+
+function resolvePlotWidth(chart: ChartInstance): { plotWidth: number; canvasWidth: number } {
+  const host = chart as ChartViewportHost & ChartScrollHost;
+  const canvasWidth =
+    host.canvasWidth ?? host.model._width ?? host.canvas?.clientWidth ?? 0;
+  const valueAxisWidth =
+    host.renderer?.getPriceRenderingOptions()?.valueAxisWidth ??
+    chart.getValueAxisWidth?.() ??
+    80;
+  const plotWidth = canvasWidth - valueAxisWidth;
+
+  return { plotWidth, canvasWidth };
+}
+
+/** Stretch or compress bars so the full series spans the plot with the last bar at the right edge. */
+export function fitChartSeriesToPlotWidth(chart: ChartInstance): boolean {
+  chart.fit();
+
+  const host = chart as ChartViewportHost & ChartScrollHost;
+  const candles = getMainSeriesCandles(chart);
+  const dataLength = candles.length;
+  const { plotWidth, canvasWidth } = resolvePlotWidth(chart);
+
+  if (!dataLength || !canvasWidth || plotWidth <= 0) {
+    return false;
+  }
+
+  host.model._width = canvasWidth;
+  host.model.endMargin = 0;
+  host.model.periodWidth = Math.max(0.01, plotWidth / dataLength);
+  host.model.viewportLeft = 0;
+  return true;
+}
 
 export function scrollChartToEnd(chart: ChartInstance): void {
   const host = chart as ChartScrollHost;
 
   const scroll = () => {
     host.fit();
+
+    const candles = getMainSeriesCandles(chart);
+    const dataLength = candles.length;
+    const { plotWidth } = resolvePlotWidth(chart);
+
+    if (dataLength > 0 && plotWidth > 0) {
+      const dataWidth = host.model.periodWidth * dataLength;
+      if (dataWidth < plotWidth) {
+        fitChartSeriesToPlotWidth(chart);
+        chart.render();
+        return;
+      }
+    }
+
     host.moveToEnd?.({ rerender: true });
   };
 
-  host.fit();
+  scroll();
 
   if (typeof requestAnimationFrame === "function") {
     requestAnimationFrame(() => {

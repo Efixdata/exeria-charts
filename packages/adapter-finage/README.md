@@ -1,18 +1,22 @@
-# @efix-data/adapter-finage
+# @efixdata/connector-finage
 
 Finage market data adapter for `@efixdata/exeria-chart` — forex OHLCV history and live prices.
+
+> **License: paid, source-available (EULA).** The source is published for evaluation and
+> integration. **Production or commercial use requires a paid license** from Efix Data Sp. z o. o.
+> See the package `LICENSE` and the repository `LICENSING.md`.
 
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-finage
+npm install @efixdata/exeria-chart @efixdata/connector-finage
 ```
 
 ## Quick start
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { FinageAdapter } from "@efix-data/adapter-finage";
+import { createChart } from "@efixdata/exeria-chart";
+import { FinageAdapter } from "@efixdata/connector-finage";
 
 const connector = new FinageAdapter({
   apiKey: process.env.FINAGE_API_KEY!,
@@ -51,6 +55,7 @@ const connector = new FinageAdapter({
 
 Without WebSocket config, `subscribeToUpdates` polls `/last/forex/{symbol}`.
 
-## License
+## Licensing
 
-MIT. Market data is subject to [Finage pricing and terms](https://finage.co.uk/pricing).
+This adapter is paid, source-available software under an EULA. Market data is also subject to
+[Finage pricing and terms](https://finage.co.uk/pricing).

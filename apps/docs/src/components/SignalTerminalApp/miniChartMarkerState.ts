@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import type { SignalSide } from "./signalCatalog";
 import { applyMiniChartSignalMarker } from "./miniChartSignalMarker";
 

@@ -1,6 +1,6 @@
-# @efix-data/adapter-bybit
+# @efixdata/connector-bybit
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from Bybit public market data (v5 API).
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from Bybit public market data (v5 API).
 
 ## Features
 
@@ -14,14 +14,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-bybit
+npm install @efixdata/connector-bybit
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { BybitAdapter } from "@efix-data/adapter-bybit";
+import { BybitAdapter } from "@efixdata/connector-bybit";
 
 const adapter = new BybitAdapter();
 

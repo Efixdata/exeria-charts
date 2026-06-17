@@ -1,5 +1,5 @@
-import type { ArbSignalRecord, Candle, ChartInstance } from "@exeria/charts";
-import type { ValueAxisMode } from "@exeria/charts";
+import type { ArbSignalRecord, Candle, ChartInstance } from "@efixdata/exeria-chart";
+import type { ValueAxisMode } from "@efixdata/exeria-chart";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
 import { clearForexChartScripts } from "./forexChartReload";
 import { applyArbSceneScripts } from "./applyArbSceneScripts";

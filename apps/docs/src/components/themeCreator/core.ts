@@ -6,7 +6,7 @@ import type {
   Candle,
   Instrument,
   Interval,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 import { buildChartUiTheme } from "../../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets, docsInterval, getCandleAtRatio } from "../chartExampleData";
 
@@ -400,6 +400,56 @@ export function deriveCandleStrokeColors(
   };
 }
 
+export type SimpleChartThemeColors = {
+  background: string;
+  grid: string;
+  candleUp: string;
+  candleDown: string;
+  accent?: string;
+  axisText?: string;
+  crosshair?: string;
+  tool?: string;
+};
+
+/** Maps tutorial-style color keys to the runtime theme shape expected by createChart. */
+export function buildSimpleChartTheme(
+  colors: SimpleChartThemeColors,
+  themeVariant: ThemeVariant = "dark",
+) {
+  const baseColors: ChartColorState = {
+    accent: colors.accent ?? colors.candleUp,
+    background: colors.background,
+    axisText: colors.axisText ?? (themeVariant === "light" ? "#5f6b7a" : "#8b949e"),
+    grid: colors.grid,
+    candleUp: colors.candleUp,
+    candleDown: colors.candleDown,
+    candleUpStroke: colors.candleUp,
+    candleDownStroke: colors.candleDown,
+    crosshair: colors.crosshair ?? colors.accent ?? colors.candleUp,
+    tool: colors.tool ?? colors.accent ?? "#5cc8ff",
+    ...deriveCandleStrokeColors(
+      {
+        accent: colors.accent ?? colors.candleUp,
+        background: colors.background,
+        axisText: colors.axisText ?? (themeVariant === "light" ? "#5f6b7a" : "#8b949e"),
+        grid: colors.grid,
+        candleUp: colors.candleUp,
+        candleDown: colors.candleDown,
+        candleUpStroke: colors.candleUp,
+        candleDownStroke: colors.candleDown,
+        crosshair: colors.crosshair ?? colors.accent ?? colors.candleUp,
+        tool: colors.tool ?? colors.accent ?? "#5cc8ff",
+      },
+      themeVariant,
+    ),
+  };
+
+  return buildChartTheme({
+    dark: baseColors,
+    light: baseColors,
+  });
+}
+
 export function buildChartAppearanceSettings(
   chartColors: ChartColorState,
   themeVariant: ThemeVariant = "dark",
@@ -480,8 +530,8 @@ export function formatApplySnippet(
   themeVariant: ThemeVariant
 ) {
   return [
-    'import { createChart } from "@exeria/charts";',
-    'import { ChartUI } from "@exeria/charts-ui";',
+    'import { createChart } from "@efixdata/exeria-chart";',
+    'import { ChartUI } from "@efixdata/exeria-chart-ui-react";',
     "",
     formatCodeBlock("runtimeTheme", runtimeTheme),
     "",

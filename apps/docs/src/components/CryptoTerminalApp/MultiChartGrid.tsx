@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import type { TimeframeId } from "./constants";
 import CryptoTerminalChartHost from "./CryptoTerminalChartHost";
 import styles from "./cryptoTerminalApp.module.css";

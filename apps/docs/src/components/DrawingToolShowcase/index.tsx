@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
+import { docsCandleCount, docsInterval } from "../chartExampleData";
 import {
-  docsCandleCount,
-  docsInterval,
-  drawingShowcaseCandles,
-  getCandleAtRatio,
-} from "../chartExampleData";
+  candleAtViewRatio,
+  penultimateCandle,
+  showcaseCandles,
+} from "./drawingShowcaseAnchors";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
 import showcaseStyles from "../docsShowcase.module.css";
 import { docsShowcasePalette as palette } from "../docsShowcasePalette";
 
@@ -108,10 +114,14 @@ const defaultVisiblePresets: DrawingPresetKey[] = [
   "timeBet",
 ];
 
-const candles = drawingShowcaseCandles;
+const candles = showcaseCandles;
 
 function candleAt(ratio: number) {
-  return getCandleAtRatio(candles, ratio);
+  return candleAtViewRatio(ratio);
+}
+
+function rightCandle() {
+  return penultimateCandle();
 }
 
 const collectToolIds = (...ids: Array<string | number | void>): Array<string | number> => {
@@ -127,14 +137,14 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Two anchors define the direction. This is the cleanest programmatic entry point for support, resistance, and trend projection.",
     draw(chart) {
       const start = candleAt(0.18);
-      const end = candleAt(0.62);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTrendLine({
           startStamp: start.stamp,
           endStamp: end.stamp,
           startPrice: start.l,
-          endPrice: end.h,
+          endPrice: end.c,
           config: {
             editable: false,
             color: palette.accent,
@@ -151,7 +161,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Two anchors define direction, but the line extends as a ray from the origin toward the plot edge.",
     draw(chart) {
       const start = candleAt(0.24);
-      const end = candleAt(0.58);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -167,7 +177,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
             },
           ],
@@ -183,7 +193,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Three anchors define the channel. Use it when you need directional structure plus a projected width.",
     draw(chart) {
       const start = candleAt(0.22);
-      const end = candleAt(0.48);
+      const end = rightCandle();
       const widthAnchor = candleAt(0.48);
 
       return collectToolIds(
@@ -204,7 +214,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
               expandable: true,
               expanded: false,
@@ -230,7 +240,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     draw(chart) {
       const pivot = candleAt(0.28);
       const baseA = candleAt(0.52);
-      const baseB = candleAt(0.62);
+      const baseB = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -240,7 +250,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
           anchors: [
             { stamp: pivot.stamp, offset: 0, value: pivot.h, _index: 0 },
             { stamp: baseA.stamp, offset: 0, value: baseA.l, _index: 0 },
-            { stamp: baseB.stamp, offset: 0, value: baseB.h, _index: 0 },
+            { stamp: baseB.stamp, offset: 0, value: baseB.c, _index: 0 },
           ],
         }),
       );
@@ -254,7 +264,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Two anchors define the time range. The engine fits a linear regression on close prices and draws ±σ channel lines (default −2σ, 0, +2σ).",
     draw(chart) {
       const start = candleAt(0.22);
-      const end = candleAt(0.72);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -281,7 +291,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Two anchors: origin plus the 1x1 reference point. Rays use standard Gann price:time ratios.",
     draw(chart) {
       const origin = candleAt(0.3);
-      const reference = candleAt(0.55);
+      const reference = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -303,7 +313,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description: "Two opposite corners define a box subdivided at 1/8 intervals on both axes.",
     draw(chart) {
       const topLeft = candleAt(0.35);
-      const bottomRight = candleAt(0.65);
+      const bottomRight = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -325,7 +335,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description: "Gann grid plus fan diagonals from the first anchor, clipped to the box.",
     draw(chart) {
       const topLeft = candleAt(0.32);
-      const bottomRight = candleAt(0.62);
+      const bottomRight = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -348,7 +358,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Use two anchors to define the measured move, then pass the retracement or extension levels that should render.",
     draw(chart) {
       const start = candleAt(0.32);
-      const end = candleAt(0.56);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -368,7 +378,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
               expandable: true,
               expanded: false,
@@ -391,7 +401,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Use two anchors to define the swing, then project extension levels beyond 100% in the trend direction.",
     draw(chart) {
       const start = candleAt(0.32);
-      const end = candleAt(0.56);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -411,7 +421,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
               expandable: true,
               expanded: false,
@@ -434,7 +444,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Two anchors define the unit time span. Vertical lines appear at Fibonacci multiples (0, 1, 1, 2, 3, 5, 8, …) from the origin.",
     draw(chart) {
       const start = candleAt(0.3);
-      const end = candleAt(0.38);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -451,7 +461,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
             },
           ],
@@ -471,7 +481,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Three anchors: trend line (1–2) plus channel width (3). Parallel Fibonacci levels fill the channel.",
     draw(chart) {
       const start = candleAt(0.25);
-      const end = candleAt(0.62);
+      const end = rightCandle();
       const width = candleAt(0.42);
 
       return collectToolIds(
@@ -486,7 +496,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
           valuesCanDelete: true,
           anchors: [
             { stamp: start.stamp, offset: 0, value: start.l, _index: 0 },
-            { stamp: end.stamp, offset: 0, value: end.h, _index: 0 },
+            { stamp: end.stamp, offset: 0, value: end.c, _index: 0 },
             { stamp: width.stamp, offset: 0, value: width.h, _index: 0 },
           ],
         }),
@@ -501,7 +511,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Center anchor plus radius anchor. Semi-elliptical arcs at Fibonacci fractions of the radius.",
     draw(chart) {
       const center = candleAt(0.28);
-      const radius = candleAt(0.58);
+      const radius = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -528,7 +538,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Center anchor plus radius anchor. Full concentric circles at Fibonacci fractions of the distance.",
     draw(chart) {
       const center = candleAt(0.32);
-      const radius = candleAt(0.58);
+      const radius = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -556,7 +566,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     draw(chart) {
       const first = candleAt(0.28);
       const second = candleAt(0.42);
-      const third = candleAt(0.6);
+      const third = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -568,7 +578,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: third.stamp,
               offset: 0,
-              value: third.l,
+              value: third.c,
               _index: 0,
               expandable: true,
               expanded: false,
@@ -589,7 +599,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Use this when you need a directional callout without adding a full range or geometric zone.",
     draw(chart) {
       const start = candleAt(0.68);
-      const end = candleAt(0.74);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -605,7 +615,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.l,
+              value: end.c,
               _index: 0,
             },
           ],
@@ -620,7 +630,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "Freehand annotation: click and drag on the chart to draw, release to finish. The stroke is stored as sampled chart anchors.",
     draw(chart) {
-      const ratios = [0.22, 0.25, 0.29, 0.33, 0.37, 0.4, 0.38, 0.34, 0.3];
+      const ratios = [0.45, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 0.97, 1];
       const heightRatios = [0.35, 0.42, 0.52, 0.62, 0.72, 0.78, 0.68, 0.55, 0.45];
       const anchors = ratios.map((ratio, index) => {
         const candle = candleAt(ratio);
@@ -654,7 +664,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Use an ellipse to surround an area of interest without projecting a directional bias the way a channel or arrow does.",
     draw(chart) {
       const start = candleAt(0.58);
-      const end = candleAt(0.7);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -671,7 +681,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
             },
           ],
@@ -688,7 +698,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     draw(chart) {
       const first = candleAt(0.34);
       const second = candleAt(0.44);
-      const third = candleAt(0.56);
+      const third = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -711,7 +721,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: third.stamp,
               offset: 0,
-              value: third.l,
+              value: third.c,
               _index: 0,
             },
           ],
@@ -727,7 +737,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "A box is the clearest choice for highlighting supply, demand, or consolidation zones with simple two-corner placement.",
     draw(chart) {
       const start = candleAt(0.24);
-      const end = candleAt(0.38);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -745,7 +755,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: end.stamp,
               offset: 0,
-              value: end.h,
+              value: end.c,
               _index: 0,
             },
           ],
@@ -761,7 +771,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Use cycle when you want to emphasize repeated spacing or cadence between time points instead of a price-defined range.",
     draw(chart) {
       const first = candleAt(0.52);
-      const second = candleAt(0.66);
+      const second = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -794,7 +804,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "This is the programmatic path for freeform labels when you want a note on the chart without relying on the current visible left-menu surface.",
     draw(chart) {
       const first = candleAt(0.72);
-      const second = candleAt(0.76);
+      const second = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -812,7 +822,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
             {
               stamp: second.stamp,
               offset: 0,
-              value: second.h,
+              value: second.c,
               _index: 0,
             },
           ],
@@ -827,7 +837,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "The simplest price-level marker. A single anchor and optional price tag make it useful for levels users need to revisit.",
     draw(chart) {
-      const anchor = candleAt(0.7);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -853,7 +863,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "A single anchor starts a horizontal ray that runs to the right edge of the plot.",
     draw(chart) {
-      const anchor = candleAt(0.64);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -879,7 +889,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "A single anchor starts a vertical ray that runs downward to the bottom of the panel.",
     draw(chart) {
-      const anchor = candleAt(0.46);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -904,7 +914,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "One anchor draws both a horizontal and vertical line through the same point.",
     draw(chart) {
-      const anchor = candleAt(0.52);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -929,13 +939,14 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "A bounded session or review window keyed by start time and duration instead of raw anchors.",
     draw(chart) {
-      const start = candleAt(0.54);
+      const start = candleAt(0.5);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTimeRange({
           text: "Review range",
           startTime: start.stamp,
-          timeRange: 80 * docsInterval.milis,
+          timeRange: Math.max(docsInterval.milis, end.stamp - start.stamp),
           config: {
             editable: false,
             color: palette.accent,
@@ -953,13 +964,14 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "This helper creates a directional, time-bound outcome box using price, reward, bet size, and status metadata.",
     draw(chart) {
-      const start = candleAt(0.66);
+      const start = candleAt(0.55);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTimeBet({
           startTime: start.stamp,
-          timeRange: 64 * docsInterval.milis,
-          price: start.c,
+          timeRange: Math.max(docsInterval.milis, end.stamp - start.stamp),
+          price: end.c,
           reward: 125,
           bet: 50,
           predictedDirection: "UP",
@@ -985,7 +997,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description:
       "Pin a standalone price marker without drawing a full horizontal level across the chart.",
     draw(chart) {
-      const anchor = candleAt(0.82);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1009,7 +1021,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     runtimeType: "vLine",
     description: "Mark a moment in time with a vertical line across the full panel height.",
     draw(chart) {
-      const anchor = candleAt(0.38);
+      const anchor = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1028,7 +1040,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     draw(chart) {
       const a = candleAt(0.2);
       const b = candleAt(0.42);
-      const c = candleAt(0.58);
+      const c = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1051,7 +1063,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description: "Measure and label a price distance between two horizontal levels.",
     draw(chart) {
       const low = candleAt(0.48);
-      const high = candleAt(0.56);
+      const high = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1060,7 +1072,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
           text: "Price span",
           anchors: [
             { stamp: low.stamp, offset: 0, value: low.l, _index: 0 },
-            { stamp: high.stamp, offset: 0, value: high.h, _index: 0 },
+            { stamp: high.stamp, offset: 0, value: high.c, _index: 0 },
           ],
         })
       );
@@ -1073,7 +1085,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     description: "Measure and label a time distance between two vertical positions.",
     draw(chart) {
       const start = candleAt(0.44);
-      const end = candleAt(0.62);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1082,7 +1094,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
           text: "Time span",
           anchors: [
             { stamp: start.stamp, offset: 0, value: start.l, _index: 0 },
-            { stamp: end.stamp, offset: 0, value: end.h, _index: 0 },
+            { stamp: end.stamp, offset: 0, value: end.c, _index: 0 },
           ],
         })
       );
@@ -1096,7 +1108,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
       "Histogram of traded volume between two time anchors, with optional POC and value-area shading.",
     draw(chart) {
       const start = candleAt(0.3);
-      const end = candleAt(0.7);
+      const end = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawTool({
@@ -1108,7 +1120,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
           valueAreaPercent: 70,
           anchors: [
             { stamp: start.stamp, offset: 0, value: start.l, _index: 0 },
-            { stamp: end.stamp, offset: 0, value: end.h, _index: 0 },
+            { stamp: end.stamp, offset: 0, value: end.c, _index: 0 },
           ],
         })
       );
@@ -1123,7 +1135,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
     draw(chart) {
       const entry = candleAt(0.5);
       const stop = candleAt(0.42);
-      const target = candleAt(0.62);
+      const target = rightCandle();
 
       return collectToolIds(
         chart.toolDrawer.drawLongShortPosition({
@@ -1187,19 +1199,24 @@ export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
       setError(null);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
 
-        const chart = chartModule.createChart({ container });
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
         chartRef.current = chart;
 
         chart.init();
-        await chart.setMainSeriesData(candles, docsInterval);
+        await chart.setMainSeriesData(candles, docsInterval, false);
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         activeToolIdsRef.current = definitions[presetRef.current].draw(chart);
         chart.setMainDrawMode("OHLC");
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);
@@ -1234,6 +1251,7 @@ export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
 
     activeToolIdsRef.current = definitions[presetKey].draw(chart);
     chart.setMainDrawMode("OHLC");
+    void alignDocsChartViewport(chart);
   }, [presetKey]);
 
   return (
@@ -1277,7 +1295,13 @@ export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
         <span className={showcaseStyles.metaChip}>BTC/USD fixture</span>
       </div>
 
-      <DocChartEmbed minHeight={420} height={420} loading={loading} error={error}>
+      <DocChartEmbed
+        minHeight={420}
+        height={420}
+        background={docsChartEmbedBackground}
+        loading={loading}
+        error={error}
+      >
         <div ref={containerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
     </div>

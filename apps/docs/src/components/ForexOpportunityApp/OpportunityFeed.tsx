@@ -1,4 +1,4 @@
-import type { ArbSignalRecord } from "@exeria/charts";
+import type { ArbSignalRecord } from "@efixdata/exeria-chart";
 import SignalSparkline from "../SignalTerminalApp/SignalSparkline";
 import { formatOpportunityAge } from "./opportunityCatalog";
 import styles from "./forexOpportunityApp.module.css";

@@ -28,7 +28,7 @@ npm run dev
 # ── Starting from scratch instead? ──
 # npm create vite@latest my-market-article -- --template react-ts
 # cd my-market-article
-# npm install @exeria/charts
+# npm install @efixdata/exeria-chart
 # Copy public/data/*.json from the zip, paste a snippet below into src/App.tsx
 # npm run dev`;
 
@@ -37,7 +37,7 @@ export function buildMarketNewsStarterCode(): Record<MarketNewsCodeTabId, string
     embedChart: `// Smallest embed — one div, one FX line chart.
 // Good first file: paste into any Vite/React/Next page.
 
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 import eurUsdH1 from "./data/eur-usd-h1.json";
 
 const container = document.getElementById("article-chart");
@@ -54,7 +54,7 @@ chart.moveToEnd();
 chart.render();`,
 
     multiInstrument: `// Compare story — two pairs indexed to 100 at window start.
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 
 function indexTo100(candles) {
   const anchor = candles[0]?.c ?? 1;
@@ -83,6 +83,8 @@ chart.getSeriesManager()[overlayId] = {
   seriesId: overlayId,
   data: overlay,
   interval,
+  fields: ["o", "h", "l", "c", "v"],
+  labels: ["O", "H", "L", "C", "V"],
 };
 chart.setInstrumentDrawMode("Line", overlayId);
 chart.applyChartInstrumentSettings(overlayId, {
@@ -97,7 +99,7 @@ chart.moveToEnd();
 chart.render();`,
 
     newsFeed: `// Headlines as clickable dots on the chart (NEWSFEED script).
-import { createChart, setInstrumentNewsFeed } from "@exeria/charts";
+import { createChart, setInstrumentNewsFeed } from "@efixdata/exeria-chart";
 import eurUsdH1 from "./data/eur-usd-h1.json";
 import newsBundle from "./data/eur-usd-news-feed.json";
 
@@ -109,7 +111,7 @@ await chart.setMainSeriesData(candles, { symbol: "1h", milis: 3_600_000 });
 chart.setMainDrawMode("Line");
 await chart.addScript("NEWSFEED");
 
-setInstrumentNewsFeed(newsBundle.events, candles);
+setInstrumentNewsFeed(newsBundle.events as Parameters<typeof setInstrumentNewsFeed>[0], candles);
 await chart.recalculateScripts?.({ rerender: true });
 chart.fit();
 chart.moveToEnd();
@@ -142,7 +144,7 @@ chart.render();`,
 
     articleApp: `// Full article page — start here after npm run dev.
 import { useEffect, useRef } from "react";
-import { createChart, setInstrumentNewsFeed } from "@exeria/charts";
+import { createChart, setInstrumentNewsFeed } from "@efixdata/exeria-chart";
 import eurUsdH1 from "./data/eur-usd-h1.json";
 import gbpUsdH1 from "./data/gbp-usd-h1.json";
 import newsBundle from "./data/eur-usd-news-feed.json";
@@ -175,7 +177,13 @@ function useCompareChart(containerRef: React.RefObject<HTMLDivElement | null>) {
       await chart.setMainSeriesData(primary, H1);
       chart.setMainDrawMode("Line");
       const overlayId = "overlay-GBP/USD";
-      chart.getSeriesManager()[overlayId] = { seriesId: overlayId, data: overlay, interval: H1 };
+      chart.getSeriesManager()[overlayId] = {
+        seriesId: overlayId,
+        data: overlay,
+        interval: H1,
+        fields: ["o", "h", "l", "c", "v"],
+        labels: ["O", "H", "L", "C", "V"],
+      };
       chart.setInstrumentDrawMode("Line", overlayId);
       chart.setValueAxisMode("%");
       chart.setAutoScale(true);
@@ -205,7 +213,7 @@ export default function App() {
       await chart.setMainSeriesData(candles, H1);
       chart.setMainDrawMode("Line");
       await chart.addScript("NEWSFEED");
-      setInstrumentNewsFeed(newsBundle.events, candles);
+      setInstrumentNewsFeed(newsBundle.events as Parameters<typeof setInstrumentNewsFeed>[0], candles);
       await chart.recalculateScripts?.({ rerender: true });
       chart.fit();
       chart.moveToEnd();

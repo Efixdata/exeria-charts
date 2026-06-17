@@ -30,7 +30,7 @@ function main() {
   writeGeneratedMdx(
     path.join(docsRoot, "docs/api-reference/_generated/chart-instance-api.mdx"),
     renderGeneratedApiMdx({
-      packageLabel: "@exeria/charts",
+      packageLabel: "@efixdata/exeria-chart",
       sourceLabel: "ChartInstance in packages/chart/src/types.ts",
       generatedAt,
       exports: [chartInstance],
@@ -47,12 +47,12 @@ function main() {
   writeGeneratedMdx(
     path.join(docsRoot, "docs/api-reference/_generated/chart-ui-api.mdx"),
     renderGeneratedApiMdx({
-      packageLabel: "@exeria/charts-ui",
+      packageLabel: "@efixdata/exeria-chart-ui-react",
       sourceLabel: "packages/react-chart-ui/index.tsx",
       generatedAt,
       exports: chartUiExports,
       intro:
-        `This reference is generated from the public exports of \`@exeria/charts-ui\` (\`packages/react-chart-ui/index.tsx\`) on **${generatedAt}**. Curated sections above cover layout and theming; use this for exact props, hooks, and utility signatures.`,
+        `This reference is generated from the public exports of \`@efixdata/exeria-chart-ui-react\` (\`packages/react-chart-ui/index.tsx\`) on **${generatedAt}**. Curated sections above cover layout and theming; use this for exact props, hooks, and utility signatures.`,
     }),
   );
 
@@ -68,7 +68,7 @@ function main() {
   writeGeneratedMdx(
     path.join(docsRoot, "docs/api-reference/_generated/chart-environment-api.mdx"),
     renderGeneratedApiMdx({
-      packageLabel: "@exeria/charts",
+      packageLabel: "@efixdata/exeria-chart",
       sourceLabel: "packages/chart/src/utils/chartEnvironment.ts",
       generatedAt,
       exports: chartEnvironmentExports,

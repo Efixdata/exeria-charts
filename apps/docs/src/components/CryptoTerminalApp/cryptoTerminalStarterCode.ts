@@ -34,8 +34,8 @@ export function buildStarterCode(symbol: string, timeframeId: TimeframeId): Reco
 
   return {
     chartOnly: `import { useEffect, useRef } from "react";
-import { createChart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const SYMBOL = "${symbol}";
 const INTERVAL = "${interval}";
@@ -78,9 +78,9 @@ export default function App() {
 }`,
 
     chartUi: `import { useEffect, useRef, useState } from "react";
-import { createChart, type ChartInstance } from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart, type ChartInstance } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const SYMBOL = "${symbol}";
 const INTERVAL = "${interval}";
@@ -151,8 +151,8 @@ export default function App() {
 
     layout: LAYOUT_TREE,
 
-    chart: `import { CHART_SETTINGS_PRESETS } from "@exeria/charts-ui/chart-settings";
-import { createChart } from "@exeria/charts";
+    chart: `import { CHART_SETTINGS_PRESETS } from "@efixdata/exeria-chart-ui-react/chart-settings";
+import { createChart } from "@efixdata/exeria-chart";
 
 const tradingDark =
   CHART_SETTINGS_PRESETS.find((preset) => preset.id === "trading-dark")?.template ?? null;
@@ -176,7 +176,7 @@ ema.inputs.PERIODS.value = 21;
 chart.addScript("EMA", ema);
 chart.addScript("RSI");`,
 
-    data: `import { BinanceAdapter } from "@efix-data/adapter-binance";
+    data: `import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const adapter = new BinanceAdapter();
 
@@ -233,5 +233,5 @@ npm run dev
 # ── Starting from scratch instead? ──
 # npm create vite@latest my-crypto-terminal -- --template react-ts
 # cd my-crypto-terminal
-# npm install @exeria/charts @exeria/charts-ui @efix-data/adapter-binance
+# npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react @efixdata/connector-binance
 # Paste a snippet from above into src/App.tsx, then: npm run dev`;

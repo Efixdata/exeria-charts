@@ -1,4 +1,4 @@
-import type { NewsFeedBundle, NewsFeedQuery, NewsFeedRecord } from "@exeria/charts";
+import type { NewsFeedBundle, NewsFeedQuery, NewsFeedRecord } from "@efixdata/exeria-chart";
 import eurUsdBundle from "./data/eur-usd-news-feed.json";
 import gbpUsdBundle from "./data/gbp-usd-news-feed.json";
 import eurGbpBundle from "./data/eur-gbp-news-feed.json";

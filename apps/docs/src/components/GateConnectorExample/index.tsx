@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { ProxyGateAdapter } from "@site/src/lib/proxyGateAdapter";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 const SPOT_SYMBOLS = [
   { id: "BTC_USDT", name: "Bitcoin / USDT" },
@@ -50,7 +52,7 @@ export default function GateConnectorExample() {
   const adapterRef = useRef<ProxyGateAdapter | null>(null);
   const activeTimeframe =
     TIMEFRAMES.find((tf) => tf.id === selectedTimeframe) ?? DEFAULT_TIMEFRAME;
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   useEffect(() => {
     let disposed = false;
@@ -61,7 +63,7 @@ export default function GateConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -75,13 +77,14 @@ export default function GateConnectorExample() {
             symbol: selectedSymbol,
             description: selectedSymbol,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -118,7 +121,7 @@ export default function GateConnectorExample() {
       }
       adapterRef.current = null;
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady) {
@@ -237,7 +240,7 @@ export default function GateConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -296,8 +299,8 @@ export default function GateConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { GateAdapter } from "@efix-data/adapter-gate";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { GateAdapter } from "@efixdata/connector-gate";
 
 const adapter = new GateAdapter({ pageDelayMs: 300 });
 const chart = createChart({

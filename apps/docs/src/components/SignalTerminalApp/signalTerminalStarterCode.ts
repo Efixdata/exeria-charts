@@ -13,9 +13,10 @@ function getInterval(timeframeId: TimeframeId): string {
   return TIMEFRAMES.find((tf) => tf.id === timeframeId)?.interval ?? "1h";
 }
 
-export const RUN_LOCALLY_STEPS = `npm create vite@latest signal-terminal -- --template react-ts
-cd signal-terminal
-npm install @exeria/charts @exeria/charts-ui @efix-data/adapter-binance
+export const RUN_LOCALLY_STEPS = `# After downloading and unzipping the starter from this page:
+
+cd exeria-screener-signals   # or whatever you named the folder
+npm install
 npm run dev`;
 
 export function buildSignalStarterCode(
@@ -27,8 +28,8 @@ export function buildSignalStarterCode(
 
   return {
     chartSignals: `import { useEffect, useRef } from "react";
-import { createChart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const SYMBOL = "${symbol}";
 const INTERVAL = "${interval}";
@@ -75,9 +76,9 @@ export default function App() {
 }`,
 
     chartUi: `import { useEffect, useRef, useState } from "react";
-import { createChart, type ChartInstance } from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart, type ChartInstance } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const SYMBOL = "${symbol}";
 const INTERVAL = "${interval}";

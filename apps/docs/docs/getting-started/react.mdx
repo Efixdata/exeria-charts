@@ -23,13 +23,13 @@ React apps need two packages: the **chart engine** and **ChartUI** — a wrapper
 ## Step 1 — Install both packages
 
 ```bash
-npm install @exeria/charts @exeria/charts-ui
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
 | Package | What it does |
 | --- | --- |
-| `@exeria/charts` | Draws candles, lines, indicators |
-| `@exeria/charts-ui` | Adds toolbar and menus around the chart |
+| `@efixdata/exeria-chart` | Draws candles, lines, indicators |
+| `@efixdata/exeria-chart-ui-react` | Adds toolbar and menus around the chart |
 
 ## Step 2 — Copy this component
 
@@ -42,8 +42,8 @@ import {
   type Candle,
   type ChartInstance,
   type Interval,
-} from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
+} from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const candles: Candle[] = [
   { stamp: 1715472000000, o: 1.1, h: 1.2, l: 1.05, c: 1.18, v: 2500 },

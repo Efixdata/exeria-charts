@@ -11,7 +11,7 @@ if (existsSync(adapterBundle)) {
   process.exit(0);
 }
 
-console.log("[ensure-adapter-ccxt-dist] Building @efix-data/adapter-ccxt (dist is missing)...");
+console.log("[ensure-adapter-ccxt-dist] Building @efixdata/connector-ccxt (dist is missing)...");
 
 const result = spawnSync("npm", ["run", "build"], {
   cwd: adapterRoot,

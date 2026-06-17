@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-massive-dist] Building @efix-data/adapter-massive (dist is missing)...",
+  "[ensure-adapter-massive-dist] Building @efixdata/connector-massive (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

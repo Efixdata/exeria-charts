@@ -1,13 +1,26 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
+
+const QUANT_STRATEGY_KEYS = new Set([
+  "JOIN",
+  "DOUBLECHECK",
+  "CROSS",
+  "GREATERLESS",
+  "REBOUND",
+  "EXCEED",
+]);
 
 const QUANT_SCRIPT_REMOVAL_ORDER = [
   "EQUITY",
+  "JOIN",
+  "DOUBLECHECK",
+  "CROSS",
+  "GREATERLESS",
   "REBOUND",
   "EXCEED",
-  "CROSS",
   "BBAND",
   "MACD",
+  "WMA",
   "RSI",
   "SMA",
   "EMA",
@@ -20,12 +33,19 @@ export async function clearQuantChartScripts(chart: ChartInstance): Promise<void
   ];
 
   for (const key of QUANT_SCRIPT_REMOVAL_ORDER) {
-    const script = scripts.find((entry) => entry.key === key);
-    if (!script?.id) {
-      continue;
-    }
+    const matching = scripts.filter((entry) => entry.key === key);
 
-    chart.removeChartIndicator(script.id);
+    for (const script of matching.reverse()) {
+      if (!script.id) {
+        continue;
+      }
+
+      if (QUANT_STRATEGY_KEYS.has(key)) {
+        chart.removeChartStrategy?.(script.id);
+      } else {
+        chart.removeChartIndicator(script.id);
+      }
+    }
   }
 
   pruneEmptyPanels(chart);

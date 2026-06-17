@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentType } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "../chartExampleData";
 import {
   type ChartColorKey,
@@ -23,6 +23,7 @@ import {
   previewInstrument,
 } from "../themeCreator/core";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";
+import { alignDocsChartViewport } from "../docsChartTheme";
 import { ColorFieldInput } from "../ColorFieldInput";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
@@ -30,7 +31,7 @@ import { loadChartUI } from "@site/src/utils/loadChartUI";
 
 export default function LiveThemeCreator() {
   const defaultPreset = themePresets[0];
-  const [presetId, setPresetId] = useState(defaultPreset?.id ?? "trading-dark");
+  const [presetId, setPresetId] = useState(defaultPreset?.id ?? "carbon");
   const [themeVariant, setThemeVariant] = useState<ThemeVariant>("dark");
   const [chartColorsByVariant, setChartColorsByVariant] = useState<VariantPalette<ChartColorKey>>(
     cloneVariantPalette(defaultPreset?.chart ?? themePresets[0]!.chart)
@@ -106,7 +107,7 @@ export default function LiveThemeCreator() {
       setChart(null);
       chartRef.current = null;
 
-      const chartModule = await import("@exeria/charts");
+      const chartModule = await import("@efixdata/exeria-chart");
       if (disposed) {
         return;
       }
@@ -120,9 +121,10 @@ export default function LiveThemeCreator() {
 
       try {
         chartInstance.init();
-        await chartInstance.setMainSeriesData(previewCandles, docsInterval);
+        await chartInstance.setMainSeriesData(previewCandles, docsInterval, false);
         chartInstance.setMainDrawMode("OHLC");
         drawPreviewOverlays(chartInstance, previewCandles);
+        await alignDocsChartViewport(chartInstance);
 
         if (disposed) {
           chartInstance.destroy();

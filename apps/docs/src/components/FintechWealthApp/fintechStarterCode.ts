@@ -42,8 +42,10 @@ export function buildFintechStarterCode(
 
   return {
     compareChart: `import { useEffect, useRef } from "react";
-import { createChart, type ChartInstance } from "@exeria/charts";
+import { createChart, type ChartInstance } from "@efixdata/exeria-chart";
 import { loadEquityCandles } from "./equityDataLoader";
+
+const DAILY_INTERVAL = { symbol: "1d", milis: 86_400_000 };
 
 const ASSETS = [
 ${assetLines}
@@ -70,10 +72,10 @@ export default function App() {
 
     void (async () => {
       const candles = await loadEquityCandles(ASSETS[0].symbol, "1m");
-      await chart.setMainSeriesData(candles, "1d");
+      await chart.setMainSeriesData(candles, DAILY_INTERVAL);
       chart.applyChartAppearanceSettings({
         ...chart.getChartAppearanceSettings(),
-        background: "#000000",
+        backgroundColor: "#000000",
         gridVisible: false,
         chartLineFillVisible: true,
         chartLineFillMode: "gradient",
@@ -155,8 +157,10 @@ export function PeriodPills({
 }`,
 
     fullApp: `import { useEffect, useRef } from "react";
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 import { loadEquityCandles } from "./equityDataLoader";
+
+const DAILY_INTERVAL = { symbol: "1d", milis: 86_400_000 };
 
 const ASSETS = [
 ${assetLines}
@@ -180,7 +184,7 @@ export default function App() {
     chart.setValueAxisMode("%");
 
     void loadEquityCandles(ASSETS[0].symbol, "1m").then((candles) => {
-      void chart.setMainSeriesData(candles, "1d").then(() => chart.render());
+      void chart.setMainSeriesData(candles, DAILY_INTERVAL).then(() => chart.render());
     });
 
     return () => chart.destroy();
@@ -210,18 +214,19 @@ export default function App() {
     chartSetup: `// Multi-asset compare chart — mirrors the live demo setup.
 // See fintechCompareChartSetup.ts in the docs repo for the full version.
 
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 
 export async function setupCompareChart(chart: ChartInstance, assets, loadCandles) {
   const primary = assets[0];
   const candles = await loadCandles(primary.symbol);
-  await chart.setMainSeriesData(candles, "1d");
+  const dailyInterval = { symbol: "1d", milis: 86_400_000 };
+  await chart.setMainSeriesData(candles, dailyInterval);
   chart.setMainDrawMode("Line");
   chart.setValueAxisMode("%");
 
   chart.applyChartAppearanceSettings({
     ...chart.getChartAppearanceSettings(),
-    background: "#000000",
+    backgroundColor: "#000000",
     gridVisible: false,
     chartLineFillVisible: true,
     chartLineFillMode: "gradient",
@@ -234,7 +239,9 @@ export async function setupCompareChart(chart: ChartInstance, assets, loadCandle
     equityData: `// public/data/fintech-equity/{SYMBOL}.csv
 // date,open,high,low,close,volume
 
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
+
+type EquityPeriodId = "1d" | "1w" | "1m" | "3m" | "1y" | "max";
 
 export async function loadEquityCsv(symbol: string): Promise<Candle[]> {
   const response = await fetch(\`/data/fintech-equity/\${symbol}.csv\`);
@@ -254,9 +261,16 @@ export async function loadEquityCsv(symbol: string): Promise<Candle[]> {
   });
 }
 
-export async function loadEquityCandles(symbol: string, periodId = "1m") {
+export async function loadEquityCandles(symbol: string, periodId: EquityPeriodId = "1m") {
   const all = await loadEquityCsv(symbol);
-  const limits = { "1d": 2, "1w": 7, "1m": 30, "3m": 90, "1y": 180, max: all.length };
+  const limits: Record<EquityPeriodId, number> = {
+    "1d": 2,
+    "1w": 7,
+    "1m": 30,
+    "3m": 90,
+    "1y": 180,
+    max: all.length,
+  };
   return all.slice(-limits[periodId]);
 }`,
 
@@ -293,5 +307,5 @@ npm run dev
 # ── Starting from scratch instead? ──
 # npm create vite@latest my-wealth-app -- --template react-ts
 # cd my-wealth-app
-# npm install @exeria/charts
+# npm install @efixdata/exeria-chart
 # Copy snippets/ from the zip, then: npm run dev`;

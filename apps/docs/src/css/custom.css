@@ -15,7 +15,7 @@
   --doc-radius-lg: 24px;
 
   /* Chart embed + showcase (docs ↔ product surface) */
-  --doc-chart-surface: #131722;
+  --doc-chart-surface: #1E222D;
   --doc-chart-embed-radius: var(--doc-radius-lg);
   --doc-chart-embed-padding: 8px;
   --doc-chart-embed-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -80,7 +80,7 @@ html[data-theme="dark"] {
   --doc-accent: #0066cc;
   --doc-accent-hover: #005bb5;
 
-  --doc-chart-surface: #050505;
+  --doc-chart-surface: #1E222D;
   --doc-code-bg: #050505;
   --doc-code-text: #d7f0ff;
   --doc-accent-muted-bg: rgba(92, 200, 255, 0.12);
@@ -587,6 +587,12 @@ html[data-crypto-terminal-app] .container > .row > .col {
   min-height: 0;
   margin: 0;
   padding: 0;
+}
+
+html[data-crypto-terminal-app] h1,
+html[data-crypto-terminal-app] h2,
+html[data-crypto-terminal-app] h3 {
+  color: inherit;
 }
 
 /* FX Opportunity Radar live app — full viewport, no site chrome */

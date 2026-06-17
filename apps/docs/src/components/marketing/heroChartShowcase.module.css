@@ -1,0 +1,82 @@
+.showcase {
+  --beat: 3000ms;
+  --cycle: calc(var(--beat) * 5);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0a0c10;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: heroChartBeat var(--cycle) linear infinite;
+  animation-delay: calc(var(--index) * var(--beat));
+  will-change: opacity;
+}
+
+.image,
+.imageCropped {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transform: scale(1);
+  animation: heroChartKenBurns var(--beat) linear infinite;
+  animation-delay: calc(var(--index) * var(--beat));
+  will-change: transform;
+}
+
+.imageCropped {
+  height: 178%;
+}
+
+@keyframes heroChartBeat {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  17% {
+    opacity: 1;
+  }
+
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes heroChartKenBurns {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    animation: none;
+    opacity: 0;
+  }
+
+  .slide:last-child {
+    opacity: 1;
+  }
+
+  .image,
+  .imageCropped {
+    animation: none;
+    transform: none;
+    height: 100%;
+  }
+}

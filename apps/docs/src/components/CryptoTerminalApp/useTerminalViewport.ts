@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 
 export type TerminalViewport = "desktop" | "tablet" | "mobile";
 

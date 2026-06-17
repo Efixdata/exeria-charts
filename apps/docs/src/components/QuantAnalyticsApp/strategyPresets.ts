@@ -2,7 +2,7 @@ export type QuantPresetId =
   | "macdCrossover"
   | "bollingerBreakout"
   | "meanReversion"
-  | "emaSmaCross";
+  | "slowBandReversion";
 
 export type QuantPresetDefinition = {
   id: QuantPresetId;
@@ -10,17 +10,18 @@ export type QuantPresetDefinition = {
   shortLabel: string;
   description: string;
   scripts: string[];
-  strategyField: "CrossValue" | "ExceedValue" | "Rebound";
+  strategyField: "CrossValue" | "ExceedValue" | "Rebound" | "Join";
 };
 
 export const QUANT_PRESETS: QuantPresetDefinition[] = [
   {
     id: "macdCrossover",
-    label: "MACD crossover",
-    shortLabel: "MACD",
-    description: "MACD line crosses signal line — classic momentum entries with an equity curve.",
-    scripts: ["MACD", "CROSS", "EQUITY"],
-    strategyField: "CrossValue",
+    label: "WMA / EMA composite",
+    shortLabel: "JOIN",
+    description:
+      "WMA(14) and EMA(28) overlays with Greater-Less filters, Cross confirmation, Join merge, and equity curve.",
+    scripts: ["WMA", "EMA", "GREATERLESS", "CROSS", "DOUBLECHECK", "JOIN", "EQUITY"],
+    strategyField: "Join",
   },
   {
     id: "bollingerBreakout",
@@ -39,12 +40,13 @@ export const QUANT_PRESETS: QuantPresetDefinition[] = [
     strategyField: "Rebound",
   },
   {
-    id: "emaSmaCross",
-    label: "EMA vs SMA cross",
-    shortLabel: "EMA/SMA",
-    description: "Rewire CROSS to EMA(12) and SMA(34) instead of MACD defaults.",
-    scripts: ["EMA", "SMA", "CROSS", "EQUITY"],
-    strategyField: "CrossValue",
+    id: "slowBandReversion",
+    label: "Slow-band reversion",
+    shortLabel: "BB-20",
+    description:
+      "Mean reversion on wider 20-period Bollinger bands — buy lower-band rebounds, sell upper-band fades.",
+    scripts: ["BBAND", "REBOUND", "EQUITY"],
+    strategyField: "Rebound",
   },
 ];
 

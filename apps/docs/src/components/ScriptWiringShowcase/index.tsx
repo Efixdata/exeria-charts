@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { ChartInstance, ScriptDefinition } from "@exeria/charts";
+import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 import { docsCandleCount, docsExampleDatasets, docsInterval } from "../chartExampleData";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
 import showcaseStyles from "../docsShowcase.module.css";
 
 type WiringPresetKey = "emaSmaCross" | "crossToPosition" | "emaDisplace" | "emaVsSmaIf";
@@ -69,17 +75,17 @@ function asConditionalSeries(reference: string) {
 async function addMovingAveragePair(chart: ChartInstance) {
   const ema = getScriptClone(chart, "EMA");
   ema.inputs.PERIODS.value = 12;
-  chart.addScript("EMA", ema);
+  await chart.addScript("EMA", ema);
 
   const sma = getScriptClone(chart, "SMA");
   sma.inputs.PERIODS.value = 34;
-  chart.addScript("SMA", sma);
+  await chart.addScript("SMA", sma);
 
   await waitForFrame();
 
   return {
     emaRef: getSeriesReference(chart, "EMA"),
-    smaRef: getSeriesReference(chart, "SMA"),
+    smaRef: getSeriesReference(chart, "SMAValue"),
   };
 }
 
@@ -100,7 +106,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       cross.inputs.ONDN.value = "Buy";
       cross.inputs.ONUP.value = "Sell";
 
-      chart.addScript("CROSS", cross);
+      await chart.addScript("CROSS", cross);
     },
   },
   crossToPosition: {
@@ -116,7 +122,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       const cross = getScriptClone(chart, "CROSS");
       cross.inputs.LINE.value = emaRef;
       cross.inputs.SIGNAL.value = smaRef;
-      chart.addScript("CROSS", cross);
+      await chart.addScript("CROSS", cross);
 
       await waitForFrame();
 
@@ -125,7 +131,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       position.inputs.WEIGHT.value = 1;
       position.inputs.MULTIPLIER.value = { type: "double", value: 1 };
 
-      chart.addScript("POSITION", position);
+      await chart.addScript("POSITION", position);
     },
   },
   emaDisplace: {
@@ -138,7 +144,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
     async apply(chart) {
       const ema = getScriptClone(chart, "EMA");
       ema.inputs.PERIODS.value = 21;
-      chart.addScript("EMA", ema);
+      await chart.addScript("EMA", ema);
 
       await waitForFrame();
 
@@ -147,7 +153,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       displace.inputs.PERIODS.value = 18;
       displace.inputs.VALUE.value = 0;
 
-      chart.addScript("DISPLACE", displace);
+      await chart.addScript("DISPLACE", displace);
     },
   },
   emaVsSmaIf: {
@@ -167,7 +173,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
       ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
 
-      chart.addScript("IF", ifScript);
+      await chart.addScript("IF", ifScript);
     },
   },
 };
@@ -203,19 +209,24 @@ export default function ScriptWiringShowcase({
       setLoading(true);
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
         if (disposed) {
           return;
         }
 
-        const chart = chartModule.createChart({ container });
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
         chartRef.current = chart;
 
         chart.init();
-        await chart.setMainSeriesData(candles, docsInterval);
+        await chart.setMainSeriesData(candles, docsInterval, false);
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         await activePreset.apply(chart);
         chart.setAutoScale(true);
+        await alignDocsChartViewport(chart);
 
         if (!disposed) {
           setLoading(false);
@@ -271,7 +282,13 @@ export default function ScriptWiringShowcase({
         <span className={showcaseStyles.metaChip}>BTC/USD fixture</span>
       </div>
 
-      <DocChartEmbed minHeight={460} height={460} loading={loading} error={error}>
+      <DocChartEmbed
+        minHeight={460}
+        height={460}
+        background={docsChartEmbedBackground}
+        loading={loading}
+        error={error}
+      >
         <div ref={containerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
     </div>

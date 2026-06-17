@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance, NewsFeedRecord } from "@exeria/charts";
+import type { Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { applyInstrumentLineStyle } from "../ForexOpportunityApp/forexInstrumentLineStyle";
 import { findForexTimeframe } from "../ForexOpportunityApp/forexInstruments";
 import { loadStaticForexCandles } from "../ForexOpportunityApp/forexStaticData";
@@ -12,7 +12,7 @@ import { scheduleNewsChartRelayout } from "./marketNewsChartLayout";
 import type { MarketNewsChartTheme } from "./marketNewsTheme";
 
 async function getNewsFeedApi() {
-  return import("@exeria/charts");
+  return import("@efixdata/exeria-chart");
 }
 
 function resolveNewsFeedRecords(
@@ -203,7 +203,7 @@ export async function setupNewsChart(
 ): Promise<Candle[]> {
   const timeframeId = MARKET_NEWS_TIMEFRAME_ID;
   const tf = findForexTimeframe(timeframeId);
-  const chartInterval = (await import("@exeria/charts")).intervalFromSymbol(tf.interval);
+  const chartInterval = (await import("@efixdata/exeria-chart")).intervalFromSymbol(tf.interval);
   const raw = await loadStaticForexCandles("EUR/USD", timeframeId);
   const candles = sliceCandlesByPeriod(raw, periodId);
 

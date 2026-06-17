@@ -59,14 +59,14 @@ Check [Finnhub pricing](https://finnhub.io/pricing) before shipping to end users
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-finnhub
+npm install @efixdata/exeria-chart @efixdata/connector-finnhub
 ```
 
 ## Minimal example (Node.js)
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { FinnhubAdapter } from "@efix-data/adapter-finnhub";
+import { createChart } from "@efixdata/exeria-chart";
+import { FinnhubAdapter } from "@efixdata/connector-finnhub";
 
 const connector = new FinnhubAdapter({
   apiKey: process.env.FINNHUB_API_KEY!,
@@ -156,7 +156,7 @@ await connector.disconnect();
 
 ```ts
 // app/api/market/ohlcv/route.ts
-import { FinnhubAdapter } from "@efix-data/adapter-finnhub";
+import { FinnhubAdapter } from "@efixdata/connector-finnhub";
 import { NextResponse } from "next/server";
 
 const connector = new FinnhubAdapter({

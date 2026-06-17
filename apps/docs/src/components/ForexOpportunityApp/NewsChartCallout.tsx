@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type RefObject } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import type { ChartNewsEvent } from "./chartNews";
 import { SENTIMENT_COLORS, formatNewsTime, formatPips } from "./chartNews";
 import {

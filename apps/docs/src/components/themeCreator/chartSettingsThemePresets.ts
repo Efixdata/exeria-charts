@@ -174,7 +174,10 @@ function toThemePreset(preset: ChartSettingsPreset): ThemePreset {
   return {
     id: preset.id,
     label: preset.label,
-    chipLabel: preset.label.split(/\s+/)[0] ?? preset.label,
+    chipLabel:
+      preset.id === "carbon-light"
+        ? "Carbon Day"
+        : (preset.label.split(/\s+/)[0] ?? preset.label),
     chipColor: preset.template.appearance!.chartLineColor,
     description: preset.description,
     preferredVariant: isLightPreset ? "light" : "dark",

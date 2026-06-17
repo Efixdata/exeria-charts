@@ -1,4 +1,4 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import { findLastScreenerStrategySignal } from "./screenerStrategyHits";
 import type { ScreenerSignal } from "./signalCatalog";
 import { BINANCE_REST_URL } from "../CryptoTerminalApp/binancePublicStreams";

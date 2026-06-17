@@ -30,7 +30,7 @@ This one call:
 ## Step-by-step: your own API
 
 ```ts
-import { createChart, type Candle, type Interval } from "@exeria/charts";
+import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
 
 const chart = createChart({ container, instrument });
 chart.init();
@@ -89,8 +89,8 @@ Fetch more when the user scrolls left in your app, merge arrays, call `setMainSe
 When you use a [Data Connector](../data-connectors/overview), the connector fetches candles for you:
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const connector = new BinanceAdapter();
 const chart = createChart({ container, dataAdapter: connector });

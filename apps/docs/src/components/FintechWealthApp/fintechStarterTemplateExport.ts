@@ -18,7 +18,7 @@ function buildPackageJson(): string {
         preview: "vite preview",
       },
       dependencies: {
-        "@exeria/charts": "^1.0.0",
+        "@efixdata/exeria-chart": "^1.3.1",
         react: "^18.3.1",
         "react-dom": "^18.3.1",
       },
@@ -62,7 +62,7 @@ Default market: **${marketId}** — equities load from \`public/data/fintech-equ
 - **Included:** compare chart, portfolio header pattern, equity CSV fixtures
 - **You add:** your data connector, auth, real positions from your backend
 
-Docs: https://docs.exeria.charts/getting-started/nextjs-app-router
+Docs: https://exeria.dev/docs/getting-started/nextjs-app-router
 `;
 }
 

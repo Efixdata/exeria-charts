@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { ProxyFinageAdapter } from "@site/src/lib/proxyFinageAdapter";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 type DemoSymbol = {
   id: string;
@@ -96,7 +98,7 @@ export default function FinageConnectorExample() {
     label: "1D",
     interval: "1d",
   };
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   useEffect(() => {
     let disposed = false;
@@ -107,7 +109,7 @@ export default function FinageConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -121,13 +123,14 @@ export default function FinageConnectorExample() {
             symbol: selectedSymbol,
             description: activeSymbol.name,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -166,7 +169,7 @@ export default function FinageConnectorExample() {
       adapterRef.current = null;
       setChartReady(false);
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady || !chartRef.current) {
@@ -296,7 +299,7 @@ export default function FinageConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -359,8 +362,8 @@ export default function FinageConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { FinageAdapter } from "@efix-data/adapter-finage";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { FinageAdapter } from "@efixdata/connector-finage";
 
 const connector = new FinageAdapter({
   apiKey: process.env.FINAGE_API_KEY!,

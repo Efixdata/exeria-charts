@@ -1,6 +1,10 @@
-# @efix-data/adapter-finnhub
+# @efixdata/connector-finnhub
 
-Finnhub market data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo).
+Finnhub market data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts).
+
+> **License: paid, source-available (EULA).** The source is published for evaluation and
+> integration. **Production or commercial use requires a paid license** from Efix Data Sp. z o. o.
+> See the package `LICENSE` and the repository `LICENSING.md`.
 
 ## Features
 
@@ -13,14 +17,14 @@ Finnhub market data adapter for [@efixdata/exeria-chart](https://github.com/efix
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-finnhub
+npm install @efixdata/exeria-chart @efixdata/connector-finnhub
 ```
 
 ## Usage
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { FinnhubAdapter } from "@efix-data/adapter-finnhub";
+import { createChart } from "@efixdata/exeria-chart";
+import { FinnhubAdapter } from "@efixdata/connector-finnhub";
 
 const connector = new FinnhubAdapter({
   apiKey: process.env.FINNHUB_API_KEY!,
@@ -33,6 +37,7 @@ await chart.loadData("AAPL", { interval: "1d", limit: 500 });
 chart.subscribeToUpdates("AAPL");
 ```
 
-## License
+## Licensing
 
-MIT
+This adapter is paid, source-available software under an EULA. Market data is also subject to
+[Finnhub pricing and terms](https://finnhub.io/pricing).

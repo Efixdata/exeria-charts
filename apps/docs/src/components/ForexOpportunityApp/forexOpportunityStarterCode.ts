@@ -35,16 +35,16 @@ npm run dev
 # ── Starting from scratch instead? ──
 # npm create vite@latest my-fx-radar -- --template react-ts
 # cd my-fx-radar
-# npm install @exeria/charts @exeria/charts-ui
+# npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 # Paste a snippet from the starter page into src/App.tsx, then: npm run dev`;
 
 export function buildForexStarterCode(): Record<ForexCodeTabId, string> {
   return {
     chartOnly: `import { useEffect, useRef } from "react";
-import { createChart } from "@exeria/charts";
+import { createChart } from "@efixdata/exeria-chart";
 
 const SYMBOL = "EUR/USD";
-const INTERVAL = "15m";
+const INTERVAL = { symbol: "15m", milis: 900_000 };
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -65,7 +65,10 @@ export default function App() {
     void (async () => {
       const response = await fetch("/data/eur-usd-m15.json");
       const payload = (await response.json()) as { candles: unknown[] };
-      await chart.setMainSeriesData(payload.candles, INTERVAL);
+      await chart.setMainSeriesData(
+        payload.candles as Parameters<typeof chart.setMainSeriesData>[0],
+        INTERVAL,
+      );
       chart.fit();
     })();
 
@@ -80,11 +83,11 @@ export default function App() {
 }`,
 
     chartUi: `import { useEffect, useRef, useState } from "react";
-import { createChart, type ChartInstance } from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
+import { createChart, type ChartInstance } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const SYMBOL = "EUR/USD";
-const INTERVAL = "15m";
+const INTERVAL = { symbol: "15m", milis: 900_000 };
 
 export default function App() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -107,7 +110,10 @@ export default function App() {
     void (async () => {
       const response = await fetch("/data/eur-usd-m15.json");
       const payload = (await response.json()) as { candles: unknown[] };
-      await instance.setMainSeriesData(payload.candles, INTERVAL);
+      await instance.setMainSeriesData(
+        payload.candles as Parameters<typeof instance.setMainSeriesData>[0],
+        INTERVAL,
+      );
       await instance.addScript("NEWSFEED");
       instance.fit();
       if (!disposed) setChart(instance);
@@ -129,8 +135,8 @@ export default function App() {
 }`,
 
     opportunityShell: `import { useEffect, useRef } from "react";
-import { createChart } from "@exeria/charts";
-import { ChartUI } from "@exeria/charts-ui";
+import { createChart } from "@efixdata/exeria-chart";
+import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 export default function FxOpportunityRadar() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -160,7 +166,7 @@ export default function FxOpportunityRadar() {
   );
 }`,
 
-    strategies: `import { createChart } from "@exeria/charts";
+    strategies: `import { createChart } from "@efixdata/exeria-chart";
 
 export async function mountSignalChart(container: HTMLElement, candles, interval) {
   const chart = createChart({ container, themeVariant: "dark" });
@@ -185,13 +191,13 @@ export async function mountSignalChart(container: HTMLElement, candles, interval
   return chart;
 }`,
 
-    publishNews: `import type { ChartInstance, Candle, NewsFeedRecord } from "@exeria/charts";
+    publishNews: `import type { ChartInstance, Candle, NewsFeedRecord } from "@efixdata/exeria-chart";
 
 // 1) Add the NEWSFEED indicator to the chart
 await chart.addScript("NEWSFEED");
 
 // 2) Push your API records into the chart runtime
-import { setInstrumentNewsFeed } from "@exeria/charts";
+import { setInstrumentNewsFeed } from "@efixdata/exeria-chart";
 
 const records: NewsFeedRecord[] = await fetch("/api/news?instrument=EUR/USD").then((r) => r.json());
 setInstrumentNewsFeed(records, candles);
@@ -236,7 +242,7 @@ export function OpportunityFeed({
 
     wireBackend: `// Swap static JSON bundles for a live connector when you are ready.
 
-import { KrakenAdapter } from "@efix-data/adapter-kraken";
+import { KrakenAdapter } from "@efixdata/connector-kraken";
 
 const liveAdapter = new KrakenAdapter();
 const chart = createChart({ container, dataAdapter: liveAdapter });

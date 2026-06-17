@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
 title: Gate.io
-description: Gate.io adapter (@efix-data/adapter-gate) — live and historical crypto spot charts, no API key required.
+description: Gate.io adapter (@efixdata/connector-gate) — live and historical crypto spot charts, no API key required.
 ---
 
 import GateConnectorExample from "@site/src/components/GateConnectorExample";
@@ -48,14 +48,14 @@ Perfect for Gate-native trading UIs and browser-first crypto dashboards. For **N
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-gate
+npm install @efixdata/exeria-chart @efixdata/connector-gate
 ```
 
 ## Minimal example
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { GateAdapter } from "@efix-data/adapter-gate";
+import { createChart } from "@efixdata/exeria-chart";
+import { GateAdapter } from "@efixdata/connector-gate";
 
 const connector = new GateAdapter({ pageDelayMs: 300 });
 

@@ -1,5 +1,5 @@
-import type { ArbSceneDrawing } from "@exeria/charts";
-import type { DrawToolConfig, ToolAnchor } from "@exeria/charts";
+import type { ArbSceneDrawing } from "@efixdata/exeria-chart";
+import type { DrawToolConfig, ToolAnchor } from "@efixdata/exeria-chart";
 
 const FIBON_LINES_VALUES = [0, 23.6, 38.2, 50, 61.8, 78.6, 100, 161.8];
 const FIBON_LINES_VALUES_STATE = [true, true, true, true, true, true, true, false];

@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { CHART_SETTINGS_PRESETS } from "../../../../packages/react-chart-ui/src/components/TopMenu/ChartSettings/chartSettingsPresets";
 import { docsExampleDatasets } from "../components/chartExampleData";
 import {

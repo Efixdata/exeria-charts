@@ -1,5 +1,5 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
-import type { ArbChartSceneOverlay } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
+import type { ArbChartSceneOverlay } from "@efixdata/exeria-chart";
 import { removeChartOverlay } from "../CryptoTerminalApp/chartCompareOverlay";
 import { PIP_SIZE } from "./constants";
 import { applyInstrumentLineStyle } from "./forexInstrumentLineStyle";
@@ -160,7 +160,7 @@ async function applyFixtureOverlay(
   interval: string,
   style?: ArbChartSceneOverlay,
 ): Promise<void> {
-  const chartModule = await import("@exeria/charts");
+  const chartModule = await import("@efixdata/exeria-chart");
   const chartInterval = chartModule.intervalFromSymbol(interval);
   const seriesId = `overlay-${symbol}`;
   const lineColor = style?.color ?? "#f59e0b";

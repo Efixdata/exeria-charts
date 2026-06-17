@@ -34,14 +34,14 @@ Perfect for portfolio apps, market news embeds, and research dashboards. For **s
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-coingecko
+npm install @efixdata/exeria-chart @efixdata/connector-coingecko
 ```
 
 ## Minimal example
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { CoingeckoAdapter } from "@efix-data/adapter-coingecko";
+import { createChart } from "@efixdata/exeria-chart";
+import { CoingeckoAdapter } from "@efixdata/connector-coingecko";
 
 const connector = new CoingeckoAdapter({ pollIntervalMs: 60_000 });
 

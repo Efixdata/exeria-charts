@@ -4,7 +4,7 @@ import type {
   ArbChartSceneFocus,
   ArbSignalQuery,
   ArbSignalBundle,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 import arbSignalsBundle from "./data/arb-signals-feed.json";
 
 const STATIC_BUNDLE = arbSignalsBundle as ArbSignalBundle;

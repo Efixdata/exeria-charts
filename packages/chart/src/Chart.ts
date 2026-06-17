@@ -9,6 +9,7 @@ import { runWithChartLocale } from "./chartLocaleRuntime";
 import ObjectsManager from "./ObjectsManager";
 import SubscriptionManager from "./SubscriptionManager";
 import ToolDrawer from "./ToolDrawer";
+import { mergeScriptInputProto, resolveScriptModelScalarInput } from "./scriptInputUtils";
 import {
   applyChartAppearanceSettings,
   applyChartInstrumentSettings,
@@ -181,6 +182,9 @@ export default class Chart implements CoreChartController {
   private adapterUnsubscribe?: () => void;
   private currentPrice: Tick | null = null;
   private selectedInstrumentSeriesId?: string;
+  private recalculateScriptsChain: Promise<void> = Promise.resolve();
+  /** Deferred until the chart container has a non-zero layout size. */
+  private pendingMoveToEnd = false;
 
   constructor(options: ChartOptions) {
     if (typeof window === "undefined") return;
@@ -360,6 +364,7 @@ export default class Chart implements CoreChartController {
         }
 
         this.fit();
+        this.flushPendingMoveToEnd();
         this.renderer.render(this.ctx, this.model, this.fusion, false, this.objectOnlyOnOverlay);
       });
     };
@@ -434,21 +439,26 @@ export default class Chart implements CoreChartController {
     rerender = true,
     shortSynchronization = false,
   }: ChartRecalculateOptions = {}) {
-    try {
-      if (shortSynchronization) {
-        this.fusion.shortSynchronization();
-      } else {
-        this.fusion.fullSynchronization();
-        this.fusion.configureScripts();
-        await this.fusion.initAll();
+    const run = async () => {
+      try {
+        if (shortSynchronization) {
+          this.fusion.shortSynchronization();
+        } else {
+          this.fusion.fullSynchronization();
+          this.fusion.configureScripts();
+          await this.fusion.initAll();
+        }
+
+        this.fusion.calculateAll();
+
+        if (rerender) this.rerender();
+      } catch (error) {
+        console.warn(error);
       }
+    };
 
-      this.fusion.calculateAll();
-
-      if (rerender) this.rerender();
-    } catch (error) {
-      console.warn(error);
-    }
+    this.recalculateScriptsChain = this.recalculateScriptsChain.then(run, run);
+    return this.recalculateScriptsChain;
   }
 
   rerender() {
@@ -615,9 +625,21 @@ export default class Chart implements CoreChartController {
       this.fusion.getMainSeries().data &&
       this.fusion.getMainSeries().data.length > 0
     ) {
-      this.resizeCanvasesIfNeeded();
+      const resized = this.resizeCanvasesIfNeeded();
       this.syncChartLayout();
+      if (resized) {
+        this.flushPendingMoveToEnd();
+      }
     }
+  }
+
+  private flushPendingMoveToEnd(): void {
+    if (!this.pendingMoveToEnd || this.canvasWidth <= 0) {
+      return;
+    }
+
+    this.pendingMoveToEnd = false;
+    this.moveToEnd({ rerender: false });
   }
 
   scheduleChartRepaint() {
@@ -1070,15 +1092,8 @@ export default class Chart implements CoreChartController {
 
     for (const key of Object.keys(template.inputs)) {
       const templateInput = template.inputs[key];
-      const protoInput = proto.inputs?.[key] as RuntimeScriptInput | undefined;
-      const protoValue = protoInput?.value;
-
-      mergedInputs[key] = {
-        ...templateInput,
-        ...protoInput,
-        value:
-          protoValue !== undefined && protoValue !== null ? protoValue : templateInput.value,
-      };
+      const protoInput = proto.inputs?.[key];
+      mergedInputs[key] = mergeScriptInputProto(templateInput, protoInput);
     }
 
     const sanitizedProto = Object.fromEntries(
@@ -1178,6 +1193,26 @@ export default class Chart implements CoreChartController {
       plotter.bandFillOpacity = source.bandFillOpacity;
     }
 
+    if (typeof source?.lineFillVisible === "boolean") {
+      plotter.lineFillVisible = source.lineFillVisible;
+    }
+
+    if (source?.lineFillMode === "gradient" || source?.lineFillMode === "solid") {
+      plotter.lineFillMode = source.lineFillMode;
+    }
+
+    if (typeof source?.fillColor === "string" && source.fillColor.length > 0) {
+      plotter.fillColor = source.fillColor;
+    }
+
+    if (typeof source?.fillGradientColor === "string" && source.fillGradientColor.length > 0) {
+      plotter.fillGradientColor = source.fillGradientColor;
+    }
+
+    if (typeof source?.lineFillGradientOpacity === "number") {
+      plotter.lineFillGradientOpacity = source.lineFillGradientOpacity;
+    }
+
     if (typeof source?.candleUpColor === "string" && source.candleUpColor.length > 0) {
       plotter.candleUpColor = source.candleUpColor;
     }
@@ -1274,13 +1309,15 @@ export default class Chart implements CoreChartController {
     const resolvedProto = this.resolveScriptProto(scriptKey, proto);
     const protoVisible = (proto as { visible?: boolean } | undefined)?.visible;
 
+    const protoUserName = (proto as { userName?: string } | undefined)?.userName;
+
     const scriptCfg: RuntimeScriptConfig = {
       id: undefined,
       inputs: {},
       outputs: {},
       key: scriptKey,
       pane: this.resolveScriptPane(scriptKey, resolvedProto, proto),
-      userName: scriptKey,
+      userName: typeof protoUserName === "string" && protoUserName.length > 0 ? protoUserName : scriptKey,
       visible: typeof protoVisible === "boolean" ? protoVisible : true,
     };
 
@@ -1304,7 +1341,7 @@ export default class Chart implements CoreChartController {
       if (input.type == "series" && !input.value) {
         scriptCfg.inputs[k] = getDefaultSeries(input);
       } else {
-        scriptCfg.inputs[k] = input.value;
+        scriptCfg.inputs[k] = resolveScriptModelScalarInput(input.value, input.value);
       }
     });
 
@@ -1518,12 +1555,14 @@ export default class Chart implements CoreChartController {
     const inputs: Record<string, RuntimeScriptInput> = {};
     for (const inputKey of Object.keys(template.inputs)) {
       const templateInput = template.inputs[inputKey];
-      const modelValue = modelScript.inputs[inputKey];
+      const modelValue = resolveScriptModelScalarInput(
+        modelScript.inputs[inputKey],
+        templateInput.value,
+      );
 
       inputs[inputKey] = {
         ...JSON.parse(JSON.stringify(templateInput)),
-        value:
-          modelValue !== undefined && modelValue !== null ? modelValue : templateInput.value,
+        value: modelValue,
       };
     }
 
@@ -1568,8 +1607,10 @@ export default class Chart implements CoreChartController {
       const input = resolvedProto.inputs[inputKey];
       const value = input.value;
 
-      config.inputs[inputKey] =
-        value !== undefined && value !== null ? value : existing.inputs[inputKey];
+      config.inputs[inputKey] = resolveScriptModelScalarInput(
+        value !== undefined && value !== null ? value : existing.inputs[inputKey],
+        existing.inputs[inputKey] ?? input.value,
+      );
     }
 
     if (Array.isArray(resolvedProto.plotters)) {
@@ -1588,7 +1629,7 @@ export default class Chart implements CoreChartController {
       config.plotterDashes = JSON.parse(JSON.stringify(plotterDashes));
     }
 
-    void this.onScriptEditorApply(config);
+    return this.onScriptEditorApply(config);
   }
 
   private relocateScriptToPane(config: RuntimeScriptConfig, proto: RuntimeScriptDefinition) {
@@ -1700,8 +1741,7 @@ export default class Chart implements CoreChartController {
       }
     }
 
-    this.recalculateScripts();
-    await this.rerender();
+    await this.recalculateScripts();
     this.emitEvent({ topic: "SCRIPTS_CHANGE", data: {} });
     // this.onResize();
     // if(this.options.controller)
@@ -1744,7 +1784,12 @@ export default class Chart implements CoreChartController {
 
   moveToEnd({ rerender = true }: { rerender?: boolean } = {}) {
     if (!this.isChartEmpty()) {
-      this.doMoveToEnd = this.canvasWidth == 0;
+      if (this.canvasWidth <= 0) {
+        this.pendingMoveToEnd = true;
+        return;
+      }
+
+      this.pendingMoveToEnd = false;
 
       const dataLength = this.fusion.getMainSeries().data.length;
       const valueAxisWidth = this.renderer.getPriceRenderingOptions().valueAxisWidth;

@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 
 const OHLC_SAMPLE_SIZE = 48;
 const MIN_MEANINGFUL_BODY_RATIO = 0.2;

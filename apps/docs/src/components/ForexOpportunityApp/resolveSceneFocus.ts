@@ -1,10 +1,10 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import type {
   ArbChartSceneFocus,
   ArbSceneAnchor,
   ArbScenePriceField,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 import { PIP_SIZE } from "./constants";
 
 function resolvePipSize(candles: Candle[]): number {

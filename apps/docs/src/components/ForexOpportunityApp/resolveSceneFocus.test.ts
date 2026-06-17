@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveSceneFocusBarIndex } from "./resolveSceneFocus";
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 
 const candles: Candle[] = [
   { stamp: 1_000_000, o: 1.1, h: 1.11, l: 1.09, c: 1.105 },

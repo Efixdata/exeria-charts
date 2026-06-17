@@ -1,7 +1,7 @@
-import type { Candle } from "@exeria/charts";
+import type { Candle } from "@efixdata/exeria-chart";
 
 /**
- * SSR-safe copy of @exeria/charts resolveNewsBarIndex (binary search on candle stamps).
+ * SSR-safe copy of @efixdata/exeria-chart resolveNewsBarIndex (binary search on candle stamps).
  *
  * @param candles Must be sorted in ascending order by `stamp`. Passing unsorted or
  *   raw API data will produce incorrect bar indices.

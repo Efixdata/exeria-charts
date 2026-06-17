@@ -1,4 +1,5 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import ChartThemePreview from "../themeCreator/ChartThemePreview";
 import {
   type ChartColorKey,
@@ -20,11 +21,15 @@ import {
   getPlaygroundExample,
   playgroundExamples,
 } from "./playgroundExamples";
+import PlaygroundDeveloperSection from "./PlaygroundDeveloperSection";
+import PlaygroundNewsOverlay from "./PlaygroundNewsOverlay";
+import { applyDefaultBtcScene } from "./playgroundScenes";
 import styles from "./playground.module.css";
 
 type ColorScope = "chart" | "ui";
 
-const defaultPalette = createPlaygroundPalette("trading-dark");
+const INITIAL_CHART_PRESET = "carbon";
+const defaultPalette = createPlaygroundPalette(INITIAL_CHART_PRESET);
 
 const chartPickerOptions = chartColorControls.map((control) => ({
   value: control.key,
@@ -45,31 +50,48 @@ const pickerWidthCh =
 const pickerWidthStyle = { "--picker-width": `${pickerWidthCh}ch` } as CSSProperties;
 
 export default function Playground() {
-  const [presetId, setPresetId] = useState("trading-dark");
+  const chartStackRef = useRef<HTMLDivElement | null>(null);
+  const [presetId, setPresetId] = useState(INITIAL_CHART_PRESET);
   const [themeVariant, setThemeVariant] = useState<ThemeVariant>("dark");
   const [chartColorsByVariant, setChartColorsByVariant] = useState(defaultPalette.chart);
   const [uiColorsByVariant, setUiColorsByVariant] = useState(defaultPalette.ui);
   const [colorScope, setColorScope] = useState<ColorScope>("chart");
   const [selectedChartKey, setSelectedChartKey] = useState<ChartColorKey>("background");
   const [selectedUiKey, setSelectedUiKey] = useState<UiColorKey>("toolbarBackground");
-  const [activeExampleId, setActiveExampleId] = useState<PlaygroundExampleId>("trading-dark-scene");
+  const [activeExampleId, setActiveExampleId] = useState<PlaygroundExampleId | null>(null);
   const [sceneVersion, setSceneVersion] = useState(0);
   const [usePresetOnly, setUsePresetOnly] = useState(true);
+  const [chartInstance, setChartInstance] = useState<ChartInstance | null>(null);
 
   const activeExample = useMemo(
-    () => getPlaygroundExample(activeExampleId),
+    () => (activeExampleId ? getPlaygroundExample(activeExampleId) : null),
     [activeExampleId],
   );
 
-  const sceneApplyKey = useMemo(
-    () => (usePresetOnly ? null : `${activeExampleId}:${sceneVersion}`),
-    [activeExampleId, sceneVersion, usePresetOnly],
-  );
+  const sceneApplyKey = useMemo(() => {
+    if (usePresetOnly) {
+      // sceneVersion 0 = initial mount — ChartThemePreview already loads BTC/USD candles.
+      if (sceneVersion === 0) {
+        return null;
+      }
 
-  const chartSceneAction = useMemo(
-    () => (usePresetOnly ? undefined : activeExample.applyScene),
-    [activeExample, usePresetOnly],
-  );
+      return `default:${presetId}:${sceneVersion}`;
+    }
+
+    return activeExampleId ? `${activeExampleId}:${sceneVersion}` : null;
+  }, [activeExampleId, presetId, sceneVersion, usePresetOnly]);
+
+  const chartSceneAction = useMemo(() => {
+    if (usePresetOnly) {
+      if (sceneVersion === 0) {
+        return undefined;
+      }
+
+      return (chart: ChartInstance) => applyDefaultBtcScene(chart, presetId);
+    }
+
+    return activeExample?.applyScene;
+  }, [activeExample, presetId, sceneVersion, usePresetOnly]);
 
   const handlePresetChange = (nextPresetId: string) => {
     const palette = createPlaygroundPalette(nextPresetId);
@@ -77,6 +99,7 @@ export default function Playground() {
     setThemeVariant(getThemePresetPreferredVariant(nextPresetId));
     setChartColorsByVariant(palette.chart);
     setUiColorsByVariant(palette.ui);
+    setActiveExampleId(null);
     setUsePresetOnly(true);
   };
 
@@ -300,6 +323,7 @@ export default function Playground() {
                 <h2 className={styles.stepTitle}>Play with the chart</h2>
                 <p className={styles.stepText}>
                   Add indicators, try drawing tools, and open full-screen mode from the toolbar.
+                  Then scroll to <strong>Use this chart in your app</strong> below to copy the code.
                 </p>
               </div>
             </li>
@@ -307,25 +331,42 @@ export default function Playground() {
         </div>
 
         <section id="playground-chart" className={styles.chartSection}>
-          <ChartThemePreview
-            chartColorsByVariant={chartColorsByVariant}
-            uiColorsByVariant={uiColorsByVariant}
-            themeVariant={themeVariant}
-            presetId={presetId}
-            usePresetTemplate={usePresetOnly}
-            sceneApplyKey={sceneApplyKey}
-            onChartReady={chartSceneAction}
-            minHeight={675}
-            className={styles.chartPreview}
-          />
+          <div ref={chartStackRef} className={styles.chartStack}>
+            <ChartThemePreview
+              chartColorsByVariant={chartColorsByVariant}
+              uiColorsByVariant={uiColorsByVariant}
+              themeVariant={themeVariant}
+              presetId={presetId}
+              usePresetTemplate={usePresetOnly}
+              sceneApplyKey={sceneApplyKey}
+              onChartReady={chartSceneAction}
+              onChartInstance={setChartInstance}
+              aspectRatio="1600 / 900"
+              className={styles.chartPreview}
+            />
+            <PlaygroundNewsOverlay
+              chart={chartInstance}
+              stackRef={chartStackRef}
+              enabled={activeExampleId === "news-rsi" && !usePresetOnly}
+              sceneVersion={sceneVersion}
+            />
+          </div>
         </section>
       </div>
+
+      <PlaygroundDeveloperSection
+        chartColorsByVariant={chartColorsByVariant}
+        uiColorsByVariant={uiColorsByVariant}
+        themeVariant={themeVariant}
+        chart={chartInstance}
+      />
 
       <section className={styles.examplesSection}>
         <div className={styles.examplesHeader}>
           <h2 className={styles.examplesTitle}>Examples and ideas</h2>
           <p className={styles.examplesLead}>
-            Click a scene to load its colors, tools, and indicators into the live chart above.
+            Nine distinct chart setups — indexed compares, strategy stacks, news markers, and
+            trading terminals. Click a card to load it into the live chart above.
           </p>
         </div>
 
@@ -342,7 +383,7 @@ export default function Playground() {
             >
               <img
                 src={example.image}
-                alt={example.title}
+                alt={example.imageAlt}
                 className={styles.exampleImage}
                 loading="lazy"
               />

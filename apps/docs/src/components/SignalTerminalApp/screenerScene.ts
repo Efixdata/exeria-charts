@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { applyExceedBollingerScene } from "./exceedBollingerScene";
 import { applyMacdCrossScene } from "./macdCrossScene";
 import { applySmaCrossScene } from "./smaCrossScene";

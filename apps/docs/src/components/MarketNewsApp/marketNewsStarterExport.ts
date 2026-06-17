@@ -17,7 +17,7 @@ function buildPackageJson(): string {
         preview: "vite preview",
       },
       dependencies: {
-        "@exeria/charts": "^1.3.0",
+        "@efixdata/exeria-chart": "^1.3.1",
         react: "^18.3.1",
         "react-dom": "^18.3.1",
       },
@@ -65,7 +65,7 @@ Open the URL in your terminal (usually http://localhost:5173).
 - Replace JSON files with your CMS or data pipeline
 - See multi-instrument and news-feed docs on the Exeria site
 
-Docs: https://docs.exeria.charts/getting-started/vanilla
+Docs: https://exeria.dev/docs/getting-started/vanilla
 `;
 }
 

@@ -1,7 +1,6 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
-import {
-  removeChartOverlay,
-} from "../CryptoTerminalApp/chartCompareOverlay";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
+import { removeChartOverlay } from "../CryptoTerminalApp/chartCompareOverlay";
+import { scrollChartToEnd, fitChartSeriesToPlotWidth } from "../ForexOpportunityApp/chartBarPosition";
 import { applyInstrumentLineStyle } from "../ForexOpportunityApp/forexInstrumentLineStyle";
 import { findForexPair, findForexTimeframe } from "../ForexOpportunityApp/forexInstruments";
 import { loadStaticForexCandles } from "../ForexOpportunityApp/forexStaticData";
@@ -79,7 +78,7 @@ async function applyStaticForexOverlay(
   interval: string,
   lineColor: string,
 ): Promise<void> {
-  const chartModule = await import("@exeria/charts");
+  const chartModule = await import("@efixdata/exeria-chart");
   const chartInterval = chartModule.intervalFromSymbol(interval);
   const pair = findForexPair(symbol);
   const seriesId = `overlay-${symbol}`;
@@ -162,7 +161,7 @@ export async function setupCompareChart(
 ): Promise<{ primary: Candle[]; overlay: Candle[] }> {
   const timeframeId = MARKET_NEWS_TIMEFRAME_ID;
   const tf = findForexTimeframe(timeframeId);
-  const chartInterval = (await import("@exeria/charts")).intervalFromSymbol(tf.interval);
+  const chartInterval = (await import("@efixdata/exeria-chart")).intervalFromSymbol(tf.interval);
 
   const [primaryRaw, overlayRaw] = await Promise.all([
     loadStaticForexCandles(COMPARE_PRIMARY_SYMBOL, timeframeId),
@@ -195,9 +194,19 @@ export async function setupCompareChart(
   );
 
   applyEditorialChrome(chart);
-  chart.fit();
-  chart.moveToEnd();
-  chart.render();
+
+  const snapViewport = () => {
+    if (!fitChartSeriesToPlotWidth(chart)) {
+      scrollChartToEnd(chart);
+    } else {
+      chart.render();
+    }
+  };
+
+  snapViewport();
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(snapViewport);
+  }
 
   return { primary, overlay };
 }

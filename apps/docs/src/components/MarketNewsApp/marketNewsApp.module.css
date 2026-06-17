@@ -537,6 +537,27 @@
   pointer-events: none;
 }
 
+/* Self-contained tokens when the callout is not inside .shell / .shellDark (e.g. playground). */
+.newsCalloutThemeDark {
+  --mn-border: rgba(71, 85, 105, 0.45);
+  --mn-muted: #7b8a9a;
+  --mn-callout-bg: rgba(15, 23, 42, 0.96);
+  --mn-callout-text: #e2e8f0;
+  --mn-callout-muted: #94a3b8;
+  --mn-callout-impact: #cbd5e1;
+  --mn-callout-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.newsCalloutThemeLight {
+  --mn-border: #e7e5e4;
+  --mn-muted: #78716c;
+  --mn-callout-bg: #ffffff;
+  --mn-callout-text: #1c1917;
+  --mn-callout-muted: #57534e;
+  --mn-callout-impact: #44403c;
+  --mn-callout-shadow: 0 12px 32px rgba(28, 25, 23, 0.1);
+}
+
 .newsCalloutBackdrop {
   position: absolute;
   inset: 0;

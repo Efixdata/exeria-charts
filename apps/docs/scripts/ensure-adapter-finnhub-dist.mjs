@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-finnhub-dist] Building @efix-data/adapter-finnhub (dist is missing)...",
+  "[ensure-adapter-finnhub-dist] Building @efixdata/connector-finnhub (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

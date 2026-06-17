@@ -745,9 +745,8 @@ const Renderer: CoreRendererConstructor = function (
           if (o.hidden && o.hidden === true) continue;
 
           const overlayRenderer = getRendererObject(o.type);
-          const renderOverlay = overlayRenderer?.renderOverlay;
-          if (renderOverlay) {
-            renderOverlay(o, octx, this, model, panel, seriesManager);
+          if (overlayRenderer?.renderOverlay) {
+            overlayRenderer.renderOverlay(o, octx, this, model, panel, seriesManager);
           }
         }
 

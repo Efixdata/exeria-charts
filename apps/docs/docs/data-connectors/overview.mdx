@@ -58,7 +58,7 @@ Think of five steps every time:
 
 | Step | What you do |
 | --- | --- |
-| 1. **Install** | `npm install @efix-data/adapter-binance` (or another connector) |
+| 1. **Install** | `npm install @efixdata/connector-binance` (or another connector) |
 | 2. **Create** | `new BinanceAdapter()` (or factory from that connector's docs) |
 | 3. **Wire** | `createChart({ container, dataAdapter: connector })` then `init()` |
 | 4. **Load** | `await chart.loadData("BTCUSDT", { interval: "1h", limit: 1000 })` |
@@ -92,12 +92,12 @@ sequenceDiagram
 ## Quick start (Binance)
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-binance
+npm install @efixdata/exeria-chart @efixdata/connector-binance
 ```
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const connector = new BinanceAdapter();
 
@@ -164,10 +164,10 @@ The chart does not emit connector-specific error events today — your app owns 
 
 ## Build your own connector {#build-your-own-connector}
 
-Proprietary feed? Implement the `DataAdapter` interface from `@exeria/charts`:
+Proprietary feed? Implement the `DataAdapter` interface from `@efixdata/exeria-chart`:
 
 ```ts
-import type { Candle, DataAdapter, LoadDataOptions, Tick } from "@exeria/charts";
+import type { Candle, DataAdapter, LoadDataOptions, Tick } from "@efixdata/exeria-chart";
 
 class MyConnector implements DataAdapter {
   async initialize(_config: Record<string, unknown>): Promise<void> {}

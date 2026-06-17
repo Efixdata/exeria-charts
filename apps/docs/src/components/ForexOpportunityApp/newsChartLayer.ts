@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import type { ChartNewsEvent } from "./chartNews";
 import { SENTIMENT_COLORS, formatPips } from "./chartNews";
 import { FOREX_INTERVAL_MILIS } from "./constants";

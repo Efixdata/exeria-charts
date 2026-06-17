@@ -1,18 +1,18 @@
 ---
 sidebar_position: 8
 title: Multi-Instrument Overlay
-description: Compare two symbols on one chart — for example BTC vs ETH.
+description: Compare two symbols on one chart — for example EUR/USD vs GBP/USD on a % axis.
 ---
 
-import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
+import MultiInstrumentOverlayDemo from "@site/src/components/MultiInstrumentOverlayDemo";
 
 # Multi-instrument overlay
 
-Sometimes one symbol is not enough. You might want **Bitcoin candles** with **Ethereum as a line** on the same dates — or a stock vs its sector ETF. That is a multi-instrument chart.
+Sometimes one symbol is not enough. You might want **EUR/USD** next to **GBP/USD** on the same dates — indexed so both start at 100% and share one vertical scale. That is a multi-instrument chart.
 
-<ChartQuickstartExample />
+<MultiInstrumentOverlayDemo />
 
-The preview above shows a single symbol. The steps below add a second one on top.
+The preview above shows **EUR/USD** and **GBP/USD** as lines on bundled, synchronized **H1** fixtures, with the value axis in **percent** mode. The steps below explain how to wire a similar overlay in your app.
 
 ## What you are building
 

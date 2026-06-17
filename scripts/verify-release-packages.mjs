@@ -8,6 +8,20 @@ const repoRoot = process.cwd();
 const packageDirs = [
   "packages/chart",
   "packages/react-chart-ui",
+  "packages/adapter-binance",
+  "packages/adapter-bybit",
+  "packages/adapter-okx",
+  "packages/adapter-kraken",
+  "packages/adapter-kucoin",
+  "packages/adapter-coinbase",
+  "packages/adapter-gate",
+  "packages/adapter-ccxt",
+  "packages/adapter-coingecko",
+  "packages/adapter-twelve-data",
+  "packages/adapter-finage",
+  "packages/adapter-finnhub",
+  "packages/adapter-eodhd",
+  "packages/adapter-massive",
 ];
 
 const workspaceManifests = collectWorkspaceManifests();

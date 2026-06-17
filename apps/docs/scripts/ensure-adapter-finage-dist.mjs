@@ -12,7 +12,7 @@ if (existsSync(adapterBundle)) {
 }
 
 console.log(
-  "[ensure-adapter-finage-dist] Building @efix-data/adapter-finage (dist is missing)...",
+  "[ensure-adapter-finage-dist] Building @efixdata/connector-finage (dist is missing)...",
 );
 
 const result = spawnSync("npm", ["run", "build"], {

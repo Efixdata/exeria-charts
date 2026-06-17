@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { OkxAdapter } from "../../../../../packages/adapter-okx/src";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
-import { themePresets } from "../themeCreator/chartSettingsThemePresets";
-import { buildChartTheme } from "../themeCreator/core";
-
-const tradingDarkPreset = themePresets.find((preset) => preset.id === "trading-dark")!;
+import {
+  applyDocsChartPreset,
+  docsChartEmbedBackground,
+  docsChartRuntimeTheme,
+  docsChartThemeVariant,
+} from "../docsChartTheme";
 
 const CRYPTO_SYMBOLS = [
   { id: "BTC-USDT", name: "Bitcoin (BTC)" },
@@ -53,7 +55,7 @@ export default function OkxConnectorExample() {
   const adapterRef = useRef<OkxAdapter | null>(null);
   const activeTimeframe =
     TIMEFRAMES.find((tf) => tf.id === selectedTimeframe) ?? DEFAULT_TIMEFRAME;
-  const runtimeTheme = useMemo(() => buildChartTheme(tradingDarkPreset.chart), []);
+  
 
   useEffect(() => {
     let disposed = false;
@@ -64,7 +66,7 @@ export default function OkxConnectorExample() {
       }
 
       try {
-        const chartModule = await import("@exeria/charts");
+        const chartModule = await import("@efixdata/exeria-chart");
 
         if (disposed) {
           return;
@@ -78,13 +80,14 @@ export default function OkxConnectorExample() {
             symbol: selectedSymbol,
             description: selectedSymbol,
           },
-          theme: runtimeTheme,
-          themeVariant: "dark",
+          theme: docsChartRuntimeTheme,
+          themeVariant: docsChartThemeVariant,
           dataAdapter: adapterRef.current,
         });
 
         chartRef.current = chart;
         chart.init();
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         setChartReady(true);
       } catch (err) {
@@ -121,7 +124,7 @@ export default function OkxConnectorExample() {
       }
       adapterRef.current = null;
     };
-  }, [runtimeTheme]);
+  }, []);
 
   useEffect(() => {
     if (!chartReady) {
@@ -240,7 +243,7 @@ export default function OkxConnectorExample() {
         error={error}
         minHeight={400}
         height="500px"
-        background="var(--doc-chart-surface)"
+        background={docsChartEmbedBackground}
       >
         <div ref={chartContainerRef} className={docChartEmbedStyles.canvas} />
       </DocChartEmbed>
@@ -298,8 +301,8 @@ export default function OkxConnectorExample() {
           <div className={styles.codeExample}>
             <h4>Code Example</h4>
             <pre className={showcaseStyles.codeHint}>
-              <code>{`import { createChart } from "@exeria/charts";
-import { OkxAdapter } from "@efix-data/adapter-okx";
+              <code>{`import { createChart } from "@efixdata/exeria-chart";
+import { OkxAdapter } from "@efixdata/connector-okx";
 
 const adapter = new OkxAdapter();
 const chart = createChart({

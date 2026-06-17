@@ -34,14 +34,14 @@ Perfect for crypto dashboards, USDT-denominated terminals, and KuCoin-native tra
 ## Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-kucoin
+npm install @efixdata/exeria-chart @efixdata/connector-kucoin
 ```
 
 ## Minimal example
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { KucoinAdapter } from "@efix-data/adapter-kucoin";
+import { createChart } from "@efixdata/exeria-chart";
+import { KucoinAdapter } from "@efixdata/connector-kucoin";
 
 const connector = new KucoinAdapter({ pageDelayMs: 300 });
 

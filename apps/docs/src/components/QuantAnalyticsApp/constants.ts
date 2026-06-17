@@ -9,5 +9,3 @@ export function getQuantChartPresetId(theme: QuantAppTheme): string {
 
 export const DEFAULT_SYMBOL = "EUR/USD";
 export const DEFAULT_TIMEFRAME_ID = "h1" as const;
-
-export const INITIAL_EQUITY = 100_000;

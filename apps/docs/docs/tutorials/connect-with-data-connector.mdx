@@ -28,14 +28,14 @@ Switch symbol and timeframe with the controls. This is the same integration you 
 ## Step 1 — Install
 
 ```bash
-npm install @exeria/charts @efix-data/adapter-binance
+npm install @efixdata/exeria-chart @efixdata/connector-binance
 ```
 
 ## Step 2 — Create chart with the connector
 
 ```ts
-import { createChart } from "@exeria/charts";
-import { BinanceAdapter } from "@efix-data/adapter-binance";
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
 
 const connector = new BinanceAdapter();
 

@@ -1,4 +1,4 @@
-import type { ChartInstance, ScriptDefinition } from "@exeria/charts";
+import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 
 export function cloneScript(script: ScriptDefinition): ScriptDefinition {
   return JSON.parse(JSON.stringify(script)) as ScriptDefinition;

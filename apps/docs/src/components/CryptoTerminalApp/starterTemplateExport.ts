@@ -14,9 +14,9 @@ function buildPackageJson(): string {
         preview: "vite preview",
       },
       dependencies: {
-        "@efix-data/adapter-binance": "^1.0.0",
-        "@exeria/charts": "^1.0.0",
-        "@exeria/charts-ui": "^1.0.0",
+        "@efixdata/connector-binance": "^1.0.0",
+        "@efixdata/exeria-chart": "^1.3.1",
+        "@efixdata/exeria-chart-ui-react": "^1.2.0",
         react: "^18.3.1",
         "react-dom": "^18.3.1",
       },
@@ -64,7 +64,7 @@ Default symbol: **${symbol}** — live Binance spot data, no API keys.
 - Replace simulated orders with your broker API
 - See the "Trade from chart" tutorial on the docs site
 
-Docs: https://docs.exeria.charts/getting-started/vite-react
+Docs: https://exeria.dev/docs/getting-started/vite-react
 `;
 }
 

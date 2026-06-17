@@ -19,8 +19,8 @@ Exeria Charts ships as **two npm packages**. You can install one or both. This p
 
 | Package | What you get |
 | --- | --- |
-| `@exeria/charts` | Chart engine — candles, indicators, drawings, data connectors |
-| `@exeria/charts-ui` | **ChartUI** — toolbar, indicators menu, settings dialogs around the chart |
+| `@efixdata/exeria-chart` | Chart engine — candles, indicators, drawings, data connectors |
+| `@efixdata/exeria-chart-ui-react` | **ChartUI** — toolbar, indicators menu, settings dialogs around the chart |
 
 ChartUI **depends on** the core package. It does not replace it — you still call `createChart()` and pass the instance into `<ChartUI chart={chart}>`.
 
@@ -43,7 +43,7 @@ flowchart TD
   Core --> Other
 ```
 
-## Choose core only (`@exeria/charts`)
+## Choose core only (`@efixdata/exeria-chart`)
 
 Best when:
 
@@ -54,14 +54,14 @@ Best when:
 - You integrate via **WebView** with native chrome
 
 ```bash
-npm install @exeria/charts
+npm install @efixdata/exeria-chart
 ```
 
 Guide: [Vanilla quickstart](../getting-started/vanilla).
 
 You still get: data connectors, indicators, drawings, theming, mobile layout API — just no pre-built React toolbar.
 
-## Choose core + ChartUI (`@exeria/charts-ui`)
+## Choose core + ChartUI (`@efixdata/exeria-chart-ui-react`)
 
 Best when:
 
@@ -71,7 +71,7 @@ Best when:
 - You are prototyping and can refine chrome later
 
 ```bash
-npm install @exeria/charts @exeria/charts-ui
+npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
 Guide: [React quickstart](../getting-started/react).
@@ -104,9 +104,9 @@ Guide: [React quickstart](../getting-started/react).
 ## Data connectors work with both
 
 ```ts
-import { BinanceAdapter } from "@efix-data/adapter-binance";
-// or: import { BybitAdapter } from "@efix-data/adapter-bybit";
-// or: import { OkxAdapter } from "@efix-data/adapter-okx";
+import { BinanceAdapter } from "@efixdata/connector-binance";
+// or: import { BybitAdapter } from "@efixdata/connector-bybit";
+// or: import { OkxAdapter } from "@efixdata/connector-okx";
 
 const chart = createChart({ container, dataAdapter: new BinanceAdapter() });
 ```

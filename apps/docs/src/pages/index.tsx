@@ -150,14 +150,16 @@ export default function Home(): JSX.Element {
 
           <div className={styles.heroVideoContainer}>
             <div className={styles.heroVideo}>
-              <div className={styles.heroVideoPlaceholder} aria-label="Product demo video">
-                <span className={styles.heroVideoPlayIcon} aria-hidden>
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </span>
-                <p className={styles.heroVideoLabel}>Demo video</p>
-              </div>
+              <video
+                className={styles.heroVideoElement}
+                src="/video/Exeriachartsok.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
+                aria-label="Exeria Charts product demo"
+              />
             </div>
           </div>
 

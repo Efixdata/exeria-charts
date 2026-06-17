@@ -122,19 +122,29 @@ export const starterProjects: StarterProject[] = [
   {
     id: "quant-analytics",
     title: "Quant Analytics Dashboard",
-    body: "Visualize complex backtest results, equity curves, and proprietary algorithmic indicators over millions of historical ticks. Experience sub-millisecond rendering speed without a hint of browser lag.",
+    body: "A backtest workbench you can run locally in minutes: strategy presets, buy/sell markers, indicator panes, and an equity curve. Download the zip, edit React files, and grow it into your own analytics product.",
     image: "/img/case-studies/quant-analytics.jpg",
-    imageAlt: "Quant dashboard with trade markers and equity curve panel",
+    imageAlt: "Quant dashboard with strategy sidebar, trade markers, and equity curve panel",
     demoPath: "/starters/quant-analytics",
     liveAppPath: "/starters/quant-analytics/app",
     liveAppBlurb:
-      "Full-screen backtest workbench — strategy presets, equity curve pane, and copy-paste wiring snippets. Five FX pairs on M15 and H1 static data.",
-    stack: ["Vanilla JS or React", "Core runtime", "Strategies", "Multi-pane scripts"],
+      "Try the finished UI first — same layout you get in the downloadable starter. Strategies use bundled FX data; no API keys to start.",
+    previewImage: {
+      src: "/img/starters/quant-analytics-hero.jpg",
+      alt: "Quant Analytics dashboard with strategy presets, multi-pane indicators, and equity curve",
+    },
+    caseStudy: {
+      title: "Quant Analytics Dashboard",
+      body: "Visualize backtest results, equity curves, and algorithmic indicators over historical FX data — then download the starter and wire your own strategies.",
+      image: "/img/starters/quant-analytics-hero.jpg",
+      imageAlt: "Quant Analytics dashboard with strategy presets, multi-pane indicators, and equity curve",
+    },
+    stack: ["Vite + React", "ChartUI", "Static FX bundles", "Copy-paste starter zip"],
     highlights: [
-      "Strategy overlays and signal markers",
-      "Custom indicator wiring",
-      "Large historical datasets with client-side merge",
-      "Equity curve in a secondary pane",
+      "Run locally with npm install && npm run dev",
+      "Bundled EUR/USD candles — no API keys to start",
+      "WMA/EMA composite, Bollinger, and mean-reversion presets",
+      "Step-by-step guide in the For developers section",
     ],
     relatedDocs: [
       { label: "Strategies overview", href: "/docs/scripts/strategies/overview" },
@@ -178,7 +188,7 @@ export const starterProjects: StarterProject[] = [
   {
     id: "screener-signals",
     title: "Real-Time Alert & Signal Terminal",
-    body: "Transform market noise into actionable intelligence. Generate real-time trade signals, visualize alert triggers with clarity, and display complex technical strategies instantly.",
+    body: "A signal screener you can run locally in minutes: filterable feed, mini charts, expandable analysis, and built-in strategy markers. Download the zip, edit React files, and connect your alert backend.",
     image: "/img/starters/screener-signals-hero.jpg",
     imageAlt: "Signal screener with filters, expandable chart analysis, and trade panel",
     previewImage: {
@@ -189,11 +199,11 @@ export const starterProjects: StarterProject[] = [
     liveAppPath: "/starters/screener-signals/app",
     liveAppBlurb:
       "Signal screener with filters, mini charts, expandable analysis, trade panel, and alert/automation settings.",
-    stack: ["React", "ChartUI", "Strategies", "Realtime updates"],
+    stack: ["Vite + React", "ChartUI", "Binance (public API)", "Copy-paste starter zip"],
     highlights: [
-      "Built-in strategy scripts (CROSS, EXCEED, MIX)",
+      "Run locally with npm install && npm run dev",
+      "Built-in strategy scripts (CROSS, EXCEED, MACD)",
       "Signal markers on the main series",
-      "Streaming updates with script recalculation",
       "Step-by-step guide in the For developers section",
     ],
     relatedDocs: [

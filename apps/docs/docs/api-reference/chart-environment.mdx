@@ -49,7 +49,7 @@ flowchart LR
 Set behavior at create time:
 
 ```ts
-import { createChart, CHART_COMPACT_BREAKPOINT_PX } from "@exeria/charts";
+import { createChart, CHART_COMPACT_BREAKPOINT_PX } from "@efixdata/exeria-chart";
 
 const chart = createChart({
   container,
@@ -121,7 +121,7 @@ import {
   configureChartEnvironment,
   getChartEnvironment,
   subscribeChartEnvironment,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 
 configureChartEnvironment({ compactBreakpoint: 640 });
 
@@ -143,7 +143,7 @@ const unsubscribe = subscribeChartEnvironment(() => {
 ## Constants
 
 ```ts
-import { CHART_COMPACT_BREAKPOINT_PX } from "@exeria/charts";
+import { CHART_COMPACT_BREAKPOINT_PX } from "@efixdata/exeria-chart";
 // 600 — matches ChartUI --ui-mobile-breakpoint
 ```
 
@@ -172,7 +172,7 @@ import {
   DESKTOP_CHART_LAYOUT,
   getLegendLayoutMetrics,
   isModelCompactLayout,
-} from "@exeria/charts";
+} from "@efixdata/exeria-chart";
 ```
 
 `COMPACT_CHART_LAYOUT` and `DESKTOP_CHART_LAYOUT` document margin and axis values applied in each mode.
@@ -189,7 +189,7 @@ Still exported for backward compatibility — prefer `getChartEnvironment()`:
 
 ## React UI helpers
 
-From `@exeria/charts-ui`:
+From `@efixdata/exeria-chart-ui-react`:
 
 ```ts
 import {
@@ -199,7 +199,7 @@ import {
   syncChartInstanceLayout,
   isChartUiFullscreenElement,
   type ChartUIMobileLayout,
-} from "@exeria/charts-ui";
+} from "@efixdata/exeria-chart-ui-react";
 
 applyChartUiEnvironmentOptions({ compactBreakpoint: 600 });
 

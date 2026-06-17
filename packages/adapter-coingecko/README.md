@@ -1,6 +1,6 @@
-# @efix-data/adapter-coingecko
+# @efixdata/connector-coingecko
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides historical cryptocurrency market data from CoinGecko REST API, with near-real-time updates via HTTP polling.
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides historical cryptocurrency market data from CoinGecko REST API, with near-real-time updates via HTTP polling.
 
 ## Features
 
@@ -14,14 +14,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-coingecko
+npm install @efixdata/connector-coingecko
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { CoingeckoAdapter } from "@efix-data/adapter-coingecko";
+import { CoingeckoAdapter } from "@efixdata/connector-coingecko";
 
 const adapter = new CoingeckoAdapter();
 
@@ -70,7 +70,7 @@ Best supported on the Demo API:
 - `1h` — hourly on paid plans; Demo falls back to ~4h granularity via `days=7`
 - `1w` — weekly resampling is not built-in; use `1d` with a longer `days` range
 
-Sub-minute intervals are not exchange-grade on CoinGecko. Use [Binance](https://github.com/efixdata/chart-repo/tree/main/packages/adapter-binance) for live tick data.
+Sub-minute intervals are not exchange-grade on CoinGecko. Use [Binance](https://github.com/Efixdata/exeria-charts/tree/main/packages/adapter-binance) for live tick data.
 
 ## API Reference
 

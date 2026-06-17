@@ -31,7 +31,7 @@ News Feed is a **second data stream** attached to a chart instrument — paralle
 | `impact` | `{ horizon, pips?, direction? }[]` | no | Pre-computed move for callout |
 | `ingestedAt` | `number` | no | Provider ingest time (live feeds) |
 
-Types are exported from `@exeria/charts` as `NewsFeedRecord`, `NewsFeedBundle`, and `NewsFeedAdapter`.
+Types are exported from `@efixdata/exeria-chart` as `NewsFeedRecord`, `NewsFeedBundle`, and `NewsFeedAdapter`.
 
 ## Historical bundle file
 
@@ -89,7 +89,7 @@ Live providers push new `NewsFeedRecord` objects; the app re-runs bar mapping an
 ## Bar placement (any timeframe)
 
 ```ts
-import { resolveNewsBarIndex, setInstrumentNewsFeed } from "@exeria/charts";
+import { resolveNewsBarIndex, setInstrumentNewsFeed } from "@efixdata/exeria-chart";
 
 const barIndex = resolveNewsBarIndex(event.releasedAt, candles);
 // last candle with open time <= releasedAt
@@ -100,7 +100,7 @@ When the user switches M15 → H1 → 1D, **re-map** the same events against the
 ## Chart integration
 
 ```ts
-import { setInstrumentNewsFeed } from "@exeria/charts";
+import { setInstrumentNewsFeed } from "@efixdata/exeria-chart";
 
 // After candles load or interval changes:
 setInstrumentNewsFeed(events, candles);

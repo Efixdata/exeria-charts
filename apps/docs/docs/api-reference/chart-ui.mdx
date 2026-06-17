@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 title: ChartUI
-description: Props, theme tokens, hooks, and utilities for @exeria/charts-ui.
+description: Props, theme tokens, hooks, and utilities for @efixdata/exeria-chart-ui-react.
 ---
 
 import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
@@ -9,14 +9,14 @@ import ChartUiGenerated from "./_generated/chart-ui-api.mdx";
 
 # ChartUI
 
-**ChartUI** is the React wrapper from `@exeria/charts-ui`. It renders the top toolbar, left drawing menu, and settings dialogs around a `ChartInstance`.
+**ChartUI** is the React wrapper from `@efixdata/exeria-chart-ui-react`. It renders the top toolbar, left drawing menu, and settings dialogs around a `ChartInstance`.
 
 ```tsx
-import ChartUI from "@exeria/charts-ui";
-import { createChart, type ChartInstance } from "@exeria/charts";
+import ChartUI from "@efixdata/exeria-chart-ui-react";
+import { createChart, type ChartInstance } from "@efixdata/exeria-chart";
 ```
 
-Use this page as a **lookup table**. The [generated TypeScript reference](#full-api-generated-from-typescript) at the bottom lists every public export from `@exeria/charts-ui`. For layout pitfalls and SSR, see [React UI integration](../advanced/react-ui-integration). For toolbar behavior, see [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools).
+Use this page as a **lookup table**. The [generated TypeScript reference](#full-api-generated-from-typescript) at the bottom lists every public export from `@efixdata/exeria-chart-ui-react`. For layout pitfalls and SSR, see [React UI integration](../advanced/react-ui-integration). For toolbar behavior, see [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools).
 
 <GettingStartedDemo
   variant="react"
@@ -63,7 +63,7 @@ ChartUI accepts `chart={null}` during bootstrap. The toolbar shell mounts immedi
 Styles **UI chrome** only. Candle and axis colors come from `createChart({ theme, themeVariant })`.
 
 ```tsx
-import type { ChartUITheme } from "@exeria/charts-ui";
+import type { ChartUITheme } from "@efixdata/exeria-chart-ui-react";
 ```
 
 | Key | Purpose |
@@ -114,7 +114,7 @@ import type { ChartUITheme } from "@exeria/charts-ui";
 Subscribes to global chart environment (viewport width, compact mode, pointer type). Re-renders on breakpoint or pointer changes.
 
 ```tsx
-import { useChartEnvironment } from "@exeria/charts-ui";
+import { useChartEnvironment } from "@efixdata/exeria-chart-ui-react";
 
 function MyHeader() {
   const { isCompact, isTouch, layoutMode, compactBreakpoint } = useChartEnvironment();
@@ -122,7 +122,7 @@ function MyHeader() {
 }
 ```
 
-Returns `ChartEnvironmentSnapshot` from `@exeria/charts` — same shape as `chart.getChartEnvironment()`.
+Returns `ChartEnvironmentSnapshot` from `@efixdata/exeria-chart` — same shape as `chart.getChartEnvironment()`.
 
 ### `useChartTranslate()`
 
@@ -148,7 +148,7 @@ import ChartUI, {
   DEFAULT_CHART_UI_THEME,
   buildChartUiTheme,
   useChartEnvironment,
-} from "@exeria/charts-ui";
+} from "@efixdata/exeria-chart-ui-react";
 ```
 
 ## Layout contract

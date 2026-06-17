@@ -1,4 +1,4 @@
-import type { ChartInstance } from "@exeria/charts";
+import type { ChartInstance } from "@efixdata/exeria-chart";
 import { ensureChartPointerMode } from "./chartPanInteraction";
 import { applyScreenerStrategyScene } from "./screenerScene";
 

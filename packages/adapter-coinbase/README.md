@@ -1,6 +1,6 @@
-# @efix-data/adapter-coinbase
+# @efixdata/connector-coinbase
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from the Coinbase Advanced Trade public API.
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from the Coinbase Advanced Trade public API.
 
 ## Features
 
@@ -13,14 +13,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-coinbase
+npm install @efixdata/connector-coinbase
 ```
 
 ## Quick Start
 
 ```typescript
-import { createChart } from "@exeria/charts";
-import { CoinbaseAdapter } from "@efix-data/adapter-coinbase";
+import { createChart } from "@efixdata/exeria-chart";
+import { CoinbaseAdapter } from "@efixdata/connector-coinbase";
 
 const adapter = new CoinbaseAdapter();
 

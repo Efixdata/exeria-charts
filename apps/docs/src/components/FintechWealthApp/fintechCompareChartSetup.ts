@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@exeria/charts";
+import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import type { FintechAsset, FintechPeriodId } from "./constants";
 import {
   buildCanonicalStamps,
@@ -604,7 +604,7 @@ export async function setupFintechCompareChart(
     return;
   }
 
-  const chartModule = await import("@exeria/charts");
+  const chartModule = await import("@efixdata/exeria-chart");
   const chartInterval = chartModule.intervalFromSymbol(
     context.marketId === "equities" ? "1d" : context.interval,
   );
@@ -654,7 +654,7 @@ export async function setupFintechSingleAssetChart(
   context: FintechDataContext,
   themeVariant: FintechThemeVariant = "dark",
 ): Promise<void> {
-  const chartModule = await import("@exeria/charts");
+  const chartModule = await import("@efixdata/exeria-chart");
   const chartInterval = chartModule.intervalFromSymbol(
     context.marketId === "equities" ? "1d" : context.interval,
   );

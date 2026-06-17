@@ -1,4 +1,4 @@
-import type { Candle, DataAdapter, LoadDataOptions, Tick } from "@exeria/charts";
+import type { Candle, DataAdapter, LoadDataOptions, Tick } from "@efixdata/exeria-chart";
 
 export type ProxyFinageAdapterConfig = {
   apiBase?: string;

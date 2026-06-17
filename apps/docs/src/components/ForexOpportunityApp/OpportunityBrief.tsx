@@ -1,7 +1,7 @@
-import type { ArbMetrics } from "@exeria/charts";
+import type { ArbMetrics } from "@efixdata/exeria-chart";
 import type { ChartNewsEvent } from "./chartNews";
 import { formatNewsTime, formatPips } from "./chartNews";
-import type { ArbSignalRecord } from "@exeria/charts";
+import type { ArbSignalRecord } from "@efixdata/exeria-chart";
 import ConfluenceMeter from "./ConfluenceMeter";
 import styles from "./forexOpportunityApp.module.css";
 

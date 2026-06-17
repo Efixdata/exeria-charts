@@ -1,6 +1,6 @@
-# @efix-data/adapter-kraken
+# @efixdata/connector-kraken
 
-A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-repo) that provides real-time and historical cryptocurrency price data from Kraken public Spot API.
+A data adapter for [@efixdata/exeria-chart](https://github.com/Efixdata/exeria-charts) that provides real-time and historical cryptocurrency price data from Kraken public Spot API.
 
 ## Features
 
@@ -14,14 +14,14 @@ A data adapter for [@efixdata/exeria-chart](https://github.com/efixdata/chart-re
 ## Installation
 
 ```bash
-npm install @efix-data/adapter-kraken
+npm install @efixdata/connector-kraken
 ```
 
 ## Quick Start
 
 ```typescript
 import { Chart } from "@efixdata/exeria-chart";
-import { KrakenAdapter } from "@efix-data/adapter-kraken";
+import { KrakenAdapter } from "@efixdata/connector-kraken";
 
 const adapter = new KrakenAdapter();
 
