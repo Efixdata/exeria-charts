@@ -1,0 +1,158 @@
+---
+sidebar_position: 8
+title: Gate.io
+description: Gate.io adapter (@efixdata/connector-gate) — live and historical crypto spot charts, no API key required.
+---
+
+import GateConnectorExample from "@site/src/components/GateConnectorExample";
+
+# Gate.io Data Connector
+
+Building for **Gate.io** spot markets? The Gate connector talks to the public [API v4](https://www.gate.com/docs/developers/apiv4/) — history over REST, live candles over WebSocket. No API key required.
+
+<GateConnectorExample />
+
+Use the controls above to change currency pair and timeframe. This docs demo routes requests through `/api/gate` because Gate.io REST does not allow browser cross-origin requests.
+
+:::info Browser vs server
+In **your app**, use `GateAdapter` directly from Node.js or your backend — no proxy required. The docs proxy exists only so live demos work without CORS errors.
+:::
+
+:::tip Standalone demo
+Full-page version with sample code: [Gate.io live demo](/gate-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public Gate.io spot market data |
+| **History** | OHLCV via `/spot/candlesticks` (paginated, 1000 per request) |
+| **Live ticks** | WebSocket `spot.candlesticks` channel |
+| **Pairs** | `BTC_USDT`, `ETH_USDT`, and other Gate currency pairs |
+| **Symbol helper** | Accepts `BTCUSDT`, `BTC-USDT`, bare `BTC` → `BTC_USDT` |
+| **Timeframes** | `1m` through `1d`, plus `1w` mapped to Gate `7d` |
+
+Perfect for Gate-native trading UIs and browser-first crypto dashboards. For **Node.js multi-exchange backends**, see [CCXT](./ccxt).
+
+## Gate.io vs CCXT
+
+| | Gate.io connector | [CCXT](./ccxt) |
+| --- | --- | --- |
+| Runtime | Browser + Node | **Node only** |
+| API key | No (public data) | No (public data) |
+| Symbol format | `BTC_USDT` | `exchangeId: "gate"` |
+| Live WS | Native Gate v4 candlesticks | REST-only in adapter-ccxt |
+| Best for | Frontend Gate.io charts | Many exchanges on your server |
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-gate
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { GateAdapter } from "@efixdata/connector-gate";
+
+const connector = new GateAdapter({ pageDelayMs: 300 });
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTC_USDT", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("BTC_USDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new GateAdapter({ pageDelayMs: 300 });
+```
+
+Uses Gate public URLs by default. Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+### 3 — Load history
+
+```ts
+await chart.loadData("ETH_USDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+### 4 — Subscribe to live updates
+
+```ts
+chart.subscribeToUpdates("ETH_USDT", (tick) => {
+  console.log(tick.price ?? tick.c);
+});
+```
+
+Call `subscribeToUpdates` **after** `loadData` succeeds.
+
+## Configuration
+
+```ts
+const connector = new GateAdapter({
+  baseUrl: "https://api.gateio.ws/api/v4",
+  wsUrl: "wss://api.gateio.ws/ws/v4/",
+  requestTimeout: 10000,
+  maxRetries: 3,
+  retryDelay: 1000,
+  pageDelayMs: 300,
+  pollingIntervalMs: 5000,
+  useWebSocket: true,
+});
+```
+
+Set `useWebSocket: false` to poll REST `/spot/tickers` instead of WebSocket.
+
+## Docs demo proxy
+
+Gate.io REST does not send `Access-Control-Allow-Origin` for browser origins, so direct `fetch` from localhost fails with **Failed to fetch**. The docs dev server exposes `/api/gate/ohlcv` and `/api/gate/ticker` through `apiProxyPlugin.js`. In production, run `GateAdapter` on your server or use WebSocket from a backend relay.
+
+## Supported symbols
+
+| You pass | Gate `currency_pair` |
+| --- | --- |
+| `BTC_USDT` | `BTC_USDT` |
+| `BTC-USDT` | `BTC_USDT` |
+| `BTCUSDT` | `BTC_USDT` |
+| `BTC` | `BTC_USDT` |
+
+## Supported timeframes
+
+`1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w` (mapped to Gate `7d`)
+
+Unsupported natively: `3m`, `2h`, `6h`, `8h`, `12h`, `1M` — the adapter throws a clear error.
+
+Gate limits history to roughly **10,000 candles** back per request window.
+
+## Related
+
+- [KuCoin connector](./kucoin) — USDT spot alternative
+- [Binance connector](./binance) — global USDT spot
+- [CCXT connector](./ccxt) — Gate via `exchangeId: "gate"` on Node.js
+- [Connect with a data connector](../tutorials/connect-with-data-connector) — tutorial

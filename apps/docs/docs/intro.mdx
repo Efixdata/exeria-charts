@@ -28,15 +28,26 @@ Once the core chart is working, add the React UI wrapper if you want the prebuil
 - programmatic data loading, streaming updates, and drawing tools
 - the typed `ChartInstance` contract plus advanced runtime notes for `Chart`
 - theming and the built-in script system entry points
-- licensing guidance for public, small-scale, and commercial usage
+- licensing guidance for AGPL, commercial use, and Data Connectors
+
+## Help and search
+
+- [FAQ and troubleshooting](./guides/faq-and-troubleshooting) — blank chart, live data, ChartUI layout, licensing
+- [Playground guide](./guides/playground) — experiment in the browser before you code ([open Playground](/playground))
+- [API reference](./api-reference/chart-instance) — curated guides plus a TypeScript-synced method list
+- Use **Search** in the docs left sidebar (`/docs/*`) to find methods, tutorials, and guides
 
 ## Suggested reading order
 
-1. Read [Vanilla quickstart](./getting-started/vanilla).
-2. Read [Chart lifecycle](./core-concepts/chart-lifecycle) and [Data model](./core-concepts/data-model) before wiring production data.
-3. Use [Loading data](./chart-usage/loading-data) and [Realtime updates](./chart-usage/realtime-updates) when you connect live feeds.
-4. Read [React quickstart](./getting-started/react) if you want the prebuilt UI wrapper.
-5. Use [Theming overview](./theming/overview) when you need runtime colors or UI chrome customization.
-6. Review [ChartInstance reference](./api-reference/chart-instance) and [Chart runtime access](./advanced/chart-class-runtime) when you need exact API boundaries.
-7. Use [Choosing a package](./guides/choosing-a-package) to decide how much UI you want to adopt.
-8. Review [Licensing](./guides/licensing) before planning a commercial rollout.
+1. Open a live implementation from [case studies](/#case-studies), the [Playground](/playground), or the [Tutorials hub](./tutorials/).
+2. Read [Vanilla quickstart](./getting-started/vanilla) or [Vite + React](./getting-started/vite-react) to mount your first chart.
+3. Follow [Chart with your data](./tutorials/chart-with-your-data) or [Connect with a Data Connector](./tutorials/connect-with-data-connector) for market data (e.g. [Binance](./data-connectors/binance), [Bybit](./data-connectors/bybit), [OKX](./data-connectors/okx), [Kraken](./data-connectors/kraken), [KuCoin](./data-connectors/kucoin), or [CoinGecko](./data-connectors/coingecko)).
+4. Read [Chart lifecycle](./core-concepts/chart-lifecycle) and [Data model](./core-concepts/data-model) before wiring production data.
+5. Use [Loading data](./chart-usage/loading-data) and [Realtime updates](./chart-usage/realtime-updates) for reference behavior on streaming feeds.
+6. Read [React quickstart](./getting-started/react) if you want the prebuilt UI wrapper — props reference: [ChartUI](./api-reference/chart-ui).
+7. Use [Theming overview](./theming/overview) when you need runtime colors or UI chrome customization.
+8. Review [ChartInstance reference](./api-reference/chart-instance) and [Chart runtime access](./advanced/chart-class-runtime) when you need exact API boundaries.
+9. Use [Choosing a package](./guides/choosing-a-package) to decide how much UI you want to adopt.
+10. Read [Trade from chart](./tutorials/trade-from-chart) when you wire broker orders, positions, and drag-to-modify flows.
+11. Read [Mobile and responsive](./advanced/mobile-and-responsive) when targeting phones or narrow embeds.
+12. Review [Licensing](./guides/licensing) before planning a commercial rollout.

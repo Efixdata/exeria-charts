@@ -9,6 +9,7 @@ import useGenerateWatermark, {
   DEFAULT_WATERMARK_WIDTH,
 } from "../../hooks/useGenerateWatermark";
 import type { NullableChartInstance, ShareConfig } from "../../chartTypes";
+import { useChartTranslate } from "../../hooks/useChartTranslate";
 
 interface ShareChartButtonProps {
   chart: NullableChartInstance;
@@ -33,7 +34,7 @@ const OptionsContainer = styled.div`
   background-color: ${selectButton.backgroundActiveColor};
   padding: 4px 0;
   position: absolute;
-  top: 26px;
+  top: var(--ui-toolbar-touch, 40px);
   right: 0;
   z-index: 1;
   min-width: 160px;
@@ -62,17 +63,27 @@ const OptionsHeader = styled.div`
 `;
 
 export const ShareChartButton = (props: ShareChartButtonProps) => {
+  const t = useChartTranslate(props.chart);
   const { waterMark64 } = useGenerateWatermark(props.shareConfig?.watermarkSvg);
   const { shareImage, actionLoading } = useShareChartImage(props.chart, props.shareConfig);
   const dropDownRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const instrumentSymbol = props.chart?.getInstrument()?.symbol || "";
+  const snapshotWithSymbol = (templateKey: string, fallback: string) => {
+    if (!instrumentSymbol) {
+      return t("share_snapshot_default", "Chart snapshot");
+    }
+
+    const template = t(templateKey, fallback);
+    return template.replace("{symbol}", instrumentSymbol).replace("${symbol}", instrumentSymbol);
+  };
   const twitterText =
     props.shareConfig?.twitterTextTemplate ||
-    (instrumentSymbol ? `$${instrumentSymbol} chart snapshot` : "Chart snapshot");
+    snapshotWithSymbol("share_snapshot_twitter_with_symbol", "${symbol} chart snapshot");
   const telegramText =
     props.shareConfig?.telegramTextTemplate ||
-    (instrumentSymbol ? `${instrumentSymbol} chart snapshot` : "Chart snapshot");
+    snapshotWithSymbol("share_snapshot_with_symbol", "{symbol} chart snapshot");
+  const shareLabel = t("toolbar_share_chart", "Share chart");
 
   const renderOptions = () => {
     return options.map((option, i) => {
@@ -128,13 +139,13 @@ export const ShareChartButton = (props: ShareChartButtonProps) => {
       type: "divider",
     },
     {
-      social: "Copy image link",
+      social: t("share_copy_link", "Copy image link"),
       logo: <Copy height={24} width={24} fill="#fff" />,
-      action: () => shareImage("copyImage", ActionEnum.copy, "", "Copy to clipboard"),
+      action: () => shareImage("copyImage", ActionEnum.copy, "", t("share_copy_clipboard", "Copy to clipboard")),
       loading: actionLoading.copyImage,
     },
     {
-      social: "Download image",
+      social: t("share_download", "Download image"),
       logo: <Download height={24} width={24} fill="#fff" />,
       action: () =>
         props.chart?.onDownload(
@@ -147,12 +158,19 @@ export const ShareChartButton = (props: ShareChartButtonProps) => {
 
   return (
     <ShareButtonWrapper ref={dropDownRef} className={isOpen ? "active" : undefined}>
-      <IconButton onClick={() => setIsOpen((prev) => !prev)}>
+      <IconButton
+        onClick={() => setIsOpen((prev) => !prev)}
+        themeContext="toolbar"
+        active={isOpen}
+        title={shareLabel}
+        ariaLabel={shareLabel}
+        ariaExpanded={isOpen}
+      >
         <Share />
       </IconButton>
       {isOpen && (
         <OptionsContainer>
-          <OptionsHeader>share chart</OptionsHeader>
+          <OptionsHeader>{t("share_chart_header", "Share chart")}</OptionsHeader>
           {renderOptions()}
         </OptionsContainer>
       )}

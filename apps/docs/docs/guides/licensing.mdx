@@ -1,26 +1,147 @@
 ---
 sidebar_position: 2
 title: Licensing
-description: Understand the source-available license and when commercial terms apply.
+description: AGPL core license, commercial use for closed-source apps, MIT free connectors, and EULA paid connectors.
 ---
 
 # Licensing
 
-Exeria Charts is source-available under the Exeria Charts Source Available License 1.0.
+You can ship products with Exeria Charts. **Two questions** decide what you need:
 
-## The practical summary
+1. Is your **app** open source (AGPL-compliant) or **closed source**?
+2. Which **Data Connectors** feed the chart — and what are the **data provider's** terms?
 
-- personal use is allowed
-- educational use is allowed
-- qualifying open source projects are allowed
-- qualifying small-scale use is allowed under the Additional Use Grant
-- broader commercial use requires a separate commercial license from Efix Data Sp. z o. o.
+This page is a **plain-language guide**, not legal advice. When in doubt, contact Efix Data before production launch.
 
-## Before you ship
+## The one-minute summary
 
-Review the full legal terms in the repository:
+| Your situation | Core chart (`@efixdata/exeria-chart`) | Data Connectors |
+| --- | --- | --- |
+| **Open-source app**, AGPL-compliant | Free under **AGPL v3** | **MIT** free connectors / **EULA** paid connectors + provider API terms |
+| **Closed-source / proprietary app** | **Commercial license** required | Same — MIT free / EULA paid connectors + provider API terms |
 
-- `LICENSE`
-- `LICENSING.md`
+Official text: [LICENSE](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE) · [LICENSING.md](https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md)
 
-If your use case is commercial, revenue-generating, or customer-facing at scale, do not treat the Additional Use Grant as a substitute for a commercial agreement.
+Compare connectors: [Data Connectors catalog](/data-connectors).
+
+## What is licensed?
+
+| Component | License model |
+| --- | --- |
+| **Core chart** + **ChartUI** | Open source under **GNU AGPL v3** |
+| **Commercial license** | Paid agreement for **closed-source** use of the core |
+| **Free Data Connectors** | **MIT** npm packages — public / free-tier data sources |
+| **Paid Data Connectors** | **EULA** (source-available) — commercial data vendors; paid for production use |
+
+Built-in **indicators**, **functions**, **strategies**, and **drawing tools** ship in the open core. Optional market data goes through **Data Connectors** from third-party vendors (Binance, Massive, Finnhub, and others).
+
+## AGPL v3 — the core (free, with obligations)
+
+AGPL is a **strong copyleft** license. In practice:
+
+- You may use, modify, and redistribute the core for free.
+- If you **distribute** software that incorporates the core, or offer it as a **network service** users interact with, you generally must make **corresponding source** available under AGPL-compatible terms.
+- If you **cannot** open your application source on those terms, you need a **commercial license** instead of relying on AGPL alone.
+
+**Open-source projects** that publish source under AGPL (or compatible terms) can use the core at no charge — provided you meet AGPL obligations for your combined work.
+
+## Commercial license — closed-source products {#commercial-license}
+
+A **commercial license** from Efix Data Sp. z o. o. is for teams shipping a **proprietary** application.
+
+It typically covers:
+
+- Using the core in closed-source products without AGPL applying to your **entire** codebase (as defined in your agreement)
+- Predictable terms for production and customer-facing deployments
+- **Startup-friendly pricing** for qualifying small teams — contact us; pricing is not enterprise-only by default
+
+A commercial core license is **separate** from any **market data subscription** you buy from Massive, Finnhub, Twelve Data, or other vendors.
+
+## Data Connectors licensing {#data-connectors-licensing}
+
+Connectors come in **two licensing tiers**. Either way, you must also follow each **data provider's** terms (rate limits, attribution, redistribution, display rights).
+
+- **Free connectors — MIT.** For public, no-key (or free-tier) data sources. Use them in open-source or closed-source apps at no charge.
+- **Paid connectors — EULA (source-available).** For commercial data vendors. The source is published for evaluation and integration, but **production or commercial use requires a paid license** from Efix Data.
+
+### Free connectors (MIT)
+
+| Connector | Package license | Data |
+| --- | --- | --- |
+| [Binance](../data-connectors/binance) | MIT | Public crypto — no API key |
+| [Bybit](../data-connectors/bybit) | MIT | Public crypto spot — no API key |
+| [OKX](../data-connectors/okx) | MIT | Public crypto spot — no API key |
+| [Kraken](../data-connectors/kraken) | MIT | Public USD spot — no API key |
+| [KuCoin](../data-connectors/kucoin) | MIT | Public USDT spot — no API key |
+| [Coinbase](../data-connectors/coinbase) | MIT | Public USD / USDC spot |
+| [Gate.io](../data-connectors/gate) | MIT | Public USDT spot — no API key |
+| [CCXT](../data-connectors/ccxt) | MIT | 100+ exchanges, public data |
+| [CoinGecko](../data-connectors/coingecko) | MIT | Broad crypto catalog, free tier |
+
+### Paid connectors (EULA, source-available)
+
+| Connector | Package license | Data |
+| --- | --- | --- |
+| [Twelve Data](../data-connectors/twelve-data) | EULA | Multi-asset — provider API key |
+| [Finage](../data-connectors/finage) | EULA | Forex and equities — provider API key |
+| [Finnhub](../data-connectors/finnhub) | EULA | US stocks, forex, crypto — provider API token |
+| [EODHD](../data-connectors/eodhd) | EULA | Global EOD + intraday — provider API token |
+| [Massive](../data-connectors/massive) | EULA | US stocks, forex, crypto — provider API key |
+
+- **MIT** connectors: install via npm, use in open-source or commercial apps per MIT terms for the connector package.
+- **EULA** connectors: source is public for evaluation; production/commercial use requires a paid license — see [`LICENSING.md`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md).
+- Either way, you still must follow the **data provider's** terms (rate limits, attribution, redistribution).
+- Your **chart core** may still need a **commercial license** if the overall product is closed source — a connector license does not remove AGPL obligations on the core.
+
+### Your own API
+
+Loading candles from **your backend** (`setMainSeriesData`) does not use a Data Connector license — you own the data contract. See [Chart with your data](../tutorials/chart-with-your-data).
+
+## Enterprise
+
+Enterprise agreements typically combine:
+
+- Commercial **core** license for closed-source products
+- Integration and onboarding support
+
+Contact Efix Data for Enterprise and startup commercial terms.
+
+## Decision checklist before you ship
+
+```mermaid
+flowchart TD
+  Q1{"Is your app\nclosed source?"}
+  Q2{"AGPL-compliant\nopen source?"}
+  Q3{"Which data feed?"}
+
+  Q1 -->|Yes| Commercial["Plan commercial\ncore license"]
+  Q1 -->|No| Q2
+  Q2 -->|Yes| CoreFree["Core under AGPL —\nmeet source obligations"]
+  Q2 -->|Unsure| Contact["Contact Efix Data"]
+  Commercial --> Q3
+  CoreFree --> Q3
+  Q3 -->|Public / free-tier API| MIT["MIT free connector\n+ provider ToS"]
+  Q3 -->|Commercial data vendor| EULA["EULA paid connector\n+ provider ToS"]
+  Q3 -->|Your own API| Own["Your data agreement only"]
+```
+
+- [ ] Read [`LICENSE`](https://github.com/Efixdata/exeria-charts/blob/main/LICENSE)
+- [ ] Closed source? → plan **commercial core** license
+- [ ] Using a **free** connector? → MIT package + **provider** rules
+- [ ] Using a **paid** connector? → EULA license + **provider** rules
+- [ ] Still unsure? → contact before launch
+
+## What ships in the open core
+
+The public repository includes:
+
+- Chart runtime, ChartUI, drawing tools documented in [Drawing tools](../drawing-tools/)
+- **97** indicators, **10** functions, **11** strategies ([Scripts hub](../scripts/))
+- **MIT free connectors** for public / free-tier data; **EULA paid connectors** (source-available) for commercial vendors
+
+## What is next?
+
+- [Data connectors overview](../data-connectors/overview)
+- [Data Connectors catalog](/data-connectors)
+- [Choosing a package](./choosing-a-package)
+- [Guides hub](../guides/)

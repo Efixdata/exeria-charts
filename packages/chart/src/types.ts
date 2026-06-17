@@ -52,6 +52,33 @@ export interface ChartTheme {
   [key: string]: unknown;
 }
 
+export type {
+  ChartAppearanceSettings,
+  ChartDrawingSettingsItem,
+  ChartGridLineStyle,
+  ChartGridMode,
+  ChartInstrumentSettingsItem,
+  ChartInstrumentSymbolAppearance,
+  ChartLineFillMode,
+  ChartFunctionSettingsItem,
+  ChartIndicatorSettingsItem,
+  ChartLegendSettings,
+  ChartSettingsTemplate,
+  ChartStrategySettingsItem,
+  ChartVolumeColorMode,
+  ChartVolumeSettings,
+} from "./chartSettings";
+export type {
+  ArbChartScene,
+  ArbMetrics,
+  ArbSignalBundle,
+  ArbSignalCategory,
+  ArbSignalQuery,
+  ArbSignalRecord,
+} from "./arbSignalTypes";
+
+export type { ChartDrawingEditConfig, ChartDrawingEditPatch } from "./drawingEdit";
+
 export interface ScriptInputDefinition {
   type?: string;
   name?: string;
@@ -118,8 +145,15 @@ export interface ChartMode {
   [key: string]: unknown;
 }
 
+export interface ChartStagingObject {
+  type?: string;
+  [key: string]: unknown;
+}
+
 export interface ChartInteractor {
   currentMode?: ChartMode;
+  currentStagingObject?: ChartStagingObject | null;
+  completeStagingDrawing?: () => boolean | void;
   setMode(mode: string, options?: Record<string, unknown>, onDrawingDone?: () => void): void;
   setObjectSelectionAllowed?(isAllowed: boolean): void;
   [key: string]: unknown;
@@ -130,6 +164,7 @@ export interface ToolDrawerApi {
   drawTrendLine(initialOptions?: TrendLineToolOptions): string | number | void;
   drawTimeRange(initialOptions: TimeRangeToolOptions): string | number | void;
   drawTimeBet(initialOptions: TimeBetToolOptions): string | number | void;
+  drawLongShortPosition(initialOptions: LongShortPositionToolOptions): string | number | void;
   deleteTool(id: string | number): void;
 }
 
@@ -209,12 +244,56 @@ export interface TimeBetToolOptions {
   config?: ToolVisualConfig;
 }
 
+export interface LongShortPositionToolOptions {
+  direction?: "LONG" | "SHORT";
+  startStamp?: number;
+  endStamp?: number;
+  stopPrice?: number;
+  targetPrice?: number;
+  entryPrice?: number;
+  accountSize?: number;
+  riskMode?: "AMOUNT" | "PERCENT";
+  riskAmount?: number;
+  riskPercent?: number;
+  config?: ToolVisualConfig;
+}
+
+import type {
+  ChartEnvironmentSnapshot,
+  ChartLayoutMode,
+  ChartLayoutModeOverride,
+} from "./utils/chartEnvironment";
+
+export type { ChartEnvironmentSnapshot, ChartLayoutMode, ChartLayoutModeOverride };
+
+export interface ChartLayoutOptions {
+  mode?: import("./utils/chartEnvironment").ChartLayoutModeOverride;
+  breakpoints?: {
+    compact?: number;
+  };
+}
+
 export interface ChartEventPayloads {
   AUTOSCALE: { autoScale: boolean };
   CURSOR_CHANGE: { cursor: string };
   INTERVAL_CHANGE: Interval;
+  INDICATOR_EDIT_REQUEST: { scriptId: string | number };
+  NEWS_FEED_MARKER_CLICK: {
+    barIndex: number;
+    eventId?: string;
+    clientX?: number;
+    clientY?: number;
+  };
+  SCRIPTS_CHANGE: Record<string, never>;
+  DRAWING_EDIT_REQUEST: { objectId: string | number };
   OBJECT_SELECTION_ALLOWED_CHANGE: boolean;
+  DRAWING_MAGNET_CHANGE: { enabled: boolean };
+  DRAWINGS_LOCK_CHANGE: { allLocked: boolean };
   VALUE_AXIS_WIDTH_CHANGE: number;
+  LOCALE_CHANGE: { locale: string };
+  ENVIRONMENT_CHANGE: ChartEnvironmentSnapshot;
+  SELECTED_INSTRUMENT_CHANGE: { seriesId: string };
+  INSTRUMENT_DRAW_MODE_CHANGE: { seriesId: string; drawMode: DrawMode };
 }
 
 export interface ChartOptions {
@@ -224,6 +303,10 @@ export interface ChartOptions {
   model?: Record<string, unknown>;
   theme?: ChartTheme;
   themeVariant?: string;
+  locale?: string;
+  messages?: Record<string, unknown>;
+  layout?: ChartLayoutOptions;
+  dataAdapter?: import("./dataAdapter").DataAdapter;
   [key: string]: unknown;
 }
 
@@ -238,10 +321,25 @@ export interface ChartInstance {
   setInstrument(instrument: Instrument): void;
   getInstrument(): Instrument | undefined;
   setMainSeriesData(data: Candle[], interval?: Interval, moveToEnd?: boolean): Promise<void>;
+  setDataAdapter(adapter: import("./dataAdapter").DataAdapter): void;
+  loadData(symbol: string, options: import("./dataAdapter").LoadDataOptions): Promise<void>;
+  subscribeToUpdates(
+    symbol: string,
+    callback?: (update: Tick) => void,
+  ): void;
+  unsubscribeFromUpdates(): void;
+  getCurrentPrice(): Tick | null;
   appendMainSeriesData(data: Candle[]): void;
   appendTick(tick: Tick, recalculate?: boolean): void;
   appendTicks(ticks: Tick[], recalculate?: boolean): void;
+  recalculateScripts(options?: { rerender?: boolean; shortSynchronization?: boolean }): Promise<void>;
+  moveToEnd(options?: { rerender?: boolean }): void;
   setMainDrawMode(mode: DrawMode): void;
+  getMainSeriesId(): string;
+  getSelectedInstrumentSeriesId(): string;
+  setSelectedInstrumentSeriesId(seriesId: string): void;
+  getInstrumentDrawMode(seriesId?: string): DrawMode;
+  setInstrumentDrawMode(mode: DrawMode, seriesId?: string): void;
   getValueAxisMode(): ValueAxisMode;
   setValueAxisMode(mode: ValueAxisMode): void;
   getValueAxisWidth(): number;
@@ -250,11 +348,64 @@ export interface ChartInstance {
   getCurrency(): string | undefined;
   getInterval(): Interval | undefined;
   getScripts(): Record<string, ScriptDefinition>;
-  addScript(scriptKey: string, proto?: ScriptDefinition): void;
+  getChartPanels(): Array<{ id: string; label: string; main?: boolean }>;
+  getIndicatorEditConfig(scriptId: string | number): ScriptDefinition | null;
+  addScript(scriptKey: string, proto?: ScriptDefinition): void | Promise<void>;
+  updateIndicator(scriptId: string | number, proto?: ScriptDefinition): void | Promise<void>;
+  getChartAppearanceSettings(): import("./chartSettings").ChartAppearanceSettings;
+  applyChartAppearanceSettings(settings: import("./chartSettings").ChartAppearanceSettings): void;
+  getChartLegendSettings(): import("./chartSettings").ChartLegendSettings;
+  applyChartLegendSettings(settings: import("./chartSettings").ChartLegendSettings): void;
+  getChartInstrumentSettings(): import("./chartSettings").ChartInstrumentSettingsItem[];
+  applyChartInstrumentSettings(
+    seriesId: string,
+    settings: Partial<
+      Pick<
+        import("./chartSettings").ChartInstrumentSettingsItem,
+        "lineColor" | "lineDash" | "drawMode"
+      > &
+        import("./chartSettings").ChartInstrumentSymbolAppearance
+    >,
+  ): void;
+  applyChartTheme(theme: ChartTheme, themeVariant?: string): void;
+  getChartVolumeSettings(): import("./chartSettings").ChartVolumeSettings;
+  applyChartVolumeSettings(settings: import("./chartSettings").ChartVolumeSettings): void;
+  getChartIndicatorSettings(): import("./chartSettings").ChartIndicatorSettingsItem[];
+  setChartIndicatorVisibility(scriptId: string | number, visible: boolean): void;
+  setChartIndicatorPriceTagVisibility(scriptId: string | number, visible: boolean): void;
+  getChartIndicatorLocked(scriptId: string | number): boolean;
+  setChartIndicatorLocked(scriptId: string | number, locked: boolean): void;
+  removeChartIndicator(scriptId: string | number): void;
+  getChartFunctionSettings(): import("./chartSettings").ChartFunctionSettingsItem[];
+  setChartFunctionVisibility(scriptId: string | number, visible: boolean): void;
+  setChartFunctionPriceTagVisibility(scriptId: string | number, visible: boolean): void;
+  removeChartFunction(scriptId: string | number): void;
+  getChartStrategySettings(): import("./chartSettings").ChartStrategySettingsItem[];
+  setChartStrategyVisibility(scriptId: string | number, visible: boolean): void;
+  removeChartStrategy(scriptId: string | number): void;
+  getChartDrawingSettings(): import("./chartSettings").ChartDrawingSettingsItem[];
+  setChartDrawingVisibility(objectId: string | number, visible: boolean): void;
+  removeChartDrawing(objectId: string | number): void;
+  getDrawingEditConfig(objectId: string | number): import("./drawingEdit").ChartDrawingEditConfig | null;
+  applyDrawingEditSettings(
+    objectId: string | number,
+    patch: import("./drawingEdit").ChartDrawingEditPatch,
+  ): void;
+  exportChartSettingsTemplate(name?: string): import("./chartSettings").ChartSettingsTemplate;
+  importChartSettingsTemplate(template: import("./chartSettings").ChartSettingsTemplate): void;
   getSeriesManager(): ChartSeriesManager;
   getInteractor(): ChartInteractor;
+  fit(): void;
+  render(objectOnlyOnOverlay?: unknown): void;
+  renderOverlay(): void;
   onDownload(watermark?: string, watermarkWidth?: number, watermarkHeight?: number): void;
   translate(text: string): string;
+  getLocale(): string;
+  setLocale(locale: string, messageOverrides?: Record<string, unknown>): void;
+  getSupportedLocales(): Array<{ id: string; label: string }>;
+  getLocaleMessages(): import("./locale/messages").ChartLocaleMessages;
+  getChartEnvironment(): ChartEnvironmentSnapshot;
+  setLayoutMode(mode: ChartLayoutModeOverride): void;
   subscribe<TTopic extends keyof ChartEventPayloads>(
     topic: TTopic,
     callback: (data: ChartEventPayloads[TTopic]) => void
@@ -262,5 +413,11 @@ export interface ChartInstance {
   subscribe(topic: string, callback: (data: unknown) => void): ChartSubscription | void;
   setCursor(mode: string): void;
   setObjectSelectionAllowed(isAllowed: boolean): void;
+  requestIndicatorEdit(scriptId: string | number): void;
+  getDrawingMagnetEnabled(): boolean;
+  setDrawingMagnetEnabled(enabled: boolean): void;
+  getAllDrawingsLocked(): boolean;
+  lockAllDrawings(): void;
+  unlockAllDrawings(): void;
   destroy(): void;
 }

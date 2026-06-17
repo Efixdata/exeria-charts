@@ -1,0 +1,217 @@
+---
+sidebar_position: 8
+title: CCXT (multi-exchange)
+description: Connect 100+ crypto exchanges through one adapter — best for Node.js and backend integrations.
+---
+
+import CcxtConnectorExample from "@site/src/components/CcxtConnectorExample";
+
+# CCXT Data Connector
+
+Need Kraken, KuCoin, or another exchange without writing a custom adapter? The **CCXT connector** wraps the popular [CCXT](https://github.com/ccxt/ccxt) library and implements the same `DataAdapter` contract as [Binance](./binance) and [Bybit](./bybit).
+
+<CcxtConnectorExample />
+
+Use the controls above to switch exchange, symbol, and timeframe. Binance, Bybit, and OKX use dedicated connectors in the demo; other exchanges route through a CCXT API proxy.
+
+:::tip Standalone demo
+Full-page version with sample code: [CCXT live demo](/ccxt-example).
+:::
+
+:::info Runtime
+In production, run CCXT on **Node.js** (backend, scripts, Next.js API routes). This docs demo uses a local `/api/ccxt` proxy so the chart can stay in the browser without bundling CCXT.
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **100+ exchanges** | One package, swap `exchangeId` |
+| **History** | OHLCV via `fetchOHLCV` |
+| **Live ticks** | REST polling (`fetchTicker`) — not WebSocket in v1 |
+| **Symbols** | Accepts `BTCUSDT`, `BTC-USDT`, or `BTC/USDT` |
+| **API keys** | Optional — public market data works without keys on most exchanges |
+
+Perfect for multi-exchange backends, research tools, and rapid prototyping.
+
+## CCXT vs dedicated connectors
+
+| | CCXT | Binance / Bybit / OKX |
+| --- | --- | --- |
+| Exchanges | 100+ via one package | One exchange per package |
+| Runtime | Node.js (recommended) | Browser + Node.js |
+| Live updates | Polling (1–3 s) | Native WebSocket |
+| Bundle size | Large (full CCXT) | Small |
+| Best for | Many exchanges, backends | Production single-exchange UI |
+
+If you only ship Binance, Coinbase, or Gate.io in the browser, use [@efixdata/connector-binance](./binance), [@efixdata/connector-coinbase](./coinbase), or [@efixdata/connector-gate](./gate). If you need Kraken tomorrow and KuCoin next week on your server, use CCXT.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-ccxt
+```
+
+## Minimal example (Node.js)
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
+
+const connector = new CcxtAdapter({ exchangeId: "kraken" });
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Pick an exchange
+
+```ts
+const connector = new CcxtAdapter({ exchangeId: "kraken" });
+```
+
+Verified in development: `binance`, `bybit`, `okx`, `kraken`, `coinbase`, `kucoin`, `gate`, `bitfinex`, `mexc`. Any id from the [CCXT exchange list](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) works if CCXT supports it.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` |
+| `limit` | Recent N candles |
+| `from` / `to` | Optional date range (exchange limits apply) |
+
+### 4 — Go live (polling)
+
+```ts
+chart.subscribeToUpdates("BTCUSDT");
+```
+
+Updates arrive via REST polling (default every 2 seconds). For WebSocket-grade latency, use a dedicated connector or CCXT Pro on your backend.
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Next.js API route (browser-safe pattern)
+
+Keep CCXT on the server and expose thin endpoints to your React chart:
+
+```ts
+// app/api/ccxt/ohlcv/route.ts
+import { CcxtAdapter } from "@efixdata/connector-ccxt";
+import { NextResponse } from "next/server";
+
+const connector = new CcxtAdapter({ exchangeId: "kraken" });
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") ?? "BTCUSDT";
+  const interval = searchParams.get("interval") ?? "1h";
+  const limit = Number(searchParams.get("limit") ?? "500");
+
+  await connector.initialize({});
+  const candles = await connector.getHistoricalData(symbol, { interval, limit });
+
+  return NextResponse.json({ candles });
+}
+```
+
+Your frontend then calls `/api/ccxt/ohlcv` and uses `setMainSeriesData` — or wraps responses in a custom `DataAdapter` that proxies your API.
+
+## Configuration
+
+```ts
+const connector = new CcxtAdapter({
+  exchangeId: "binance",
+  apiKey: process.env.BINANCE_API_KEY,
+  secret: process.env.BINANCE_API_SECRET,
+  enableRateLimit: true,
+  pollIntervalMs: 3000,
+  sandbox: false,
+  onError: (error) => console.error("CCXT error:", error),
+});
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `exchangeId` | — | CCXT exchange id (required) |
+| `apiKey` / `secret` | — | Optional credentials |
+| `enableRateLimit` | `true` | Respect exchange rate limits |
+| `pollIntervalMs` | `2000` | Live update polling interval |
+| `sandbox` | `false` | Use exchange testnet when supported |
+
+## Symbol formats
+
+The adapter normalizes common formats:
+
+| Input | Resolved as |
+| --- | --- |
+| `BTCUSDT` | `BTC/USDT` |
+| `BTC-USDT` | `BTC/USDT` |
+| `BTC/USDT` | `BTC/USDT` |
+
+After `initialize()`, the adapter calls `loadMarkets()` and prefers exchange metadata when available.
+
+## Switch exchange or symbol
+
+```ts
+async function switchExchange(exchangeId: string, symbol: string) {
+  chart.unsubscribeFromUpdates();
+  await connector.disconnect();
+
+  const next = new CcxtAdapter({ exchangeId });
+  chart.setDataAdapter(next);
+  await next.initialize({});
+
+  await chart.loadData(symbol, { interval: "1h", limit: 500 });
+  chart.subscribeToUpdates(symbol);
+}
+```
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Live updates | REST polling — not sub-second |
+| Browser | CORS blocks most direct CCXT calls — use a backend proxy |
+| Rate limits | Exchange-specific; keep `enableRateLimit: true` |
+| Bundle size | Full CCXT is large — import only on the server |
+
+## What is next?
+
+- [Overview](./overview) — connector lifecycle
+- [Binance](./binance) · [Bybit](./bybit) · [OKX](./okx) · [Kraken](./kraken) · [KuCoin](./kucoin) · [Coinbase](./coinbase) · [Gate.io](./gate) — dedicated browser-friendly connectors
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — tutorial walkthrough
+- [Data Connectors catalog](/data-connectors) — compare providers

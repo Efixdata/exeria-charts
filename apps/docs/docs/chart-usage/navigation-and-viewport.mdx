@@ -1,34 +1,43 @@
 ---
 sidebar_position: 3
 title: Navigation and Viewport
-description: Move the chart viewport programmatically, understand the ChartInstance boundary, and use the runtime class when you need direct navigation helpers.
+description: Scroll through history, jump to a date, and return to the live edge.
 ---
+
+import ChartQuickstartExample from "@site/src/components/ChartQuickstartExample";
 
 # Navigation and viewport
 
-There are two levels of viewport control in this repository:
+The **viewport** is the window of time you see on screen — like scrolling a long timeline. Users drag to explore history; your app can also move the chart programmatically.
 
-1. The stable `ChartInstance` path returned by `createChart()`.
-2. The runtime `Chart` class when you need direct viewport helpers such as `moveToEnd()` or `moveToStamp()`.
+<ChartQuickstartExample />
 
-Use this page to decide which layer you actually need.
+Drag inside the chart above to pan left and right through history. Zoom with the mouse wheel (when enabled). That is viewport navigation in action.
 
-## Stable public path
+## What users do vs what you code
 
-`ChartInstance` does not expose direct viewport helpers.
+| User action | What happens |
+| --- | --- |
+| Drag horizontally | Scroll to older or newer bars |
+| Mouse wheel | Zoom in/out on time |
+| Double-click / “Go to end” in UI | Jump to the latest bar |
 
-The stable surface still gives you several useful behaviors indirectly:
+With **ChartUI**, many of these controls are built in. With vanilla `createChart`, pan and zoom work on the chart surface by default.
 
-- `setMainSeriesData(data, interval, true)` loads data and moves the chart to the right edge.
-- `appendTick()` and `appendTicks()` keep the current chart flow alive for realtime updates.
-- `setAutoScale(true)` recenters the vertical range after data or draw-mode changes.
+## Stable public API — stay on the latest bar
+
+The simplest programmatic pattern: load data and scroll to the right edge:
 
 ```ts
-const chart = createChart({ container, instrument });
-chart.init();
-
 await chart.setMainSeriesData(candles, interval, true);
+//                                      interval ──^  move to end ──^
+```
 
+The third argument `true` means “after load, show the newest candles.”
+
+Live ticks also keep the flow natural:
+
+```ts
 chart.appendTick({
   stamp: Date.now(),
   price: candles[candles.length - 1].c,
@@ -36,85 +45,63 @@ chart.appendTick({
 });
 ```
 
-If that is enough for your workflow, stay on `ChartInstance`.
+For many apps, **`setMainSeriesData(…, true)` + `appendTick`** is all the navigation you need.
 
-## Runtime path for direct viewport control
+## Advanced: jump to a specific date
 
-Use the exported `Chart` class when you need explicit viewport movement.
+Need `moveToEnd()` or `moveToStamp()`? Those live on the runtime `Chart` class — not on the typed `createChart()` surface today:
 
 ```ts
 import Chart from "@efixdata/exeria-chart";
 
 const chart = new Chart({ container, instrument });
 chart.init();
-
 await chart.setMainSeriesData(candles, interval);
 
-chart.moveToEnd();
-chart.moveToStamp(candles[40].stamp);
+chart.moveToEnd();                    // latest bar
+chart.moveToStamp(candles[40].stamp); // jump to a known candle
 ```
 
-These methods are currently runtime-only. They are implemented on the class but are not part of the typed `ChartInstance` contract.
+Use this when you build custom “Go to earnings date” or “Back to live” buttons.
 
-## What `moveToEnd()` actually does
+| Method | Effect |
+| --- | --- |
+| `moveToEnd()` | Scroll so the rightmost data is visible |
+| `moveToStamp(stamp)` | Center viewport near that timestamp |
 
-`moveToEnd()` calculates `viewportLeft` from:
+Short datasets stay anchored left (not enough bars to fill the screen). Long datasets scroll until the target is in view.
 
-- the main-series data length
-- the current `periodWidth`
-- the rendered value-axis width
-- the model `endMargin`
-
-If the calculated position would be negative, the runtime clamps it back to `0`.
-
-Practical effect:
-
-- short datasets stay anchored to the left when there is not enough data to fill the viewport
-- longer datasets scroll until the rightmost candles are visible with the configured end margin
-
-## What `moveToStamp()` actually does
-
-`moveToStamp(stamp)` first resolves the nearest data index for the given timestamp and then uses the same viewport calculation pattern as `moveToEnd()`.
-
-Use it when you want to jump to a known candle instead of simply returning to the latest data.
+### Return to live after exploring
 
 ```ts
-const earningsStamp = candles[120].stamp;
-
-chart.moveToStamp(earningsStamp);
+chart.moveToStamp(candles[30].stamp); // user inspects old data
+// …
+chart.moveToEnd();                    // “Back to live” button
 ```
 
-If the target stamp resolves near the beginning of the dataset, the runtime clamps the viewport back to `0` instead of trying to scroll into negative space.
+## Autoscale and navigation together
 
-## Common patterns
-
-### Return to live mode after historical navigation
+Turning autoscale on refits the **price** axis to visible candles — separate from horizontal scroll:
 
 ```ts
-chart.moveToStamp(candles[30].stamp);
-
-// ...inspect older data...
-
-chart.moveToEnd();
+chart.setAutoScale(true);
 ```
 
-### Load history and keep the chart on the latest bar
+Details: [Autoscale and value axis](./autoscale-and-value-axis).
 
-```ts
-await chart.setMainSeriesData(candles, interval, true);
-```
+## Which layer should I use?
 
-That third argument is the stable public shortcut when you only need an initial move-to-latest behavior.
+| Your need | Use |
+| --- | --- |
+| Load history + show latest | `setMainSeriesData(data, interval, true)` |
+| Stream live prices | `appendTick` / `appendTicks` |
+| Custom “jump to date” buttons | Runtime `Chart` → `moveToStamp` |
+| “Back to live” button | Runtime `Chart` → `moveToEnd` |
 
-## Current boundary
+Most integrators never leave `createChart()`. Drop to `new Chart()` only when product requirements need explicit viewport control.
 
-- `moveToEnd()` and `moveToStamp()` require the runtime `Chart` class.
-- `prependMainSeriesData()` still exists on the runtime class but remains a stub. Do not document it as a finished history-loader.
-- There is no typed `ChartInstance` event for viewport movement. The current typed events cover autoscale, cursor, interval changes, object-selection allowance, and value-axis width.
+## What is next?
 
-## Continue reading
-
-- [Chart lifecycle](../core-concepts/chart-lifecycle)
-- [Realtime updates](./realtime-updates)
-- [Chart runtime access](../advanced/chart-class-runtime)
-- [ChartInstance](../api-reference/chart-instance)
+- [Chart lifecycle](../core-concepts/chart-lifecycle) — init before data
+- [Chart runtime access](../advanced/chart-class-runtime) — full runtime API boundary
+- [ChartInstance reference](../api-reference/chart-instance) — public methods list

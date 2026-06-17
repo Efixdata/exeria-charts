@@ -2,6 +2,8 @@ import type { ChartInstance } from "@efixdata/exeria-chart";
 
 export type NullableChartInstance = ChartInstance | null | undefined;
 
+export type ChartUIMobileLayout = "default" | "minimal";
+
 interface ChartUIThemeButtonState {
 	color?: string;
 	activeColor?: string;
@@ -17,6 +19,10 @@ export interface ChartUITheme {
 		radius?: number;
 	};
 	gap?: number;
+	/** Outer padding between chart chrome and the container edges. */
+	edgeInset?: number;
+	/** Background behind toolbars and the chart surround (not the plot canvas). */
+	surroundBackground?: string;
 	accentColor?: string;
 	buttons?: ChartUIThemeButtonState;
 	radioButton?: {

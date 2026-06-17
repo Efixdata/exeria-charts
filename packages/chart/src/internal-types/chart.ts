@@ -1,6 +1,7 @@
 import type {
   ChartConfig,
   ChartEventPayloads,
+  ChartLayoutMode,
   Interval,
   Instrument,
   ValueAxisMode,
@@ -73,6 +74,7 @@ export interface CoreChartModel extends ChartModelFragment {
   autoScale: boolean;
   endMargin: number;
   extremesMargin: number;
+  priceAxisVerticalPaddingPx?: number;
   periodWidth: number;
   timeAxisHeight: number;
   valueAxisWidth: number;
@@ -81,6 +83,7 @@ export interface CoreChartModel extends ChartModelFragment {
   minValueTickHeight: number;
   minPanelHeight: number;
   viewportLeft: number;
+  _layoutMode?: ChartLayoutMode;
   mode?: string;
   orders: ChartObjectCollection;
   positions: ChartObjectCollection;
@@ -93,8 +96,16 @@ export interface CoreChartModel extends ChartModelFragment {
   [key: string]: unknown;
 }
 
+export interface ChartObjectsManagerApi {
+  isThisSeriesOutputOfScript(dataLink?: string): { id?: string | number } | null;
+  getScriptModelById(scriptId: string | number): ScriptModelConfig | undefined;
+  cloneObject(object: ChartPanelObject): ChartPanelObject;
+  detachScript(scriptId?: string | number): void;
+}
+
 export interface CoreChartController {
   container: HTMLElement;
+  objectsManager: ChartObjectsManagerApi;
   canvas: HTMLCanvasElement;
   overlay: HTMLCanvasElement;
   topLayer: HTMLDivElement;

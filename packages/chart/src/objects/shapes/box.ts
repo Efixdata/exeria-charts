@@ -6,6 +6,7 @@ import {
   findAnchorPointForXY,
 } from "../../utils/objects-lib";
 import { Shape } from "../../objectRuntimeBases";
+import { resolveShapeOpacity } from "../../shapeStyle";
 import type { LegacyShapeObject, LegacyShapePoint } from "../../objectRuntimeBases";
 import {
   createShapeMouseDownDelegate,
@@ -23,15 +24,18 @@ function BoxObject(this: ShapeRuntime) {
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     ctx.lineWidth = o.width;
     ctx.setLineDash(o.dash ? o.dash : []);
+    const opacity = resolveShapeOpacity(o);
+    const fillColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     if (o.fillBg == true) {
-      ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
-      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = fillColor;
+      ctx.globalAlpha = opacity * 0.2;
       ctx.fillRect(pts[0].x, pts[0].y, pts[1].x - pts[0].x, pts[1].y - pts[0].y);
     }
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = opacity;
     ctx.beginPath();
     ctx.rect(pts[0].x, pts[0].y, pts[1].x - pts[0].x, pts[1].y - pts[0].y);
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.closePath();
   };
 

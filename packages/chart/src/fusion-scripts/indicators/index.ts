@@ -88,6 +88,7 @@ import createVORTEXINDICATORIndicatorScript from "./VORTEXINDICATOR";
 import createVWMAIndicatorScript from "./VWMA";
 import createWILLIAMSALLIGATORIndicatorScript from "./WILLIAMSALLIGATOR";
 import createWILLIAMSFRACTALSIndicatorScript from "./WILLIAMSFRACTALS";
+import createNEWSFEEDIndicatorScript from "./NEWSFEED";
 import createOC2IndicatorScript from "./OC2";
 import createHL2IndicatorScript from "./HL2";
 import createHLC3IndicatorScript from "./HLC3";
@@ -188,6 +189,7 @@ export function createFusionIndicatorScripts(FUSION: CoreFusionStatic) {
     VWMA: createVWMAIndicatorScript(FUSION),
     WILLIAMSALLIGATOR: createWILLIAMSALLIGATORIndicatorScript(FUSION),
     WILLIAMSFRACTALS: createWILLIAMSFRACTALSIndicatorScript(FUSION),
+    NEWSFEED: createNEWSFEEDIndicatorScript(FUSION),
     OC2: createOC2IndicatorScript(FUSION),
     HL2: createHL2IndicatorScript(FUSION),
     HLC3: createHLC3IndicatorScript(FUSION),

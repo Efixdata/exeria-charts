@@ -1,0 +1,28 @@
+.page {
+  flex: 1;
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.container h1 {
+  margin: 0 0 0.75rem;
+  color: var(--doc-text);
+  font-size: clamp(2.2rem, 4vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.description {
+  max-width: 720px;
+  margin: 0 0 2rem;
+  color: var(--doc-text-secondary);
+  font-size: 1.08rem;
+  line-height: 1.75;
+}

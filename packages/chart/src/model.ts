@@ -33,11 +33,12 @@ const model2 = {
   valueAxisPadding: 6,
   timeAxisHeight: 24, // configuration settings
   minValueTickHeight: 30, // configuration settings
-  minTimeTickWidth: 90, // configuration settings
+  minTimeTickWidth: 108, // configuration settings
   periodWidth: 6, // view model
   viewportLeft: 0, // view model
   endMargin: 100, // configuration settings
   extremesMargin: 0.1, // configuration settings
+  priceAxisVerticalPaddingPx: 8,
   minPanelHeight: 24, // configuration settings
   mode: "normal", // configuration settings
   scripts: [],

@@ -1,0 +1,477 @@
+---
+sidebar_position: 3
+title: Complete Tool Reference
+description: Every drawing tool in Exeria Charts — plain descriptions, anchor counts, and code for each type.
+---
+
+import DrawingToolShowcase, { allDrawingShowcasePresets } from "@site/src/components/DrawingToolShowcase";
+
+# Complete tool reference
+
+This page lists **every documented user drawing type** in ChartUI (34 tools). Use the live showcase to preview any tool, then copy the matching `type` string into your app.
+
+<DrawingToolShowcase visiblePresets={allDrawingShowcasePresets} initialPreset="trendLine" />
+
+**Legend:** **Anchors** = placement clicks. **Toolbar** = available in ChartUI left menu (when using `@efixdata/exeria-chart-ui-react`).
+
+Helper shortcuts: `drawTrendLine()`, `drawTimeRange()`, `drawTimeBet()`, `drawLongShortPosition()`.
+
+---
+
+## Lines and rays
+
+### Trend line — `trendLine`
+
+Connect two points to show direction, support, or resistance.
+
+| Anchors | Toolbar | Creation |
+| ---: | --- | --- |
+| 2 | Yes | `drawTrendLine()` or `drawTool()` |
+
+```ts
+chart.toolDrawer.drawTrendLine({
+  startStamp: candles[10].stamp,
+  endStamp: candles[30].stamp,
+  startPrice: candles[10].l,
+  endPrice: candles[30].h,
+  config: { color: "#5cc8ff" },
+});
+```
+
+Guide: [Trend line](./trend-line).
+
+### Trend ray — `trendRay`
+
+Same as a trend line, but extends as a **ray** from the first point toward the plot edge.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "trendRay",
+  color: "#5cc8ff",
+  anchors: [
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[30].stamp, offset: 0, value: candles[30].h, _index: 0 },
+  ],
+});
+```
+
+### Horizontal line — `hLine`
+
+Flat price level across the panel. Use `priceTag: true` for a label.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "hLine",
+  color: "#14f7ab",
+  priceTag: true,
+  anchors: [{ stamp: candles.at(-1)!.stamp, offset: 0, value: 42000, _index: 0 }],
+});
+```
+
+### Horizontal ray — `hRay`
+
+Horizontal line from one point **to the right edge** only.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+### Vertical line — `vLine`
+
+Vertical line at one timestamp across the full panel height.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "vLine",
+  color: "#f0b429",
+  anchors: [{ stamp: candles[12].stamp, offset: 0, value: candles[12].c, _index: 0 }],
+});
+```
+
+### Vertical ray — `vRay`
+
+Vertical line from one point **downward** to the panel bottom.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+### Cross line — `crossLine`
+
+One anchor draws **both** a horizontal and vertical line through the same point.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+### Multi-line — `mLine`
+
+Custom polyline through **three or more** anchors (add more points interactively in ChartUI).
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3+ | Yes |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "mLine",
+  color: "#5cc8ff",
+  anchors: [
+    { stamp: candles[5].stamp, offset: 0, value: candles[5].l, _index: 0 },
+    { stamp: candles[15].stamp, offset: 0, value: candles[15].h, _index: 0 },
+    { stamp: candles[25].stamp, offset: 0, value: candles[25].c, _index: 0 },
+  ],
+});
+```
+
+---
+
+## Fibonacci, channels, and projections
+
+Guide: [Levels and channels](./levels-and-channels).
+
+### Fibonacci retracement — `fibonLines`
+
+Horizontal levels between two swings (23.6%, 38.2%, 50%, …).
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+Pass `values` and `valuesState` to control which levels are visible.
+
+### Fibonacci extension — `fibonExtension`
+
+Extension levels **beyond** 100% of the measured move (127.2%, 161.8%, …).
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Fibonacci time zone — `fibonTimeZone`
+
+**Vertical** lines at Fibonacci time multiples from the distance between two anchors.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Fibonacci channel — `fibonChannel`
+
+Trend line plus channel width; parallel Fib levels between edges.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3 | Yes |
+
+### Fibonacci arcs — `fibonArcs`
+
+Semi-elliptical arcs; first anchor = center, second = 100% radius.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Fibonacci circles — `fibonCircles`
+
+Concentric circles; first anchor = center, second = 100% radius.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Parallel channel — `parallelChannel`
+
+Two anchors define the main line; a third sets channel width.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3 | Yes |
+
+### Pitchfork — `pitchfork`
+
+Andrews pitchfork: pivot + two baseline points → median line and parallels.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3 | Yes |
+
+### Regression channel — `regressionChannel`
+
+Least-squares fit between two times; ±σ bands. Shows Pearson R.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+Optional `source: "c"` for close prices.
+
+### Gann fan — `gannFan`
+
+Rays at Gann angles from origin; line to second anchor is the 1×1 reference.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Gann grid — `gannGrid`
+
+Rectangle with Gann square grid lines (0, 0.25, 0.382, 0.5, 0.618, 0.75, 1).
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Gann box — `gannBox`
+
+Same grid as Gann grid plus internal fan diagonals from the first anchor.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### ABCD — `abcd`
+
+Measured-move projection with three anchors and configurable level ratios.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3 | Yes |
+
+---
+
+## Ranges, sessions, and tags
+
+Guide: [Lines, ranges, and tags](./lines-ranges-and-tags).
+
+### Horizontal range — `hRange`
+
+Measure and label a **price** distance between two levels.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Vertical range — `vRange`
+
+Measure and label a **time** distance between two points.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Time range — `timeRange`
+
+Shaded window on the time axis with optional label.
+
+| Anchors | Toolbar | Creation |
+| ---: | --- | --- |
+| 2 | Yes | `drawTimeRange()` or `drawTool()` |
+
+```ts
+chart.toolDrawer.drawTimeRange({
+  text: "London session",
+  startTime: candles[20].stamp,
+  timeRange: 4 * 60 * 60 * 1000,
+  config: { color: "#5cc8ff" },
+});
+```
+
+### Time bet — `timeBet`
+
+Directional outcome box with reward/risk metadata (not in toolbar menu).
+
+| Anchors | Toolbar | Creation |
+| --- | --- | --- |
+| helper | No | `drawTimeBet()` only |
+
+### Price tag — `priceTag`
+
+Pinned price label without a full-width line.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 1 | Yes |
+
+---
+
+## Shapes and annotations
+
+Guide: [Shapes and annotations](./shapes-and-annotations).
+
+### Brush — `brush`
+
+Freehand stroke. **Mouse:** click and drag in ChartUI. **Code:** pass many sampled anchors.
+
+| Anchors | Toolbar |
+| --- | --- |
+| dynamic | Yes |
+
+### Arrow — `arrow`
+
+Directional arrow between two points.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Ellipse — `ellipse`
+
+Ellipse inscribed in the bounding box of two anchors.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Triangle — `triangle`
+
+Triangle through three corner anchors.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 3 | Yes |
+
+### Rectangle — `box`
+
+Axis-aligned box / zone highlight. Use `fillBg: true` to shade inside.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Cycle — `cycle`
+
+Repeating interval or cadence marker between two time anchors.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+### Text — `textAnnotation`
+
+Freeform text label. In toolbar under annotations; also creatable in code only.
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "textAnnotation",
+  text: "Supply zone",
+  fontSize: 13,
+  anchors: [
+    { stamp: candles[16].stamp, offset: 0, value: candles[16].h, _index: 0 },
+    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
+  ],
+});
+```
+
+---
+
+## Volume and trade planning
+
+### Fixed range volume profile — `fixedRangeVolumeProfile`
+
+Volume histogram between two time anchors. Shows POC line and optional value area (default 70%).
+
+| Anchors | Toolbar |
+| ---: | --- |
+| 2 | Yes (Analytical menu) |
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "fixedRangeVolumeProfile",
+  color: "#5cc8ff",
+  fillBg: true,
+  showPoc: true,
+  showValueArea: true,
+  valueAreaPercent: 70,
+  anchors: [
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[40].stamp, offset: 0, value: candles[40].h, _index: 0 },
+  ],
+});
+```
+
+### Long / short position — `longShortPosition`
+
+**Paper-trading** plan: entry, stop, and target. Not the same as live broker position lines.
+
+| Anchors | Toolbar | Creation |
+| ---: | --- | --- |
+| 3 | Yes (Long/Short tools) | `drawLongShortPosition()` or `drawTool()` |
+
+```ts
+chart.toolDrawer.drawLongShortPosition({
+  direction: "LONG",
+  startStamp: candles[20].stamp,
+  endStamp: candles[28].stamp,
+  entryPrice: candles[24].c,
+  stopPrice: candles[20].l,
+  targetPrice: candles[28].h,
+  riskPercent: 1,
+});
+```
+
+Tutorial: [Trade from chart](../tutorials/trade-from-chart).
+
+---
+
+## Quick lookup table
+
+| `type` | Label | Anchors |
+| --- | --- | ---: |
+| `trendLine` | Trend line | 2 |
+| `trendRay` | Trend ray | 2 |
+| `hLine` | Horizontal line | 1 |
+| `hRay` | Horizontal ray | 1 |
+| `vLine` | Vertical line | 1 |
+| `vRay` | Vertical ray | 1 |
+| `crossLine` | Cross line | 1 |
+| `mLine` | Multi-line | 3+ |
+| `fibonLines` | Fibonacci retracement | 2 |
+| `fibonExtension` | Fibonacci extension | 2 |
+| `fibonTimeZone` | Fibonacci time zone | 2 |
+| `fibonChannel` | Fibonacci channel | 3 |
+| `fibonArcs` | Fibonacci arcs | 2 |
+| `fibonCircles` | Fibonacci circles | 2 |
+| `parallelChannel` | Parallel channel | 3 |
+| `pitchfork` | Pitchfork | 3 |
+| `regressionChannel` | Regression channel | 2 |
+| `gannFan` | Gann fan | 2 |
+| `gannGrid` | Gann grid | 2 |
+| `gannBox` | Gann box | 2 |
+| `abcd` | ABCD | 3 |
+| `hRange` | Horizontal range | 2 |
+| `vRange` | Vertical range | 2 |
+| `timeRange` | Time range | 2 |
+| `timeBet` | Time bet | helper |
+| `priceTag` | Price tag | 1 |
+| `brush` | Brush | dynamic |
+| `arrow` | Arrow | 2 |
+| `ellipse` | Ellipse | 2 |
+| `triangle` | Triangle | 3 |
+| `box` | Rectangle | 2 |
+| `cycle` | Cycle | 2 |
+| `textAnnotation` | Text | 2 |
+| `fixedRangeVolumeProfile` | Volume profile | 2 |
+| `longShortPosition` | Long / short position | 3 |
+
+## What is next?
+
+- [Catalog](./catalog) — grouped tables with creation paths
+- [Overview](./overview) — anchors, magnet, lock
+- [Drawing tools recipes](../tutorials/drawing-tools-recipes) — beginner tutorial

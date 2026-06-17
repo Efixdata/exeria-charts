@@ -10,6 +10,7 @@ import type {
   SeriesWithData,
   TickLike,
 } from "../internal-types/series";
+import { trimInsignificantFractionZeros } from "./numberFormat";
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -80,7 +81,7 @@ function nFormatter(num: number, digits: number): string {
     }
   }
 
-  return num.toFixed(digits);
+  return trimInsignificantFractionZeros(num.toFixed(digits));
 }
 
 function round(num: number, digits: number): number {
@@ -615,10 +616,57 @@ class ValueConverter implements AxisValueConverter {
   }
 }
 
+function getPanelPrimarySeriesField(
+  panel: { main?: boolean; objects?: ChartPanelObject[] },
+  seriesManager: SeriesManager,
+): { dataLink: string; dataField: string } | null {
+  if (panel.main === true || !Array.isArray(panel.objects)) {
+    return null;
+  }
+
+  for (const panelObject of panel.objects) {
+    const dataLink = panelObject.dataLink ? String(panelObject.dataLink) : "";
+    const dataField = panelObject.dataField ? String(panelObject.dataField) : "";
+
+    if (
+      (panelObject.type === "SeriesObject" || panelObject.type === "IndicatorObject") &&
+      dataLink &&
+      dataField &&
+      seriesManager[dataLink]?.data?.length
+    ) {
+      return { dataLink, dataField };
+    }
+  }
+
+  return null;
+}
+
+function getPanelReferenceValue(
+  panel: { main?: boolean; objects?: ChartPanelObject[] },
+  model: Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">,
+  seriesManager: SeriesManager,
+): number | null {
+  const primarySeries = getPanelPrimarySeriesField(panel, seriesManager);
+
+  if (!primarySeries) {
+    return null;
+  }
+
+  try {
+    return getFirstAvailableValue(
+      model,
+      seriesManager[primarySeries.dataLink].data as DataPoint[],
+      primarySeries.dataField,
+    );
+  } catch (_error) {
+    return null;
+  }
+}
+
 function getReferenceValue(
   o: ChartPanelObject,
   model: Pick<ChartModelFragment, "mainSeries" | "_leftIndex" | "_rightIndex">,
-  seriesManager: SeriesManager
+  seriesManager: SeriesManager,
 ): number | null {
   let link = o.dataLink;
   let field = o.dataField;
@@ -670,6 +718,33 @@ function getFirstAvailableValue(
   }
 
   return null;
+}
+
+type OhlcDataFieldObject = {
+  openDataField?: string | null;
+  highDataField?: string | null;
+  lowDataField?: string | null;
+  closeDataField?: string | null;
+  dataField?: string | null;
+};
+
+function ensureInstrumentOhlcDataFields(object: OhlcDataFieldObject): void {
+  if (
+    object.openDataField &&
+    object.highDataField &&
+    object.lowDataField &&
+    object.closeDataField
+  ) {
+    return;
+  }
+
+  const baseField = object.dataField ?? "c";
+  if (baseField !== "c") return;
+
+  if (!object.openDataField) object.openDataField = "o";
+  if (!object.highDataField) object.highDataField = "h";
+  if (!object.lowDataField) object.lowDataField = "l";
+  if (!object.closeDataField) object.closeDataField = "c";
 }
 
 function synchronizeArraysByObjId<
@@ -857,7 +932,10 @@ const LIB = {
   _converterPerc: converterPerc,
   ValueConverter,
   getReferenceValue,
+  getPanelPrimarySeriesField,
+  getPanelReferenceValue,
   getFirstAvailableValue,
+  ensureInstrumentOhlcDataFields,
   synchronizeArraysByObjId,
   capitalizeFirstLetter,
   validateIntervalSymbolForInstrument,

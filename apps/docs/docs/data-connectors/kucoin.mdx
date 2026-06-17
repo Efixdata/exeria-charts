@@ -1,0 +1,210 @@
+---
+sidebar_position: 6
+title: KuCoin
+description: Live and historical crypto charts from KuCoin Spot — no API key required.
+---
+
+import KucoinConnectorExample from "@site/src/components/KucoinConnectorExample";
+
+# KuCoin Data Connector
+
+Want Bitcoin, Ethereum, or altcoin **USDT spot** charts with **live prices** and **no API key**? The KuCoin connector talks to KuCoin public Spot endpoints — history over REST, candle updates over Classic WebSocket.
+
+<KucoinConnectorExample />
+
+Use the controls above to change symbol and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [KuCoin live demo](/kucoin-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public KuCoin Spot market data |
+| **History** | Up to 1500 candles per REST request |
+| **Live ticks** | WebSocket `/market/candles` with token bootstrap |
+| **Pairs** | USDT spot symbols (`BTC-USDT`, `ETH-USDT`, …) |
+| **Symbol helper** | Accepts `BTCUSDT` and normalizes to `BTC-USDT` |
+| **Timeframes** | 1m through weekly (no native `1M`) |
+
+Perfect for crypto dashboards, USDT-denominated terminals, and KuCoin-native trading apps. For **Node.js multi-exchange backends**, see [CCXT](./ccxt).
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-kucoin
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { KucoinAdapter } from "@efixdata/connector-kucoin";
+
+const connector = new KucoinAdapter({ pageDelayMs: 300 });
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTC-USDT", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("BTC-USDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new KucoinAdapter({ pageDelayMs: 300 });
+```
+
+Uses KuCoin public URLs by default. Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTC-USDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1m"`, `"1h"`, `"1d"`, `"1w"` |
+| `limit` | How many recent bars (up to 1500 per REST page) |
+| `from` / `to` | Optional date range filter after fetch |
+
+### 4 — Go live
+
+```ts
+chart.subscribeToUpdates("BTC-USDT");
+// or with a callback:
+chart.subscribeToUpdates("BTC-USDT", (tick) => { /* update UI */ });
+```
+
+The adapter fetches a public WebSocket token from `/api/v1/bullet-public`, then subscribes to `/market/candles:BTC-USDT_1hour`.
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular symbols
+
+| Symbol | Market |
+| --- | --- |
+| `BTC-USDT` | Bitcoin / USDT |
+| `ETH-USDT` | Ethereum / USDT |
+| `SOL-USDT` | Solana / USDT |
+| `ADA-USDT` | Cardano / USDT |
+| `XRP-USDT` | XRP / USDT |
+
+KuCoin uses **hyphen-separated** pairs (`BTC-USDT`). The adapter maps compact forms like `BTCUSDT` automatically.
+
+## KuCoin symbols vs other exchanges
+
+| Binance / Bybit | OKX | KuCoin |
+| --- | --- | --- |
+| `BTCUSDT` | `BTC-USDT` | `BTC-USDT` |
+| USDT quote | USDT quote | USDT quote |
+| REST + WS | REST + WS | REST + WS (token bootstrap) |
+
+## Switch pair
+
+```ts
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+```ts
+const connector = new KucoinAdapter({
+  baseUrl: "https://api.kucoin.com",
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+  pageDelayMs: 300,
+  pollingIntervalMs: 30000,
+});
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("BTC-USDT", { interval: "1d", limit: 500 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("Invalid symbol")) {
+    console.error("Symbol not found on KuCoin");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — users on bad networks will thank you.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Candles per REST request | 1500 max |
+| OHLC field order | KuCoin returns `[time, open, close, high, low, …]` — adapter maps to standard OHLC |
+| WebSocket bootstrap | Requires `POST /api/v1/bullet-public` before connect |
+| `5m` live | No WS kline channel — adapter polls ticker REST instead |
+| `1M` | Not supported natively |
+
+For heavy traffic: cache history server-side and keep `pageDelayMs` at 300 or higher.
+
+## KuCoin vs CCXT
+
+| | Dedicated KuCoin connector | CCXT connector |
+| --- | --- | --- |
+| Runtime | Browser + Node.js | **Node.js only** |
+| Symbol | `BTC-USDT` | `exchangeId: "kucoin"` |
+| Live | WebSocket klines | Polling via CCXT |
+
+Need KuCoin in the browser? Use this connector. Need 100+ exchanges on your backend? Use [CCXT](./ccxt).
+
+## What is next?
+
+- [Overview](./overview) — lifecycle and custom connectors
+- [Binance](./binance) · [Bybit](./bybit) · [OKX](./okx) · [Kraken](./kraken) · [CoinGecko](./coingecko)
+- [CCXT](./ccxt) — multi-exchange on Node.js
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Data Connectors catalog](/data-connectors) — compare providers

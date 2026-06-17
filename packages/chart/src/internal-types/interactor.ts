@@ -18,6 +18,7 @@ export interface InteractorChartHost extends HTMLDivElement {
     doAddRelatedOrder: (payload: unknown) => void;
     openAddSLWidget: (payload: unknown) => void;
     openAddTPWidget: (payload: unknown) => void;
+    placeOrderFromChartCallback?: (pointer: { clientX: number; clientY: number }) => void;
   };
   canvas: HTMLCanvasElement;
   model: CoreChartModel;
@@ -35,7 +36,10 @@ export interface InteractorChartHost extends HTMLDivElement {
     value: unknown,
     title?: string
   ): void;
-  objectsManager: {
+  getLocaleMessages?(): {
+    getMessage(key: string | null | undefined, defaultMsg?: unknown, emptyAllowed?: boolean): unknown;
+  };
+  objectsManager?: {
     cloneObject(object: ChartRuntimeObject): ChartRuntimeObject;
   };
 }
@@ -51,6 +55,7 @@ export interface InteractorSwipeState {
     velocity: {
       multiplier: number;
       minValue: number;
+      trigger: number;
       dampingFactor: number;
     };
   };
@@ -179,6 +184,7 @@ export interface CoreInteractor {
   currentStagingObject: ChartRuntimeObject | null;
   valueAxisClicked: boolean;
   isObjectSelectionAllowed: boolean;
+  drawingMagnetEnabled: boolean;
   pinch: InteractorPinchState;
   swipe: InteractorSwipeState;
   doFrame: UnknownFn;

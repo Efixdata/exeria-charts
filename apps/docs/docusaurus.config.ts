@@ -1,12 +1,14 @@
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import { themes as prismThemes } from "prism-react-renderer";
+import legacyRedirectsPlugin from "./legacyRedirectsPlugin";
+import { legacyRedirects } from "./legacyRedirects";
 
 const config: Config = {
   title: "Exeria Charts",
   tagline: "Customizable financial charts for web apps, dashboards, and trading surfaces.",
   favicon: "img/favicon.ico",
-  url: "https://exeriacharts.dev",
+  url: "https://exeria.dev",
   baseUrl: "/",
   organizationName: "Efixdata",
   projectName: "exeria-charts",
@@ -20,6 +22,26 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [
+    require("./apiProxyPlugin"),
+    require("./searchDevPlugin"),
+    legacyRedirectsPlugin,
+    ["@docusaurus/plugin-client-redirects", { redirects: legacyRedirects }],
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        language: ["en"],
+        indexDocs: true,
+        indexPages: false,
+        docsRouteBasePath: "docs",
+        searchBarPosition: "left",
+        searchBarShortcutHint: false,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+    require("./chartUiMonorepoPlugin"),
+  ],
   presets: [
     [
       "classic",
@@ -44,13 +66,17 @@ const config: Config = {
     image: "img/social-card.jpg",
     navbar: {
       logo: {
-        alt: "Exeria Charts",
+        alt: "Exeria",
         src: "img/exeria.svg",
         srcDark: "img/exeria-dark.svg",
-        width: 111,
-        height: 32,
+        height: 28,
       },
       items: [
+        {
+          to: "/docs/getting-started/vanilla",
+          label: "Getting started",
+          position: "left",
+        },
         {
           type: "docSidebar",
           sidebarId: "docsSidebar",
@@ -58,60 +84,85 @@ const config: Config = {
           label: "Docs",
         },
         {
-          to: "/docs/getting-started/vanilla",
-          label: "Getting Started",
+          to: "/features",
+          label: "Features",
           position: "left",
         },
         {
-          href: "https://github.com/Efixdata/exeria-charts",
-          label: "GitHub",
-          position: "right",
+          to: "/#case-studies",
+          label: "Case studies",
+          position: "left",
+        },
+        {
+          to: "/playground",
+          label: "Playground",
+          position: "left",
+        },
+        {
+          to: "/data-connectors",
+          label: "Data Connectors",
+          position: "left",
         },
       ],
     },
     footer: {
       style: "dark",
       logo: {
-        alt: "Exeria Charts",
+        alt: "Exeria",
         src: "img/exeria.svg",
         srcDark: "img/exeria-dark.svg",
         href: "/",
-        width: 124,
-        height: 36,
+        width: 111,
+        height: 28,
       },
       links: [
         {
-          title: "Docs",
+          title: "Product",
           items: [
+            { label: "Overview", to: "/" },
             {
-              label: "Overview",
-              to: "/docs/intro",
+              label: "GitHub Repo",
+              href: "https://github.com/Efixdata/exeria-charts",
             },
+            { label: "Data Connectors", to: "/data-connectors" },
+            { label: "Case studies", to: "/#case-studies" },
+            { label: "Playground", to: "/playground" },
+          ],
+        },
+        {
+          title: "Resources",
+          items: [
+            { label: "Documentation", to: "/docs/intro" },
+            { label: "FAQ & Troubleshooting", to: "/docs/guides/faq-and-troubleshooting" },
+            { label: "Vanilla Quickstart", to: "/docs/getting-started/vanilla" },
+            { label: "React Quickstart", to: "/docs/getting-started/react" },
+            { label: "Tutorials", to: "/docs/tutorials/" },
             {
-              label: "Vanilla Quickstart",
-              to: "/docs/getting-started/vanilla",
-            },
-            {
-              label: "React Quickstart",
-              to: "/docs/getting-started/react",
+              label: "NPM Package",
+              href: "https://www.npmjs.com/package/@efixdata/exeria-chart",
             },
           ],
         },
         {
-          title: "Project",
+          title: "Legal",
           items: [
+            { label: "Contact Us", to: "/docs/guides/licensing#commercial-license" },
             {
-              label: "License",
-              to: "/docs/guides/licensing",
+              label: "AGPL v3 License",
+              href: "https://www.gnu.org/licenses/agpl-3.0.html",
             },
             {
-              label: "GitHub",
-              href: "https://github.com/Efixdata/exeria-charts",
+              label: "Commercial EULA",
+              href: "https://github.com/Efixdata/exeria-charts/blob/main/LICENSING.md",
+            },
+            {
+              label: "Privacy Policy",
+              to: "/privacy-policy",
             },
           ],
         },
       ],
-      copyright: `Copyright ${new Date().getFullYear()} Efix Data Sp. z o. o.`,
+      copyright: "Copyright © 2026 Exeria. Built for developers.",
     },
     prism: {
       theme: prismThemes.github,

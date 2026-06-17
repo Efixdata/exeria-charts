@@ -1,16 +1,76 @@
 ---
 sidebar_position: 2
 title: Realtime Updates
-description: Append candles and ticks without rebuilding the full chart state every time new market data arrives.
+description: Stream live prices — ticks and new candles without reloading the whole chart.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Realtime updates
 
-Use different update paths depending on whether your feed sends complete candles or raw ticks.
+History gets you on screen. **Realtime updates** keep the chart honest as prices move — without refetching thousands of old candles.
 
-## Append complete candles
+<TutorialChartDemo
+  scene="live-stream"
+  caption="Preview: ticks arrive every second and update the last bar. Your feed can be WebSocket, polling, or a Data Connector."
+/>
 
-Use `appendMainSeriesData()` when your backend already aggregates candles.
+## Two kinds of live data
+
+| What arrives | Method | Plain English |
+| --- | --- | --- |
+| **One price now** | `appendTick()` | “Last traded price just changed” |
+| **One finished bar** | `appendMainSeriesData()` | “This hour’s candle just closed” |
+
+Most apps use **ticks** during the session and **candles** when a bar completes.
+
+---
+
+## Append a single tick
+
+```ts
+chart.appendTick({
+  stamp: Date.now(),
+  price: 102.45,
+  v: 120,
+});
+```
+
+The chart updates the **current** candle or starts a new one based on `stamp` and your interval.
+
+### From a WebSocket
+
+```ts
+socket.onmessage = (event) => {
+  const tick = JSON.parse(event.data);
+
+  chart.appendTick({
+    stamp: tick.stamp,
+    price: tick.price,
+    v: tick.volume ?? 0,
+  });
+};
+```
+
+Tutorial walkthrough: [Live data stream](../tutorials/live-data-stream).
+
+---
+
+## Append many ticks at once
+
+Bursts from a feed or replay? Batch them:
+
+```ts
+chart.appendTicks(ticks);
+```
+
+**Tip:** Very fast feeds (50+ per second) — batch in your app every ~100 ms, then call `appendTicks` once. Smoother chart, less CPU.
+
+---
+
+## Append a complete new candle
+
+When your backend sends a **closed** bar:
 
 ```ts
 chart.appendMainSeriesData([
@@ -25,38 +85,60 @@ chart.appendMainSeriesData([
 ]);
 ```
 
-This extends the main series and triggers script recalculation.
+Indicators recalculate automatically.
 
-## Append single ticks
+---
 
-Use `appendTick()` when your feed is streaming one tick at a time.
+## Live data with a Data Connector
 
-```ts
-socket.onmessage = (event) => {
-  const tick = JSON.parse(event.data);
-
-  chart.appendTick({
-    stamp: tick.stamp,
-    price: tick.price,
-    v: tick.volume,
-  });
-};
-```
-
-The runtime updates the active candle and moves the chart when a new candle is formed near the right edge.
-
-## Append tick batches
-
-Use `appendTicks()` when you receive grouped bursts from a transport or replay system.
+Skip manual `appendTick` — subscribe and let the connector push:
 
 ```ts
-chart.appendTicks(ticks);
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log("Last:", tick.c);
+});
 ```
 
-Leave the `recalculate` argument at its default unless you are deliberately managing runtime internals. The typed public surface does not expose a separate manual script-recalculation step.
+Setup: [Connect with a Data Connector](../tutorials/connect-with-data-connector).
 
-## Runtime-only candle upserts
+---
 
-The `Chart` class also implements `upsertCandle()`, which can be useful when you want to replace or insert one candle by timestamp. That method is not part of the typed `ChartInstance` interface today, so treat it as an advanced runtime entry point.
+## Recalculate indicators on every tick?
 
-See [Chart runtime access](../advanced/chart-class-runtime) for that boundary.
+By default, scripts may not rerun on every tiny tick (saves CPU). Pass `true` to force recalculation:
+
+```ts
+chart.appendTick({ stamp: Date.now(), price: 99.5 }, true);
+```
+
+Use when indicators must track every wiggle — otherwise leave the default.
+
+---
+
+## Clean up live connections
+
+```ts
+socket.close();
+chart.destroy();
+```
+
+Always tear down WebSockets when the user leaves the page.
+
+---
+
+## Tick vs candle — decision tree
+
+```mermaid
+flowchart TD
+  Q["What did your feed send?"]
+  T["Single price update"] --> AT["appendTick"]
+  C["Full OHLC bar closed"] --> AM["appendMainSeriesData"]
+  Q --> T
+  Q --> C
+```
+
+## What is next?
+
+- [Navigation and viewport](./navigation-and-viewport) — keep the chart scrolled to the latest bar
+- [Loading data](./loading-data) — initial history before you stream
+- [Crypto terminal demo](/starters/crypto-terminal) — full live terminal

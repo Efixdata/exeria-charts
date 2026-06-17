@@ -1,0 +1,78 @@
+---
+sidebar_position: 4
+title: Add an Indicator
+description: Add EMA and RSI to your chart in a few lines — with a live preview.
+---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
+
+# Add an indicator
+
+Indicators are extra lines (or panels) calculated from price — moving averages, momentum, volatility, and more. Exeria ships dozens of them; you do not write the math yourself.
+
+<TutorialChartDemo
+  scene="indicators"
+  caption="EMA (colored line on the candles) and RSI (panel below) — added with two addScript calls."
+/>
+
+## What you are building
+
+- **EMA** drawn on top of the candles (helps spot trend direction).
+- **RSI** in its own panel underneath (shows overbought / oversold zones).
+
+## Step 1 — Start with a chart that already has data
+
+```ts
+const chart = createChart({ container });
+chart.init();
+await chart.setMainSeriesData(candles, interval);
+```
+
+If you are stuck here, read [Chart with your data](./chart-with-your-data) first.
+
+## Step 2 — Add the indicators
+
+```ts
+chart.addScript("EMA");
+chart.addScript("RSI");
+```
+
+That is the whole integration for defaults. EMA uses period 14 on the close; RSI uses period 14 as well.
+
+## Overlay vs separate panel
+
+Some indicators sit **on** the candles; others get their **own row** below.
+
+| Stays on the main chart | Gets its own panel below |
+| --- | --- |
+| EMA, SMA, Bollinger Bands | RSI, MACD, ATR |
+
+You can check before adding:
+
+```ts
+const rsiTemplate = chart.getScripts().RSI;
+console.log(rsiTemplate.newPane); // true → separate panel
+```
+
+## Change settings before adding
+
+Want a 21-period EMA instead of 14? Copy the template, change one number, pass it in:
+
+```ts
+const ema = structuredClone(chart.getScripts().EMA);
+ema.inputs.PERIODS.value = 21;
+chart.addScript("EMA", ema);
+```
+
+Always **clone** first — the object from `getScripts()` is shared; mutating it directly affects other charts in memory.
+
+More tweaking patterns: [Customize a built-in indicator](./customize-built-in-indicator).
+
+## Browse what is available
+
+The [Indicators catalog](../scripts/indicators/catalog) lists every built-in key (`MACD`, `ATR`, `BBAND`, …). Swap the string in `addScript("…")` to try another.
+
+## What is next?
+
+- [Customize a built-in indicator](./customize-built-in-indicator) — periods, colors, wiring indicators together
+- [Quant analytics demo](/starters/quant-analytics) — indicators in a full dashboard

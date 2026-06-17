@@ -1,0 +1,98 @@
+.page {
+  padding-bottom: 120px;
+}
+
+.hero {
+  padding-top: 160px;
+  padding-bottom: 48px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  color: var(--doc-text);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.updated {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 1rem;
+}
+
+.content {
+  width: min(760px, calc(100% - 48px));
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.content h2 {
+  margin: 3rem 0 0.75rem;
+  color: var(--doc-text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.content h2:first-child {
+  margin-top: 0;
+}
+
+.content p,
+.content li {
+  color: var(--doc-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.content p {
+  margin: 0 0 1rem;
+}
+
+.content ul {
+  margin: 0 0 1rem;
+  padding-left: 1.35rem;
+}
+
+.content li {
+  margin-bottom: 0.35rem;
+}
+
+.content a {
+  color: var(--doc-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.content a:hover {
+  color: var(--doc-accent-hover);
+}
+
+.content strong {
+  color: var(--doc-text);
+  font-weight: 600;
+}
+
+.note {
+  margin: 1.5rem 0;
+  padding: 1rem 1.15rem;
+  border-radius: var(--doc-radius-sm);
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface);
+}
+
+.note p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 120px;
+  }
+
+  .content {
+    width: min(760px, calc(100% - 40px));
+  }
+}

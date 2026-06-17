@@ -1,0 +1,23 @@
+.swatchWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.hiddenColorInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.swatchButton:focus-visible {
+  outline: 2px solid var(--doc-accent, #2962ff);
+  outline-offset: 2px;
+}

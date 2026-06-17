@@ -79,13 +79,17 @@ export function createSeriesOutput(
   };
 }
 
+export const DEFAULT_STRATEGY_BUY_COLOR = "#3CC3AF";
+export const DEFAULT_STRATEGY_SELL_COLOR = "#CE3E5B";
+
 export function createStrategyPlotter(dataLink: string, dataField: string): FusionPlotter {
   return {
     type: "StrategyObject",
     dataLink,
     renderAs: "",
     dataField,
-    color: "#ff0000",
+    buyColor: DEFAULT_STRATEGY_BUY_COLOR,
+    sellColor: DEFAULT_STRATEGY_SELL_COLOR,
     width: 1,
     dash: [],
   } as FusionPlotter;

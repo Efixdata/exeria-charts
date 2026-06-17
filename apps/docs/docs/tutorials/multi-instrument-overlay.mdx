@@ -1,0 +1,77 @@
+---
+sidebar_position: 8
+title: Multi-Instrument Overlay
+description: Compare two symbols on one chart — for example EUR/USD vs GBP/USD on a % axis.
+---
+
+import MultiInstrumentOverlayDemo from "@site/src/components/MultiInstrumentOverlayDemo";
+
+# Multi-instrument overlay
+
+Sometimes one symbol is not enough. You might want **EUR/USD** next to **GBP/USD** on the same dates — indexed so both start at 100% and share one vertical scale. That is a multi-instrument chart.
+
+<MultiInstrumentOverlayDemo />
+
+The preview above shows **EUR/USD** and **GBP/USD** as lines on bundled, synchronized **H1** fixtures, with the value axis in **percent** mode. The steps below explain how to wire a similar overlay in your app.
+
+## What you are building
+
+- **Main series** — usually candles (the symbol users care about most).
+- **Overlay** — another symbol drawn as a line on the same time axis.
+
+## The idea in one sentence
+
+Each symbol gets its own id in the chart model. You load candles into the main id, load the second symbol into another id, and tell the renderer to draw that one as a line.
+
+## Step 1 — Start with your main symbol
+
+```ts
+const chart = createChart({ container });
+chart.init();
+
+await chart.setMainSeriesData(btcCandles, interval);
+```
+
+Same as [Chart with your data](./chart-with-your-data).
+
+## Step 2 — Put overlay data in its series
+
+Advanced setups pass a `model` with two instruments listed up front. The quick path for integrators who already have a running chart:
+
+```ts
+const seriesManager = chart.getSeriesManager();
+
+// "series-b" must exist in your chart model — see reference below
+seriesManager["series-b"].data = ethCandles;
+chart.render();
+```
+
+Both datasets should use the **same interval** (e.g. both hourly) so timestamps line up.
+
+## Step 3 — Style each symbol
+
+Give the overlay a different color or dashed line so it is easy to tell apart:
+
+```ts
+const instruments = chart.getChartInstrumentSettings();
+
+chart.applyChartInstrumentSettings(instruments[1].seriesId, {
+  lineColor: "#f0b429",
+  lineDash: [4, 4],
+});
+```
+
+Open **Chart settings** in ChartUI to tweak colors visually.
+
+## Full reference
+
+Model shape, `addInstrument()`, and sync rules are documented in [Multi-instrument charts](../chart-usage/multi-instrument-charts). Read that page when you wire compare-symbol flows in production.
+
+## Layout tip
+
+On narrow screens, draw overlays as **lines** (not second candle sets) and hide extra indicator panes — the chart stays readable.
+
+## What is next?
+
+- [Market news demo](/starters/market-news) — multiple symbols in a news context
+- [Multi-instrument reference](../chart-usage/multi-instrument-charts)

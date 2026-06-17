@@ -11,6 +11,7 @@ import {
   drawAnchorsArrow,
 } from "../../utils/objects-lib";
 import type { ShapeLifecycleArgs, ShapeRuntime } from "./_sharedTypes";
+import { resolveShapeOpacity } from "../../shapeStyle";
 
 var ArrowObject = function (this: ShapeRuntime) {
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -39,11 +40,13 @@ var ArrowObject = function (this: ShapeRuntime) {
       ctx.lineTo(drawPoints[i].x, drawPoints[i].y);
     }
 
+    const opacity = resolveShapeOpacity(o);
     ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
-    ctx.globalAlpha = 0.2;
+    ctx.globalAlpha = opacity * 0.2;
     ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = opacity;
     ctx.stroke();
+    ctx.globalAlpha = 1;
 
     if (o.selected) {
       drawAnchors(ctx, panel, pts, this.anchorPointSize, this.anchorColor, 1);

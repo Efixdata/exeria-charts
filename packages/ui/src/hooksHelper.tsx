@@ -1,5 +1,15 @@
 import * as React from "react";
 
+export const CHART_UI_OVERLAY_ATTRIBUTE = "data-chart-ui-overlay";
+
+const isChartUiOverlayClick = (target: EventTarget | null) => {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  return Boolean(target.closest(`[${CHART_UI_OVERLAY_ATTRIBUTE}]`));
+};
+
 export function useOnClick(ref: any, handler: any) {
   React.useEffect(() => {
     const listener = (event: any) => {
@@ -7,6 +17,11 @@ export function useOnClick(ref: any, handler: any) {
       if (!ref.current || ref.current.contains(event.target)) {
         return;
       }
+
+      if (isChartUiOverlayClick(event.target)) {
+        return;
+      }
+
       handler(event);
     };
 
@@ -15,5 +30,5 @@ export function useOnClick(ref: any, handler: any) {
     return () => {
       document.removeEventListener("mousedown", listener);
     };
-  }, []); // Empty array ensures that effect is only run on mount and unmount
+  }, [handler, ref]);
 }

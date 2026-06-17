@@ -1,0 +1,135 @@
+---
+sidebar_position: 6
+title: Multi-Instrument Charts
+description: Compare two or more symbols on one chart — indexed lines on a shared % axis.
+---
+
+import MultiInstrumentOverlayDemo from "@site/src/components/MultiInstrumentOverlayDemo";
+
+# Multi-instrument charts
+
+One chart, **multiple symbols** — for example **EUR/USD** next to **GBP/USD** on the same H1 timeline, indexed to 100% so both share one vertical scale. Great for comparison articles, screeners, and “vs benchmark” views.
+
+<MultiInstrumentOverlayDemo />
+
+The demo above uses bundled, synchronized **EUR/USD** and **GBP/USD** H1 fixtures with the value axis in **percent** mode. The sections below explain how to add overlays and style them in your app.
+
+Live product example: [Market news demo](/starters/market-news) — embeddable comparison charts.
+
+Tutorial walkthrough: [Multi-instrument overlay](../tutorials/multi-instrument-overlay).
+
+---
+
+## The idea in plain terms
+
+| Role | Usually drawn as | Example |
+| --- | --- | --- |
+| **Main series** (first symbol) | Line or candles | EUR/USD |
+| **Overlay** (extra symbols) | Line on same time axis | GBP/USD, SPY |
+
+Everyone shares one horizontal time axis. Each symbol has its own price data array.
+
+---
+
+## What lives in the chart model
+
+Behind the scenes the runtime keeps a list of instruments:
+
+```ts
+// Simplified — you rarely build this by hand
+{
+  mainSeries: "series-a",
+  instrumentsSeries: [
+    { seriesId: "series-a", instrument: { symbol: "BTCUSD", precision: 2 } },
+    { seriesId: "series-b", instrument: { symbol: "ETHUSD", precision: 2 } },
+  ],
+}
+```
+
+OHLC arrays sit in `chart.getSeriesManager()[seriesId].data`.
+
+---
+
+## Load main + overlay data
+
+Typical flow when your model already lists two symbols:
+
+```ts
+const chart = createChart({
+  container,
+  model: persistedModelWithTwoSymbols,
+});
+
+chart.init();
+await chart.setMainSeriesData(btcCandles, interval);
+
+const seriesManager = chart.getSeriesManager();
+seriesManager["series-b"].data = ethCandles;
+chart.render();
+```
+
+**Rules of thumb:**
+
+- Load the **main** symbol with `setMainSeriesData`.
+- Put overlay candles in the overlay’s `seriesId`.
+- Use the **same interval** (both hourly, both daily, …) so timestamps line up.
+- Call `chart.render()` after updating overlay data.
+
+Missing bars for one symbol are forward-filled from the last close so series stay aligned.
+
+---
+
+## Style each symbol
+
+Make overlays easy to tell apart — color, dashed line, etc.:
+
+```ts
+const instruments = chart.getChartInstrumentSettings();
+// [{ seriesId, symbol, lineColor, lineDash }, …]
+
+chart.applyChartInstrumentSettings(instruments[1].seriesId, {
+  lineColor: "#ff9800",
+  lineDash: [3, 3],
+});
+```
+
+| Symbol | What you can customize |
+| --- | --- |
+| Main (first) | Candles, line, fill, last-price label |
+| Each overlay | Line color and dash style |
+
+Main-symbol **theme** colors still use `getChartAppearanceSettings()` / `applyChartAppearanceSettings()`.
+
+With **ChartUI**, users can also open **Chart settings** from the toolbar.
+
+---
+
+## Remove an overlay
+
+Close the symbol from the legend or remove it via the objects manager — the overlay’s data is deleted. The **main** symbol cannot be removed.
+
+---
+
+## When is this worth it?
+
+| Build this | Multi-instrument? |
+| --- | --- |
+| News embed “AAPL vs S&P” | Yes |
+| Single-asset trading terminal | Often no |
+| Screener comparing many pairs | Yes (one or two visible at a time) |
+
+---
+
+## Advanced: add symbols at runtime
+
+The runtime `Chart` class exposes `addInstrument()` for engine rebuilds. That path is for advanced hosts — see [Chart runtime access](../advanced/chart-class-runtime).
+
+`multiInstrumentChart` in chart config defaults to `true` — signals that your app may offer “compare symbol” flows.
+
+---
+
+## What is next?
+
+- [Data model](../core-concepts/data-model) — candle and instrument shapes
+- [Loading data](./loading-data) — main series load
+- [Realtime updates](./realtime-updates) — ticks on the main series

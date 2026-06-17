@@ -1,31 +1,10 @@
-import { useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import ChartQuickstartExample from "../components/ChartQuickstartExample";
+import CaseStudiesSection from "@site/src/components/marketing/CaseStudiesSection";
+import FeaturesSection from "@site/src/components/marketing/FeaturesSection";
+import { CHART_INSTALL_COMMAND } from "@site/src/data/packages";
+import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./index.module.css";
-
-const features = [
-  {
-    eyebrow: "Performance",
-    title: "Built for dense market data.",
-    body: "Render real chart workflows without pushing your product through an iframe or a hosted dependency.",
-  },
-  {
-    eyebrow: "Ownership",
-    title: "Keep the chart surface yours.",
-    body: "Start with the core runtime, ship your own product chrome, and add the React controls only when they help.",
-  },
-  {
-    eyebrow: "DX",
-    title: "Public API first.",
-    body: "The docs and examples stay on the package surface you publish: lifecycle, series data, ticks, draw modes, and teardown.",
-  },
-  {
-    eyebrow: "Release",
-    title: "Documentation that reads like a product.",
-    body: "Shorter guidance, cleaner defaults, and a docs shell that feels closer to a launch site than a generated theme.",
-  },
-];
 
 const guides = [
   {
@@ -38,92 +17,159 @@ const guides = [
     title: "React Quickstart",
     body: "Create the runtime instance in React, then layer the toolbar and left-menu controls on top.",
     href: "/docs/getting-started/react",
-    cta: "Read React guide",
+    cta: "Open guide",
   },
   {
     title: "Vite + React",
     body: "Use the runtime and optional ChartUI wrapper in a browser-only React app with minimal bundler ceremony.",
     href: "/docs/getting-started/vite-react",
-    cta: "Open Vite guide",
+    cta: "Open guide",
   },
   {
     title: "Next.js App Router",
     body: "Keep the chart inside a client boundary, avoid SSR pitfalls, and stream the rest of the route from the server.",
     href: "/docs/getting-started/nextjs-app-router",
-    cta: "Read Next.js guide",
+    cta: "Open guide",
   },
   {
     title: "Licensing",
-    body: "Understand the source-available model before you move from evaluation to a commercial rollout.",
+    body: "Understand AGPL obligations, MIT Data Connector packages, and when you need a commercial license for closed-source products.",
     href: "/docs/guides/licensing",
-    cta: "Review terms",
+    cta: "Read licensing guide",
+  },
+  {
+    title: "Data Connectors & Commercial Use",
+    body: "Ship faster with MIT connectors for public and freemium market data—or use a commercial license to keep your app closed source.",
+    href: "/docs/guides/licensing#data-connectors-licensing",
+    cta: "Open guide",
   },
 ];
 
+const pricingPlans = [
+  {
+    name: "Community",
+    price: "Open Source (AGPL v3)",
+    features: [
+      { label: "Core chart runtime & TypeScript API", emphasized: true },
+      { label: "90+ built-in technical indicators", emphasized: false },
+      { label: "Standard drawing tools & chart modes", emphasized: false },
+      { label: "Docs, examples & GitHub community", emphasized: false },
+    ],
+    cta: "Read Documentation",
+    href: "/docs/intro",
+    variant: "secondary" as const,
+    featured: false,
+  },
+  {
+    name: "Data Connectors",
+    price: "Free connectors for instant market data",
+    features: [
+      { label: "Free connectors for open data providers", emphasized: true },
+      { label: "Freemium and API-key connectors (Massive, Finnhub, …)", emphasized: false },
+      { label: "Seamless REST & WebSocket integration", emphasized: false },
+      { label: "Ready to deploy out of the box", emphasized: false },
+    ],
+    cta: "Explore Data Connectors",
+    href: "/data-connectors",
+    variant: "primary" as const,
+    featured: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Commercial license",
+    features: [
+      { label: "Keep your application code closed", emphasized: true },
+      { label: "Startup-friendly pricing", emphasized: false },
+      { label: "Advanced indicators & drawing tools", emphasized: false },
+      { label: "Enterprise data connectors & integrations", emphasized: false },
+    ],
+    cta: "Contact Us",
+    href: "/docs/guides/licensing#commercial-license",
+    variant: "secondary" as const,
+    featured: false,
+  },
+];
+
+function CommandBox(): JSX.Element {
+  const copyCommand = () => {
+    void navigator.clipboard.writeText(CHART_INSTALL_COMMAND);
+  };
+
+  return (
+    <button
+      type="button"
+      className={styles.commandBox}
+      onClick={copyCommand}
+      aria-label="Copy npm install command"
+    >
+      <span className={styles.commandText}>{CHART_INSTALL_COMMAND}</span>
+      <svg
+        className={styles.commandIcon}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <Layout title={siteConfig.title} description={siteConfig.tagline}>
-      <main className={styles.page}>
-        <section className={styles.hero}>
-          <div className={styles.badge}>Source-available release preview</div>
-          <h1 className={styles.title}>Build modern charts in your own product.</h1>
-          <p className={styles.subtitle}>
-            A chart runtime for teams that want trading and analytics surfaces they can fully own,
-            theme, and ship without embed lock-in.
+      <main className={layoutStyles.page}>
+        <section className={layoutStyles.hero}>
+          <div className={styles.badge}>🏆 Winner of the Benzinga Fintech Awards</div>
+          <h1 className={layoutStyles.title}>
+            Build Modern Charts
+            <br />
+            in Minutes.
+          </h1>
+          <p className={layoutStyles.subtitle}>
+            The high-performance open source charting library that developers love using. Integrate
+            once, deploy everywhere. Zero dependencies.
           </p>
 
           <div className={styles.actions}>
             <a className="button button--primary button--lg" href="/docs/getting-started/vanilla">
               Get Started
             </a>
-            <a className="button button--secondary button--lg" href="/docs/getting-started/react">
-              Read the React Guide
+            <a className="button button--secondary button--lg" href="/docs/intro">
+              Read the Docs
             </a>
           </div>
 
-          <div className={styles.commandBox}>
-            <span className={styles.commandText}>npm install @efixdata/exeria-chart</span>
-            <span className={styles.commandHint}>Core runtime</span>
+          <div className={styles.heroVideoContainer}>
+            <div className={styles.heroVideo}>
+              <video
+                className={styles.heroVideoElement}
+                src="/video/Exeriachartsok.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
+                aria-label="Exeria Charts product demo"
+              />
+            </div>
           </div>
 
-          <div className={styles.heroChartContainer}>
-            {isMounted ? (
-              <ChartQuickstartExample />
-            ) : (
-              <div className={styles.exampleFallback}>Loading live chart example...</div>
-            )}
-          </div>
+          <CommandBox />
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2>Engineered for real chart surfaces.</h2>
-            <p>
-              The design goal is simple: the docs should feel as intentional as the product you are
-              building with the library.
-            </p>
-          </div>
+        <FeaturesSection />
 
-          <div className={styles.featuresGrid}>
-            {features.map((item) => (
-              <article key={item.title} className={styles.featureItem}>
-                <p className={styles.featureEyebrow}>{item.eyebrow}</p>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Write once. Fit the product around it.</h2>
             <p>
               Start with the runtime. Add the React controls when they save time. Keep the surface
@@ -138,8 +184,48 @@ export default function Home(): JSX.Element {
           </p>
         </section>
 
-        <section className={styles.section}>
-          <div className={styles.sectionHeader}>
+        <CaseStudiesSection />
+
+        <section id="pricing" className={styles.pricingSection}>
+          <div className={layoutStyles.sectionHeader}>
+            <h2>Free open-source core. Instant data connectors to move faster.</h2>
+            <p>
+              Use the full charting engine under AGPL v3 for open and experimental work. Need a
+              proprietary product? A commercial license lets you keep your code closed—with
+              startup-friendly pricing for small teams.
+            </p>
+          </div>
+
+          <div className={styles.pricingGrid}>
+            {pricingPlans.map((plan) => (
+              <article
+                key={plan.name}
+                className={plan.featured ? styles.pricingCardFeatured : styles.pricingCard}
+              >
+                <h3>{plan.name}</h3>
+                <p className={styles.pricingPrice}>{plan.price}</p>
+                <ul className={styles.pricingList}>
+                  {plan.features.map((feature) => (
+                    <li key={feature.label}>
+                      {feature.emphasized ? <strong>{feature.label}</strong> : feature.label}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  className={`button button--${plan.variant} button--lg ${styles.pricingCta} ${
+                    plan.variant === "secondary" ? styles.pricingCtaOutlined : ""
+                  }`}
+                  href={plan.href}
+                >
+                  {plan.cta}
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className={layoutStyles.section}>
+          <div className={layoutStyles.sectionHeader}>
             <h2>Start with the guide that matches the job.</h2>
           </div>
 

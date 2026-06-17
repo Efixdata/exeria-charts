@@ -1,0 +1,237 @@
+---
+sidebar_position: 7
+title: CoinGecko
+description: Broad crypto market data from CoinGecko — portfolios, news, and comparison charts.
+---
+
+import CoingeckoConnectorExample from "@site/src/components/CoingeckoConnectorExample";
+
+# CoinGecko Data Connector
+
+Need charts for **thousands of crypto assets** without mapping every symbol to an exchange pair? The CoinGecko connector loads historical OHLC from CoinGecko REST API and polls for near-real-time prices — ideal for portfolio trackers, news embeds, and multi-asset dashboards.
+
+<CoingeckoConnectorExample />
+
+Use the controls above to change coin id and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [CoinGecko live demo](/coingecko-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Coverage** | 10,000+ crypto assets via CoinGecko coin ids |
+| **History** | OHLC from `/coins/{id}/ohlc` and date ranges via `/market_chart/range` |
+| **Live updates** | REST polling every 60 seconds (configurable) |
+| **Symbols** | Coin ids like `bitcoin`, `ethereum` — not `BTCUSDT` |
+| **Dev tier** | CoinGecko Demo API for development |
+| **License** | MIT connector package |
+
+Perfect for portfolio apps, market news embeds, and research dashboards. For **sub-second exchange ticks**, use [Binance](./binance), [Bybit](./bybit), [OKX](./okx), [Kraken](./kraken), or [KuCoin](./kucoin).
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-coingecko
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { CoingeckoAdapter } from "@efixdata/connector-coingecko";
+
+const connector = new CoingeckoAdapter({ pollIntervalMs: 60_000 });
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("bitcoin", {
+  interval: "1d",
+  limit: 90,
+});
+
+chart.subscribeToUpdates("bitcoin", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new CoingeckoAdapter({ pollIntervalMs: 60_000 });
+```
+
+Uses the CoinGecko Demo API by default. Optional Pro API key below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("bitcoin", {
+  interval: "1d",
+  limit: 90,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1d"` works best on Demo API; `"1h"` has coarser granularity on free tier |
+| `limit` | How many recent bars to keep after fetch |
+| `from` / `to` | Optional date range (uses `/market_chart/range`) |
+
+### 4 — Go live (polling)
+
+```ts
+chart.subscribeToUpdates("bitcoin");
+// or with a callback:
+chart.subscribeToUpdates("bitcoin", (tick) => { /* update UI */ });
+```
+
+CoinGecko has no native WebSocket for OHLC — the adapter polls `/simple/price` every 60 seconds by default.
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular coin ids
+
+| Coin id | Asset |
+| --- | --- |
+| `bitcoin` | Bitcoin |
+| `ethereum` | Ethereum |
+| `solana` | Solana |
+| `cardano` | Cardano |
+| `ripple` | XRP |
+| `binancecoin` | BNB |
+
+Look up ids in [CoinGecko API docs](https://www.coingecko.com/en/api/documentation) or via `/coins/list`.
+
+## CoinGecko ids vs exchange pairs
+
+| Binance / Bybit | CoinGecko |
+| --- | --- |
+| `BTCUSDT` | `bitcoin` |
+| `ETHUSDT` | `ethereum` |
+| Exchange trading pair | CoinGecko **coin id** |
+
+## Switch asset
+
+```ts
+async function switchCoin(newCoinId: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newCoinId, {
+    interval: "1d",
+    limit: 90,
+  });
+
+  chart.subscribeToUpdates(newCoinId);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+```ts
+const connector = new CoingeckoAdapter({
+  baseUrl: "https://api.coingecko.com/api/v3",
+  apiKey: process.env.COINGECKO_API_KEY,
+  vsCurrency: "usd",
+  pollIntervalMs: 60_000,
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+});
+```
+
+For Pro API:
+
+```ts
+const connector = new CoingeckoAdapter({
+  baseUrl: "https://pro-api.coingecko.com/api/v3",
+  apiKey: process.env.COINGECKO_API_KEY,
+});
+```
+
+Pass the key at runtime:
+
+```ts
+await connector.initialize({ apiKey: process.env.COINGECKO_API_KEY });
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("bitcoin", { interval: "1d", limit: 90 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("Invalid coin")) {
+    console.error("Coin id not found on CoinGecko");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — rate limits and network blips happen on free tiers.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Demo API rate | 100 requests/minute, 10,000/month |
+| Live updates | Polling (default 60s) — not exchange-grade WebSocket |
+| `/ohlc` volume | Not included — volume is `0`; use `market_chart/range` if you need volume |
+| Historical range (Demo) | Past 365 days on some endpoints |
+| Sub-minute bars | Not supported on Demo API — use an exchange connector |
+
+For heavy traffic: cache history server-side and keep `pollIntervalMs` at 60s or higher.
+
+## When to use CoinGecko vs exchanges
+
+| | CoinGecko | Binance / Bybit / OKX |
+| --- | --- | --- |
+| Symbol | `bitcoin` | `BTCUSDT` / `BTC-USDT` |
+| Coverage | 10,000+ assets | Exchange-listed pairs |
+| Live data | Polling (~60s) | WebSocket ticks |
+| API key (public data) | Optional on Demo | No |
+
+Need live BTC/USDT or BTC/USD from an exchange? See [Binance](./binance), [Bybit](./bybit), [OKX](./okx), [Kraken](./kraken), or [KuCoin](./kucoin).
+
+## Pricing
+
+| Tier | Use |
+| --- | --- |
+| **Demo API** | Development and prototypes |
+| **Paid plans** | Production traffic — see [CoinGecko pricing](https://www.coingecko.com/en/api/pricing) |
+
+The connector package is MIT-licensed; CoinGecko data terms apply separately.
+
+## What is next?
+
+- [Overview](./overview) — lifecycle and custom connectors
+- [Binance](./binance) · [Bybit](./bybit) · [OKX](./okx) · [Kraken](./kraken) · [KuCoin](./kucoin) — exchange-grade live data
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Multi-instrument charts](../chart-usage/multi-instrument-charts) — compare assets on one chart
+- [Data Connectors catalog](/data-connectors) — compare providers

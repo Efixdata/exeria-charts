@@ -1,0 +1,59 @@
+/* Keep dropdown in sidebar DOM — plugin .searchBar … .suggestion styles apply. */
+
+[data-docs-sidebar-search] {
+  position: relative;
+  overflow: visible;
+}
+
+[data-docs-sidebar-search][data-search-active="true"] {
+  z-index: 50;
+}
+
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container:has([data-search-active="true"]),
+  .theme-doc-sidebar-container:has([data-search-active="true"]) .sidebarViewport,
+  .theme-doc-sidebar-container:has([data-search-active="true"]) .menu {
+    overflow: visible !important;
+  }
+}
+
+[data-docs-sidebar-search] [class*="dropdownMenu"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+  margin-top: 8px;
+  box-sizing: border-box;
+  background: var(--doc-surface-elevated) !important;
+  border: 1px solid var(--doc-border) !important;
+  border-radius: var(--doc-radius-sm) !important;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--doc-text) 14%, transparent) !important;
+}
+
+/*
+ * CSS-module rows: suggestion_fB_2 (not suggestions_*).
+ * Do not use [class*="suggestion"] — it also matches the suggestions list wrapper.
+ */
+[data-docs-sidebar-search] [class*="dropdownMenu"] [class*="suggestion_"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+[data-docs-sidebar-search] [class*="dropdownMenu"] [class*="suggestion_"]:not(:last-child) {
+  margin-bottom: 6px;
+}
+
+[data-docs-sidebar-search] [class*="hitWrapper"] {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+[data-docs-sidebar-search] [class*="hitTitle"],
+[data-docs-sidebar-search] [class*="hitPath"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

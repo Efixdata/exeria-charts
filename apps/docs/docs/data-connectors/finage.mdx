@@ -1,0 +1,211 @@
+---
+sidebar_position: 10
+title: Finage
+description: Forex OHLCV through Finage — REST API key required.
+---
+
+import FinageConnectorExample from "@site/src/components/FinageConnectorExample";
+
+# Finage Connector
+
+Building **forex** charts (`EURUSD`, `GBPUSD`) with a UK-based market data vendor? The Finage connector wraps the [Finage API](https://finage.co.uk/docs/api) and implements the same `DataAdapter` contract as [Twelve Data](./twelve-data) and [Binance](./binance).
+
+<FinageConnectorExample />
+
+Use the controls above to switch forex pair and timeframe. This docs demo routes requests through `/api/finage` so your API key stays on the server.
+
+:::tip Standalone demo
+Full-page version with sample code: [Finage live demo](/finage-example).
+:::
+
+:::info API key required
+Finage requires a **REST API key** in production. Store it in `FINAGE_API_KEY` and run the adapter on your **server** or behind a proxy — never ship the key in a browser bundle. For local docs demos, add the key to `apps/docs/.env.local`.
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Forex** | Majors and minors (`EURUSD`, `USDJPY`, …) |
+| **History** | OHLCV via `/agg/forex/{symbol}/{multiply}/{time}/{from}/{to}` |
+| **Live ticks** | WebSocket (with socket key) or REST polling fallback |
+| **Symbols** | Compact `EURUSD`; also accepts `EUR/USD`, `EUR-USD` |
+
+Perfect for forex dashboards and UK/EU fintech prototypes.
+
+## Finage vs Twelve Data
+
+| | Finage | [Twelve Data](./twelve-data) |
+| --- | --- | --- |
+| Symbol format | `EURUSD` | `EUR/USD` |
+| History API | Date-range aggregates | `outputsize` time series |
+| WebSocket URL | Per-account from dashboard | Single public endpoint |
+| Demo key | No — free signup | `demo` key available |
+| Best for | Finage customers, UK vendor | Quick multi-asset demo |
+
+Both fit forex + multi-asset backends. Pick the vendor your license covers.
+
+## Licensing
+
+| Tier | Typical use |
+| --- | --- |
+| **Free** | Development, personal testing |
+| **Paid** | Production apps with **external display** |
+
+Check [Finage pricing](https://finage.co.uk/pricing) before shipping to end users.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-finage
+```
+
+## Minimal example (Node.js)
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { FinageAdapter } from "@efixdata/connector-finage";
+
+const connector = new FinageAdapter({
+  apiKey: process.env.FINAGE_API_KEY!,
+});
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("EURUSD", {
+  interval: "1h",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("EURUSD", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Get an API key
+
+Sign up at [finage.co.uk](https://finage.co.uk/), generate a REST API key, and store it securely:
+
+```bash
+export FINAGE_API_KEY=your_key_here
+```
+
+For WebSocket streaming, copy your **socket key** and WebSocket URL from the Finage dashboard into `FINAGE_WS_URL`.
+
+### 2 — Create the connector
+
+```ts
+const connector = new FinageAdapter({
+  apiKey: process.env.FINAGE_API_KEY!,
+});
+```
+
+### 3 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+### 4 — Load history
+
+```ts
+await chart.loadData("EURUSD", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` (mapped to Finage `multiply` + `time`) |
+| `limit` | Recent N candles (max 5000) |
+| `from` / `to` | Optional date range (`YYYY-MM-DD`) |
+
+### 5 — Go live
+
+```ts
+chart.subscribeToUpdates("EURUSD");
+```
+
+With `wsUrl` configured, uses Finage WebSocket. Otherwise polls `/last/forex/{symbol}`.
+
+### 6 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular forex symbols
+
+| Symbol | Market |
+| --- | --- |
+| `EURUSD` | Euro / US Dollar |
+| `GBPUSD` | British Pound / US Dollar |
+| `USDJPY` | US Dollar / Japanese Yen |
+| `USDCHF` | US Dollar / Swiss Franc |
+| `AUDUSD` | Australian Dollar / US Dollar |
+
+Slash and dash forms are normalized to compact Finage symbols.
+
+## Next.js API route (browser-safe pattern)
+
+```ts
+// app/api/forex/ohlcv/route.ts
+import { FinageAdapter } from "@efixdata/connector-finage";
+import { NextResponse } from "next/server";
+
+const connector = new FinageAdapter({
+  apiKey: process.env.FINAGE_API_KEY!,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") ?? "EURUSD";
+  const interval = searchParams.get("interval") ?? "1h";
+  const limit = Number(searchParams.get("limit") ?? "500");
+
+  await connector.initialize({});
+  const candles = await connector.getHistoricalData(symbol, { interval, limit });
+
+  return NextResponse.json({ candles });
+}
+```
+
+## Configuration
+
+```ts
+const connector = new FinageAdapter({
+  apiKey: process.env.FINAGE_API_KEY!,
+  baseUrl: "https://api.finage.co.uk",
+  wsUrl: process.env.FINAGE_WS_URL,
+  pollIntervalMs: 3000,
+  requestTimeout: 10000,
+  maxRetries: 3,
+  onError: (error) => console.error("Finage error:", error),
+});
+```
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Rate limits | Plan-specific; cache history server-side |
+| Forex hours | Market trades 24/5; weekend shows last available quote |
+| Browser | Use a backend proxy; do not expose `apiKey` client-side |
+| WebSocket | Requires separate socket key from dashboard |
+
+## What is next?
+
+- [Twelve Data](./twelve-data) — alternative forex / multi-asset vendor
+- [Overview](./overview) — connector lifecycle
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — tutorial walkthrough
+- [Data Connectors catalog](/data-connectors) — compare providers

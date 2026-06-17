@@ -1,18 +1,28 @@
 ---
 sidebar_position: 2
 title: React UI Integration
-description: "Use ChartUI beyond the quickstart: layout contract, nullable chart behavior, theme props, share config, interval callbacks, and SSR boundaries."
+description: Mount ChartUI the right way — layout, nullable chart, themes, share, interval callbacks, and SSR.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # React UI integration
 
-Use `ChartUI` when you want the runtime chart plus the built-in toolbar and left-menu layer.
+**ChartUI** is the React wrapper that adds the top toolbar, left drawing menu, and settings dialogs around your chart. You installed it in the [React quickstart](../getting-started/react).
 
-This page focuses on the operational details that matter after the first quickstart mounts successfully.
+This page covers the details that bite beginners **after** the first mount works: layout height, passing `chart={null}` during load, two different theme systems, and Next.js boundaries. For a props lookup table, see [ChartUI reference](../api-reference/chart-ui).
 
-## Core layout contract
+<GettingStartedDemo
+  variant="react"
+  caption="ChartUI wraps your chart div — toolbar on top, tools on the left."
+/>
 
-`ChartUI` renders your chart container as a child surface inside its own frame.
+## The layout contract (read this first)
+
+ChartUI needs **two nested boxes**:
+
+1. An **outer wrapper** with a real height (pixels, `vh`, or flex child with `min-height: 0`).
+2. Your **chart container** `<div>` as a **child** of ChartUI, filling 100% width and height.
 
 ```tsx
 <div style={{ height: 560 }}>
@@ -22,17 +32,28 @@ This page focuses on the operational details that matter after the first quickst
 </div>
 ```
 
-Important rules:
+```mermaid
+flowchart TB
+  Outer["Outer div — fixed height"]
+  ChartUI["ChartUI — toolbar + menus"]
+  Canvas["Your div — chart draws here"]
 
-- give the outer wrapper a non-zero height
-- keep the runtime chart container mounted as a child of `ChartUI`
-- treat the child surface as an embedded canvas area, not as a normal flex item sibling
+  Outer --> ChartUI --> Canvas
+```
 
-The wrapper positions its children inside an absolutely inset content area that sits below the top menu and to the right of the left menu.
+### Common mistakes
 
-## Nullable chart behavior
+| Mistake | Symptom | Fix |
+| --- | --- | --- |
+| No height on outer wrapper | Toolbar visible, chart area height 0 | Set `height: 560` or `min(70vh, 560px)` |
+| Chart div **next to** ChartUI instead of inside | Broken layout or missing canvas | Nest the div **inside** `<ChartUI>` |
+| Parent flex without `min-height: 0` | Chart squashed or invisible on mobile | Add `min-height: 0` on flex parents |
 
-`ChartUI` accepts `chart={null}` or `chart={undefined}` during the initial render.
+End-user view of the toolbar: [Top toolbar and mobile](../chart-usage/top-toolbar-and-mobile).
+
+## Nullable chart — load without flicker
+
+ChartUI accepts `chart={null}` while you create the engine in `useEffect`:
 
 ```tsx
 const [chart, setChart] = useState<ChartInstance | null>(null);
@@ -44,11 +65,28 @@ return (
 );
 ```
 
-That lets you mount the wrapper immediately and hand it the live runtime instance after `createChart()`, `init()`, and `setMainSeriesData()` complete.
+**Why?** The toolbar shell mounts immediately. When `setMainSeriesData` finishes, you `setChart(instance)` and the UI wires up interval buttons, settings, and drawings.
 
-## Theme prop
+This is the same pattern as the [React quickstart](../getting-started/react).
 
-`ChartUI` theme values style the wrapper layer, not the chart runtime itself.
+## Two theme systems (do not mix them up)
+
+| What you style | Where |
+| --- | --- |
+| **Candles, axes, grid, crosshair** | `createChart({ theme, themeVariant })` |
+| **Toolbar, dialogs, inputs, scrollbars** | `<ChartUI theme={{ … }} />` |
+
+Chart constructor — chart surface:
+
+```ts
+createChart({
+  container,
+  theme: { /* candle colors, grid, scales */ },
+  themeVariant: "dark",
+});
+```
+
+ChartUI — chrome around the chart:
 
 ```tsx
 <ChartUI
@@ -63,10 +101,7 @@ That lets you mount the wrapper immediately and hand it the live runtime instanc
       showCurrency: true,
       topMenuPosition: "right",
     },
-    subMenu: {
-      background: "#0f172a",
-    },
-    splitButton: {},
+    subMenu: { background: "#0f172a" },
     dialog: {},
     inputs: {},
     scrollBar: {},
@@ -76,17 +111,18 @@ That lets you mount the wrapper immediately and hand it the live runtime instanc
 </ChartUI>
 ```
 
-Use the chart constructor `theme` and `themeVariant` options for candle colors, axes, and chart-surface styling. Use the `ChartUI` `theme` prop for toolbar, submenu, dialog, input, and scrollbar styling.
+Tutorial: [Custom theme](../tutorials/custom-theme). Deep settings UI: [Chart settings](../chart-usage/chart-settings).
 
-## Interval callback
+## Interval changes — connect to your data
 
-`onIntervalChange` is the integration hook exposed by the top menu interval switch.
+When the user picks a new timeframe in the toolbar, **your app** must fetch new candles. ChartUI exposes `onIntervalChange`:
 
 ```tsx
 <ChartUI
   chart={chart}
   onIntervalChange={(symbol) => {
-    console.log("User selected interval", symbol);
+    // symbol is like "1h" or "1d"
+    loadCandlesForInterval(symbol);
   }}
 >
   <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
@@ -95,19 +131,18 @@ Use the chart constructor `theme` and `themeVariant` options for candle colors, 
 
 Notes:
 
-- the callback receives the selected interval symbol, for example `"1h"` or `"1d"`
-- available choices come from `chart.getInstrument()?.availableIntervals`
-- the wrapper also listens for runtime `INTERVAL_CHANGE` events to keep its selected state in sync
+- Choices come from `chart.getInstrument()?.availableIntervals`
+- ChartUI also listens to runtime `INTERVAL_CHANGE` to keep the selected button in sync
+- Without this callback, the button may change but your data will not
 
-Use this callback when your app needs to fetch new candles or coordinate interval state outside the chart wrapper.
+## Share and download
 
-## Share config
-
-`shareConfig` controls the built-in share and download flow.
+`shareConfig` powers the built-in share menu (Twitter, Telegram, copy link, download):
 
 ```tsx
 <ChartUI
   chart={chart}
+  theme={{ toolbar: { showShareChartButton: true } }}
   shareConfig={{
     apiUri: "/api/share-image",
     templateText: "Chart snapshot",
@@ -121,68 +156,67 @@ Use this callback when your app needs to fetch new candles or coordinate interva
 </ChartUI>
 ```
 
-Current behavior:
+| Piece | Behavior |
+| --- | --- |
+| Share button visibility | `theme.toolbar.showShareChartButton` |
+| Default API | Posts to `/api/share-image/session/start` |
+| Download | Uses `chart.onDownload()` with your watermark |
+| No backend yet? | Hide the share button; offer download only in your app |
 
-- the share button is controlled by `theme.toolbar.showShareChartButton`
-- the default share API path is `/api/share-image`
-- the built-in download option calls `chart.onDownload()` with the generated watermark
-- if the chart canvas is not ready, share-image generation fails and logs the error
+Button-level details: [React UI toolbar and tools](./react-ui-toolbar-and-tools).
 
-If you do not have a share backend yet, leave the share button hidden and keep download-only behavior in your app shell.
+## Mobile props (short version)
 
-## Toolbar behavior
+```tsx
+<ChartUI
+  chart={chart}
+  mobileLayout="minimal"
+  compactBreakpoint={600}
+  theme={{ edgeInset: 8 }}
+>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
 
-The built-in top menu currently includes:
+| Prop | Meaning |
+| --- | --- |
+| `mobileLayout="minimal"` | On narrow screens, indicators move into the ⋯ menu |
+| `compactBreakpoint` | Width in px where compact UI kicks in (default **600**) |
+| `theme.edgeInset` | Extra padding on top of iOS safe areas |
 
-- main chart type selection
-- interval selection
-- indicators entry point
-- autoscale toggle
-- chart-scale switch
-- fullscreen button
-- share button
-- currency switch
+Full guide: [Mobile and responsive](./mobile-and-responsive).
 
-Several of these can be hidden through `theme.toolbar`, especially the share button, chart-scale switch, and currency display.
+## Left menu vs programmatic drawings
 
-Continue with [React UI toolbar and tools](./react-ui-toolbar-and-tools) for the current button-level surface, `shareConfig` details, and the exact left-menu tool coverage.
+The left menu is a **shortcut** for cursor mode and a **subset** of drawing tools. You can still create any documented tool via `chart.toolDrawer` in code — even tools not shown in the menu.
 
-## Left-menu behavior
+- Runtime API: [Drawing and interaction](../chart-usage/drawing-and-interaction)
+- Exact menu list: [React UI toolbar and tools](./react-ui-toolbar-and-tools)
 
-The left menu is the React UI surface for runtime cursor and drawing-tool selection.
+## SSR and Next.js
 
-Treat it as a convenience layer over the underlying runtime interaction and tool APIs:
+The chart uses `window`, canvas, and `ResizeObserver`. It **cannot** run on the server.
 
-- the menu only exposes the subset of tools wired into the React UI
-- programmatic drawing through `toolDrawer` can still create tools that are not surfaced in the menu
+| Framework | Pattern |
+| --- | --- |
+| Next.js App Router | Client component + `dynamic(..., { ssr: false })` optional |
+| Vite / CRA | Normal client render — no extra step |
 
-For the runtime-level drawing API, continue with [Drawing and interaction](../chart-usage/drawing-and-interaction). For the exact React UI menu coverage, continue with [React UI toolbar and tools](./react-ui-toolbar-and-tools).
+Guides: [Next.js App Router](../getting-started/nextjs-app-router), [Vite + React](../getting-started/vite-react).
 
-## SSR and client-only boundaries
+## Recommended integration checklist
 
-Both the runtime chart and `ChartUI` depend on browser APIs.
+1. Outer wrapper with fixed height.
+2. Mount `<ChartUI chart={null}>` immediately.
+3. In `useEffect`: `createChart` → `init()` → `setMainSeriesData`.
+4. `setChart(instance)` when data is ready.
+5. `destroy()` on unmount.
+6. Chart surface theme on `createChart`; toolbar theme on `ChartUI`.
+7. Wire `onIntervalChange` if intervals come from your API.
 
-Use these rules:
+## What is next?
 
-- keep the chart surface in a client component in Next.js
-- dynamically import the runtime if you need to isolate browser-only code from the server render path
-- do not attempt to create the chart during SSR
-
-Use [Next.js App Router](../getting-started/nextjs-app-router) for the client-boundary pattern and [Vite + React](../getting-started/vite-react) for the browser-only React path.
-
-## Recommended integration pattern
-
-1. Render a fixed-height wrapper.
-2. Mount `ChartUI` immediately with `chart={null}`.
-3. Create the runtime chart in an effect.
-4. Pass the live chart instance into `ChartUI` once ready.
-5. Use runtime theme options for the chart surface and `ChartUI` theme props for the wrapper chrome.
-
-## Continue reading
-
-- [React quickstart](../getting-started/react)
-- [Vite + React](../getting-started/vite-react)
-- [Next.js App Router](../getting-started/nextjs-app-router)
-- [React UI toolbar and tools](./react-ui-toolbar-and-tools)
-- [Theming overview](../theming/overview)
-- [Chart runtime access](./chart-class-runtime)
+- [React UI toolbar and tools](./react-ui-toolbar-and-tools) — hide buttons, share flow, menu tool list
+- [Mobile and responsive](./mobile-and-responsive) — viewport, touch, compact layout
+- [Mobile QA checklist](../guides/mobile-qa-checklist) — manual test list
+- [Theming overview](../theming/overview) — chart surface colors

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Programmatic Wiring
 description: Wire strategy and function inputs to other script outputs with cloned script definitions, series references, and live examples.
 ---
@@ -8,7 +8,13 @@ import ScriptWiringShowcase from "@site/src/components/ScriptWiringShowcase";
 
 # Programmatic wiring
 
-The first `chart.addScript("EMA")` case is straightforward because the script definition already carries usable defaults. The next level is wiring one script to the outputs of another.
+`chart.addScript("EMA")` works out of the box — defaults are baked in.
+
+**Wiring** is the next step: point a function or strategy at **another script’s output** (or at a specific OHLC field) instead of the default.
+
+UI equivalent: change **series** dropdowns in the settings dialog — [Series and panels](./series-and-panels). This page is the **code** version of the same idea.
+
+## The five-step recipe
 
 The runtime path is:
 

@@ -39,6 +39,11 @@ const baseConfig = {
         },
       },
       {
+        test: /\.css$/i,
+        exclude: /\.module\.css$/i,
+        use: [require.resolve("style-loader"), require.resolve("css-loader")],
+      },
+      {
         test: /\.(svg|png|jpe?g|gif)$/i,
         use: [
           {
@@ -56,10 +61,28 @@ const baseConfig = {
 
 module.exports = (_env, argv = {}) => {
   const isProd = argv.mode === "production";
+  const cssModuleRule = {
+    test: /\.module\.css$/i,
+    use: [
+      require.resolve("style-loader"),
+      {
+        loader: require.resolve("css-loader"),
+        options: {
+          modules: {
+            localIdentName: isProd ? "[hash:base64:6]" : "[name]__[local]",
+          },
+        },
+      },
+    ],
+  };
 
   return [
     {
       ...baseConfig,
+      module: {
+        ...baseConfig.module,
+        rules: [...baseConfig.module.rules, cssModuleRule],
+      },
       name: "umd",
       mode: isProd ? "production" : "development",
       output: {
@@ -77,6 +100,10 @@ module.exports = (_env, argv = {}) => {
     },
     {
       ...baseConfig,
+      module: {
+        ...baseConfig.module,
+        rules: [...baseConfig.module.rules, cssModuleRule],
+      },
       name: "esm",
       mode: isProd ? "production" : "development",
       externalsType: "module",

@@ -1,16 +1,20 @@
 import * as React from "react";
 import styled from "styled-components";
-import { textButton } from "../theme";
+import { textButton, UI_FONT_FAMILY } from "../theme";
+import { inputFocusVisibleStyles } from "../inputStyles";
+import { Tooltip, type TooltipPlacement } from "./Tooltip";
 
 const Button = styled.button<{ themeContext: string }>`
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-2, 8px);
   box-sizing: border-box;
   background-color: transparent;
-  border: none;
+  border: 1px solid transparent;
   outline: none;
   margin: 0;
-  padding: ${textButton.buttonPadding}px ${textButton.buttonPadding * 2}px;
+  padding: 0 var(--ui-space-3, 12px);
   color: ${(props) => {
     const parent =
       props.themeContext === "buttons"
@@ -18,16 +22,16 @@ const Button = styled.button<{ themeContext: string }>`
         : props.theme[props.themeContext].buttons;
     return parent["color"];
   }};
-  min-width: ${textButton.buttonSize}px;
-  min-height: ${textButton.buttonSize}px;
+  min-width: var(--ui-toolbar-touch, 40px);
+  min-height: var(--ui-toolbar-touch, 40px);
   border-radius: ${textButton.borderRadius}px;
   white-space: nowrap;
-  font-size: ${textButton.fontSize}px;
+  font-size: var(--ui-font-body, ${textButton.fontSize}px);
   font-weight: ${textButton.fontWeight};
-  font-family: Mulish, Roboto, sans-serif;
+  font-family: ${UI_FONT_FAMILY};
+  cursor: pointer;
 
   &:hover {
-    cursor: pointer;
     background-color: ${(props) => {
       const parent =
         props.themeContext === "buttons"
@@ -53,6 +57,8 @@ const Button = styled.button<{ themeContext: string }>`
       return parent["activeBackground"];
     }};
   }
+
+  ${inputFocusVisibleStyles}
 `;
 
 interface TextButtonProps {
@@ -63,17 +69,38 @@ interface TextButtonProps {
   active?: boolean | undefined;
   id?: string | undefined;
   themeContext?: string | undefined;
+  title?: string | undefined;
+  ariaLabel?: string | undefined;
+  tooltipPlacement?: TooltipPlacement | undefined;
+  tabIndex?: number;
 }
 
 export const TextButton = (props: TextButtonProps) => {
-  return (
+  const label = props.ariaLabel ?? props.title;
+
+  const button = (
     <Button
-      onClick={props.onClick}
+      type="button"
+      id={props.id}
+      onClick={props.onClick ?? props.callback}
       className={props.active ? "active" : ""}
       style={props.style}
       themeContext={props.themeContext || "buttons"}
+      aria-label={label}
+      aria-pressed={props.active ? true : undefined}
+      tabIndex={props.tabIndex}
     >
       {props.children}
     </Button>
+  );
+
+  if (!props.title) {
+    return button;
+  }
+
+  return (
+    <Tooltip label={props.title} placement={props.tooltipPlacement ?? "bottom"}>
+      {button}
+    </Tooltip>
   );
 };

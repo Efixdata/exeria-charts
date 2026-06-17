@@ -29,6 +29,7 @@ interface InstrumentSeriesItem {
 
 interface ObjectsManagerChart {
   model: ChartModelFragment & {
+    mainSeries: string;
     instrumentsSeries: InstrumentSeriesItem[];
     scripts: ScriptModelConfig[];
   };
@@ -37,6 +38,8 @@ interface ObjectsManagerChart {
   getSeriesManager(): SeriesManager;
   removePanelFromModel(panel: ChartPanel): void;
   onInstrumentRemoved?(instrumentId?: string | number): void;
+  getSelectedInstrumentSeriesId?(): string;
+  setSelectedInstrumentSeriesId?(seriesId: string): void;
 }
 
 function isShapeObject(chart: ObjectsManagerChart, object: ChartPanelObject): boolean {
@@ -119,7 +122,8 @@ export default class ObjectsManager {
       object.type === "SeriesObject" ||
       object.type === "StrategyObject" ||
       object.type === "CandlestickPatternStrategyObject" ||
-      object.type === "FractalsObject"
+      object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
     ) {
       this.detachSeriesObject(object);
     } else {
@@ -149,7 +153,8 @@ export default class ObjectsManager {
           object.type === "SeriesObject" ||
           object.type === "StrategyObject" ||
           object.type === "CandlestickPatternStrategyObject" ||
-          object.type === "FractalsObject"
+          object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
         ) {
           const script = this.isThisSeriesOutputOfScript(object.dataLink);
           if (script) {
@@ -201,7 +206,8 @@ export default class ObjectsManager {
           object.type === "SeriesObject" ||
           object.type === "StrategyObject" ||
           object.type === "CandlestickPatternStrategyObject" ||
-          object.type === "FractalsObject"
+          object.type === "FractalsObject" ||
+      object.type === "NewsMarkerObject"
       ).length;
       if (count === 0) {
         this.chart.removePanelFromModel(panels[index]);
@@ -295,6 +301,14 @@ export default class ObjectsManager {
 
     delete this.chart.getSeriesManager()[object.dataLink];
     removePlotter(object.id);
+
+    if (
+      typeof this.chart.getSelectedInstrumentSeriesId === "function" &&
+      typeof this.chart.setSelectedInstrumentSeriesId === "function" &&
+      this.chart.getSelectedInstrumentSeriesId() === object.dataLink
+    ) {
+      this.chart.setSelectedInstrumentSeriesId(this.chart.model.mainSeries);
+    }
   }
 
   removeScript(script: ScriptController): void {

@@ -1,19 +1,50 @@
 import * as React from "react";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useStableId } from "../../../utils/useStableId";
 import {
   DialogHeader,
+  DialogHeaderActions,
+  DialogHeaderTitle,
   DialogBody,
   DialogContainer,
-  DialogFooter,
   TextInput,
   TextButton,
   Label,
   CheckboxInput,
-  Select,
   Form,
 } from "ui";
-import { X } from "phosphor-react";
+import { Eye, EyeSlash, Lock, LockOpen, Trash, X } from "phosphor-react";
+import { ThemeContext } from "styled-components";
 import type { NullableChartInstance } from "../../../chartTypes";
+import {
+  type PlotterLineStyle,
+  buildPlotterDashMap,
+  getPlotterLineStyleDash,
+  getPlotterLineStyleId,
+} from "../../../utils/plotterLineStyles";
+import { DialogSelect, type DialogSelectOption } from "./DialogSelect";
+import { LineStyleSelect } from "./LineStyleSelect";
+import { NumberInput } from "./NumberInput";
+import { ColorField } from "../ChartSettings/ColorField";
+import { ConditionalInput, isConditionalInputValid } from "./ConditionalInput";
+import { BooleanListInput } from "./BooleanListInput";
+import {
+  isBooleanListValid,
+  normalizeBooleanListForDialog,
+} from "./booleanListUtils";
+import { DialogPrimaryButton } from "../ChartSettings/DialogPrimaryButton";
+import {
+  dialogFitLayoutStyle,
+  dialogFormBodyStyle,
+  getDialogCatalogLayoutStyle,
+} from "../../dialog/dialogLayout";
+import { useChartEnvironment } from "../../../hooks/useChartEnvironment";
+import layoutStyles from "../../dialog/dialogLayout.module.css";
+import { DialogSection, dialogSectionStyles } from "../../dialog/DialogSection";
+import { useChartTranslate } from "../../../hooks/useChartTranslate";
+import { getIndicatorDialogCssVars } from "../../../utils/dialogThemeVars";
+import chartSettingsStyles from "../ChartSettings/chartSettings.module.css";
+import type { ChartLineFillMode } from "@efixdata/exeria-chart";
 
 interface IndicatorInput {
   type: string;
@@ -25,13 +56,31 @@ interface IndicatorInput {
     step?: number;
   };
   value?: any;
+  templateValue?: unknown;
+  list?: Record<string, string> | string[];
   [key: string]: any;
+}
+
+interface IndicatorPlotter {
+  type?: string;
+  dataLink?: string;
+  dataField?: string;
+  color?: string;
+  [key: string]: any;
+}
+
+interface IndicatorOutputSeries {
+  labels?: string[] | Record<string, string>;
+  fields?: string[] | Record<string, string>;
+  title?: string;
 }
 
 interface IndicatorConfig {
   key: string;
   title: string;
   inputs?: Record<string, IndicatorInput>;
+  outputs?: Record<string, { series?: IndicatorOutputSeries }>;
+  plotters?: IndicatorPlotter[];
   [key: string]: any;
 }
 
@@ -43,11 +92,563 @@ interface IndicatorSettingsDialogProps {
   style?: React.CSSProperties;
 }
 
-const initializeConfig = (indicator: IndicatorConfig, seriesManager: any): IndicatorConfig => {
-  const config = { ...indicator, inputs: { ...(indicator.inputs || {}) } };
+const PARAMETER_INPUT_TYPES = new Set([
+  "integer",
+  "double",
+  "series",
+  "list",
+  "boolean",
+  "conditional",
+  "booleanList",
+]);
 
-  for (let i in config.inputs) {
-    const input = config.inputs[i];
+const STRATEGY_PLOTTER_TYPES = new Set([
+  "StrategyObject",
+  "CandlestickPatternStrategyObject",
+  "FractalsObject",
+]);
+
+const NEWS_MARKER_PLOTTER_TYPES = new Set(["NewsMarkerObject"]);
+
+const LayerIconToggle = (props: {
+  active: boolean;
+  label: string;
+  onChange: (next: boolean) => void;
+  activeIcon: React.ReactNode;
+  inactiveIcon: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    aria-label={props.label}
+    onClick={() => props.onChange(!props.active)}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 32,
+      height: 32,
+      padding: 0,
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      color: "inherit",
+    }}
+  >
+    {props.active ? props.activeIcon : props.inactiveIcon}
+  </button>
+);
+
+const DEFAULT_STRATEGY_BUY_COLOR = "#3CC3AF";
+const DEFAULT_STRATEGY_SELL_COLOR = "#CE3E5B";
+const DEFAULT_NEWS_MARKER_NEUTRAL_COLOR = "#3b82f6";
+const DEFAULT_CANDLE_UP_COLOR = "#3CC3AF";
+const DEFAULT_CANDLE_DOWN_COLOR = "#CE3E5B";
+const DEFAULT_CANDLE_UP_STROKE_COLOR = "#2A9D8F";
+const DEFAULT_CANDLE_DOWN_STROKE_COLOR = "#A83248";
+const DEFAULT_BAND_FILL_OPACITY = 0.3;
+const DEFAULT_LINE_FILL_GRADIENT_OPACITY = 0.4;
+
+const LINE_FILL_MODE_OPTIONS: {
+  id: ChartLineFillMode;
+  labelKey: string;
+  defaultLabel: string;
+}[] = [
+  { id: "solid", labelKey: "line_fill_mode_solid", defaultLabel: "Solid" },
+  { id: "gradient", labelKey: "line_fill_mode_gradient", defaultLabel: "Gradient" },
+];
+
+const isBandPlotter = (plotter: IndicatorPlotter) => plotter.renderAs === "Band";
+
+const isPureLinePlotter = (plotter: IndicatorPlotter) =>
+  plotter.renderAs === "Line" || plotter.renderAs == null || plotter.renderAs === "";
+
+const isOhlcPlotter = (plotter: IndicatorPlotter) =>
+  plotter.renderAs === "OHLC" || plotter.renderAs === "Bars";
+
+const isStrategyPlotter = (plotter: IndicatorPlotter) =>
+  plotter.type != null && STRATEGY_PLOTTER_TYPES.has(String(plotter.type));
+
+const isNewsMarkerPlotter = (plotter: IndicatorPlotter) =>
+  plotter.type != null && NEWS_MARKER_PLOTTER_TYPES.has(String(plotter.type));
+
+type ScriptCatalogType = "indicators" | "functions" | "strategies";
+
+const resolveScriptCatalogType = (
+  chart: NullableChartInstance,
+  indicator: IndicatorConfig,
+): ScriptCatalogType => {
+  const catalogType = chart?.getScripts?.()?.[indicator.key]?.type;
+  if (catalogType === "functions" || catalogType === "strategies") {
+    return catalogType;
+  }
+
+  return "indicators";
+};
+
+const findScriptIdByKey = (
+  chart: NullableChartInstance,
+  scriptKey: string,
+): string | number | null => {
+  if (!chart) {
+    return null;
+  }
+
+  const collections = [
+    chart.getChartIndicatorSettings?.() ?? [],
+    chart.getChartFunctionSettings?.() ?? [],
+    chart.getChartStrategySettings?.() ?? [],
+  ];
+
+  for (const collection of collections) {
+    for (let index = collection.length - 1; index >= 0; index -= 1) {
+      const entry = collection[index];
+      if (entry?.key === scriptKey && entry.scriptId != null) {
+        return entry.scriptId;
+      }
+    }
+  }
+
+  return null;
+};
+
+const getFirstSeriesReference = (seriesManager: Record<string, any> | null | undefined) => {
+  if (!seriesManager) {
+    return null;
+  }
+
+  for (const seriesKey in seriesManager) {
+    const series = seriesManager[seriesKey];
+    const fields = Array.isArray(series.fields)
+      ? series.fields
+      : Object.values(series.fields || {});
+
+    if (series.seriesId && fields.length > 0) {
+      return `${series.seriesId}:${String(fields[0])}`;
+    }
+  }
+
+  return null;
+};
+
+const buildListOptions = (list: IndicatorInput["list"]): DialogSelectOption[] => {
+  if (!list) {
+    return [];
+  }
+
+  if (Array.isArray(list)) {
+    return list.map((optionValue) => ({
+      value: String(optionValue),
+      label: String(optionValue),
+    }));
+  }
+
+  const options: DialogSelectOption[] = [];
+
+  for (const listKey in list) {
+    const optionValue = list[listKey];
+    options.push({
+      value: String(optionValue),
+      label: String(optionValue),
+    });
+  }
+
+  return options;
+};
+
+const normalizeHexColor = (value: string) => {
+  const trimmed = value.trim();
+
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+
+  if (/^[0-9A-Fa-f]{6}$/.test(trimmed)) {
+    return `#${trimmed.toUpperCase()}`;
+  }
+
+  return trimmed;
+};
+
+const clonePlotters = (plotters?: IndicatorPlotter[]) =>
+  plotters ? (JSON.parse(JSON.stringify(plotters)) as IndicatorPlotter[]) : [];
+
+const mergePlottersForDialog = (
+  templatePlotters?: IndicatorPlotter[],
+  indicatorPlotters?: IndicatorPlotter[],
+): IndicatorPlotter[] => {
+  const plotters = indicatorPlotters?.length
+    ? clonePlotters(indicatorPlotters)
+    : clonePlotters(templatePlotters);
+
+  return plotters.map((plotter, index) => {
+    const templatePlotter = templatePlotters?.[index];
+
+    if (isStrategyPlotter(plotter)) {
+      return {
+        ...plotter,
+        buyColor: normalizeHexColor(
+          typeof plotter.buyColor === "string"
+            ? plotter.buyColor
+            : typeof templatePlotter?.buyColor === "string"
+              ? templatePlotter.buyColor
+              : DEFAULT_STRATEGY_BUY_COLOR,
+        ),
+        sellColor: normalizeHexColor(
+          typeof plotter.sellColor === "string"
+            ? plotter.sellColor
+            : typeof templatePlotter?.sellColor === "string"
+              ? templatePlotter.sellColor
+              : DEFAULT_STRATEGY_SELL_COLOR,
+        ),
+      };
+    }
+
+    if (isNewsMarkerPlotter(plotter)) {
+      return {
+        ...plotter,
+        buyColor: normalizeHexColor(
+          typeof plotter.buyColor === "string"
+            ? plotter.buyColor
+            : typeof templatePlotter?.buyColor === "string"
+              ? templatePlotter.buyColor
+              : DEFAULT_STRATEGY_BUY_COLOR,
+        ),
+        sellColor: normalizeHexColor(
+          typeof plotter.sellColor === "string"
+            ? plotter.sellColor
+            : typeof templatePlotter?.sellColor === "string"
+              ? templatePlotter.sellColor
+              : DEFAULT_STRATEGY_SELL_COLOR,
+        ),
+        neutralColor: normalizeHexColor(
+          typeof plotter.neutralColor === "string"
+            ? plotter.neutralColor
+            : typeof templatePlotter?.neutralColor === "string"
+              ? templatePlotter.neutralColor
+              : typeof plotter.color === "string"
+                ? plotter.color
+                : DEFAULT_NEWS_MARKER_NEUTRAL_COLOR,
+        ),
+        markerShape:
+          typeof plotter.markerShape === "string"
+            ? plotter.markerShape
+            : typeof templatePlotter?.markerShape === "string"
+              ? templatePlotter.markerShape
+              : "Circle",
+      };
+    }
+
+    if (isBandPlotter(plotter)) {
+      const lineColor =
+        typeof plotter.color === "string"
+          ? plotter.color
+          : typeof templatePlotter?.color === "string"
+            ? templatePlotter.color
+            : "#5B6F8B";
+      const fillColor =
+        typeof plotter.bandFillColor === "string"
+          ? plotter.bandFillColor
+          : typeof templatePlotter?.bandFillColor === "string"
+            ? templatePlotter.bandFillColor
+            : lineColor;
+
+      return {
+        ...plotter,
+        color: normalizeHexColor(lineColor),
+        dash: Array.isArray(plotter.dash)
+          ? [...plotter.dash]
+          : Array.isArray(templatePlotter?.dash)
+            ? [...templatePlotter.dash]
+            : [],
+        bandFillColor: normalizeHexColor(fillColor),
+        bandFillOpacity:
+          typeof plotter.bandFillOpacity === "number"
+            ? plotter.bandFillOpacity
+            : typeof templatePlotter?.bandFillOpacity === "number"
+              ? templatePlotter.bandFillOpacity
+              : DEFAULT_BAND_FILL_OPACITY,
+      };
+    }
+
+    if (isOhlcPlotter(plotter)) {
+      return {
+        ...plotter,
+        dash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+        candleUpColor: normalizeHexColor(
+          typeof plotter.candleUpColor === "string"
+            ? plotter.candleUpColor
+            : typeof templatePlotter?.candleUpColor === "string"
+              ? templatePlotter.candleUpColor
+              : DEFAULT_CANDLE_UP_COLOR,
+        ),
+        candleDownColor: normalizeHexColor(
+          typeof plotter.candleDownColor === "string"
+            ? plotter.candleDownColor
+            : typeof templatePlotter?.candleDownColor === "string"
+              ? templatePlotter.candleDownColor
+              : DEFAULT_CANDLE_DOWN_COLOR,
+        ),
+        candleUpStrokeColor: normalizeHexColor(
+          typeof plotter.candleUpStrokeColor === "string"
+            ? plotter.candleUpStrokeColor
+            : typeof templatePlotter?.candleUpStrokeColor === "string"
+              ? templatePlotter.candleUpStrokeColor
+              : DEFAULT_CANDLE_UP_STROKE_COLOR,
+        ),
+        candleDownStrokeColor: normalizeHexColor(
+          typeof plotter.candleDownStrokeColor === "string"
+            ? plotter.candleDownStrokeColor
+            : typeof templatePlotter?.candleDownStrokeColor === "string"
+              ? templatePlotter.candleDownStrokeColor
+              : DEFAULT_CANDLE_DOWN_STROKE_COLOR,
+        ),
+      };
+    }
+
+    if (isPureLinePlotter(plotter)) {
+      const lineColor =
+        typeof plotter.color === "string"
+          ? plotter.color
+          : typeof templatePlotter?.color === "string"
+            ? templatePlotter.color
+            : "#5B6F8B";
+      const fillColor =
+        typeof plotter.fillColor === "string"
+          ? plotter.fillColor
+          : typeof templatePlotter?.fillColor === "string"
+            ? templatePlotter.fillColor
+            : lineColor;
+      const fillGradientColor =
+        typeof plotter.fillGradientColor === "string"
+          ? plotter.fillGradientColor
+          : typeof templatePlotter?.fillGradientColor === "string"
+            ? templatePlotter.fillGradientColor
+            : lineColor;
+
+      return {
+        ...plotter,
+        color: normalizeHexColor(lineColor),
+        dash: Array.isArray(plotter.dash)
+          ? [...plotter.dash]
+          : Array.isArray(templatePlotter?.dash)
+            ? [...templatePlotter.dash]
+            : [],
+        lineFillVisible:
+          typeof plotter.lineFillVisible === "boolean"
+            ? plotter.lineFillVisible
+            : templatePlotter?.lineFillVisible === true,
+        lineFillMode:
+          plotter.lineFillMode === "gradient" || plotter.lineFillMode === "solid"
+            ? plotter.lineFillMode
+            : templatePlotter?.lineFillMode === "gradient" ||
+                templatePlotter?.lineFillMode === "solid"
+              ? templatePlotter.lineFillMode
+              : "solid",
+        fillColor: normalizeHexColor(fillColor),
+        fillGradientColor: normalizeHexColor(fillGradientColor),
+        lineFillGradientOpacity:
+          typeof plotter.lineFillGradientOpacity === "number"
+            ? plotter.lineFillGradientOpacity
+            : typeof templatePlotter?.lineFillGradientOpacity === "number"
+              ? templatePlotter.lineFillGradientOpacity
+              : DEFAULT_LINE_FILL_GRADIENT_OPACITY,
+      };
+    }
+
+    return {
+      ...plotter,
+      dash: Array.isArray(plotter.dash) ? [...plotter.dash] : [],
+    };
+  });
+};
+
+const mergeInputsForDialog = (
+  templateInputs: Record<string, IndicatorInput> = {},
+  indicatorInputs: Record<string, IndicatorInput> = {},
+): Record<string, IndicatorInput> => {
+  const inputs: Record<string, IndicatorInput> = {};
+
+  for (const key of Object.keys(templateInputs)) {
+    const templateInput = templateInputs[key];
+    const indicatorInput = indicatorInputs[key];
+
+    inputs[key] = {
+      ...JSON.parse(JSON.stringify(templateInput)),
+      ...(indicatorInput ? JSON.parse(JSON.stringify(indicatorInput)) : {}),
+      value:
+        indicatorInput?.value !== undefined && indicatorInput?.value !== null
+          ? indicatorInput.value
+          : templateInput.value,
+    };
+  }
+
+  return inputs;
+};
+
+const buildPlotterColors = (plotters: IndicatorPlotter[]) => {
+  const plotterColors: Record<string, string> = {};
+
+  for (const plotter of plotters) {
+    if (!plotter.dataField || typeof plotter.color !== "string") {
+      continue;
+    }
+
+    plotterColors[String(plotter.dataField)] = normalizeHexColor(plotter.color);
+  }
+
+  return plotterColors;
+};
+
+type LayerSettingsPayload = {
+  visible: boolean;
+  priceTagVisible: boolean;
+};
+
+const applyLayerSettingsToPlotters = (
+  plotters: IndicatorPlotter[],
+  layerSettings: LayerSettingsPayload,
+) => {
+  for (const plotter of plotters) {
+    plotter.priceTag = layerSettings.priceTagVisible;
+    plotter.priceLine = layerSettings.priceTagVisible;
+  }
+};
+
+const buildAddScriptPayload = (
+  config: IndicatorConfig,
+  layerSettings?: LayerSettingsPayload,
+) => {
+  const plotters = clonePlotters(config.plotters);
+
+  if (layerSettings) {
+    applyLayerSettingsToPlotters(plotters, layerSettings);
+  }
+
+  const markerShapeInput = config.inputs?.MARKER_SHAPE?.value;
+  const markerSizeRaw = config.inputs?.MARKER_SIZE?.value;
+  const markerSizeInput =
+    typeof markerSizeRaw === "number"
+      ? markerSizeRaw
+      : typeof markerSizeRaw === "string"
+        ? parseInt(markerSizeRaw, 10)
+        : null;
+
+  for (const plotter of plotters) {
+    if (!isNewsMarkerPlotter(plotter)) {
+      continue;
+    }
+
+    if (typeof markerShapeInput === "string" && markerShapeInput.length > 0) {
+      plotter.markerShape = markerShapeInput;
+    }
+
+    if (typeof markerSizeInput === "number" && markerSizeInput > 0) {
+      plotter.width = markerSizeInput;
+    }
+  }
+
+  return {
+    key: config.key,
+    pane: config.pane,
+    newPane: config.pane === "new" || config.newPane === true,
+    visible: layerSettings?.visible ?? true,
+    inputs: JSON.parse(JSON.stringify(config.inputs || {})),
+    plotters,
+    plotterColors: buildPlotterColors(plotters),
+    plotterDashes: buildPlotterDashMap(plotters),
+  };
+};
+
+const resolveDefaultPane = (
+  template: IndicatorConfig,
+  indicator: IndicatorConfig,
+  chart: NullableChartInstance,
+) => {
+  if (indicator.pane != null && indicator.pane !== "") {
+    return String(indicator.pane);
+  }
+
+  if (template.newPane === true) {
+    return "new";
+  }
+
+  const mainPanel = chart?.getChartPanels?.().find((panel) => panel.main);
+  return mainPanel?.id ?? chart?.getChartPanels?.()[0]?.id ?? "new";
+};
+
+const buildPanelOptions = (
+  chart: NullableChartInstance,
+  translate: (text: string) => string,
+): DialogSelectOption[] => {
+  const options: DialogSelectOption[] = [
+    {
+      value: "new",
+      label: translate("fusion_dialog_panel_selector_new_panel"),
+    },
+  ];
+
+  const panels = chart?.getChartPanels?.() ?? [];
+  for (const panel of panels) {
+    options.push({
+      value: panel.id,
+      label: panel.label,
+    });
+  }
+
+  return options;
+};
+
+const getPlotterLabel = (
+  plotter: IndicatorPlotter,
+  indicator: IndicatorConfig,
+  translate: (text: string) => string,
+) => {
+  const dataLink = plotter.dataLink;
+  const dataField = plotter.dataField;
+  const output = dataLink ? indicator.outputs?.[dataLink] : undefined;
+  const series = output?.series;
+
+  if (series && dataField) {
+    const fields = Array.isArray(series.fields)
+      ? series.fields
+      : Object.values(series.fields || {});
+    const labels = Array.isArray(series.labels)
+      ? series.labels
+      : Object.values(series.labels || {});
+    const fieldIndex = fields.findIndex((field) => String(field) === String(dataField));
+
+    if (fieldIndex >= 0 && labels[fieldIndex]) {
+      return translate(String(labels[fieldIndex]));
+    }
+  }
+
+  if (dataField) {
+    return translate(String(dataField));
+  }
+
+  return translate("line");
+};
+
+const initializeConfig = (
+  indicator: IndicatorConfig,
+  seriesManager: any,
+  catalog?: Record<string, IndicatorConfig>,
+  chart?: NullableChartInstance,
+): IndicatorConfig => {
+  const template = catalog?.[indicator.key] ?? indicator;
+  const config: IndicatorConfig = {
+    ...template,
+    ...indicator,
+    key: indicator.key,
+    title: indicator.title,
+    id: indicator.id,
+    pane: resolveDefaultPane(template, indicator, chart),
+    inputs: mergeInputsForDialog(template.inputs, indicator.inputs),
+    plotters: mergePlottersForDialog(template.plotters, indicator.plotters),
+  };
+
+  for (const key in config.inputs) {
+    const input = config.inputs[key];
 
     if (!input) continue;
 
@@ -58,16 +659,38 @@ const initializeConfig = (indicator: IndicatorConfig, seriesManager: any): Indic
     } else if (input.type === "boolean") {
       input.value = !!input.value;
     } else if (input.type === "series" && !input.value) {
-      for (let key in seriesManager) {
-        const series = seriesManager[key];
-        for (let i in series.labels) {
-          const value = series.seriesId + ":" + series.fields[i];
-          if (input?.properties?.def === series.fields[i]) {
+      let matched = false;
+
+      for (const seriesKey in seriesManager) {
+        const series = seriesManager[seriesKey];
+        for (const labelIndex in series.labels) {
+          const value = series.seriesId + ":" + series.fields[labelIndex];
+          if (input?.properties?.def === series.fields[labelIndex]) {
             input.value = value;
+            matched = true;
             break;
           }
         }
+
+        if (matched) {
+          break;
+        }
       }
+
+      if (!matched) {
+        const fallbackSeries = getFirstSeriesReference(seriesManager);
+        if (fallbackSeries) {
+          input.value = fallbackSeries;
+        }
+      }
+    } else if (input.type === "conditional") {
+      if (!input.value || typeof input.value !== "object" || !input.value.type) {
+        input.value = { type: "double", value: 0 };
+      }
+    } else if (input.type === "booleanList") {
+      const templateValue = template.inputs?.[key]?.value ?? input.value;
+      input.templateValue = JSON.parse(JSON.stringify(templateValue ?? {}));
+      input.value = normalizeBooleanListForDialog(input.value ?? input.templateValue);
     }
   }
 
@@ -75,22 +698,139 @@ const initializeConfig = (indicator: IndicatorConfig, seriesManager: any): Indic
 };
 
 export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => {
-  const [config, setConfig] = useState<IndicatorConfig>(
+  const { isCompact } = useChartEnvironment();
+  const titleId = useStableId("indicator-settings-title");
+  const t = useChartTranslate(props.chart);
+
+  const buildInitialConfig = () =>
     props.chart
-      ? initializeConfig(props.indicator, props.chart.getSeriesManager())
-      : { ...props.indicator, inputs: props.indicator.inputs || {} }
+      ? initializeConfig(
+          props.indicator,
+          props.chart.getSeriesManager(),
+          props.chart.getScripts?.() as Record<string, IndicatorConfig> | undefined,
+          props.chart,
+        )
+      : {
+          ...props.indicator,
+          inputs: props.indicator.inputs || {},
+          plotters: mergePlottersForDialog(undefined, props.indicator.plotters),
+        };
+
+  const [config, setConfig] = useState<IndicatorConfig>(buildInitialConfig);
+
+  const scriptType = resolveScriptCatalogType(props.chart, config);
+
+  const readLayerSettings = (indicatorConfig: IndicatorConfig) => {
+    const plotterPriceTagVisible = (indicatorConfig.plotters || []).some(
+      (plotter) => plotter.priceTag === true,
+    );
+    const defaults = { visible: true, priceTagVisible: plotterPriceTagVisible, locked: false };
+
+    if (!props.chart || indicatorConfig.id == null) {
+      return defaults;
+    }
+
+    const scriptId = indicatorConfig.id;
+    const type = resolveScriptCatalogType(props.chart, indicatorConfig);
+
+    if (type === "functions") {
+      const item = props.chart
+        .getChartFunctionSettings?.()
+        ?.find((entry) => entry.scriptId === scriptId);
+
+      return {
+        visible: item?.visible ?? true,
+        priceTagVisible: item?.priceTagVisible ?? false,
+        locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+      };
+    }
+
+    if (type === "strategies") {
+      const item = props.chart
+        .getChartStrategySettings?.()
+        ?.find((entry) => entry.scriptId === scriptId);
+
+      return {
+        visible: item?.visible ?? true,
+        priceTagVisible: false,
+        locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+      };
+    }
+
+    const item = props.chart
+      .getChartIndicatorSettings?.()
+      ?.find((entry) => entry.scriptId === scriptId);
+
+    return {
+      visible: item?.visible ?? true,
+      priceTagVisible: item?.priceTagVisible ?? false,
+      locked: props.chart.getChartIndicatorLocked?.(scriptId) ?? false,
+    };
+  };
+
+  const [layerSettings, setLayerSettings] = useState(() =>
+    readLayerSettings(buildInitialConfig()),
   );
 
-  const renderInputs = () => {
+  useEffect(() => {
+    const nextConfig = buildInitialConfig();
+    setConfig(nextConfig);
+    setLayerSettings(readLayerSettings(nextConfig));
+  }, [props.indicator, props.chart, props.indicator.key, props.indicator.id]);
+
+  // styled-components in this workspace pulls a mismatched React context type
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const themeContext = useContext(ThemeContext);
+  const dialogThemeVars = getIndicatorDialogCssVars(themeContext);
+
+  const translate = (text: string): string => {
+    if (props.chart) {
+      return props.chart.translate(text);
+    }
+
+    return text;
+  };
+
+  const plotterEntries = (config.plotters || []).map((plotter, index) => ({ plotter, index }));
+
+  const linePlotterEntries = plotterEntries.filter(
+    (
+      entry,
+    ): entry is {
+      plotter: IndicatorPlotter & { color: string; dash: number[] };
+      index: number;
+    } =>
+      !isStrategyPlotter(entry.plotter) &&
+      !isNewsMarkerPlotter(entry.plotter) &&
+      !isBandPlotter(entry.plotter) &&
+      !isOhlcPlotter(entry.plotter) &&
+      typeof entry.plotter.color === "string" &&
+      Array.isArray(entry.plotter.dash),
+  );
+
+  const bandPlotterEntries = plotterEntries.filter((entry) => isBandPlotter(entry.plotter));
+
+  const ohlcPlotterEntries = plotterEntries.filter((entry) => isOhlcPlotter(entry.plotter));
+
+  const strategyPlotterEntries = plotterEntries.filter((entry) => isStrategyPlotter(entry.plotter));
+
+  const newsMarkerPlotterEntries = plotterEntries.filter((entry) =>
+    isNewsMarkerPlotter(entry.plotter),
+  );
+
+  const renderParameterInputs = () => {
     const inputs: (JSX.Element | null)[] = [];
-
     const inputConfig = config.inputs || {};
-    for (let i in inputConfig) {
-      const input = inputConfig[i];
 
-      if (!input) continue;
+    for (const key in inputConfig) {
+      const input = inputConfig[key];
 
-      inputs.push(renderInput(input, i));
+      if (!input || !PARAMETER_INPUT_TYPES.has(input.type)) {
+        continue;
+      }
+
+      inputs.push(renderInput(input, key));
     }
 
     return inputs.filter((input): input is JSX.Element => input !== null);
@@ -98,143 +838,700 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
   const onInputChange = (key: string, value: any) => {
     if (!config.inputs) return;
-    const newConfig = { ...config };
-    const inputs = newConfig.inputs;
-    const input = inputs?.[key];
+
+    const newConfig = { ...config, inputs: { ...config.inputs } };
+    const input = newConfig.inputs[key];
 
     if (!input) return;
 
     input.value = value;
+    setConfig(newConfig);
+  };
 
-    setConfig(() => ({
-      ...newConfig,
-    }));
+  const onPlotterColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || typeof plotter.color !== "string") {
+      return;
+    }
+
+    plotter.color = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onStrategyBuyColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isStrategyPlotter(plotter)) {
+      return;
+    }
+
+    plotter.buyColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onStrategySellColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isStrategyPlotter(plotter)) {
+      return;
+    }
+
+    plotter.sellColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerBuyColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.buyColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerSellColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.sellColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onNewsMarkerNeutralColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isNewsMarkerPlotter(plotter)) {
+      return;
+    }
+
+    plotter.neutralColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterDashChange = (index: number, styleId: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !Array.isArray(plotter.dash)) {
+      return;
+    }
+
+    plotter.dash = getPlotterLineStyleDash(styleId);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterLineFillVisibleChange = (index: number, lineFillVisible: boolean) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillVisible = lineFillVisible;
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterLineFillModeChange = (index: number, lineFillMode: ChartLineFillMode) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillMode = lineFillMode;
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterFillColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.fillColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterFillGradientColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.fillGradientColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPlotterLineFillGradientOpacityChange = (index: number, value: number) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isPureLinePlotter(plotter)) {
+      return;
+    }
+
+    plotter.lineFillGradientOpacity = value;
+    setConfig({ ...config, plotters });
+  };
+
+  const onBandFillColorChange = (index: number, value: string) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isBandPlotter(plotter)) {
+      return;
+    }
+
+    plotter.bandFillColor = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onBandFillOpacityChange = (index: number, value: number) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isBandPlotter(plotter)) {
+      return;
+    }
+
+    plotter.bandFillOpacity = value;
+    setConfig({ ...config, plotters });
+  };
+
+  const onCandleColorChange = (
+    index: number,
+    field:
+      | "candleUpColor"
+      | "candleDownColor"
+      | "candleUpStrokeColor"
+      | "candleDownStrokeColor",
+    value: string,
+  ) => {
+    const plotters = clonePlotters(config.plotters);
+    const plotter = plotters[index];
+
+    if (!plotter || !isOhlcPlotter(plotter)) {
+      return;
+    }
+
+    plotter[field] = normalizeHexColor(value);
+    setConfig({ ...config, plotters });
+  };
+
+  const onPaneChange = (nextPane: string) => {
+    setConfig({
+      ...config,
+      pane: nextPane,
+      newPane: nextPane === "new",
+    });
+  };
+
+  const getLineStyleOptionLabel = (style: PlotterLineStyle) => {
+    const translated = translate(style.labelKey);
+    return translated !== style.labelKey ? translated : style.defaultLabel;
+  };
+
+  const buildSeriesOptions = (): DialogSelectOption[] => {
+    if (!props.chart) {
+      return [];
+    }
+
+    const seriesManager = props.chart.getSeriesManager();
+    if (!seriesManager) {
+      return [];
+    }
+
+    const options: DialogSelectOption[] = [];
+
+    for (const seriesKey in seriesManager) {
+      const series = seriesManager[seriesKey] as any;
+      const labels = Array.isArray(series.labels)
+        ? series.labels
+        : Object.values(series.labels || {});
+      const fields = Array.isArray(series.fields)
+        ? series.fields
+        : Object.values(series.fields || {});
+
+      for (let i = 0; i < labels.length; i++) {
+        const value = `${series.seriesId}:${String(fields[i])}`;
+        options.push({
+          value,
+          label: `${translate(String(series.title || ""))}.${translate(String(labels[i] || ""))}`,
+        });
+      }
+    }
+
+    return options;
+  };
+
+  const getLineFillModeOptionLabel = (option: (typeof LINE_FILL_MODE_OPTIONS)[number]) => {
+    const translated = translate(option.labelKey);
+    return translated !== option.labelKey ? translated : option.defaultLabel;
+  };
+
+  const lineFillModeOptions: DialogSelectOption[] = LINE_FILL_MODE_OPTIONS.map((option) => ({
+    value: option.id,
+    label: getLineFillModeOptionLabel(option),
+  }));
+
+  const renderPlotterAppearanceInputs = () =>
+    linePlotterEntries.flatMap(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const color = normalizeHexColor(plotter.color);
+      const lineStyleId = getPlotterLineStyleId(plotter.dash);
+      const translatedLineStyle = translate("lineStyle");
+      const lineStyleLabel =
+        translatedLineStyle !== "lineStyle" ? translatedLineStyle : "Line style";
+      const rows: JSX.Element[] = [
+        <div
+          key={`plotter-appearance-${index}-${plotter.dataField || "line"}`}
+          className={dialogSectionStyles.fieldRow}
+        >
+          <ColorField
+            label={label}
+            value={color}
+            onChange={(value) => onPlotterColorChange(index, value)}
+          />
+          <Label name={lineStyleLabel}>
+            <LineStyleSelect
+              value={lineStyleId}
+              lineColor={color}
+              onChange={(styleId) => onPlotterDashChange(index, styleId)}
+              getOptionLabel={getLineStyleOptionLabel}
+              ariaLabel={`${label} ${lineStyleLabel}`}
+            />
+          </Label>
+        </div>,
+      ];
+
+      if (!isPureLinePlotter(plotter)) {
+        return rows;
+      }
+
+      const fillColor = normalizeHexColor(
+        typeof plotter.fillColor === "string" ? plotter.fillColor : color,
+      );
+      const fillGradientColor = normalizeHexColor(
+        typeof plotter.fillGradientColor === "string" ? plotter.fillGradientColor : color,
+      );
+      const fillOpacity =
+        typeof plotter.lineFillGradientOpacity === "number"
+          ? plotter.lineFillGradientOpacity
+          : DEFAULT_LINE_FILL_GRADIENT_OPACITY;
+      const lineFillMode =
+        plotter.lineFillMode === "gradient" || plotter.lineFillMode === "solid"
+          ? plotter.lineFillMode
+          : "solid";
+      const lineFillVisible = plotter.lineFillVisible === true;
+
+      rows.push(
+        <div
+          key={`plotter-line-fill-${index}-${plotter.dataField || "line"}`}
+          className={chartSettingsStyles.colorFieldWithToggle}
+        >
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={t("chart_settings_line_fill", "Fill")}
+              value={fillColor}
+              onChange={(value) => onPlotterFillColorChange(index, value)}
+            />
+            <div className={chartSettingsStyles.gradientFillColumn}>
+              <ColorField
+                label={t("chart_settings_line_fill_gradient", "Gradient fill")}
+                value={fillGradientColor}
+                onChange={(value) => onPlotterFillGradientColorChange(index, value)}
+              />
+              <Label
+                name={`${t("chart_settings_opacity", "Opacity")} · ${Math.round(fillOpacity * 100)}%`}
+              >
+                <input
+                  type="range"
+                  className={chartSettingsStyles.rangeInput}
+                  min={5}
+                  max={100}
+                  step={5}
+                  value={Math.round(fillOpacity * 100)}
+                  onChange={(event) =>
+                    onPlotterLineFillGradientOpacityChange(index, Number(event.target.value) / 100)
+                  }
+                />
+              </Label>
+            </div>
+          </div>
+          <div className={chartSettingsStyles.colorFieldWithToggleRow}>
+            <Label name={t("chart_settings_line_fill_mode", "Fill mode")}>
+              <DialogSelect
+                value={lineFillMode}
+                options={lineFillModeOptions}
+                onChange={(value) => onPlotterLineFillModeChange(index, value as ChartLineFillMode)}
+                ariaLabel={t("chart_settings_line_fill_mode", "Fill mode")}
+              />
+            </Label>
+            <LayerIconToggle
+              active={lineFillVisible}
+              label={
+                lineFillVisible
+                  ? t("chart_settings_hide_area_under_line", "Hide area under line")
+                  : t("chart_settings_show_area_under_line", "Show area under line")
+              }
+              onChange={(next) => onPlotterLineFillVisibleChange(index, next)}
+              activeIcon={<Eye size={18} weight="regular" />}
+              inactiveIcon={<EyeSlash size={18} weight="regular" />}
+            />
+          </div>
+        </div>,
+      );
+
+      return rows;
+    });
+
+  const getBandLinesLabel = () => {
+    const upper = translate("upperBand");
+    const lower = translate("lowerBand");
+    const resolvedUpper = upper !== "upperBand" ? upper : "Upper band";
+    const resolvedLower = lower !== "lowerBand" ? lower : "Lower band";
+    return `${resolvedUpper} / ${resolvedLower}`;
+  };
+
+  const renderBandFillInputs = () =>
+    bandPlotterEntries.map(({ plotter, index }) => {
+      const bandLinesLabel = getBandLinesLabel();
+      const lineColor = normalizeHexColor(
+        typeof plotter.color === "string" ? plotter.color : "#5B6F8B",
+      );
+      const lineStyleId = getPlotterLineStyleId(
+        Array.isArray(plotter.dash) ? plotter.dash : [],
+      );
+      const translatedLineStyle = translate("lineStyle");
+      const lineStyleLabel =
+        translatedLineStyle !== "lineStyle" ? translatedLineStyle : "Line style";
+      const fillColor = normalizeHexColor(
+        typeof plotter.bandFillColor === "string"
+          ? plotter.bandFillColor
+          : lineColor,
+      );
+      const fillOpacity =
+        typeof plotter.bandFillOpacity === "number"
+          ? plotter.bandFillOpacity
+          : DEFAULT_BAND_FILL_OPACITY;
+
+      return (
+        <React.Fragment key={`band-appearance-${index}`}>
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={bandLinesLabel}
+              value={lineColor}
+              onChange={(value) => onPlotterColorChange(index, value)}
+            />
+            <Label name={lineStyleLabel}>
+              <LineStyleSelect
+                value={lineStyleId}
+                lineColor={lineColor}
+                onChange={(styleId) => onPlotterDashChange(index, styleId)}
+                getOptionLabel={getLineStyleOptionLabel}
+                ariaLabel={`${bandLinesLabel} ${lineStyleLabel}`}
+              />
+            </Label>
+          </div>
+          <div className={dialogSectionStyles.fieldRow}>
+            <ColorField
+              label={t("chart_settings_line_fill", "Fill")}
+              value={fillColor}
+              onChange={(value) => onBandFillColorChange(index, value)}
+            />
+            <Label
+              name={`${t("chart_settings_opacity", "Opacity")} · ${Math.round(fillOpacity * 100)}%`}
+            >
+              <input
+                type="range"
+                className={chartSettingsStyles.rangeInput}
+                min={5}
+                max={100}
+                step={5}
+                value={Math.round(fillOpacity * 100)}
+                onChange={(event) =>
+                  onBandFillOpacityChange(index, Number(event.target.value) / 100)
+                }
+              />
+            </Label>
+          </div>
+        </React.Fragment>
+      );
+    });
+
+  const renderOhlcCandleColorInputs = () =>
+    ohlcPlotterEntries.map(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const candleUpColor = normalizeHexColor(
+        typeof plotter.candleUpColor === "string"
+          ? plotter.candleUpColor
+          : DEFAULT_CANDLE_UP_COLOR,
+      );
+      const candleDownColor = normalizeHexColor(
+        typeof plotter.candleDownColor === "string"
+          ? plotter.candleDownColor
+          : DEFAULT_CANDLE_DOWN_COLOR,
+      );
+      const candleUpStrokeColor = normalizeHexColor(
+        typeof plotter.candleUpStrokeColor === "string"
+          ? plotter.candleUpStrokeColor
+          : DEFAULT_CANDLE_UP_STROKE_COLOR,
+      );
+      const candleDownStrokeColor = normalizeHexColor(
+        typeof plotter.candleDownStrokeColor === "string"
+          ? plotter.candleDownStrokeColor
+          : DEFAULT_CANDLE_DOWN_STROKE_COLOR,
+      );
+
+      return (
+        <div
+          key={`ohlc-candles-${index}`}
+          className={chartSettingsStyles.colorGrid}
+        >
+          <ColorField
+            label={`${label} — ${t("chart_settings_candle_up", "Candle up")}`}
+            value={candleUpColor}
+            onChange={(value) => onCandleColorChange(index, "candleUpColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_candle_down", "Candle down")}`}
+            value={candleDownColor}
+            onChange={(value) => onCandleColorChange(index, "candleDownColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_up_stroke", "Up stroke")}`}
+            value={candleUpStrokeColor}
+            onChange={(value) => onCandleColorChange(index, "candleUpStrokeColor", value)}
+          />
+          <ColorField
+            label={`${label} — ${t("chart_settings_down_stroke", "Down stroke")}`}
+            value={candleDownStrokeColor}
+            onChange={(value) => onCandleColorChange(index, "candleDownStrokeColor", value)}
+          />
+        </div>
+      );
+    });
+
+  const renderStrategyArrowColorInputs = () =>
+    strategyPlotterEntries.map(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const buyColor = normalizeHexColor(
+        typeof plotter.buyColor === "string" ? plotter.buyColor : DEFAULT_STRATEGY_BUY_COLOR,
+      );
+      const sellColor = normalizeHexColor(
+        typeof plotter.sellColor === "string" ? plotter.sellColor : DEFAULT_STRATEGY_SELL_COLOR,
+      );
+      const buyArrowLabel = translate("buyColor");
+      const sellArrowLabel = translate("sellColor");
+      const resolvedBuyLabel =
+        buyArrowLabel !== "buyColor" ? buyArrowLabel : "Buy arrow";
+      const resolvedSellLabel =
+        sellArrowLabel !== "sellColor" ? sellArrowLabel : "Sell arrow";
+
+      return (
+        <div
+          key={`strategy-arrow-colors-${index}-${plotter.dataField || "strategy"}`}
+          className={dialogSectionStyles.fieldRow}
+        >
+          <ColorField
+            label={`${label} — ${resolvedBuyLabel}`}
+            value={buyColor}
+            onChange={(value) => onStrategyBuyColorChange(index, value)}
+          />
+          <ColorField
+            label={`${label} — ${resolvedSellLabel}`}
+            value={sellColor}
+            onChange={(value) => onStrategySellColorChange(index, value)}
+          />
+        </div>
+      );
+    });
+
+  const renderNewsMarkerColorInputs = () =>
+    newsMarkerPlotterEntries.map(({ plotter, index }) => {
+      const label = getPlotterLabel(plotter, config, translate);
+      const positiveColor = normalizeHexColor(
+        typeof plotter.buyColor === "string" ? plotter.buyColor : DEFAULT_STRATEGY_BUY_COLOR,
+      );
+      const negativeColor = normalizeHexColor(
+        typeof plotter.sellColor === "string" ? plotter.sellColor : DEFAULT_STRATEGY_SELL_COLOR,
+      );
+      const neutralColor = normalizeHexColor(
+        typeof plotter.neutralColor === "string"
+          ? plotter.neutralColor
+          : DEFAULT_NEWS_MARKER_NEUTRAL_COLOR,
+      );
+      const positiveLabel = translate("newsFeedPositiveColor");
+      const negativeLabel = translate("newsFeedNegativeColor");
+      const neutralLabel = translate("newsFeedNeutralColor");
+      const resolvedPositiveLabel =
+        positiveLabel !== "newsFeedPositiveColor" ? positiveLabel : "Positive";
+      const resolvedNegativeLabel =
+        negativeLabel !== "newsFeedNegativeColor" ? negativeLabel : "Negative";
+      const resolvedNeutralLabel =
+        neutralLabel !== "newsFeedNeutralColor" ? neutralLabel : "Neutral";
+
+      return (
+        <div
+          key={`news-marker-colors-${index}-${plotter.dataField || "news"}`}
+          className={dialogSectionStyles.fieldRow}
+        >
+          <ColorField
+            label={`${label} — ${resolvedPositiveLabel}`}
+            value={positiveColor}
+            onChange={(value) => onNewsMarkerBuyColorChange(index, value)}
+          />
+          <ColorField
+            label={`${label} — ${resolvedNegativeLabel}`}
+            value={negativeColor}
+            onChange={(value) => onNewsMarkerSellColorChange(index, value)}
+          />
+          <ColorField
+            label={`${label} — ${resolvedNeutralLabel}`}
+            value={neutralColor}
+            onChange={(value) => onNewsMarkerNeutralColorChange(index, value)}
+          />
+        </div>
+      );
+    });
+
+  const getConditionalModeLabel = (mode: "double" | "series") => {
+    const key = mode === "double" ? "value" : "series";
+    const translated = translate(key);
+    return translated !== key ? translated : mode === "double" ? "Value" : "Series";
   };
 
   const renderInput = (input: IndicatorInput, key: string): JSX.Element | null => {
-    // input props: type, name, properties { def, max, min }, value
-    // input types: integer, double, series, list, boolean, matrix (join, doublecheck, mix), conditional, booleanList, timezone, object
+    const inputLabel = translate(input.name);
+
     if (input.type === "integer") {
       return (
-        <Label name={input.name} key={key + "label"}>
-          <TextInput
-            key={key}
-            placeholder={input.name}
-            type="number"
+        <Label name={inputLabel} key={key + "label"}>
+          <NumberInput
+            integer
+            allowEmpty={false}
             min={input?.properties?.min}
             max={input?.properties?.max}
             step={1}
-            allowEmpty={false}
             value={config.inputs?.[key]?.value}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              onInputChange(key, event.target.value);
-            }}
-          ></TextInput>
+            placeholder={inputLabel}
+            ariaLabel={inputLabel}
+            onChange={(nextValue) => onInputChange(key, nextValue)}
+          />
         </Label>
       );
-    } else if (input.type === "double") {
+    }
+
+    if (input.type === "double") {
       return (
-        <Label name={input.name} key={key + "label"}>
-          <TextInput
-            key={key}
-            placeholder={input.name}
-            type="number"
+        <Label name={inputLabel} key={key + "label"}>
+          <NumberInput
+            allowEmpty={false}
             min={input?.properties?.min}
             max={input?.properties?.max}
             step={input?.properties?.step}
-            allowEmpty={false}
             value={config.inputs?.[key]?.value}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              onInputChange(key, event.target.value);
-            }}
-          ></TextInput>
+            placeholder={inputLabel}
+            ariaLabel={inputLabel}
+            onChange={(nextValue) => onInputChange(key, nextValue)}
+          />
         </Label>
       );
-    } else if (input.type === "series") {
-      if (!props.chart) return null;
-      const seriesManager = props.chart.getSeriesManager();
+    }
 
-      if (!seriesManager) {
+    if (input.type === "series") {
+      if (!props.chart) return null;
+
+      const seriesOptions = buildSeriesOptions();
+
+      if (seriesOptions.length === 0) {
         console.error("No series manager available");
         return null;
       }
 
-      const translate = (text: string): string => {
-        if (props.chart) {
-          return props.chart.translate(text);
-        }
-        return text;
-      };
-
-      const renderOptions = (): JSX.Element[] => {
-        const options: JSX.Element[] = [];
-
-        for (let key in seriesManager) {
-          const series = seriesManager[key] as any;
-          const labels = Array.isArray(series.labels)
-            ? series.labels
-            : Object.values(series.labels || {});
-          const fields = Array.isArray(series.fields)
-            ? series.fields
-            : Object.values(series.fields || {});
-
-          for (let i = 0; i < labels.length; i++) {
-            const value = `${series.seriesId}:${String(fields[i])}`;
-            options.push(
-              <option key={value} value={value}>
-                {translate(String(series.title || ""))}.{translate(String(labels[i] || ""))}
-              </option>
-            );
-          }
-        }
-        return options;
-      };
+      const currentValue =
+        input.value !== null && input.value !== undefined
+          ? String(input.value)
+          : seriesOptions[0].value;
 
       return (
-        <Label name={input.name} key={key + "label"}>
-          <Select
-            value={input.value}
-            key={key}
-            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-              onInputChange(key, event.target.value);
-            }}
-          >
-            {renderOptions()}
-          </Select>
+        <Label name={inputLabel} key={key + "label"}>
+          <DialogSelect
+            value={currentValue}
+            options={seriesOptions}
+            onChange={(nextValue) => onInputChange(key, nextValue)}
+            ariaLabel={inputLabel}
+          />
         </Label>
       );
-    } else if (input.type === "list") {
-      const renderOptions = () => {
-        const options = [];
+    }
 
-        for (let key in input.list) {
-          const value = input.list[key];
+    if (input.type === "list") {
+      const listOptions = buildListOptions(input.list);
 
-          options.push(
-            <option key={value} value={value}>
-              {value}
-            </option>
-          );
-        }
-        return options;
-      };
+      const currentValue =
+        input.value !== null && input.value !== undefined
+          ? String(input.value)
+          : listOptions[0]?.value ?? "";
 
       return (
-        <Label name={input.name} key={key + "label"}>
-          <select
-            key={key}
-            value={input.value}
-            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-              onInputChange(key, event.target.value);
-            }}
-          >
-            {renderOptions()}
-          </select>
+        <Label name={inputLabel} key={key + "label"}>
+          <DialogSelect
+            value={currentValue}
+            options={listOptions}
+            onChange={(nextValue) => onInputChange(key, nextValue)}
+            ariaLabel={inputLabel}
+          />
         </Label>
       );
-    } else if (input.type === "boolean") {
+    }
+
+    if (input.type === "conditional") {
+      if (!props.chart) return null;
+
+      const seriesOptions = buildSeriesOptions();
+
+      if (seriesOptions.length === 0) {
+        console.error("No series manager available");
+        return null;
+      }
+
       return (
-        <Label name={input.name} key={key + "label"}>
+        <ConditionalInput
+          key={key + "conditional"}
+          label={inputLabel}
+          value={input.value}
+          seriesOptions={seriesOptions}
+          min={input?.properties?.min}
+          max={input?.properties?.max}
+          step={input?.properties?.step}
+          getModeLabel={getConditionalModeLabel}
+          onChange={(nextValue) => onInputChange(key, nextValue)}
+        />
+      );
+    }
+
+    if (input.type === "boolean") {
+      return (
+        <Label name={inputLabel} key={key + "label"}>
           <CheckboxInput
             key={key}
             value={config.inputs?.[key]?.value}
@@ -246,61 +1543,386 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
       );
     }
 
+    if (input.type === "booleanList") {
+      return (
+        <BooleanListInput
+          key={key + "boolean-list"}
+          label={inputLabel}
+          value={input.value || {}}
+          templateValue={input.templateValue ?? input.value ?? {}}
+          translate={translate}
+          onChange={(nextValue) => onInputChange(key, nextValue)}
+        />
+      );
+    }
+
     return null;
   };
 
-  const renderDialogBody = () => {
+  const renderPanelSelector = () => {
+    if (!props.chart) {
+      return null;
+    }
+
+    const panelOptions = buildPanelOptions(props.chart, translate);
+    if (panelOptions.length === 0) {
+      return null;
+    }
+
+    const panelLabel = translate("fusion_dialog_panel_selector_label");
+    const resolvedPanelLabel =
+      panelLabel !== "fusion_dialog_panel_selector_label" ? panelLabel : "Panel";
+
     return (
-      <Form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onIndicatorAdd();
-        }}
-      >
-        {renderInputs()}
-      </Form>
+      <div className={dialogSectionStyles.fieldRow}>
+        <Label name={resolvedPanelLabel}>
+          <DialogSelect
+            value={config.pane != null ? String(config.pane) : "new"}
+            options={panelOptions}
+            onChange={onPaneChange}
+            ariaLabel={resolvedPanelLabel}
+          />
+        </Label>
+      </div>
     );
   };
 
-  const validateForm = () => {
-    const inputConfig = config.inputs || {};
-    for (let i in inputConfig) {
-      const input = inputConfig[i];
-      if (input === null || input === undefined) return false;
+  const applyLayerSettingsToChart = (
+    scriptId: string | number,
+    settings: { visible: boolean; priceTagVisible: boolean; locked: boolean },
+    type: ScriptCatalogType = scriptType,
+  ) => {
+    if (!props.chart) {
+      return;
     }
-    // TODO: add better form validation, indicate to the user what to do to make
+
+    if (type === "functions") {
+      props.chart.setChartFunctionVisibility?.(scriptId, settings.visible);
+      props.chart.setChartFunctionPriceTagVisibility?.(scriptId, settings.priceTagVisible);
+    } else if (type === "strategies") {
+      props.chart.setChartStrategyVisibility?.(scriptId, settings.visible);
+    } else {
+      props.chart.setChartIndicatorVisibility?.(scriptId, settings.visible);
+      props.chart.setChartIndicatorPriceTagVisibility?.(scriptId, settings.priceTagVisible);
+    }
+
+    props.chart.setChartIndicatorLocked?.(scriptId, settings.locked);
+  };
+
+  const renderLayerControls = () => {
+    const supportsScale = scriptType !== "strategies";
+    const scriptId = config.id;
+
+    const setVisible = (visible: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, visible };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    const setPriceTagVisible = (priceTagVisible: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, priceTagVisible };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    const setLocked = (locked: boolean) => {
+      setLayerSettings((previous) => {
+        const next = { ...previous, locked };
+        if (scriptId != null) {
+          applyLayerSettingsToChart(scriptId, next);
+        }
+        return next;
+      });
+    };
+
+    return (
+      <DialogSection
+        title={t("indicator_settings_visibility_lock", "Visibility, scale and lock")}
+      >
+        <div className={dialogSectionStyles.fieldStack}>
+          <div className={chartSettingsStyles.toggleRow}>
+            <div>
+              <span className={chartSettingsStyles.toggleLabel}>
+                {t("drawing_settings_show_on_chart", "Show on chart")}
+              </span>
+              <span className={chartSettingsStyles.toggleHint}>
+                {t("drawing_settings_show_hint", "Hide without deleting the drawing")}
+              </span>
+            </div>
+            <LayerIconToggle
+              active={layerSettings.visible}
+              label={
+                layerSettings.visible
+                  ? t("drawing_settings_hide_drawing", "Hide drawing")
+                  : t("drawing_settings_show_drawing", "Show drawing")
+              }
+              onChange={setVisible}
+              activeIcon={<Eye size={18} weight="regular" />}
+              inactiveIcon={<EyeSlash size={18} weight="regular" />}
+            />
+          </div>
+          {supportsScale ? (
+            <div className={chartSettingsStyles.toggleRow}>
+              <div>
+                <span className={chartSettingsStyles.toggleLabel}>
+                  {t("layers_col_scale", "Scale")}
+                </span>
+                <span className={chartSettingsStyles.toggleHint}>
+                  {t("layers_hint_scale", "Show price label on the value axis")}
+                </span>
+              </div>
+              <LayerIconToggle
+                active={layerSettings.priceTagVisible}
+                label={
+                  layerSettings.priceTagVisible
+                    ? t("drawing_settings_hide_drawing", "Hide drawing")
+                    : t("drawing_settings_show_drawing", "Show drawing")
+                }
+                onChange={setPriceTagVisible}
+                activeIcon={<Eye size={18} weight="regular" />}
+                inactiveIcon={<EyeSlash size={18} weight="regular" />}
+              />
+            </div>
+          ) : null}
+          <div className={chartSettingsStyles.toggleRow}>
+            <div>
+              <span className={chartSettingsStyles.toggleLabel}>
+                {t("drawing_settings_lock_position", "Lock position")}
+              </span>
+              <span className={chartSettingsStyles.toggleHint}>
+                {t("indicator_settings_lock_hint", "Prevent opening indicator settings from the chart")}
+              </span>
+            </div>
+            <LayerIconToggle
+              active={layerSettings.locked}
+              label={
+                layerSettings.locked
+                  ? t("drawing_settings_unlock_drawing", "Unlock drawing")
+                  : t("drawing_settings_lock_drawing", "Lock drawing")
+              }
+              onChange={setLocked}
+              activeIcon={<Lock size={18} weight="regular" />}
+              inactiveIcon={<LockOpen size={18} weight="regular" />}
+            />
+          </div>
+        </div>
+      </DialogSection>
+    );
+  };
+
+  const renderDialogBody = () => {
+    const parameterInputs = renderParameterInputs();
+    const hasParameters = parameterInputs.length > 0;
+    const hasAppearanceFields =
+      linePlotterEntries.length > 0 ||
+      bandPlotterEntries.length > 0 ||
+      ohlcPlotterEntries.length > 0 ||
+      strategyPlotterEntries.length > 0 ||
+      newsMarkerPlotterEntries.length > 0;
+    const hasPanelSelector = props.chart != null && buildPanelOptions(props.chart, translate).length > 0;
+    const showAppearanceSection = hasAppearanceFields || hasPanelSelector;
+    return (
+      <div className={dialogSectionStyles.formColumn}>
+        <Form
+          style={{
+            flexDirection: "column",
+            alignItems: "stretch",
+            flexWrap: "nowrap",
+            width: "100%",
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            onIndicatorAdd();
+          }}
+        >
+          {hasParameters ? (
+            <DialogSection title={t("indicator_settings_parameters", "Parameters")}>
+              <div className={dialogSectionStyles.fieldStack}>{parameterInputs}</div>
+            </DialogSection>
+          ) : null}
+
+          {showAppearanceSection ? (
+            <DialogSection title={t("drawing_settings_appearance", "Appearance")}>
+              {hasAppearanceFields ? (
+                <div className={dialogSectionStyles.appearanceGrid}>
+                  {renderPlotterAppearanceInputs()}
+                  {renderBandFillInputs()}
+                  {renderOhlcCandleColorInputs()}
+                  {renderStrategyArrowColorInputs()}
+                  {renderNewsMarkerColorInputs()}
+                </div>
+              ) : null}
+              {renderPanelSelector()}
+            </DialogSection>
+          ) : null}
+
+          {renderLayerControls()}
+        </Form>
+      </div>
+    );
+  };
+
+  const resolveEffectiveInputValue = (input: IndicatorInput, seriesOptions: DialogSelectOption[]) => {
+    if (input.type === "conditional") {
+      return input.value;
+    }
+
+    if (input.type === "series") {
+      if (input.value !== null && input.value !== undefined) {
+        return input.value;
+      }
+
+      return seriesOptions[0]?.value ?? null;
+    }
+
+    return input.value;
+  };
+
+  const isInputValid = (input: IndicatorInput, seriesOptions: DialogSelectOption[]) => {
+    if (input.type === "conditional") {
+      return isConditionalInputValid(input.value);
+    }
+
+    if (input.type === "booleanList") {
+      return isBooleanListValid(input.value);
+    }
+
+    const effectiveValue = resolveEffectiveInputValue(input, seriesOptions);
+    return effectiveValue !== null && effectiveValue !== undefined && effectiveValue !== "";
+  };
+
+  const validateInputs = (
+    inputConfig: Record<string, IndicatorInput>,
+    seriesOptions: DialogSelectOption[],
+  ) => {
+    for (const key in inputConfig) {
+      const input = inputConfig[key];
+
+      if (!input || !PARAMETER_INPUT_TYPES.has(input.type)) {
+        continue;
+      }
+
+      if (!isInputValid(input, seriesOptions)) {
+        return false;
+      }
+    }
+
     return true;
   };
 
-  const onIndicatorAdd = () => {
-    const isFormValid = validateForm();
+  const onIndicatorAdd = async () => {
+    const seriesOptions = buildSeriesOptions();
+    const normalizedConfig: IndicatorConfig = {
+      ...config,
+      inputs: { ...(config.inputs || {}) },
+    };
 
-    if (!isFormValid) {
+    for (const key in normalizedConfig.inputs) {
+      const input = normalizedConfig.inputs[key];
+
+      if (!input) {
+        continue;
+      }
+
+      if (input.type === "series") {
+        input.value = resolveEffectiveInputValue(input, seriesOptions);
+      }
+    }
+
+    if (!validateInputs(normalizedConfig.inputs || {}, seriesOptions)) {
       console.error("Form invalid");
       return;
     }
 
     if (!props.chart) return;
-    props.chart.addScript(config.key, config as any);
+
+    const payload = buildAddScriptPayload(normalizedConfig, layerSettings) as any;
+
+    if (config.id != null && props.chart.updateIndicator) {
+      props.chart.updateIndicator(config.id, payload);
+      applyLayerSettingsToChart(config.id, layerSettings);
+    } else {
+      await Promise.resolve(props.chart.addScript(config.key, payload));
+      const newScriptId = findScriptIdByKey(props.chart, config.key);
+      if (newScriptId != null) {
+        applyLayerSettingsToChart(newScriptId, layerSettings);
+      }
+    }
+
+    props.onClose();
+  };
+
+  const getRemoveLabel = () => {
+    if (scriptType === "functions") {
+      return t("layers_remove_function", "Remove function");
+    }
+
+    if (scriptType === "strategies") {
+      return t("layers_remove_strategy", "Remove strategy");
+    }
+
+    return t("layers_remove_indicator", "Remove indicator");
+  };
+
+  const onRemoveIndicator = () => {
+    if (!props.chart || config.id == null) {
+      return;
+    }
+
+    if (scriptType === "functions") {
+      props.chart.removeChartFunction?.(config.id);
+    } else if (scriptType === "strategies") {
+      props.chart.removeChartStrategy?.(config.id);
+    } else {
+      props.chart.removeChartIndicator?.(config.id);
+    }
+
     props.onClose();
   };
 
   return (
     <>
-      <DialogContainer style={props.style}>
+      <DialogContainer
+        ariaLabelledBy={titleId}
+        style={{
+          ...dialogThemeVars,
+          ...dialogFitLayoutStyle,
+          ...getDialogCatalogLayoutStyle(isCompact),
+          ...props.style,
+        }}
+      >
         <DialogHeader>
-          <span>{`${props.indicator.title}`}</span>
-          <TextButton onClick={props.onBack} style={{ marginLeft: "auto" }}>
-            <X size={24} />
-          </TextButton>
+          <DialogHeaderTitle id={titleId}>{`${props.indicator.title}`}</DialogHeaderTitle>
+          <DialogHeaderActions>
+            {config.id != null ? (
+              <TextButton onClick={onRemoveIndicator} ariaLabel={getRemoveLabel()}>
+                <Trash size={24} aria-hidden />
+              </TextButton>
+            ) : null}
+            <TextButton onClick={props.onBack} ariaLabel={t("dialog_back", "Back")}>
+              <X size={24} aria-hidden />
+            </TextButton>
+          </DialogHeaderActions>
         </DialogHeader>
 
-        <DialogBody style={{ padding: "20px" }}>{renderDialogBody()}</DialogBody>
-        <DialogFooter>
-          <TextButton style={{ marginLeft: "auto", padding: "24px" }} onClick={onIndicatorAdd}>
-            OK
-          </TextButton>
-        </DialogFooter>
+        <DialogBody style={dialogFormBodyStyle}>
+          <div className={layoutStyles.scrollArea} style={dialogThemeVars}>
+            {renderDialogBody()}
+          </div>
+        </DialogBody>
+        <div className={layoutStyles.dialogPrimaryFooter}>
+          <DialogPrimaryButton onClick={onIndicatorAdd}>
+            {t("indicator_settings_confirm", "OK")}
+          </DialogPrimaryButton>
+        </div>
       </DialogContainer>
     </>
   );

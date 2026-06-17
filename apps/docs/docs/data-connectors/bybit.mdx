@@ -1,0 +1,210 @@
+---
+sidebar_position: 3
+title: Bybit
+description: Live and historical crypto charts from Bybit — no API key required.
+---
+
+import BybitConnectorExample from "@site/src/components/BybitConnectorExample";
+
+# Bybit Data Connector
+
+Want Bitcoin, Ethereum, or altcoin charts with **live prices** and **no API key**? The Bybit connector talks to Bybit public v5 endpoints — history over REST, candle updates over WebSocket.
+
+<BybitConnectorExample />
+
+Use the controls above to change symbol and timeframe. This is the same integration you will copy into your app.
+
+:::tip Standalone demo
+Full-page version with sample code: [Bybit live demo](/bybit-example).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **No API key** | Public Bybit spot market data |
+| **History** | Up to 1,000 candles per request |
+| **Live ticks** | WebSocket kline stream, auto-reconnect + heartbeat |
+| **Pairs** | Major spot symbols (`BTCUSDT`, `ETHUSDT`, …) |
+| **Timeframes** | 1m through monthly |
+
+Perfect for crypto dashboards, multi-exchange terminals, and prototypes.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-bybit
+```
+
+## Minimal example
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { BybitAdapter } from "@efixdata/connector-bybit";
+
+const connector = new BybitAdapter();
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("BTCUSDT", {
+  interval: "1d",
+  limit: 1000,
+});
+
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Create the connector
+
+```ts
+const connector = new BybitAdapter();
+```
+
+Uses Bybit public URLs by default (`category: "spot"`). Optional tuning below.
+
+### 2 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+The chart delegates `loadData` and `subscribeToUpdates` to the connector.
+
+### 3 — Load history
+
+```ts
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | Candle size — `"1m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` |
+| `limit` | How many recent bars (max 1,000) |
+| `from` / `to` | Optional date range instead of “latest N” |
+
+### 4 — Go live
+
+```ts
+chart.subscribeToUpdates("BTCUSDT");
+// or with a callback:
+chart.subscribeToUpdates("BTCUSDT", (tick) => { /* update UI */ });
+```
+
+### 5 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Popular symbols
+
+| Symbol | Market |
+| --- | --- |
+| `BTCUSDT` | Bitcoin / USDT |
+| `ETHUSDT` | Ethereum / USDT |
+| `BNBUSDT` | BNB / USDT |
+| `SOLUSDT` | Solana / USDT |
+| `XRPUSDT` | XRP / USDT |
+
+Symbol format is **BASE + QUOTE** with no separator (`BTCUSDT`, not `BTC-USDT`).
+
+## Switch cryptocurrency
+
+```ts
+async function switchSymbol(newSymbol: string) {
+  chart.unsubscribeFromUpdates();
+
+  await chart.loadData(newSymbol, {
+    interval: "1d",
+    limit: 500,
+  });
+
+  chart.subscribeToUpdates(newSymbol);
+}
+```
+
+Always **unsubscribe** before loading a new symbol on the same chart instance.
+
+## Custom configuration (optional)
+
+Defaults work for most apps. For retries, testnet, or alternate hosts:
+
+```ts
+const connector = new BybitAdapter({
+  baseUrl: "https://api.bybit.com",
+  wsUrl: "wss://stream.bybit.com/v5/public/spot",
+  category: "spot",
+  requestTimeout: 10000,
+  maxRetries: 5,
+  retryDelay: 2000,
+  pingIntervalMs: 20000,
+});
+```
+
+For testnet:
+
+```ts
+const connector = new BybitAdapter({
+  baseUrl: "https://api-testnet.bybit.com",
+  wsUrl: "wss://stream-testnet.bybit.com/v5/public/spot",
+});
+```
+
+## Error handling
+
+```ts
+try {
+  await chart.loadData("BTCUSDT", { interval: "1d", limit: 1000 });
+} catch (error) {
+  if (error instanceof Error && error.message.includes("Invalid symbol")) {
+    console.error("Symbol not found on Bybit");
+  } else {
+    console.error("Load failed:", error);
+  }
+}
+```
+
+Show a retry button or message in your UI — users on bad networks will thank you.
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Candles per request | 1,000 max |
+| REST rate | Public IP rate limits (see Bybit docs) |
+| WebSocket | Heartbeat ping every 20 seconds recommended |
+| Browser | Needs WebSocket support (all modern browsers) |
+
+For heavy traffic: cache history server-side.
+
+## Binance vs Bybit
+
+| | Binance | Bybit |
+| --- | --- | --- |
+| Symbol format | `BTCUSDT` | `BTCUSDT` |
+| API key for public data | No | No |
+| Best for | Largest spot liquidity | Multi-exchange apps, Bybit-native users |
+
+Need Binance, OKX, Kraken, or KuCoin instead? See [Binance](./binance), [OKX](./okx), [Kraken](./kraken), or [KuCoin](./kucoin).
+
+## What is next?
+
+- [Overview](./overview) — lifecycle and custom connectors
+- [Binance](./binance) · [OKX](./okx) · [Kraken](./kraken) · [KuCoin](./kucoin) · [CoinGecko](./coingecko) — alternative crypto connectors
+- [Loading data](../chart-usage/loading-data#loading-data-with-connectors) — all `loadData` options
+- [Live data stream](../tutorials/live-data-stream) — what happens under the hood
+- [Data Connectors catalog](/data-connectors) — compare providers

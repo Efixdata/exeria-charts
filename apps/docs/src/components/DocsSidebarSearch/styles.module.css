@@ -1,0 +1,94 @@
+.root {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Match .menu horizontal padding on desktop (0.5rem) */
+  padding: 14px 0.5rem;
+  border-bottom: 1px solid var(--doc-border);
+  background: var(--doc-surface);
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.open {
+  z-index: 250;
+}
+
+.root :global(.navbar__search) {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.root :global(.searchBarContainer) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.root :global(.navbar__search-input) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 40px;
+  margin: 0 auto;
+  padding: 0 36px 0 38px;
+  font-size: 0.875rem;
+  line-height: 40px;
+  font-family: var(--ifm-font-family-base);
+  color: var(--doc-text);
+  background-color: var(--doc-bg);
+  background-image: var(--doc-search-icon);
+  background-repeat: no-repeat;
+  background-position: 14px center;
+  background-size: 16px 16px;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-sm);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.root :global(.navbar__search-input::placeholder) {
+  color: var(--doc-text-secondary);
+  opacity: 1;
+}
+
+.root :global(.navbar__search-input:hover) {
+  border-color: color-mix(in srgb, var(--doc-border) 70%, var(--doc-text));
+}
+
+.root :global(.navbar__search-input:focus) {
+  border-color: var(--doc-accent);
+  box-shadow: 0 0 0 3px var(--doc-accent-muted-bg);
+  outline: none;
+}
+
+.root :global(.searchHintContainer),
+.root :global(.searchBarLoadingRing) {
+  display: none;
+}
+
+.root :global(.searchClearButton) {
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--doc-text-secondary);
+  right: 12px;
+  line-height: 1;
+}
+
+/* Mobile drawer — slightly more inset than desktop sidebar */
+@media (max-width: 996px) {
+  .root {
+    padding-inline: 12px;
+  }
+}

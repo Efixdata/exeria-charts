@@ -1,0 +1,106 @@
+---
+sidebar_position: 3
+title: Mobile QA Checklist
+description: Manual and automated checks before shipping charts on phones and tablets.
+---
+
+# Mobile QA checklist
+
+Charts on mobile fail in predictable ways: zero height, page scroll fighting pinch-zoom, toolbar buttons clipped behind the notch. Use this checklist **before release**.
+
+Setup guide: [Mobile and responsive](../advanced/mobile-and-responsive).  
+User-facing toolbar behavior: [Top toolbar and mobile](../chart-usage/top-toolbar-and-mobile).
+
+## Before you test
+
+| Requirement | Why |
+| --- | --- |
+| `viewport-fit=cover` meta tag | Safe areas on notched iPhones |
+| Chart container has **real height** (`vh`, `dvh`, flex) | Zero height = blank chart |
+| `ChartUI` with `compactBreakpoint={600}` (default) | Toolbar matches chart layout |
+| Optional: `mobileLayout="minimal"` | Fewer buttons on narrow bar |
+
+## Automated checks (CI-friendly)
+
+Run these in CI or locally before merge:
+
+| Check | Command | Pass when |
+| --- | --- | --- |
+| Chart environment tests | `npm --prefix packages/chart test` | Breakpoint / `matchMedia` tests green |
+| Compact layout tests | same | Desktop ↔ compact metrics toggle |
+| Pointer helper tests | same | Viewport coords for touch menu |
+| ChartUI safe-area tests | `npm --prefix packages/react-chart-ui test` | Padding uses `safe-area-inset-*` |
+| Mobile toolbar E2E | `npm --prefix apps/web run test:e2e` | Compact viewport shows ⋯ menu |
+
+## Device matrix (manual)
+
+Run your app with DevTools device mode **or** on real hardware.
+
+| Target | Viewport | Browser | Pass when |
+| --- | --- | --- | --- |
+| Phone | 390×844 | iOS Safari | No horizontal page scroll; chart fills panel; ⋯ menu opens |
+| Phone | 390×844 | Chrome Android | Pinch smooth; pan does not scroll page |
+| Phone | 360×800 | Samsung Internet | Long-press menu under finger; autoscale works |
+| Tablet | 768×1024 | Safari | Toolbar readable; layout compact or touch |
+| Narrow desktop | 580×900 | Chrome | Compact toolbar; overflow not clipped |
+| Desktop | 1280×800 | Chrome | Full toolbar; left menu when drawing |
+
+## Chart core
+
+- [ ] Resize or rotate: canvas reflows, no blank gaps
+- [ ] Value axis and time labels readable in compact mode
+- [ ] Legend truncates instead of overlapping plot
+- [ ] `chart.setLayoutMode("desktop")` forces desktop metrics on narrow window
+- [ ] `chart.setLayoutMode("auto")` restores reactive behavior
+
+## Touch interactions
+
+- [ ] Pan scrolls **chart**, not the document
+- [ ] Pinch zoom centers on fingers; stable at dataset edges
+- [ ] Long press (~500ms) opens menu **at touch point**
+- [ ] Menu actions work: go to start/end, autoscale, crosshair
+- [ ] Pinch dismisses open context menu
+- [ ] Crosshair stays after finger up (sticky crosshair)
+- [ ] Drawing hit targets feel usable (coarse pointer tolerance)
+
+Gesture reference: [Mobile and responsive](../advanced/mobile-and-responsive).
+
+## ChartUI chrome
+
+- [ ] **Pencil** toggles drawing rail without page zoom
+- [ ] `mobileLayout="default"`: indicators on compact bar
+- [ ] `mobileLayout="minimal"`: indicators only under ⋯
+- [ ] **⋯ overflow**: autoscale On/Off, scale (Lin/Log/%), settings, share (if on), currency
+- [ ] Settings dialog scrolls; OK/footer visible on small screens
+- [ ] Fullscreen uses viewport; safe area on notched devices
+- [ ] Exit fullscreen: chart height recovers (not 0px)
+
+## Page integration
+
+- [ ] `viewport-fit=cover` in HTML
+- [ ] Parent flex chain has `min-height: 0` where needed
+- [ ] No double scrollbars (page + chart)
+- [ ] Modals and dropdowns usable on touch (portals not off-screen)
+
+## When to re-run this checklist
+
+Re-test after changes to:
+
+- `chartEnvironment`, compact layout, `InteractionsController`
+- `ChartUI`, `TopMenu`, overflow menu CSS
+- Dialog components or `--ui-mobile-breakpoint`
+
+## Reporting bugs
+
+Include:
+
+- Device model, OS version, browser
+- Viewport size, `mobileLayout` prop
+- Fullscreen yes/no
+- Screen recording for gesture issues
+
+## What is next?
+
+- [Mobile and responsive](../advanced/mobile-and-responsive) — integration code
+- [React UI integration](../advanced/react-ui-integration) — ChartUI props
+- [Guides hub](../guides/)

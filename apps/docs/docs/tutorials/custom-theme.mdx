@@ -1,0 +1,73 @@
+---
+sidebar_position: 5
+title: Custom Theme
+description: Match chart colors to your brand — candles, grid, and toolbar.
+---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
+
+# Custom theme
+
+Stock charts do not have to look like everyone else's terminal. You can paint the background, candles, and grid to fit your product — dark mode, neon accents, calm pastels, whatever matches your brand.
+
+<TutorialChartDemo
+  scene="custom-theme"
+  caption="Same data, custom colors — green up-candles, coral down-candles, deep navy background."
+/>
+
+## Two places to style (do not mix them up)
+
+| Layer | What it colors | Where you set it |
+| --- | --- | --- |
+| **Chart runtime** | Candles, grid, axes, crosshair | `createChart({ theme: … })` |
+| **React UI** | Toolbar, menus, dialogs | `<ChartUI theme={…} />` |
+
+Most beginners start with the **runtime theme** — that is what people stare at. Add UI theming when you use the React wrapper.
+
+## Runtime theme (core package)
+
+Pass colors when you create the chart:
+
+```ts
+const chart = createChart({
+  container,
+  theme: {
+    background: "#0b0f17",
+    grid: "#1a2233",
+    candleUp: "#25ad98",
+    candleDown: "#d12e59",
+  },
+  themeVariant: "dark",
+});
+```
+
+`themeVariant` helps built-in labels pick readable text colors on top of your background.
+
+## React UI theme (optional wrapper)
+
+If you use `@efixdata/exeria-chart-ui-react`, style the chrome around the chart:
+
+```tsx
+<ChartUI
+  chart={chart}
+  theme={{
+    accentColor: "#14f7ab",
+    toolbar: { background: "#111827" },
+  }}
+>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
+
+## Play with colors visually
+
+Open the [live theme creator](../theming/live-theme-creator), drag sliders, and copy the generated code when you like what you see. Much faster than guessing hex codes.
+
+## Save theme with user settings
+
+Once users pick colors, persist them with [Save and restore settings](./save-and-restore-settings).
+
+## What is next?
+
+- [Theming overview](../theming/overview) — full list of theme keys
+- [Fintech integration demo](/starters/fintech-integration) — branded chart in context

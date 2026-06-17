@@ -14,10 +14,44 @@ This repository contains a core chart runtime, a React UI wrapper, a documentati
 
 ## Packages
 
+### Core (AGPL-3.0-or-later)
+
 | Package | Purpose |
 | --- | --- |
 | `@efixdata/exeria-chart` | Core chart runtime for vanilla JavaScript or framework-managed integrations |
 | `@efixdata/exeria-chart-ui-react` | React toolbar and menu layer for teams that want prebuilt chart controls |
+
+### Data connectors — free (MIT)
+
+| Package | Data source |
+| --- | --- |
+| `@efixdata/connector-binance` | Binance spot |
+| `@efixdata/connector-bybit` | Bybit |
+| `@efixdata/connector-okx` | OKX |
+| `@efixdata/connector-kraken` | Kraken |
+| `@efixdata/connector-kucoin` | KuCoin |
+| `@efixdata/connector-coinbase` | Coinbase |
+| `@efixdata/connector-gate` | Gate.io |
+| `@efixdata/connector-ccxt` | CCXT (multi-exchange) |
+| `@efixdata/connector-coingecko` | CoinGecko |
+
+### Data connectors — paid vendor (EULA, source-available)
+
+| Package | Data source |
+| --- | --- |
+| `@efixdata/connector-twelve-data` | Twelve Data |
+| `@efixdata/connector-finage` | Finage |
+| `@efixdata/connector-finnhub` | Finnhub |
+| `@efixdata/connector-eodhd` | EODHD |
+| `@efixdata/connector-massive` | Massive |
+
+Install a connector alongside the core chart:
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-binance
+```
+
+Publishing workflow and pre-release checks: [`PUBLISHING.md`](PUBLISHING.md).
 
 ## Quickstart
 
@@ -108,15 +142,18 @@ For release-contract validation:
 
 ```bash
 npm run verify:release
+npm run verify:starters
 ```
+
+See [`PUBLISHING.md`](PUBLISHING.md) for npm publish steps.
 
 ## Licensing
 
-This repository is source-available under the Exeria Charts Source Available License 1.0.
+The core packages are open source under the **GNU Affero General Public License v3.0 (AGPL v3)**.
 
-- Personal use is allowed.
-- Educational use is allowed.
-- Qualifying open source and qualifying small-scale commercial use are allowed under the Additional Use Grant.
-- Other commercial use requires a separate commercial license from Efix Data Sp. z o. o.
+- Use the core for free when your product complies with AGPL (including source obligations for distributed or network-facing use).
+- **Closed-source products** require a **commercial license** from Efix Data Sp. z o. o.
+- **Plugins** (advanced indicators, drawing tools, data bridges) are licensed **per project** under separate terms.
+- **Startup-friendly pricing** is available for qualifying commercial licenses.
 
-This is not an OSI-approved open source license. Read `LICENSE` and `LICENSING.md` before using the packages in a production or commercial setting.
+Read `LICENSE`, `LICENSING.md`, and the [licensing guide](https://exeria.dev/docs/guides/licensing) before shipping to production.

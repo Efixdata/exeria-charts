@@ -1,25 +1,47 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: Levels and Channels
-description: Work with Fibonacci levels, channels, and projection-style analytical drawings.
+description: Fibonacci, parallel channels, pitchforks, and other projection tools — with live previews.
 ---
 
 import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Levels and channels
 
-This group covers tools that project structure from a small set of anchors: `fibonLines`, `parallelChannel`, and `abcd`.
-
-## Live examples
+These tools draw **structure** from a few anchor points — Fibonacci retracements, parallel channels, pitchforks, Gann grids, regression bands. They are popular in technical analysis; you do not need to understand the math to **place** them on the chart.
 
 <DrawingToolShowcase
-  visiblePresets={["parallelChannel", "fibonLines", "abcd"]}
-  initialPreset="parallelChannel"
+  visiblePresets={[
+    "parallelChannel",
+    "fibonLines",
+    "pitchfork",
+    "regressionChannel",
+    "abcd",
+  ]}
+  initialPreset="fibonLines"
 />
 
-## Fibonacci levels
+Use the buttons above to preview each family on live data.
 
-`fibonLines` is created through `drawTool()`. The runtime accepts extra analytical fields beyond the shared `DrawToolConfig`, including the level arrays used by the React UI defaults.
+## Plain-language map
+
+| Tool family | What it shows on the chart |
+| --- | --- |
+| **Fibonacci retracement** (`fibonLines`) | Horizontal levels between a low and a high (23.6%, 38.2%, 50%, …) |
+| **Fibonacci extension** (`fibonExtension`) | Levels beyond 100% of the swing |
+| **Parallel channel** (`parallelChannel`) | Two parallel lines — trend + width |
+| **Pitchfork** (`pitchfork`) | Three-pronged median line tool |
+| **Regression channel** (`regressionChannel`) | Statistical fit band with ±σ lines |
+| **Gann fan / grid / box** | Angle and square grid overlays |
+| **ABCD** (`abcd`) | Measured-move projection |
+
+Full type list: [Catalog](./catalog).
+
+---
+
+## Fibonacci retracement (most common)
+
+Place between a swing low and swing high. The runtime draws horizontal levels at standard ratios.
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -48,14 +70,21 @@ chart.toolDrawer.drawTool({
   ],
   values: [0, 23.6, 38.2, 50, 61.8, 78.6, 100, 161.8],
   valuesState: [true, true, true, true, true, true, true, false],
-  valuesCanAdd: true,
-  valuesCanDelete: true,
 });
 ```
 
+| Field | Meaning |
+| --- | --- |
+| `values` | Level percentages to draw |
+| `valuesState` | `true` = visible, `false` = hidden |
+
+In ChartUI: **Analytical → Fibonacci Retracement** — click low, click high.
+
+---
+
 ## Parallel channel
 
-`parallelChannel` uses three anchors: two for the main direction and one for the channel width.
+**Three anchors:** two define the main line, the third sets channel width.
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -63,62 +92,80 @@ chart.toolDrawer.drawTool({
   color: "#14f7ab",
   fillBg: false,
   anchors: [
-    {
-      stamp: candles[10].stamp,
-      offset: 0,
-      value: candles[10].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "left",
-    },
-    {
-      stamp: candles[24].stamp,
-      offset: 0,
-      value: candles[24].h,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
-    {
-      stamp: candles[24].stamp,
-      offset: 0,
-      value: candles[24].l,
-      _index: 0,
-    },
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].l, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].h, _index: 0 },
+    { stamp: candles[24].stamp, offset: 0, value: candles[24].l, _index: 0 },
   ],
 });
 ```
 
-## ABCD projection
+Think of it as “draw the trend, then drag how wide the channel is.”
 
-`abcd` also uses extra analytical fields. The third anchor is typically the projected leg.
+---
+
+## Pitchfork (three anchors)
+
+Pivot point first, then two points on the baseline. The runtime draws the median line and outer parallels.
 
 ```ts
 chart.toolDrawer.drawTool({
-  type: "abcd",
-  color: "#f0b429",
+  type: "pitchfork",
+  color: "#21c1f2",
   anchors: [
-    { stamp: candles[12].stamp, offset: 0, value: candles[12].l, _index: 0 },
-    { stamp: candles[18].stamp, offset: 0, value: candles[18].h, _index: 0 },
-    {
-      stamp: candles[26].stamp,
-      offset: 0,
-      value: candles[26].l,
-      _index: 0,
-      expandable: true,
-      expanded: false,
-      defaultDirection: "right",
-    },
+    { stamp: candles[8].stamp, offset: 0, value: candles[8].h, _index: 0 },
+    { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
+    { stamp: candles[26].stamp, offset: 0, value: candles[26].h, _index: 0 },
   ],
-  values: [38.2, 50, 61.8, 100, 161.8],
-  valuesState: [true, true, true, true, true],
 });
 ```
 
-## Boundary to keep in mind
+---
 
-These tools are public in the sense that the runtime accepts them and the React UI ships defaults for them, but their advanced per-tool fields do not yet have dedicated exported TypeScript interfaces. Treat them as runtime-recognized object fields passed through `drawTool()`.
+## Regression channel
 
-If you need session windows, time spans, or price markers, continue with [Lines, ranges, and tags](./lines-ranges-and-tags).
+Fits a line through **close** prices between two times and draws ±σ bands. Shows **Pearson R** on the chart.
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "regressionChannel",
+  color: "#21c1f2",
+  source: "c",
+  fillBg: true,
+  values: [-2, 0, 2],
+  valuesState: [true, true, true],
+  anchors: [
+    { stamp: candles[10].stamp, offset: 0, value: candles[10].c, _index: 0 },
+    { stamp: candles[40].stamp, offset: 0, value: candles[40].c, _index: 0 },
+  ],
+});
+```
+
+---
+
+## More tools in this family
+
+Each tool below uses `drawTool({ type, anchors, … })`. Switch presets in the showcase above, or read the full write-up in [Complete tool reference](./tool-reference).
+
+| `type` | What it draws |
+| --- | --- |
+| `fibonExtension` | Fib levels beyond 100% of the swing |
+| `fibonTimeZone` | Vertical Fib time multiples |
+| `fibonChannel` | Parallel Fib levels in a channel (3 anchors) |
+| `fibonArcs` | Semi-elliptical Fib arcs |
+| `fibonCircles` | Concentric Fib circles |
+| `gannFan` | Gann angle rays from origin |
+| `gannGrid` | Gann square grid in a box |
+| `gannBox` | Gann grid + internal fan diagonals |
+| `abcd` | ABCD measured-move projection (3 anchors) |
+
+---
+
+## TypeScript note
+
+Advanced fields (`values`, `valuesState`, `fillBg`) are recognized by the runtime but do not always have dedicated exported types. Pass them through `drawTool()` — the shape matches what ChartUI sends internally.
+
+## What is next?
+
+- [Lines, ranges, and tags](./lines-ranges-and-tags) — horizontal levels and time windows
+- [Catalog](./catalog) — every type key
+- [Forex platforms demo](/starters/forex-platforms) — drawings in a full UI

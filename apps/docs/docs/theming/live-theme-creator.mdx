@@ -1,37 +1,102 @@
 ---
 sidebar_position: 2
 title: Live Theme Creator
-description: Tune chart runtime colors and React UI chrome separately, preview the result live, and copy the exact code to apply it.
+description: Tune chart and UI colors visually, preview on a real chart, and copy ready-to-paste code.
 ---
 
 import LiveThemeCreator from "@site/src/components/LiveThemeCreator";
 
 # Live theme creator
 
-This page keeps the two theme layers separate on purpose.
-
-- Chart runtime colors affect the chart surface itself: candles, grid, axes, crosshair, tool defaults, and tooltip surfaces.
-- React UI colors affect the wrapper chrome: toolbar, left menu, dialogs, inputs, split buttons, and surrounding controls.
-
-The preview below embeds both layers together so you can see the whole surface while still editing them independently.
-
-## How to use it
-
-1. Start from a preset that is close to the direction you want.
-2. Switch between the light and dark variants and tune each one independently.
-3. Change chart runtime colors in the chart section.
-4. Change React UI colors in the UI section.
-5. Copy the generated runtime theme, UI themes object, or full apply snippet.
-
-The generated runtime theme includes both `light` and `dark` keys so you can switch the active chart surface with `themeVariant` at runtime.
+No hex-code guessing. This page embeds a **real chart + ChartUI** and lets you drag colors, switch light/dark, and **copy the exact code** into your app.
 
 <LiveThemeCreator />
 
-## Apply model
+## Before you start
 
-The generated code follows the same boundary used elsewhere in the docs:
+Remember the two layers ([Overview](./overview)):
 
-- pass the runtime theme into `createChart({ theme: runtimeTheme, themeVariant })`
-- pass `uiThemes[themeVariant]` into `<ChartUI theme={uiThemes[themeVariant]} />`
+| Section in the creator | Goes into |
+| --- | --- |
+| **Chart colors** | `createChart({ theme: runtimeTheme, themeVariant })` |
+| **UI colors** | `<ChartUI theme={uiThemes[themeVariant]} />` |
 
-If you only use the runtime package without the React wrapper, copy the chart theme block and omit the `ChartUI` snippet.
+The preview shows **both** together so you see the full product surface.
+
+## How to use it (step by step)
+
+1. **Pick a preset** close to your brand (Trading Dark, Day, Midnight, …).
+2. Toggle **Dark** / **Light** — each variant has its own palette.
+3. Adjust **chart** sliders: background, grid, candles, crosshair, …
+4. Adjust **UI** sliders: toolbar, dialogs, text, accent.
+5. Watch the live preview update.
+6. Copy one of the generated blocks:
+   - `runtimeTheme` only (vanilla / custom React shell)
+   - `uiThemes` only (chrome refresh)
+   - **Full apply snippet** (createChart + ChartUI together)
+
+## What each chart color controls
+
+| Control | Effect |
+| --- | --- |
+| Chart background | Plot + axis backdrop |
+| Axis text | Price and time labels |
+| Grid | Grid lines |
+| Chart accent | Highlights, handles, markers |
+| Up / down candle | Bullish / bearish bodies |
+| Crosshair | Crosshair line treatment |
+| Tool default | Default drawing stroke color |
+
+## What each UI color controls
+
+| Control | Effect |
+| --- | --- |
+| Toolbar background | Top bar behind interval / indicators |
+| Dialog panel | Settings and picker surfaces |
+| Submenu surface | Left menu and open dropdowns |
+| UI accent | Active states, scrollbar hover |
+| UI text / muted text | Labels in toolbar and dialogs |
+| Divider | Borders and separators |
+
+## Apply the generated code
+
+The full snippet follows this pattern:
+
+```ts
+const chart = createChart({
+  container,
+  theme: runtimeTheme,
+  themeVariant: "dark",
+});
+```
+
+```tsx
+<ChartUI chart={chart} theme={uiThemes.dark}>
+  <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+</ChartUI>
+```
+
+`runtimeTheme` includes **both** `light` and `dark` keys. Switch at runtime:
+
+```ts
+chart.applyChartTheme(runtimeTheme, nextVariant);
+```
+
+```tsx
+<ChartUI theme={uiThemes[nextVariant]} … />
+```
+
+## Core-only apps (no ChartUI)
+
+Copy the **runtime theme** block and skip `ChartUI`. Your own HTML toolbar keeps its own CSS.
+
+## Same presets as Chart settings
+
+The six presets match **Chart settings → Theme templates** in ChartUI. Users can fine-tune in the dialog; you can ship the same baseline from code.
+
+## What is next?
+
+- [Theming overview](./overview) — mental model
+- [Custom theme tutorial](../tutorials/custom-theme)
+- [Save and restore settings](../tutorials/save-and-restore-settings) — persist user picks
+- [Fintech integration starter](/starters/fintech-integration) — branded chart in context

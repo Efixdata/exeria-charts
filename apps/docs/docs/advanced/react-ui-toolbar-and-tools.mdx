@@ -1,33 +1,43 @@
 ---
 sidebar_position: 3
 title: React UI Toolbar and Tools
-description: "Configure the ChartUI toolbar, share flow, and left-menu tool coverage using the current React UI surface."
+description: Configure ChartUI toolbar buttons, share menu, interval callback, and left-menu drawing tools.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # React UI toolbar and tools
 
-Use this page when you need the concrete control surface exposed by `ChartUI`: what the top toolbar renders, how the share menu behaves, and which cursor and drawing controls are actually available in the left menu.
+You mounted **ChartUI** ([React UI integration](./react-ui-integration)). This page is the **integrator's cheat sheet**: which buttons exist, how to hide them, how share works, and which drawing tools appear in the left menu.
 
-Start with [React UI integration](./react-ui-integration) for the wrapper contract first. This page assumes the chart already mounts correctly inside `ChartUI`.
+For what each button **does for the trader**, see [Top toolbar and mobile](../chart-usage/top-toolbar-and-mobile).
 
-## Toolbar surface
+<GettingStartedDemo
+  variant="react"
+  caption="Use theme.toolbar to show or hide parts of this bar."
+/>
 
-The current top toolbar renders these controls:
+## Top toolbar — what renders today
 
-- main chart type selection
-- interval selection
-- indicators entry point
-- autoscale toggle
-- chart-scale switch
-- fullscreen button
-- share button
-- currency switch
+The built-in **TopMenu** shows (left to right on desktop):
 
-The current ordering comes from the built-in `TopMenu` component, not from per-instance slot injection.
+| Control | Purpose |
+| --- | --- |
+| Chart type | Candles, line, Heikin-Ashi, … |
+| Interval | Timeframe (1m, 1h, 1d, …) |
+| Indicators | Open indicator picker |
+| Autoscale | Fit Y axis to visible range |
+| Scale switch | Linear / log / percent |
+| Settings | Chart settings dialog |
+| Fullscreen | Expand chart shell |
+| Share | Social share + download (when enabled) |
+| Currency | Display currency label |
 
-## Toolbar visibility controls
+Order is fixed — ChartUI does not support injecting custom buttons into the middle of this row today.
 
-Use the `theme.toolbar` object to show, hide, or reposition parts of the toolbar.
+## Hide or reposition toolbar pieces
+
+Pass `theme.toolbar` on ChartUI:
 
 ```tsx
 <ChartUI
@@ -35,14 +45,12 @@ Use the `theme.toolbar` object to show, hide, or reposition parts of the toolbar
   theme={{
     toolbar: {
       background: "#111827",
-      showShareChartButton: true,
+      showShareChartButton: false,
       showChartScaleSwitch: true,
       showCurrency: false,
       topMenuPosition: "right",
     },
-    subMenu: {
-      background: "#0f172a",
-    },
+    subMenu: { background: "#0f172a" },
     splitButton: {},
     dialog: {},
     inputs: {},
@@ -53,55 +61,54 @@ Use the `theme.toolbar` object to show, hide, or reposition parts of the toolbar
 </ChartUI>
 ```
 
-Current toggle behavior:
+| Toggle | Effect |
+| --- | --- |
+| `showShareChartButton` | Share menu on/off |
+| `showChartScaleSwitch` | Lin / Log / % switch on/off |
+| `showCurrency` | Currency label on/off |
+| `topMenuPosition: "right"` | Right-aligned toolbar variant |
 
-- `showShareChartButton` controls whether the share menu button renders at all
-- `showChartScaleSwitch` controls the chart-scale switch
-- `showCurrency` controls the currency switch on the far edge of the toolbar
-- `topMenuPosition: "right"` switches the top menu container into its right-aligned layout variant
+Need a completely custom toolbar? Build your own shell and use `createChart` without ChartUI — or hide groups you do not need and add buttons in your app header.
 
-If you need deeper structural changes than those toggles, the current wrapper does not expose slot-level composition for replacing or reordering the built-in buttons.
+## Interval selector + your data layer
 
-## Interval selection and app callbacks
-
-The interval selector reads its choices from `chart.getInstrument()?.availableIntervals`.
+The interval dropdown reads `chart.getInstrument()?.availableIntervals`. When the user picks a value, ChartUI calls your callback:
 
 ```tsx
 <ChartUI
   chart={chart}
   onIntervalChange={(symbol) => {
-    console.log("Load new candles for", symbol);
+    // e.g. "1h" — fetch and call setMainSeriesData again
+    reloadHistory(symbol);
   }}
 >
   <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
 </ChartUI>
 ```
 
-Important behavior:
+```mermaid
+sequenceDiagram
+  participant User
+  participant Toolbar
+  participant YourApp
+  participant Chart
 
-- the callback receives only the selected interval symbol
-- the toolbar also listens to the runtime `INTERVAL_CHANGE` event to keep the selected button state synchronized
-- if the instrument does not expose `availableIntervals`, the interval selector does not render useful choices
+  User->>Toolbar: picks "4h"
+  Toolbar->>YourApp: onIntervalChange("4h")
+  YourApp->>Chart: setMainSeriesData(newCandles, interval)
+  Toolbar->>Chart: listens INTERVAL_CHANGE for button state
+```
 
-Use this callback when your app owns the actual data fetch and needs to reload candles outside the wrapper.
+If `availableIntervals` is empty, the selector has nothing useful to show — set them on your `Instrument` when you wire the chart.
 
-## Share configuration
+## Share menu
 
-The share menu is enabled through `theme.toolbar.showShareChartButton` and configured through `shareConfig`.
+Enable the button and pass `shareConfig`:
 
 ```tsx
 <ChartUI
   chart={chart}
-  theme={{
-    toolbar: {
-      showShareChartButton: true,
-    },
-    subMenu: {},
-    splitButton: {},
-    dialog: {},
-    inputs: {},
-    scrollBar: {},
-  }}
+  theme={{ toolbar: { showShareChartButton: true } }}
   shareConfig={{
     apiUri: "/api/share-image",
     templateText: "Chart snapshot",
@@ -115,116 +122,95 @@ The share menu is enabled through `theme.toolbar.showShareChartButton` and confi
 </ChartUI>
 ```
 
-The built-in share menu currently offers:
+Built-in menu entries:
 
 - Twitter
 - Telegram
-- copy image link
-- download image
+- Copy image link
+- Download image
 
-Current share-flow assumptions:
+| Detail | Behavior |
+| --- | --- |
+| API | POST to `${apiUri}/session/start` (default `/api/share-image`) |
+| Watermark | `watermarkSvg` or `watermarkDataUrl` |
+| `sourceUrl` | Falls back to `window.location.href` |
+| Download | `chart.onDownload()` with active watermark |
+| Errors | Logged to console — no built-in error toast yet |
 
-- the default API base is `/api/share-image`
-- the wrapper posts to `${apiUri}/session/start`
-- the generated chart image includes the watermark passed through `watermarkDataUrl` or generated from `watermarkSvg`
-- the download entry uses `chart.onDownload()` with the active watermark
+**No share backend?** Set `showShareChartButton: false` and handle export in your own UI.
 
-If your app does not provide a compatible share backend, keep the share button hidden and use the download path only.
+## Left menu — three groups
 
-## Share-flow caveats
+The vertical strip on the left has:
 
-- share-image generation requires a live chart canvas and drawing context
-- failures are currently logged rather than surfaced through a dedicated UI error state
-- `sourceUrl` falls back to `window.location.href` when not provided
-- `templateText`, `twitterTextTemplate`, and `telegramTextTemplate` are plain text templates, not rich formatter hooks
+1. **Cursor** — default, crosshair, eraser
+2. **Lock** — toggle selecting/moving drawings (`setObjectSelectionAllowed`)
+3. **Drawing tools** — grouped list below
 
-## Left-menu surface
+### Cursor modes
 
-The left menu currently renders three control groups:
+| Mode | Runtime value |
+| --- | --- |
+| Default arrow | `DEFAULT` |
+| Crosshair | `CROSSHAIR` |
+| Eraser | `ERASER` |
 
-- cursor controls
-- object-selection lock toggle
-- drawing tools
+When a drawing tool is active, the UI maps back to default cursor styling after the shape is placed (`STAGE` mode).
 
-This is the React UI layer on top of the runtime interaction system. It does not expose every possible runtime tool or every runtime mode.
+### Lock button
 
-## Cursor controls
+Toggles whether users can select and drag existing drawings. Same as locking all in [Chart settings](../chart-usage/chart-settings) → Drawings tab.
 
-The current cursor controls are:
+### Drawing tools in the menu today
 
-- `DEFAULT`
-- `CROSSHAIR`
-- `ERASER`
+**Lines**
 
-The cursor group listens to runtime `CURSOR_CHANGE` events and maps the `STAGE` drawing mode back to the default cursor button state once a drawing tool is active.
+- `trendLine`, `parallelChannel`, `hLine`, `vLine`, `mLine`
 
-## Object-selection lock
+**Shapes**
 
-The lock button toggles `chart.setObjectSelectionAllowed(true | false)`.
+- `arrow`, `ellipse`, `triangle`, `box`
 
-Use it when your app wants the toolbar-level affordance for locking or unlocking drawing-object selection without writing a custom shell control.
+**Analytical**
 
-## Drawing tool coverage
+- `abcd`, `cycle`, `fibonLines`
 
-The left menu currently exposes these grouped tool entries:
+**Standalone**
 
-### Lines group
+- `priceTag`, `hRange`, `vRange`
 
-- `trendLine`
-- `parallelChannel`
-- `hLine`
-- `vLine`
-- `mLine`
-
-### Shapes group
-
-- `arrow`
-- `ellipse`
-- `triangle`
-- `box`
-
-### Analytical tools group
-
-- `abcd`
-- `cycle`
-- `fibonLines`
-
-### Standalone items
-
-- `priceTag`
-- `hRange`
-- `vRange`
-
-Tool selection currently switches the interactor into `STAGE` mode with the selected tool definition and clears the active selection once the drawing flow completes.
+Full catalog (34 tools): [Drawing tools reference](../drawing-tools/tool-reference).
 
 ## Important boundary
 
-The runtime can create more tools than the React menu shows.
+The **runtime** supports more tools than the React menu shows. Examples:
 
-Two practical examples:
+- `textAnnotation` exists in code but is **not** in the left menu
+- You can create `pitchfork`, `gannFan`, volume profile, etc. via `toolDrawer.drawTool()` without adding menu entries
 
-- programmatic `toolDrawer` usage can create tools without exposing them in the UI shell
-- `textAnnotation` exists in the current React drawing-tool registry but is not rendered in the visible left menu
+| Need | Path |
+| --- | --- |
+| Tools visible in ChartUI menu | Listed above only |
+| Any documented drawing type | `chart.toolDrawer` — [Drawing and interaction](../chart-usage/drawing-and-interaction) |
+| Custom menu | Your own React shell + `toolDrawer` |
 
-Use [Drawing and interaction](../chart-usage/drawing-and-interaction) when you need the underlying runtime API instead of the visible React menu subset.
+## When to use built-in UI vs your own
 
-## Practical recommendation
+**Use ChartUI toolbar and left menu when:**
 
-Use the built-in React controls when:
+- Default buttons match your product
+- You want interval, indicators, autoscale, fullscreen, and share quickly
+- The menu subset is enough for your users
 
-- the current toolbar buttons match your product needs closely enough
-- you want quick access to interval switching, indicators, autoscale, fullscreen, and share actions
-- the left-menu subset of drawing tools is sufficient for your UI
+**Build your own chrome when:**
 
-Drop down to your own shell controls when:
+- You need custom button order or branding in the top bar
+- Share needs rich error handling or a non-standard API
+- You need drawing tools that are only available programmatically
 
-- you need custom toolbar ordering or custom button composition
-- you need richer share error handling or a nonstandard share backend
-- you need tools or interaction states that are available programmatically but not surfaced in the React menu
+## What is next?
 
-## Continue reading
-
-- [React UI integration](./react-ui-integration)
-- [React quickstart](../getting-started/react)
-- [Drawing and interaction](../chart-usage/drawing-and-interaction)
-- [Theming overview](../theming/overview)
+- [React UI integration](./react-ui-integration) — layout, themes, SSR
+- [Top toolbar and mobile](../chart-usage/top-toolbar-and-mobile) — user-facing toolbar guide
+- [Chart settings](../chart-usage/chart-settings) — settings dialog layers
+- [Drawing tools](../drawing-tools/) — all shapes and code examples

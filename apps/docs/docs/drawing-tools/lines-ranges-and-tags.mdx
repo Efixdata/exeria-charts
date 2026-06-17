@@ -1,25 +1,35 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 title: Lines, Ranges, and Tags
-description: Create price levels, time markers, session windows, and pinned price labels.
+description: Price levels, time markers, session windows, and pinned price labels.
 ---
 
 import DrawingToolShowcase from "@site/src/components/DrawingToolShowcase";
 
 # Lines, ranges, and tags
 
-This group covers single-axis markers, span tools, and the helper overlays that work directly from time ranges.
-
-## Live examples
+Not every markup needs Fibonacci math. This group is the **everyday** stuff: flat price levels, vertical event lines, shaded time windows, and sticky price labels.
 
 <DrawingToolShowcase
-  visiblePresets={["hLine", "timeRange", "timeBet", "priceTag"]}
+  visiblePresets={["hLine", "vLine", "hRay", "vRay", "crossLine", "mLine", "hRange", "vRange", "timeRange", "timeBet", "priceTag"]}
   initialPreset="hLine"
 />
 
-## Horizontal and vertical lines
+## Quick picker
 
-Use `hLine` for a price level and `vLine` for a time marker.
+| You want to mark… | Tool | Anchors |
+| --- | --- | ---: |
+| A price (support/resistance) | `hLine` | 1 |
+| A moment in time | `vLine` | 1 |
+| A session or review period | `timeRange` | 2 or helper |
+| A pinned price label | `priceTag` | 1 |
+| A price or time **span** | `hRange` / `vRange` | 2 |
+
+---
+
+## Horizontal price level
+
+The classic “support at 42,000” line:
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -35,7 +45,19 @@ chart.toolDrawer.drawTool({
     },
   ],
 });
+```
 
+`priceTag: true` prints the price on the line.
+
+**Rays:** `hRay` and `vRay` stop at the plot edge instead of spanning the full panel. `crossLine` draws both axes through one point.
+
+---
+
+## Vertical time marker
+
+Mark an event — earnings, Fed announcement, your user’s entry time:
+
+```ts
 chart.toolDrawer.drawTool({
   type: "vLine",
   color: "#f0b429",
@@ -50,36 +72,20 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-Use `mLine` when you want a custom three-anchor line structure.
+---
 
-## Horizontal and vertical ranges
+## Time range — shaded session window
 
-`hRange` and `vRange` use two anchors and support extra runtime fields such as `text` and `flipped`.
+Highlight “London session” or “last 4 hours” on the time axis.
 
-```ts
-chart.toolDrawer.drawTool({
-  type: "vRange",
-  color: "#5cc8ff",
-  text: "Breakout window",
-  flipped: false,
-  anchors: [
-    { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
-    { stamp: candles[28].stamp, offset: 0, value: candles[28].h, _index: 0 },
-  ],
-});
-```
-
-## Time window helper
-
-Use `drawTimeRange()` when you already know the start timestamp and the duration.
+### Helper (easiest)
 
 ```ts
 chart.toolDrawer.drawTimeRange({
   text: "Review range",
   startTime: candles[20].stamp,
-  timeRange: 4 * 60 * 60 * 1000,
+  timeRange: 4 * 60 * 60 * 1000, // 4 hours in ms
   config: {
-    editable: false,
     color: "#5cc8ff",
     secondaryColor: "rgba(255, 255, 255, 0.08)",
     textColor: "#F7FBFF",
@@ -87,9 +93,65 @@ chart.toolDrawer.drawTimeRange({
 });
 ```
 
-## Risk or outcome window helper
+### Or `drawTool` with two anchors
 
-Use `drawTimeBet()` when you want a time-bound directional box with price and outcome metadata.
+Same visual — use when both start and end times come from user clicks.
+
+In ChartUI: **Ranges → Time range** — click or drag on the chart.
+
+---
+
+## Price and time spans
+
+### Horizontal range — `hRange`
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "hRange",
+  color: "#14f7ab",
+  text: "Risk zone",
+  anchors: [
+    { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
+    { stamp: candles[28].stamp, offset: 0, value: candles[28].h, _index: 0 },
+  ],
+});
+```
+
+### Vertical range — `vRange`
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "vRange",
+  color: "#5cc8ff",
+  text: "Breakout window",
+  anchors: [
+    { stamp: candles[20].stamp, offset: 0, value: candles[20].l, _index: 0 },
+    { stamp: candles[28].stamp, offset: 0, value: candles[28].h, _index: 0 },
+  ],
+});
+```
+
+---
+
+## Multi-line — `mLine`
+
+```ts
+chart.toolDrawer.drawTool({
+  type: "mLine",
+  color: "#5cc8ff",
+  anchors: [
+    { stamp: candles[5].stamp, offset: 0, value: candles[5].l, _index: 0 },
+    { stamp: candles[15].stamp, offset: 0, value: candles[15].h, _index: 0 },
+    { stamp: candles[25].stamp, offset: 0, value: candles[25].c, _index: 0 },
+  ],
+});
+```
+
+---
+
+## Risk / outcome overlay — `drawTimeBet`
+
+A time-boxed directional bet with reward/risk metadata — useful for education or paper-trading UIs:
 
 ```ts
 chart.toolDrawer.drawTimeBet({
@@ -102,20 +164,21 @@ chart.toolDrawer.drawTimeBet({
   status: "ACTIVE",
   isWinning: true,
   config: {
-    editable: false,
     color: "rgba(12, 18, 33, 0.72)",
     winningColor: "#25AD98",
     losingColor: "#D12E59",
-    secondaryColor: "rgba(255, 255, 255, 0.1)",
-    textColor: "#F7FBFF",
     priceTag: true,
   },
 });
 ```
 
-## Price tags
+Not in the left toolbar menu — code or custom UI only. See [catalog](./catalog).
 
-`priceTag` is its own drawing type in the left menu. Create it with `drawTool()` and a single anchor.
+---
+
+## Price tag
+
+Pin a readable price label at a point:
 
 ```ts
 chart.toolDrawer.drawTool({
@@ -132,4 +195,14 @@ chart.toolDrawer.drawTool({
 });
 ```
 
-If you want geometric highlight tools instead of line and span tools, continue with [Shapes and annotations](./shapes-and-annotations).
+ChartUI: **Tag → Price tag**.
+
+---
+
+## What is next?
+
+- [Complete tool reference](./tool-reference) — all line and range types
+
+- [Shapes and annotations](./shapes-and-annotations) — boxes, arrows, text
+- [Trend line](./trend-line) — simplest two-point line
+- [Drawing and interaction](../chart-usage/drawing-and-interaction) — crosshair and mobile

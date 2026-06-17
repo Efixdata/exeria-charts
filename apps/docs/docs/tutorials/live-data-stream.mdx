@@ -1,0 +1,104 @@
+---
+sidebar_position: 3
+title: Live Data Stream
+description: Update the chart with live prices — explained for beginners.
+---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
+
+# Live data stream
+
+Static history is a great start. This tutorial adds **movement**: as new prices arrive, the rightmost candle grows or a new one appears.
+
+<TutorialChartDemo
+  scene="live-stream"
+  caption="Preview: new ticks arrive every second and nudge the last price. Your feed can be a WebSocket, polling, or a Data Connector."
+/>
+
+## What you are building
+
+A chart that stays current without reloading hundreds of old candles. Perfect for dashboards, tickers, and trading terminals.
+
+**Before this tutorial:** complete [Chart with your data](./chart-with-your-data) or use a [Data Connector](./connect-with-data-connector).
+
+## One price update at a time
+
+A **tick** is a single price point at a moment in time. Send it to the chart like this:
+
+```ts
+chart.appendTick({
+  stamp: Date.now(),
+  price: 102.45,
+  v: 120,
+});
+```
+
+The chart figures out whether to extend the current candle or start a new one based on `stamp` and your interval.
+
+### Many ticks at once
+
+If your feed batches updates:
+
+```ts
+chart.appendTicks([
+  { stamp: 1715480000000, price: 102.1, v: 40 },
+  { stamp: 1715480000060, price: 102.3, v: 55 },
+]);
+```
+
+## Wire a WebSocket (typical pattern)
+
+Most live apps listen to a server that pushes prices:
+
+```ts
+const socket = new WebSocket("wss://your-feed.example/prices");
+
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  chart.appendTick({
+    stamp: message.time,
+    price: message.last,
+    v: message.size ?? 0,
+  });
+};
+```
+
+When the page closes, clean up both sides:
+
+```ts
+socket.close();
+chart.destroy();
+```
+
+## Even easier: use a Data Connector
+
+For public crypto feeds you can skip writing fetch code:
+
+```ts
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  // optional: show last price in your UI
+  console.log(tick.c, new Date(tick.stamp));
+});
+```
+
+See [Connect with a Data Connector](./connect-with-data-connector) for the full setup.
+
+## Keep it smooth
+
+Very fast feeds (dozens of ticks per second) can make the chart work harder than it needs to. Batch updates in your app — for example every 100 ms or on each animation frame — then call `appendTicks` once per batch.
+
+## Indicators on live data
+
+If you have scripts (EMA, RSI, …) and want them to recalculate on every tick, pass `true` as the second argument:
+
+```ts
+chart.appendTick({ stamp: Date.now(), price: 99.5 }, true);
+```
+
+For a simple price line you can leave the default (`false`) and save CPU.
+
+## What is next?
+
+- [Realtime updates](../chart-usage/realtime-updates) — reference details
+- [Crypto terminal demo](/starters/crypto-terminal) — full live terminal example

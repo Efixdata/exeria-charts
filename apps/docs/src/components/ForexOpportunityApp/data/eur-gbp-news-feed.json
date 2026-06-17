@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-eur-gbp",
+  "instrument": "EUR/GBP",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "events": [
+    {
+      "id": "eurgbp-eu-pmi-soft-2026-06-01",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780297200000,
+      "source": {
+        "name": "S&P Global",
+        "url": "https://www.spglobal.com"
+      },
+      "title": "Eurozone PMI misses — EUR lags cable",
+      "summary": "Composite PMI slips below forecast while UK services hold firm. EUR/GBP drifts lower as sterling outperforms on relative growth.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["pmi", "activity"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": -4.8, "direction": "down" },
+        { "horizon": "1h", "pips": -7.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-ecb-boe-diverge-2026-06-02",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780416000000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "ECB hold vs steady BoE — cross grinds lower",
+      "summary": "Both central banks on hold, but BoE rhetoric perceived marginally hawkish. EUR/GBP fades from session highs into NY.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["central-bank", "rates"],
+      "impact": [
+        { "horizon": "15m", "pips": -3.1, "direction": "down" },
+        { "horizon": "1h", "pips": -5.6, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-uk-cpi-gap-2026-06-03",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780466400000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "UK CPI beat widens rate gap vs euro area",
+      "summary": "Hot UK inflation print contrasts with softer EZ data. Sterling leg bid — EUR/GBP breaks support at 0.8640.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": -8.9, "direction": "down" },
+        { "horizon": "1h", "pips": -12.4, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-uk-gdp-steryling-2026-06-05",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780648200000,
+      "source": {
+        "name": "ONS",
+        "url": "https://www.ons.gov.uk"
+      },
+      "title": "UK GDP miss — EUR/GBP bounces on GBP unwind",
+      "summary": "Growth disappointment hits cable harder than euro. Cross recovers as traders square GBP longs vs EUR.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["gdp", "growth"],
+      "impact": [
+        { "horizon": "15m", "pips": 6.5, "direction": "up" },
+        { "horizon": "1h", "pips": 9.1, "direction": "up" }
+      ]
+    },
+    {
+      "id": "eurgbp-us-cpi-cross-2026-06-05",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780698600000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Hot US CPI — EUR and GBP both sold, cross stable",
+      "summary": "Dollar strength flattens the cross as both legs weaken. Implied triangular arb tightens vs quoted EUR/GBP spot.",
+      "sentiment": "neutral",
+      "importance": "medium",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 1.2, "direction": "up" },
+        { "horizon": "1h", "pips": -2.3, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-eu-pmi-beat-2026-06-08",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780953300000,
+      "source": {
+        "name": "S&P Global",
+        "url": "https://www.spglobal.com"
+      },
+      "title": "EU services PMI beats — euro catches a bid",
+      "summary": "Activity surprise lifts EUR crosses. EUR/GBP grinds higher into the London close.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["pmi", "activity"],
+      "impact": [
+        { "horizon": "15m", "pips": 5.7, "direction": "up" },
+        { "horizon": "1h", "pips": 8.3, "direction": "up" }
+      ]
+    },
+    {
+      "id": "eurgbp-uk-wages-2026-06-09",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1780993800000,
+      "source": {
+        "name": "ONS",
+        "url": "https://www.ons.gov.uk"
+      },
+      "title": "UK wages hot — sterling reclaims leadership",
+      "summary": "Wage growth beat revives BoE hawkish bets. EUR/GBP slides as GBP outperforms on the crosses.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["employment", "wages"],
+      "impact": [
+        { "horizon": "15m", "pips": -7.4, "direction": "down" },
+        { "horizon": "1h", "pips": -10.8, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-nfp-cross-vol-2026-06-12",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1781234100000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "NFP whipsaw — triangular cross mispricing widens",
+      "summary": "Blowout payrolls move EUR/USD and GBP/USD by different amounts. Quoted EUR/GBP lags implied cross briefly.",
+      "sentiment": "neutral",
+      "importance": "high",
+      "categories": ["employment", "arb"],
+      "impact": [
+        { "horizon": "15m", "pips": 4.3, "direction": "up" },
+        { "horizon": "1h", "pips": -3.8, "direction": "down" }
+      ]
+    },
+    {
+      "id": "eurgbp-cross-stabilizes-2026-06-12",
+      "instrument": "EUR/GBP",
+      "releasedAt": 1781241300000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "EUR/GBP converges after NFP arb window",
+      "summary": "Market-makers reprice the cross toward synthetic fair value. Volatility compresses above 0.8625.",
+      "sentiment": "neutral",
+      "importance": "low",
+      "categories": ["market-color", "arb"],
+      "impact": [
+        { "horizon": "15m", "pips": -2.1, "direction": "down" },
+        { "horizon": "1h", "pips": 1.6, "direction": "up" }
+      ]
+    }
+  ]
+}

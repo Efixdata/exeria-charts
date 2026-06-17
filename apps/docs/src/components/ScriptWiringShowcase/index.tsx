@@ -2,6 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 import { docsCandleCount, docsExampleDatasets, docsInterval } from "../chartExampleData";
+import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
+import showcaseStyles from "../docsShowcase.module.css";
 
 type WiringPresetKey = "emaSmaCross" | "crossToPosition" | "emaDisplace" | "emaVsSmaIf";
 
@@ -67,17 +75,17 @@ function asConditionalSeries(reference: string) {
 async function addMovingAveragePair(chart: ChartInstance) {
   const ema = getScriptClone(chart, "EMA");
   ema.inputs.PERIODS.value = 12;
-  chart.addScript("EMA", ema);
+  await chart.addScript("EMA", ema);
 
   const sma = getScriptClone(chart, "SMA");
   sma.inputs.PERIODS.value = 34;
-  chart.addScript("SMA", sma);
+  await chart.addScript("SMA", sma);
 
   await waitForFrame();
 
   return {
     emaRef: getSeriesReference(chart, "EMA"),
-    smaRef: getSeriesReference(chart, "SMA"),
+    smaRef: getSeriesReference(chart, "SMAValue"),
   };
 }
 
@@ -98,7 +106,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       cross.inputs.ONDN.value = "Buy";
       cross.inputs.ONUP.value = "Sell";
 
-      chart.addScript("CROSS", cross);
+      await chart.addScript("CROSS", cross);
     },
   },
   crossToPosition: {
@@ -114,7 +122,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       const cross = getScriptClone(chart, "CROSS");
       cross.inputs.LINE.value = emaRef;
       cross.inputs.SIGNAL.value = smaRef;
-      chart.addScript("CROSS", cross);
+      await chart.addScript("CROSS", cross);
 
       await waitForFrame();
 
@@ -123,7 +131,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       position.inputs.WEIGHT.value = 1;
       position.inputs.MULTIPLIER.value = { type: "double", value: 1 };
 
-      chart.addScript("POSITION", position);
+      await chart.addScript("POSITION", position);
     },
   },
   emaDisplace: {
@@ -136,7 +144,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
     async apply(chart) {
       const ema = getScriptClone(chart, "EMA");
       ema.inputs.PERIODS.value = 21;
-      chart.addScript("EMA", ema);
+      await chart.addScript("EMA", ema);
 
       await waitForFrame();
 
@@ -145,7 +153,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       displace.inputs.PERIODS.value = 18;
       displace.inputs.VALUE.value = 0;
 
-      chart.addScript("DISPLACE", displace);
+      await chart.addScript("DISPLACE", displace);
     },
   },
   emaVsSmaIf: {
@@ -165,7 +173,7 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
       ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
 
-      chart.addScript("IF", ifScript);
+      await chart.addScript("IF", ifScript);
     },
   },
 };
@@ -180,6 +188,7 @@ export default function ScriptWiringShowcase({
   const [activePresetKey, setActivePresetKey] = useState<WiringPresetKey>(
     initialPreset && definitions[initialPreset] ? initialPreset : availablePresets[0] ?? "emaSmaCross"
   );
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
@@ -197,24 +206,35 @@ export default function ScriptWiringShowcase({
       }
 
       setError(null);
-
-      const chartModule = await import("@efixdata/exeria-chart");
-      if (disposed) {
-        return;
-      }
-
-      const chart = chartModule.createChart({ container });
-      chartRef.current = chart;
+      setLoading(true);
 
       try {
+        const chartModule = await import("@efixdata/exeria-chart");
+        if (disposed) {
+          return;
+        }
+
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
+        chartRef.current = chart;
+
         chart.init();
-        await chart.setMainSeriesData(candles, docsInterval);
+        await chart.setMainSeriesData(candles, docsInterval, false);
+        applyDocsChartPreset(chart);
         chart.setMainDrawMode("OHLC");
         await activePreset.apply(chart);
         chart.setAutoScale(true);
+        await alignDocsChartViewport(chart);
+
+        if (!disposed) {
+          setLoading(false);
+        }
       } catch (nextError) {
         if (!disposed) {
           setError(nextError instanceof Error ? nextError.message : "Failed to load script example");
+          setLoading(false);
         }
       }
     };
@@ -250,21 +270,27 @@ export default function ScriptWiringShowcase({
         <div style={styles.descriptionBlock}>
           <span style={styles.controlLabel}>What it wires</span>
           <p style={styles.description}>{activePreset.description}</p>
-          <div style={styles.codeHint}>{activePreset.codeHint}</div>
+          <div className={showcaseStyles.codeHint}>{activePreset.codeHint}</div>
         </div>
       </div>
 
       <div style={styles.metaRow}>
         <span style={styles.metaTag}>Live MDX example</span>
-        <span style={styles.metaChip}>{activePreset.category}</span>
-        <span style={styles.metaChip}>{activePreset.wiringType}</span>
-        <span style={styles.metaChip}>{docsCandleCount} candles</span>
-        <span style={styles.metaChip}>BTC/USD fixture</span>
+        <span className={showcaseStyles.metaChip}>{activePreset.category}</span>
+        <span className={showcaseStyles.metaChip}>{activePreset.wiringType}</span>
+        <span className={showcaseStyles.metaChip}>{docsCandleCount} candles</span>
+        <span className={showcaseStyles.metaChip}>BTC/USD fixture</span>
       </div>
 
-      {error ? <div style={styles.errorBox}>{error}</div> : null}
-
-      <div ref={containerRef} style={styles.chartSurface} />
+      <DocChartEmbed
+        minHeight={460}
+        height={460}
+        background={docsChartEmbedBackground}
+        loading={loading}
+        error={error}
+      >
+        <div ref={containerRef} className={docChartEmbedStyles.canvas} />
+      </DocChartEmbed>
     </div>
   );
 }
@@ -326,17 +352,6 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.65,
   },
-  codeHint: {
-    padding: "12px 14px",
-    borderRadius: 16,
-    border: "1px solid var(--doc-border)",
-    background: "rgba(5, 5, 5, 0.88)",
-    color: "#d9f1ff",
-    fontSize: 13,
-    fontFamily: "var(--ifm-font-family-monospace)",
-    lineHeight: 1.6,
-    overflowX: "auto",
-  },
   metaRow: {
     display: "flex",
     flexWrap: "wrap",
@@ -355,10 +370,12 @@ const styles: Record<string, CSSProperties> = {
     textTransform: "uppercase",
   },
   metaChip: {
+    display: "inline-flex",
+    alignItems: "center",
     padding: "6px 10px",
     borderRadius: 999,
-    background: "rgba(240, 180, 41, 0.12)",
-    border: "1px solid rgba(240, 180, 41, 0.22)",
+    background: "var(--doc-warning-muted-bg)",
+    border: "1px solid var(--doc-warning-muted-border)",
     color: "var(--doc-text)",
     fontSize: 12,
     fontWeight: 600,
@@ -368,19 +385,9 @@ const styles: Record<string, CSSProperties> = {
   errorBox: {
     padding: "14px 16px",
     borderRadius: 16,
-    border: "1px solid rgba(209, 46, 89, 0.28)",
-    background: "rgba(209, 46, 89, 0.08)",
+    border: "1px solid var(--doc-danger-border)",
+    background: "var(--doc-danger-bg)",
     color: "var(--doc-text)",
     fontSize: 14,
-  },
-  chartSurface: {
-    minHeight: 460,
-    height: 460,
-    width: "100%",
-    overflow: "hidden",
-    borderRadius: 24,
-    border: "1px solid var(--doc-border)",
-    background: "#050505",
-    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
   },
 };

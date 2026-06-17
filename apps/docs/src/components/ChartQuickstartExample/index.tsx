@@ -8,10 +8,22 @@ import {
   type ExampleDataset,
   type ExampleDatasetKey,
 } from "../chartExampleData";
+import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
+import {
+  applyDocsChartPreset,
+  alignDocsChartViewport,
+  docsChartEmbedBackground,
+  getDocsChartCreateOptions,
+} from "../docsChartTheme";
+import showcaseStyles from "../docsShowcase.module.css";
 
 const drawModes: DrawMode[] = ["OHLC", "Line", "Histogram"];
 
-export default function ChartQuickstartExample() {
+type ChartQuickstartExampleProps = {
+  compact?: boolean;
+};
+
+export default function ChartQuickstartExample({ compact = false }: ChartQuickstartExampleProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
   const chartStateRef = useRef<{ datasetKey: ExampleDatasetKey; drawMode: DrawMode }>({
@@ -20,6 +32,8 @@ export default function ChartQuickstartExample() {
   });
   const [datasetKey, setDatasetKey] = useState<ExampleDatasetKey>("trend");
   const [drawMode, setDrawMode] = useState<DrawMode>("OHLC");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const activeDataset = useMemo(() => docsExampleDatasets[datasetKey], [datasetKey]);
 
@@ -36,18 +50,41 @@ export default function ChartQuickstartExample() {
         return;
       }
 
-      const chartModule = await import("@efixdata/exeria-chart");
-      if (disposed) {
-        return;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const chartModule = await import("@efixdata/exeria-chart");
+        if (disposed) {
+          return;
+        }
+
+        const chart = chartModule.createChart({
+          container,
+          ...getDocsChartCreateOptions(),
+        });
+        const initialState = chartStateRef.current;
+        chartRef.current = chart;
+
+        chart.init();
+        await chart.setMainSeriesData(
+          docsExampleDatasets[initialState.datasetKey].candles,
+          docsInterval,
+          false,
+        );
+        applyDocsChartPreset(chart);
+        chart.setMainDrawMode(initialState.drawMode);
+        await alignDocsChartViewport(chart);
+
+        if (!disposed) {
+          setLoading(false);
+        }
+      } catch (nextError) {
+        if (!disposed) {
+          setError(nextError instanceof Error ? nextError.message : "Failed to load chart example");
+          setLoading(false);
+        }
       }
-
-      const chart = chartModule.createChart({ container });
-      const initialState = chartStateRef.current;
-      chartRef.current = chart;
-
-      chart.init();
-      await chart.setMainSeriesData(docsExampleDatasets[initialState.datasetKey].candles, docsInterval);
-      chart.setMainDrawMode(initialState.drawMode);
     };
 
     void mountChart();
@@ -65,53 +102,76 @@ export default function ChartQuickstartExample() {
       return;
     }
 
-    void chart.setMainSeriesData(activeDataset.candles, docsInterval);
-    chart.setMainDrawMode(drawMode);
+    void (async () => {
+      await chart.setMainSeriesData(activeDataset.candles, docsInterval, false);
+      chart.setMainDrawMode(drawMode);
+      await alignDocsChartViewport(chart);
+    })();
   }, [activeDataset, drawMode]);
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.controls}>
-        <div>
-          <span style={styles.controlLabel}>Dataset</span>
-          <div style={styles.buttonRow}>
-            {(Object.entries(docsExampleDatasets) as [ExampleDatasetKey, ExampleDataset][]).map(([key, dataset]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setDatasetKey(key)}
-                style={key === datasetKey ? styles.activeButton : styles.button}
-              >
-                {dataset.label}
-              </button>
-            ))}
+    <div style={compact ? styles.compactWrapper : styles.wrapper}>
+      {!compact ? (
+        <>
+          <div style={styles.controls}>
+            <div>
+              <span style={styles.controlLabel}>Dataset</span>
+              <div style={styles.buttonRow}>
+                {(Object.entries(docsExampleDatasets) as [ExampleDatasetKey, ExampleDataset][]).map(
+                  ([key, dataset]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setDatasetKey(key)}
+                      style={key === datasetKey ? styles.activeButton : styles.button}
+                    >
+                      {dataset.label}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span style={styles.controlLabel}>Draw mode</span>
+              <div style={styles.buttonRow}>
+                {drawModes.map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDrawMode(mode)}
+                    style={mode === drawMode ? styles.activeButton : styles.button}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <span style={styles.controlLabel}>Draw mode</span>
-          <div style={styles.buttonRow}>
-            {drawModes.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setDrawMode(mode)}
-                style={mode === drawMode ? styles.activeButton : styles.button}
-              >
-                {mode}
-              </button>
-            ))}
+          <div style={styles.metaRow}>
+            <span style={styles.metaTag}>Public API only</span>
+            <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
+            <span className={showcaseStyles.metaChip}>{docsCandleCount} candles per dataset</span>
           </div>
-        </div>
-      </div>
+        </>
+      ) : null}
 
-      <div style={styles.metaRow}>
-        <span style={styles.metaTag}>Public API only</span>
-        <span style={styles.metaText}>createChart • init • setMainSeriesData • setMainDrawMode</span>
-        <span style={styles.metaChip}>{docsCandleCount} candles per dataset</span>
-      </div>
-
-      <div ref={containerRef} style={styles.chartSurface} />
+      {compact ? (
+        <DocChartEmbed nested background={docsChartEmbedBackground} loading={loading} error={error}>
+          <div ref={containerRef} className={docChartEmbedStyles.canvas} />
+        </DocChartEmbed>
+      ) : (
+        <DocChartEmbed
+          minHeight={420}
+          height={420}
+          background={docsChartEmbedBackground}
+          loading={loading}
+          error={error}
+        >
+          <div ref={containerRef} className={docChartEmbedStyles.canvas} />
+        </DocChartEmbed>
+      )}
     </div>
   );
 }
@@ -184,25 +244,8 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 14,
     fontFamily: "var(--ifm-font-family-monospace)",
   },
-  metaChip: {
-    padding: "6px 10px",
-    borderRadius: 999,
-    background: "rgba(92, 200, 255, 0.12)",
-    border: "1px solid rgba(92, 200, 255, 0.2)",
-    color: "var(--doc-text)",
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: "0.06em",
-    textTransform: "uppercase",
-  },
-  chartSurface: {
-    minHeight: 420,
-    height: 420,
+  compactWrapper: {
     width: "100%",
-    overflow: "hidden",
-    borderRadius: 24,
-    border: "1px solid var(--doc-border)",
-    background: "#050505",
-    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
+    height: "100%",
   },
 };

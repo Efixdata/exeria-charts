@@ -1,0 +1,1400 @@
+.shell {
+  --fintech-bg: #000000;
+  --fintech-surface: #0b0d12;
+  --fintech-surface-raised: #12151d;
+  --fintech-border: #1a1f2b;
+  --fintech-text: #f5f7fb;
+  --fintech-muted: #8b93a7;
+  --fintech-positive: #7ce7a5;
+  --fintech-negative: #ff6b8a;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% -8%, rgba(255, 45, 154, 0.18), transparent 36%),
+    radial-gradient(circle at 92% 2%, rgba(59, 130, 246, 0.16), transparent 32%),
+    radial-gradient(circle at 50% 120%, rgba(155, 89, 255, 0.08), transparent 40%),
+    var(--fintech-bg);
+  color: var(--fintech-text);
+  font-family: "Inter", "SF Pro Text", system-ui, sans-serif;
+}
+
+.shellLight {
+  --fintech-bg: #f0f3fa;
+  --fintech-surface: #ffffff;
+  --fintech-surface-raised: #ffffff;
+  --fintech-border: #e0e3eb;
+  --fintech-text: #131722;
+  --fintech-muted: #787b86;
+  --fintech-positive: #089981;
+  --fintech-negative: #f23645;
+  background:
+    radial-gradient(circle at 12% -6%, rgba(41, 98, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(8, 153, 129, 0.06), transparent 30%),
+    var(--fintech-bg);
+}
+
+.shellLight .frame {
+  border-inline-color: rgba(19, 23, 34, 0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), transparent 220px);
+}
+
+.shellLight .marketToggleButton[data-active="true"] {
+  background: rgba(41, 98, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(41, 98, 255, 0.16);
+}
+
+.shellLight .bottomNav {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.shellLight .chartGlow {
+  opacity: 0.45;
+}
+
+.shellLight .chartSkeleton {
+  background: linear-gradient(90deg, #f0f3fa 0%, #ffffff 50%, #f0f3fa 100%);
+}
+
+.shellLight .sparklinePlaceholder {
+  background: #eef1f7;
+}
+
+.shellLight .periodPill {
+  border: 1px solid var(--fintech-border);
+  background: #ffffff;
+  color: var(--fintech-muted);
+}
+
+.shellLight .periodPill[data-active="true"] {
+  background: #2962ff;
+  border-color: #2962ff;
+  color: #ffffff;
+}
+
+.shellLight .viewToggleButton[data-active="true"] {
+  background: #2962ff;
+  color: #ffffff;
+}
+
+.shellBank {
+  --fintech-accent: #2962ff;
+}
+
+.shellBank .avatar {
+  background: linear-gradient(135deg, #2962ff, #1e4fbf);
+}
+
+.shellBank .marketToggleButton[data-active="true"] {
+  background: rgba(41, 98, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(41, 98, 255, 0.2);
+}
+
+.shellBank .bottomNavButton[data-primary="true"] {
+  background: linear-gradient(135deg, #2962ff, #1e4fbf);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ghostButton:focus-visible,
+.marketToggleButton:focus-visible,
+.viewToggleButton:focus-visible,
+.periodPill:focus-visible,
+.balanceToggle:focus-visible,
+.bottomNavButton:focus-visible,
+.chartLegendChip:focus-visible,
+.holdingCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fintech-text) 70%, transparent);
+  outline-offset: 2px;
+}
+
+.shellLight .ghostButton:focus-visible,
+.shellLight .marketToggleButton:focus-visible,
+.shellLight .viewToggleButton:focus-visible,
+.shellLight .periodPill:focus-visible,
+.shellLight .balanceToggle:focus-visible,
+.shellLight .bottomNavButton:focus-visible,
+.shellLight .chartLegendChip:focus-visible,
+.shellLight .holdingCard:focus-visible {
+  outline-color: #2962ff;
+}
+
+.frame {
+  width: min(480px, 100%);
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-inline: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 220px);
+}
+
+.topBar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 10px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff2d9a, #9b59ff);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.brandMark {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fintech-muted);
+}
+
+.brandTitle {
+  margin: 2px 0 0;
+  font-size: 1.02rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ghostButton {
+  border: 1px solid var(--fintech-border);
+  background: transparent;
+  color: var(--fintech-text);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghostButton:hover {
+  background: color-mix(in srgb, var(--fintech-border) 45%, transparent);
+}
+
+.scrollBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.pullIndicator {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.18s ease;
+}
+
+.pullIndicatorLabel {
+  padding-bottom: 6px;
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pullIndicatorLabel[data-ready="true"] {
+  color: var(--fintech-text);
+}
+
+.marketToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 20px 6px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--fintech-surface);
+  border: 1px solid var(--fintech-border);
+}
+
+.marketToggleButton {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--fintech-muted);
+  font-size: 0.86rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.marketToggleButton[data-active="true"] {
+  background: linear-gradient(135deg, rgba(255, 45, 154, 0.22), rgba(155, 89, 255, 0.22));
+  color: var(--fintech-text);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.hero {
+  padding: 4px 20px 2px;
+}
+
+.greeting {
+  margin: 0 0 4px;
+  color: var(--fintech-muted);
+  font-size: 0.94rem;
+}
+
+.portfolioHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portfolioLabel {
+  margin: 0;
+  color: var(--fintech-muted);
+  font-size: 0.84rem;
+}
+
+.balanceToggle {
+  border: 1px solid var(--fintech-border);
+  background: transparent;
+  color: var(--fintech-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.balanceToggle[aria-pressed="true"] {
+  color: var(--fintech-text);
+  background: color-mix(in srgb, var(--fintech-border) 40%, transparent);
+}
+
+.balanceToggleIcon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.portfolioValue {
+  margin: 8px 0 4px;
+  font-size: clamp(2.1rem, 8vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.portfolioValue[data-ready="true"] {
+  animation: valueIn 0.45s ease;
+}
+
+.portfolioChange {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.portfolioChange[data-tone="up"] {
+  color: var(--fintech-positive);
+}
+
+.portfolioChange[data-tone="down"] {
+  color: var(--fintech-negative);
+}
+
+.cashRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 20px 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.cashTile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cashLabel {
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cashValue {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.cashDivider {
+  width: 1px;
+  height: 34px;
+  background: var(--fintech-border);
+}
+
+.holdingMetaPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.holdingWeight {
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.insightStrip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 78%);
+  gap: 10px;
+  overflow-x: auto;
+  padding: 14px 20px 10px;
+  scrollbar-width: none;
+}
+
+.insightStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.insightCard {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--fintech-border);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--insight-accent, #9b59ff) 12%, transparent), transparent 55%),
+    var(--fintech-surface);
+  min-height: 118px;
+}
+
+.insightCard[data-loading="true"] {
+  background: linear-gradient(90deg, #0b0d12 0%, #151821 50%, #0b0d12 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.insightEyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.insightTitle {
+  margin: 0 0 4px;
+  font-size: 1.02rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.insightBody {
+  margin: 0;
+  color: var(--fintech-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.insightBody[data-tone="up"] {
+  color: var(--fintech-positive);
+}
+
+.insightBody[data-tone="down"] {
+  color: var(--fintech-negative);
+}
+
+.insightProgressTrack {
+  margin-top: 12px;
+  height: 5px;
+  border-radius: 999px;
+  background: #151821;
+  overflow: hidden;
+}
+
+.insightProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #9b59ff, #ff2d9a);
+}
+
+.viewToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 4px 20px 0;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--fintech-surface);
+  border: 1px solid var(--fintech-border);
+}
+
+.viewToggleButton {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--fintech-muted);
+  font-size: 0.86rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.viewToggleButton[data-active="true"] {
+  background: var(--fintech-text);
+  color: #050608;
+}
+
+.periodRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 20px 6px;
+  scrollbar-width: none;
+}
+
+.periodRow::-webkit-scrollbar {
+  display: none;
+}
+
+.periodPill {
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--fintech-surface);
+  color: var(--fintech-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.periodPill[data-active="true"] {
+  background: var(--fintech-text);
+  color: #050608;
+}
+
+.chartSection {
+  position: relative;
+  padding: 0 0 4px;
+}
+
+.chartSection[data-offscreen="true"] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(100vw, 480px);
+  height: min(48vh, 380px);
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.chartLegend {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chartLegend::-webkit-scrollbar {
+  display: none;
+}
+
+.chartLegendChip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--fintech-border);
+  border-radius: 999px;
+  background: var(--fintech-surface);
+  color: var(--fintech-text);
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chartLegendChip[data-variant="asset"] {
+  cursor: pointer;
+}
+
+.chartLegendChip[data-variant="benchmark"] {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--series-color) 7%, var(--fintech-surface));
+}
+
+.chartLegendChip[data-variant="asset"][data-focused="true"] {
+  border-color: color-mix(in srgb, var(--series-color) 55%, var(--fintech-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--series-color) 20%, transparent);
+}
+
+.chartLegendChip[data-variant="asset"][data-dimmed="true"] {
+  opacity: 0.5;
+}
+
+.chartLegendDot {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--series-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--series-color) 55%, transparent);
+}
+
+.chartLegendDot[data-variant="benchmark"] {
+  box-shadow: none;
+  background: transparent;
+  border: 2px dashed var(--series-color);
+}
+
+.chartLegendLabel {
+  font-weight: 600;
+}
+
+.chartLegendValue {
+  color: var(--series-color);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chartShell {
+  position: relative;
+  height: min(48vh, 380px);
+  margin: 0 4px;
+}
+
+.chartGlow {
+  position: absolute;
+  inset: 18% 8% 12%;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 45, 154, 0.12), transparent 42%),
+    radial-gradient(circle at 70% 40%, rgba(59, 130, 246, 0.1), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(18px);
+}
+
+.chartCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transition: opacity 0.28s ease;
+}
+
+.chartShell[data-transitioning="true"] .chartCanvas {
+  opacity: 0.72;
+}
+
+.chartTransitionVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--fintech-bg) 35%, transparent));
+  opacity: 0.65;
+  animation: chartVeilIn 0.28s ease;
+}
+
+.chartSkeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, #0b0d12 0%, #151821 50%, #0b0d12 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  opacity: 0.72;
+}
+
+.chartError {
+  position: absolute;
+  inset: auto 20px 12px;
+  margin: 0;
+  color: var(--fintech-negative);
+  font-size: 0.85rem;
+  z-index: 3;
+}
+
+.allocationSection {
+  padding: 8px 20px 10px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 650;
+}
+
+.sectionHint {
+  color: var(--fintech-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.allocationRing {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.allocationRingEmpty {
+  min-height: 120px;
+  border-radius: 20px;
+  background: var(--fintech-surface);
+}
+
+.allocationChart {
+  position: relative;
+  width: 112px;
+  height: 112px;
+}
+
+.allocationSvg {
+  width: 112px;
+  height: 112px;
+}
+
+.allocationCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.allocationCenterLabel,
+.allocationCenterSub {
+  color: var(--fintech-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.allocationCenter strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.allocationLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.allocationLegend li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.84rem;
+  color: var(--fintech-muted);
+}
+
+.allocationLegend strong {
+  color: var(--fintech-text);
+  font-size: 0.86rem;
+}
+
+.allocationSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.sectorBreakdown {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.sectorStack {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--fintech-border);
+}
+
+.sectorStackSegment {
+  background: var(--sector-color);
+  min-width: 4px;
+}
+
+.sectorList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sectorList li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--fintech-muted);
+}
+
+.sectorSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.sectorName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectorList strong {
+  color: var(--fintech-text);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rebalanceCard {
+  margin: 8px 20px 0;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.rebalanceCard[data-loading="true"] {
+  min-height: 120px;
+  background: linear-gradient(90deg, #0b0d12 0%, #151821 50%, #0b0d12 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.rebalanceHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rebalanceLead {
+  margin: 0 0 12px;
+  color: var(--fintech-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.rebalanceLead strong {
+  color: var(--fintech-text);
+}
+
+.rebalanceBars {
+  display: grid;
+  gap: 10px;
+}
+
+.rebalanceBarRow {
+  display: grid;
+  grid-template-columns: 52px 1fr 36px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--fintech-muted);
+}
+
+.rebalanceBarRow strong {
+  color: var(--fintech-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rebalanceTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--fintech-border);
+  overflow: hidden;
+}
+
+.rebalanceFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.rebalanceFill[data-variant="current"] {
+  background: var(--rebalance-color, #9b59ff);
+}
+
+.rebalanceFill[data-variant="target"] {
+  background: color-mix(in srgb, var(--rebalance-color, #9b59ff) 45%, var(--fintech-border));
+}
+
+.activitySection {
+  padding: 12px 20px 4px;
+}
+
+.activityFeed {
+  display: grid;
+  gap: 8px;
+}
+
+.activityRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.activityRow[data-loading="true"] {
+  min-height: 56px;
+  background: linear-gradient(90deg, #0b0d12 0%, #151821 50%, #0b0d12 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.activityIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--fintech-border) 55%, transparent);
+  color: var(--fintech-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.activityRow[data-type="deposit"] .activityIcon {
+  color: var(--fintech-positive);
+}
+
+.activityRow[data-type="buy"] .activityIcon {
+  color: #9b59ff;
+}
+
+.activityRow[data-type="dividend"] .activityIcon {
+  color: #f59e0b;
+}
+
+.activityCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.activityCopy strong {
+  font-size: 0.88rem;
+}
+
+.activityCopy span {
+  color: var(--fintech-muted);
+  font-size: 0.74rem;
+}
+
+.activityAmount {
+  color: var(--fintech-positive);
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.shellLight .rebalanceCard[data-loading="true"],
+.shellLight .activityRow[data-loading="true"] {
+  background: linear-gradient(90deg, #f0f3fa 0%, #ffffff 50%, #f0f3fa 100%);
+}
+
+.watchlistSection {
+  padding: 10px 20px 8px;
+}
+
+.watchlistRow {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(148px, 42%);
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 0 6px;
+  scroll-padding-inline: 20px;
+  scrollbar-width: none;
+}
+
+.watchlistRow::-webkit-scrollbar {
+  display: none;
+}
+
+.watchlistCard {
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-surface);
+}
+
+.watchlistCard[data-loading="true"] {
+  opacity: 0.65;
+}
+
+.watchlistCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.watchlistDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.watchlistName {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.watchlistSymbol {
+  margin: 2px 0 0;
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+}
+
+.watchlistChange {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.watchlistChange[data-tone="up"] {
+  color: var(--fintech-positive);
+}
+
+.watchlistChange[data-tone="down"] {
+  color: var(--fintech-negative);
+}
+
+.watchlistChange[data-empty="true"] {
+  color: var(--fintech-muted);
+  font-weight: 600;
+}
+
+.holdings {
+  padding: 10px 20px 12px;
+}
+
+.holdingCard {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px;
+  border: 1px solid var(--fintech-border);
+  border-radius: 18px;
+  background: var(--fintech-surface);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.holdingCard[data-focused="true"] {
+  border-color: color-mix(in srgb, var(--holding-color) 55%, white);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--holding-color) 16%, transparent);
+  transform: translateY(-1px);
+}
+
+.holdingCardMain {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.holdingIdentity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.holdingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: currentColor;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, currentColor 35%, white),
+    0 0 12px color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.holdingName {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 650;
+}
+
+.holdingSymbol {
+  margin: 2px 0 0;
+  color: var(--fintech-muted);
+  font-size: 0.76rem;
+}
+
+.holdingCardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.holdingChange {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.holdingChange[data-tone="up"] {
+  color: var(--fintech-positive);
+}
+
+.holdingChange[data-tone="down"] {
+  color: var(--fintech-negative);
+}
+
+.holdingValue {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.sparkline {
+  width: 88px;
+  height: 32px;
+  display: block;
+}
+
+.sparklinePlaceholder {
+  display: block;
+  width: 88px;
+  height: 32px;
+  border-radius: 8px;
+  background: #151821;
+}
+
+.demoNote {
+  margin: 0;
+  padding: 0 20px 14px;
+  color: var(--fintech-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.bottomNav {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--fintech-border);
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(14px);
+}
+
+.bottomNavButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 8px;
+  background: transparent;
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.bottomNavButton[data-active="true"] {
+  color: var(--fintech-text);
+}
+
+.bottomNavButton[data-primary="true"] {
+  background: linear-gradient(135deg, #ff2d9a, #9b59ff);
+  color: #fff;
+}
+
+.bottomNavIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.62);
+  z-index: 60;
+  cursor: pointer;
+}
+
+.shellLight .sheetBackdrop {
+  background: rgba(19, 23, 34, 0.32);
+}
+
+.assetSheet {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 70;
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--fintech-border);
+  border-radius: 24px 24px 0 0;
+  background: var(--fintech-surface);
+  color: var(--fintech-text);
+  animation: sheetIn 0.28s ease;
+}
+
+.sheetHandle {
+  width: 42px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: var(--fintech-border);
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.sheetEyebrow {
+  margin: 0 0 4px;
+  color: var(--fintech-muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sheetTitle {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.sheetPrice {
+  margin: 6px 0 2px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sheetChange {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.sheetChange[data-tone="up"] {
+  color: var(--fintech-positive);
+}
+
+.sheetChange[data-tone="down"] {
+  color: var(--fintech-negative);
+}
+
+.sheetClose {
+  border: 1px solid var(--fintech-border);
+  background: transparent;
+  color: var(--fintech-text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.sheetChart {
+  margin: 8px 0 14px;
+}
+
+.sheetChartShell {
+  position: relative;
+  height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--fintech-border);
+  background: var(--fintech-bg);
+}
+
+.shellLight .sheetChartShell {
+  background: #ffffff;
+}
+
+.shellLight .sheetStats div {
+  background: var(--fintech-surface-raised);
+}
+
+.sheetChartCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+.sheetStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.sheetStats div {
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--fintech-surface);
+  border: 1px solid var(--fintech-border);
+}
+
+.sheetStats span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--fintech-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sheetStats strong {
+  font-size: 0.92rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes chartVeilIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.65;
+  }
+}
+
+@keyframes valueIn {
+  from {
+    opacity: 0.4;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .frame {
+    min-height: min(100dvh, 960px);
+  }
+
+  .chartShell {
+    height: min(44vh, 400px);
+  }
+}

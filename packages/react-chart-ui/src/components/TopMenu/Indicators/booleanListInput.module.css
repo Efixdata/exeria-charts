@@ -1,0 +1,65 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2, 8px);
+  margin-bottom: var(--ui-space-3, 12px);
+}
+
+.search {
+  position: relative;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: var(--ui-space-1, 4px);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2, 8px);
+  min-height: 36px;
+  padding: 0 var(--ui-space-1, 4px);
+  border-radius: var(--ui-radius-md, 6px);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--indicator-row-hover, rgba(255, 255, 255, 0.06));
+}
+
+.label {
+  flex: 1;
+  font-size: var(--ui-font-body, 13px);
+  color: var(--indicator-row-text, rgba(255, 255, 255, 0.88));
+  user-select: none;
+}
+
+.empty {
+  font-size: var(--ui-font-label, 12px);
+  color: var(--indicator-row-muted, rgba(255, 255, 255, 0.5));
+  text-align: center;
+  padding: var(--ui-space-3, 12px) 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--ui-space-2, 8px);
+}
+
+.actionButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--indicator-action-color, #2962ff);
+  font-size: var(--ui-font-label, 12px);
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  text-decoration: underline;
+}

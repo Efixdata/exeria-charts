@@ -1,111 +1,151 @@
 ---
 sidebar_position: 2
 title: Indicator Catalog
-description: Browse the current built-in indicator families and the keys you add with chart.addScript().
+description: Complete list of all 97 built-in indicator keys, display names, and default panel placement.
 ---
+
+import TutorialChartDemo from "@site/src/components/TutorialChartDemo";
 
 # Indicator catalog
 
-The source of truth for built-in indicator keys is the Fusion indicator registry in `packages/chart/src/fusion-scripts/indicators/index.ts`. This page groups the most visible keys into practical families so you can find the right starting point faster.
+Every built-in indicator in `@efixdata/exeria-chart`. Pass the **Key** to `chart.addScript("KEY")`.
 
-## Moving averages and trend overlays
+<TutorialChartDemo scene="indicators" caption="Any key below can be added with chart.addScript()." />
 
-- `EMA`
-- `SMA`
-- `WMA`
-- `HMA`
-- `DMA`
-- `MMA`
-- `DOUBLEEMA`
-- `TRIPLEEMA`
-- `VWMA`
-- `ALMA`
-- `ENVELOPE`
-- `ICHIMOKU`
-- `PARSAR`
-- `TREND`
+## How to read this table
 
-## Bands, channels, and volatility overlays
+| Column | Meaning |
+| --- | --- |
+| **Key** | String for `addScript()` — case-sensitive |
+| **Display name** | Label in ChartUI (English) |
+| **Default pane** | **Overlay** = main chart; **New panel** = separate strip below |
 
-- `BBAND`
-- `VARBANDS`
-- `KELTNERCHANNEL`
-- `DONCHIANCHANNEL`
-- `CHANDEKROLLSTOP`
-- `STANDARDDEVIATION`
-- `HISTORICALVOLATILITY`
-- `ATR`
-- `MASSINDEX`
+Override pane and input series in the settings dialog — [Series and panels](../series-and-panels).
 
-## Momentum and oscillator indicators
+## Quick families
 
-- `RSI`
-- `MACD`
-- `CCI`
-- `SMI`
-- `STOCHASTICOSCILLATOR`
-- `AROON`
-- `MOMENTUM`
-- `ROC`
-- `TSI`
-- `AWESOMEOSCILLATOR`
-- `CHANDEMOMENTUMOSCILLATOR`
-- `COPPOCKCURVE`
-- `DPO`
-- `Ultimate_OSC`
-- `WILLIAMSPERCENTRANGE`
+| Family | Keys (sample) |
+| --- | --- |
+| Moving averages | `SMA`, `EMA`, `WMA`, `HMA`, `VWMA`, `ALMA`, `DMA`, `MMA`, `DOUBLEEMA`, `TRIPLEEMA` |
+| Bands & channels | `BBAND`, `KELTNERCHANNEL`, `DONCHIANCHANNEL`, `ENVELOPE`, `VARBANDS` |
+| Oscillators | `RSI`, `MACD`, `CCI`, `STOCHASTICOSCILLATOR`, `MOMENTUM`, `ROC`, `TSI` |
+| Volume | `VOLUME`, `OBV`, `CMF`, `ADL`, `NVI`, `PVI`, `VOLUMEOSCILLATOR` |
+| Price transforms | `HeikinAshi`, `HL2`, `HLC3`, `OHLC4`, `OC2`, `ZIGZAG` |
+| Pivot / levels | `PIVOTPOINTS`, `PIVOTPOINTSHL`, `PRICELEVELS` |
 
-## Volume and money-flow indicators
+## Complete registry (97 indicators)
 
-- `VOLUME`
-- `OBV`
-- `ADL`
-- `CMF`
-- `ACCUMULATION`
-- `CHAIKINOSCILLATOR`
-- `FORCEINDEX`
-- `ELDERSFORCEINDEX`
-- `NETVOLUME`
-- `VOLUMEOSCILLATOR`
-- `VOLUMEROC`
-- `NVI`
-- `PVI`
+| --- | --- | --- |
+| `MACD` | MACD | New panel |
+| `WMA` | WMA | Overlay |
+| `HMA` | HMA | Overlay |
+| `HeikinAshi` | Heikin-Ashi | New panel |
+| `BBAND` | Bollinger Bands | Overlay |
+| `ATR` | ATR | New panel |
+| `ADX` | ADX | New panel |
+| `HLINE` | HLINE | Overlay |
+| `SMA` | SMA | Overlay |
+| `EMA` | EMA | Overlay |
+| `CCI` | CCI | New panel |
+| `CEX` | CEX | Overlay |
+| `CHAIKIN` | CHAIKIN | New panel |
+| `DIRMOV` | DIRMOV | New panel |
+| `ENVELOPE` | Envelope | Overlay |
+| `MINUSDI` | Minus DI | New panel |
+| `MOMENTUM` | Momentum | New panel |
+| `OPENINT` | OPENINT | New panel |
+| `VOLUME` | VOLUME | Overlay |
+| `PARSAR` | PARSAR | Overlay |
+| `PLUSDI` | Plus DI | New panel |
+| `TREND` | Price Trend | New panel |
+| `ROC` | ROC | New panel |
+| `RSI` | RSI | New panel |
+| `SMI` | SMI | New panel |
+| `STOCHASTICOSCILLATOR` | Stochastic Oscillator | New panel |
+| `Ultimate_OSC` | Ultimate Oscillator | New panel |
+| `EQUITY` | Equity | New panel |
+| `ICHIMOKU` | Ichimoku | Overlay |
+| `TRADINGTIMEFRAME` | Trading Time Frame | New panel |
+| `MMA` | MMA | Overlay |
+| `DPO` | DPO | New panel |
+| `DMA` | DMA | Overlay |
+| `DINAPOLIDETRENDOSCILLATOR` | DiNapoli Detrend Oscillator | New panel |
+| `DINAPOLI3X3` | DiNapoli 3x3 | Overlay |
+| `DINAPOLIPREFERREDSTOCHASTIC` | DiNapoli Preferred Stochastic | New panel |
+| `DINAPOLIMACD` | DiNapoli MACD | New panel |
+| `DINAPOLIMACDPREDICTOR` | DiNapoli MACD Predictor | Overlay |
+| `DOP` | DiNapoli Oscillator Predictor | Overlay |
+| `FORWARD` | Forward | Overlay |
+| `FORECAST` | Forecast | Overlay |
+| `VARBANDS` | Varbands | Overlay |
+| `DECISIONLONGBUY` | Buy Decisions - Monthly | Overlay |
+| `DECISIONLONGSELL` | Sell Decisions - Monthly | Overlay |
+| `DECISIONSHORTBUY` | Buy Decisions - Weekly | Overlay |
+| `DECISIONSHORTSELL` | Sell Decisions - Weekly | Overlay |
+| `SIGNALDISTANCE` | Signal Distance | New panel |
+| `ACCUMULATION` | Accumulation | New panel |
+| `PRICELEVELS` | Price Levels | Overlay |
+| `OBV` | OBV | New panel |
+| `ADL` | ADL | New panel |
+| `CMF` | CMF | New panel |
+| `NVI` | NVI | New panel |
+| `PVI` | PVI | New panel |
+| `ZIGZAG` | Zig Zag | Overlay |
+| `PIVOTPOINTS` | Pivot Point | Overlay |
+| `PIVOTPOINTSHL` | Tops And Bottoms | Overlay |
+| `WILLIAMSPERCENTRANGE` | Williams' Percent Range | New panel |
+| `FORCEINDEX` | Force Index | New panel |
+| `KELTNERCHANNEL` | Keltner Channel Indicator | Overlay |
+| `DONCHIANCHANNEL` | Donchian Channel | Overlay |
+| `MASSINDEX` | Mass Index | New panel |
+| `TRIPLEEMA` | Triple Exponential Average | New panel |
+| `VOLUMEOSCILLATOR` | Volume Oscillator | New panel |
+| `VOLUMEROC` | Volume Rate Of Change | New panel |
+| `ALMA` | ALMA | Overlay |
+| `AROON` | Aroon | New panel |
+| `AWESOMEOSCILLATOR` | Awesome Oscillator | New panel |
+| `BALANCEOFPOWER` | Balance Of Power | New panel |
+| `BBANDSPERCENT` | Bollinger Bands %B | New panel |
+| `BBANDSWIDTH` | Bollinger Bands Width | New panel |
+| `CHAIKINOSCILLATOR` | Chaikin Oscillator | New panel |
+| `CHANDEKROLLSTOP` | Chande Kroll Stop | Overlay |
+| `CHANDEMOMENTUMOSCILLATOR` | CMO | New panel |
+| `CHOPPINESSINDEX` | Choppiness Index | New panel |
+| `CONNORSRSI` | Connors RSI | New panel |
+| `COPPOCKCURVE` | Coppock Curve | New panel |
+| `CORRELATIONCOEFFICIENT` | Correlation Coefficient | New panel |
+| `DOUBLEEMA` | Double EMA | Overlay |
+| `EASEOFMOVEMENT` | EOM | New panel |
+| `ELDERSFORCEINDEX` | EFI | New panel |
+| `FISHERTRANSFORM` | Fisher Transform | New panel |
+| `HISTORICALVOLATILITY` | HV | New panel |
+| `NETVOLUME` | Net Volume | New panel |
+| `TSI` | TSI | New panel |
+| `VORTEXINDICATOR` | VI | New panel |
+| `VWMA` | VWMA | Overlay |
+| `WILLIAMSALLIGATOR` | Williams Alligator | Overlay |
+| `WILLIAMSFRACTALS` | Williams Fractals | Overlay |
+| `OC2` | OC2 | Overlay |
+| `HL2` | HL2 | Overlay |
+| `HLC3` | HLC3 | Overlay |
+| `OHLC4` | OHLC4 | Overlay |
+| `STANDARDDEVIATION` | Standard Deviation | New panel |
+| `SHARPERATIO` | Sharpe Ratio | New panel |
+| `ROR` | ROR | New panel |
+| `INFORMATIONRATIO` | Information Ratio | New panel |
 
-## Price transforms and derived series
 
-- `HeikinAshi`
-- `HL2`
-- `HLC3`
-- `OHLC4`
-- `OC2`
-- `PRICELEVELS`
-- `PIVOTPOINTS`
-- `PIVOTPOINTSHL`
-- `ZIGZAG`
-- `WILLIAMSALLIGATOR`
-- `WILLIAMSFRACTALS`
-
-## Specialized and decision-style indicators
-
-- `DECISIONLONGBUY`
-- `DECISIONLONGSELL`
-- `DECISIONSHORTBUY`
-- `DECISIONSHORTSELL`
-- `SIGNALDISTANCE`
-- `TRADINGTIMEFRAME`
-- `FORECAST`
-- `FORWARD`
-- `DOP`
-- `PRICELEVELS`
-
-## How to use the catalog
-
-The runtime key is the string you pass into `addScript()`.
+## Usage
 
 ```ts
 chart.addScript("EMA");
-chart.addScript("BBAND");
 chart.addScript("RSI");
+chart.addScript("BBAND");
 ```
 
-If you need a concrete starting set rather than the full registry, continue with [Key indicators](./key-indicators).
+## What is next?
+
+- [Indicators overview](./overview)
+- [Key indicators](./key-indicators) — five starter studies with defaults
+- [Series and panels](../series-and-panels)
+- [Programmatic wiring](../programmatic-wiring)

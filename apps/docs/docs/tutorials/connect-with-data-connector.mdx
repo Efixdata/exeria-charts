@@ -1,0 +1,109 @@
+---
+sidebar_position: 7
+title: Connect with a Data Connector
+description: Let Exeria fetch and stream crypto prices — minimal glue code.
+---
+
+import BinanceConnectorExample from "@site/src/components/BinanceConnectorExample";
+
+# Connect with a Data Connector
+
+Writing fetch + WebSocket + candle parsing yourself is tedious. **Data Connectors** are plug-ins that do that work for you. Connect one, pass a symbol, and the chart loads history plus live ticks.
+
+## What you are building
+
+A Bitcoin (or Ethereum, BNB, …) chart that:
+
+1. Downloads recent history when the page opens.
+2. Keeps updating as new trades happen.
+
+No API key needed for the public Binance connector.
+
+## See it working first
+
+<BinanceConnectorExample />
+
+Switch symbol and timeframe with the controls. This is the same integration you will wire in your app.
+
+## Step 1 — Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-binance
+```
+
+## Step 2 — Create chart with the connector
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { BinanceAdapter } from "@efixdata/connector-binance";
+
+const connector = new BinanceAdapter();
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+```
+
+The adapter is the middleman between Binance and your chart.
+
+## Step 3 — Load history
+
+```ts
+await chart.loadData("BTCUSDT", {
+  interval: "1h",
+  limit: 1000,
+});
+```
+
+`BTCUSDT` is the trading pair. `interval` is the candle size. `limit` is how many bars to request.
+
+## Step 4 — Subscribe to live prices
+
+```ts
+chart.subscribeToUpdates("BTCUSDT", (tick) => {
+  console.log("Last price:", tick.c);
+});
+```
+
+You do not call `appendTick` manually — the connector feeds the chart for you.
+
+## When to use a connector vs your own API
+
+| Situation | Best path |
+| --- | --- |
+| Public crypto from Binance | Data Connector (this tutorial) |
+| Your company's proprietary prices | [Chart with your data](./chart-with-your-data) |
+| Another exchange or asset class | Implement `DataAdapter` — see [Data Connectors overview](../data-connectors/overview) |
+
+## More connectors
+
+- [Binance](../data-connectors/binance) — full feature list
+- [CoinGecko](../data-connectors/coingecko) — aggregated crypto data via coin ids
+- [Gate.io](../data-connectors/gate) — USDT spot on Gate.io
+- [Massive](../data-connectors/massive) — US stocks, forex, and crypto
+- [EODHD](../data-connectors/eodhd) — global EOD + intraday via EODHD
+
+## What is next?
+
+- [Live data stream](./live-data-stream) — how ticks behave under the hood
+- [Binance live demo](/binance-example) — standalone demo page with sample code
+- [Bybit connector](../data-connectors/bybit) — same pattern, different exchange
+- [Bybit live demo](/bybit-example) — standalone Bybit demo
+- [OKX connector](../data-connectors/okx) — OKX spot with `BTC-USDT` symbols
+- [OKX live demo](/okx-example) — standalone OKX demo
+- [Kraken connector](../data-connectors/kraken) — Kraken USD spot with `BTC/USD` symbols
+- [Kraken live demo](/kraken-example) — standalone Kraken demo
+- [KuCoin connector](../data-connectors/kucoin) — KuCoin USDT spot with `BTC-USDT` symbols
+- [KuCoin live demo](/kucoin-example) — standalone KuCoin demo
+- [Coinbase connector](../data-connectors/coinbase) — Coinbase USD/USDC spot with `BTC-USD` product ids
+- [Coinbase live demo](/coinbase-example) — standalone Coinbase demo
+- [Gate.io live demo](/gate-example) — standalone Gate.io demo
+- [EODHD live demo](/eodhd-example) — standalone EODHD demo
+- [CoinGecko connector](../data-connectors/coingecko) — broad asset catalog
+- [CoinGecko live demo](/coingecko-example) — standalone CoinGecko demo
+- [CCXT connector](../data-connectors/ccxt) — 100+ exchanges via one package (Node.js)
+- [Twelve Data connector](../data-connectors/twelve-data) — forex and multi-asset OHLCV (API key)
+- [Finage connector](../data-connectors/finage) — forex OHLCV via Finage (API key)

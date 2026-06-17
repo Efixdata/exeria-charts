@@ -1,0 +1,108 @@
+---
+sidebar_position: 3
+title: FAQ and Troubleshooting
+description: Central answers for blank charts, live data, ChartUI layout, licensing, and where to look next.
+---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
+
+# FAQ and troubleshooting
+
+One place to start when something does not look right. Each answer links to the page with full detail.
+
+<GettingStartedDemo
+  variant="vanilla"
+  caption="Most issues trace back to container height, init order, or candle shape."
+/>
+
+## Mounting and layout
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| Chart area is blank | Container has **no height** | Set `height: 480px` (or similar) on the chart div — [Vanilla quickstart](../getting-started/vanilla) |
+| Toolbar visible, plot height is 0 | ChartUI outer wrapper has no height | Wrap ChartUI in a box with fixed height — [React UI integration](../advanced/react-ui-integration) |
+| Chart div beside ChartUI, not inside | Wrong DOM nesting | Nest your chart `<div>` **inside** `<ChartUI>` |
+| Flex parent squashes chart on mobile | Missing `min-height: 0` on flex children | [Mobile and responsive](../advanced/mobile-and-responsive) |
+| Chart flashes or never loads in Next.js | Chart ran on the server | Use `"use client"` and mount in `useEffect` — [Next.js App Router](../getting-started/nextjs-app-router) |
+
+## Data and streaming
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| No candles after fetch | `init()` not called, or wrong candle shape | [Loading data](../chart-usage/loading-data), [Data model](../core-concepts/data-model) |
+| `setMainSeriesData` throws or shows gaps | `stamp` not UTC ms, or unsorted candles | Sort by `stamp` ascending; check `o/h/l/c` fields |
+| Last price stuck | Using candles instead of ticks for live feed | `appendTick()` or `subscribeToUpdates()` — [Realtime updates](../chart-usage/realtime-updates) |
+| Connector loads but stream silent | `subscribeToUpdates` not called, or wrong symbol | [Connect with a Data Connector](../tutorials/connect-with-data-connector) |
+| Second symbol missing on chart | Overlay not configured | [Multi-instrument charts](../chart-usage/multi-instrument-charts) |
+
+## Interaction, scale, and viewport
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| Y axis keeps jumping | Autoscale on during volatile ticks | [Autoscale and value axis](../chart-usage/autoscale-and-value-axis) |
+| Cannot scroll to latest bar | Viewport not moved to end | `chart.fit()` or `moveToEnd()` on `Chart` class — [Navigation and viewport](../chart-usage/navigation-and-viewport) |
+| Drawings do not snap | Magnet disabled | `setDrawingMagnetEnabled(true)` — [Drawing and interaction](../chart-usage/drawing-and-interaction) |
+| TypeScript: method missing on `ChartInstance` | Method is on `Chart` class only | [Chart runtime access](../advanced/chart-class-runtime) |
+
+## ChartUI and theming
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| Toolbar colors wrong, candles fine | Two theme systems — chart vs UI chrome | Chart: `createChart({ theme })`; toolbar: `<ChartUI theme={…} />` — [Theming overview](../theming/overview) |
+| Share button should be hidden | Toolbar toggle | `theme.toolbar.showShareChartButton: false` — [ChartUI reference](../api-reference/chart-ui) |
+| Interval change does not reload data | No `onIntervalChange` handler | [React UI toolbar and tools](../advanced/react-ui-toolbar-and-tools) |
+| Compact layout out of sync | Breakpoint mismatch between chart and ChartUI | Align `compactBreakpoint` and `createChart({ layout })` — [Chart environment](../api-reference/chart-environment) |
+
+## Packages, API, and licensing
+
+| Question | Answer |
+| --- | --- |
+| Which npm package do I install? | `@efixdata/exeria-chart` (core). Add `@efixdata/exeria-chart-ui-react` for the built-in toolbar — [Choosing a package](./choosing-a-package) |
+| Can I ship a closed-source SaaS? | You need a **commercial license** for the core — [Licensing](./licensing) |
+| Where is the method list? | [ChartInstance](../api-reference/chart-instance) · [ChartUI](../api-reference/chart-ui) |
+| Old docs URL (`data-bridges`, `adapters`) | Permanent redirects — [Migration guide](./migration) |
+| What changed between releases? | [Changelog](./changelog) |
+
+## FAQ — quick answers
+
+### Do I need React?
+
+No. Start with [Vanilla quickstart](../getting-started/vanilla). Add React UI only when you want the prebuilt toolbar.
+
+### Can I use Vue or Svelte?
+
+Yes — use the core package only and build your own chrome. ChartUI is React-only.
+
+### How do I add RSI or MACD?
+
+`chart.addScript("RSI")` — tutorial: [Add an indicator](../tutorials/add-an-indicator). Full list: [Indicator catalog](../scripts/indicators/catalog).
+
+### How do I save user theme and layout?
+
+`exportChartSettingsTemplate()` / `importChartSettingsTemplate()` — [Save and restore settings](../tutorials/save-and-restore-settings).
+
+### Which crypto exchange connector should I use?
+
+[Binance](../data-connectors/binance), [Bybit](../data-connectors/bybit), [OKX](../data-connectors/okx), [Kraken](../data-connectors/kraken), [KuCoin](../data-connectors/kucoin), [Coinbase](../data-connectors/coinbase), and [Gate.io](../data-connectors/gate) all use the same `DataAdapter` flow with public spot data and no API key. Pick the exchange your users already trade on, or compare the [Binance](/binance-example), [Bybit](/bybit-example), [OKX](/okx-example), [Kraken](/kraken-example), [KuCoin](/kucoin-example), [Coinbase](/coinbase-example), and [Gate.io](/gate-example) live demos. For **broad crypto catalogs** (portfolio, news), use [CoinGecko](../data-connectors/coingecko) with coin ids like `bitcoin` — see the [CoinGecko live demo](/coingecko-example). For many exchanges on a **Node.js backend**, use the [CCXT connector](../data-connectors/ccxt) and change only `exchangeId`. For **forex** (`EUR/USD`, `GBP/USD`) or multi-asset backends, use the [Twelve Data connector](../data-connectors/twelve-data), [Finnhub connector](../data-connectors/finnhub), [EODHD connector](../data-connectors/eodhd), or [Finage connector](../data-connectors/finage) with an API key on your server.
+
+### EODHD returns "Only EOD data allowed for free users"
+
+EODHD's **free** plan includes end-of-day OHLCV (about one year of history) but not intraday (`1m`, `5m`, `1h`). Use `interval: "1d"` on the free tier, upgrade at [EODHD pricing](https://eodhd.com/pricing), or use the built-in `demo` API token for sample tickers in the docs proxy.
+
+### Finnhub returns `no_data` or "You don't have access to this resource"
+
+Finnhub's **free** tier includes stock **quotes** but not `/stock/candle`, `/forex/candle`, or `/crypto/candle`. Narrow intraday date ranges if you have a paid plan, or upgrade at [Finnhub pricing](https://finnhub.io/pricing). The docs demo proxy synthesizes quote-based candles when candle endpoints are blocked.
+
+### Where can I experiment without writing code?
+
+[Playground](/playground) — see [Playground guide](./playground).
+
+### How do I report a bug?
+
+Open an issue on [GitHub](https://github.com/Efixdata/exeria-charts/issues) with browser, package version, and a minimal repro.
+
+## Still stuck?
+
+1. Search the docs (left sidebar search indexes all guides and API pages).
+2. Open the [Tutorials hub](../tutorials/) for a full working example closest to your goal.
+3. Compare with a [starter demo](/starters/crypto-terminal) that matches your use case.

@@ -1,20 +1,39 @@
 ---
 sidebar_position: 2
 title: React Quickstart
-description: Mount the chart runtime inside React and layer the React UI controls on top.
+description: Mount Exeria Charts in React with the built-in toolbar — beginner friendly.
 ---
+
+import GettingStartedDemo from "@site/src/components/GettingStartedDemo";
 
 # React quickstart
 
-Use the React wrapper when you want the runtime plus a ready-made toolbar and left-menu layer.
+React apps need two packages: the **chart engine** and **ChartUI** — a wrapper that adds the toolbar, drawing tools menu, and settings panels around your chart.
 
-## Install
+<GettingStartedDemo
+  variant="react"
+  caption="What you will build: chart + toolbar, like a mini trading terminal."
+/>
+
+## What you need
+
+- A React project (any version that supports hooks)
+- Basic familiarity with `useEffect` — or an AI assistant to paste this for you
+
+## Step 1 — Install both packages
 
 ```bash
 npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
 ```
 
-## Mount the runtime and UI wrapper
+| Package | What it does |
+| --- | --- |
+| `@efixdata/exeria-chart` | Draws candles, lines, indicators |
+| `@efixdata/exeria-chart-ui-react` | Adds toolbar and menus around the chart |
+
+## Step 2 — Copy this component
+
+Create a file (for example `ChartExample.tsx`) and paste:
 
 ```tsx
 import { useEffect, useRef, useState } from "react";
@@ -27,14 +46,7 @@ import {
 import { ChartUI } from "@efixdata/exeria-chart-ui-react";
 
 const candles: Candle[] = [
-  {
-    stamp: 1715472000000,
-    o: 1.1,
-    h: 1.2,
-    l: 1.05,
-    c: 1.18,
-    v: 2500,
-  },
+  { stamp: 1715472000000, o: 1.1, h: 1.2, l: 1.05, c: 1.18, v: 2500 },
 ];
 
 const interval: Interval = {
@@ -81,13 +93,50 @@ export function ChartExample() {
 }
 ```
 
-## Notes
+Render `<ChartExample />` anywhere in your app.
 
-- Create and destroy the runtime chart instance yourself.
-- Keep the chart container mounted as a child of `ChartUI`. The wrapper renders the toolbar and left menu around that child surface.
-- `ChartUI` can render before the runtime is ready. Pass `chart={null}` until your chart instance exists.
-- Use the runtime constructor options for chart colors and `ChartUI`'s `theme` prop for toolbar and menu styling.
+## How the pieces fit together
 
-If you need the smallest possible first integration, start with the [vanilla quickstart](./vanilla) and add the UI wrapper after your data flow is stable. For stack-specific setup, use [Vite + React](./vite-react) or [Next.js App Router](./nextjs-app-router). Then continue with [Theming overview](../theming/overview) and [ChartInstance reference](../api-reference/chart-instance).
+```mermaid
+flowchart TB
+  subgraph wrapper["Your page"]
+    ChartUI["ChartUI — toolbar & menus"]
+    div["div ref — chart draws here"]
+  end
+  ChartUI --> div
+  createChart["createChart() in useEffect"] --> div
+```
 
-For the operational `ChartUI` contract after the quickstart, continue with [React UI integration](../advanced/react-ui-integration).
+1. **`useEffect`** runs once when the component mounts.
+2. **`createChart`** attaches to the inner `div`.
+3. **`setChart(instance)`** tells `ChartUI` the engine is ready — toolbar buttons start working.
+4. **Cleanup** calls `destroy()` when the component unmounts.
+
+## Important rules (easy to miss)
+
+| Rule | Why |
+| --- | --- |
+| Outer wrapper needs `height: 480px` (or similar) | Chart cannot size itself from nothing |
+| Chart `div` must be **inside** `<ChartUI>` | Toolbar wraps around that child |
+| `ChartUI` can receive `chart={null}` at first | It renders immediately; toolbar activates when chart is set |
+
+## Styling
+
+- **Chart colors** (candles, grid): pass `theme` to `createChart({ … })`
+- **Toolbar colors**: pass `theme` to `<ChartUI theme={…} />`
+
+Play with colors in the [live theme creator](../theming/live-theme-creator).
+
+## Stack-specific setup
+
+| Your stack | Guide |
+| --- | --- |
+| New Vite project | [Vite + React](./vite-react) |
+| Next.js App Router | [Next.js App Router](./nextjs-app-router) |
+| Plain JS, no React | [Vanilla quickstart](./vanilla) |
+
+## What is next?
+
+- [Add an indicator](../tutorials/add-an-indicator) — EMA and RSI in two lines
+- [Custom theme](../tutorials/custom-theme) — match your brand
+- [React UI integration](../advanced/react-ui-integration) — deeper ChartUI options

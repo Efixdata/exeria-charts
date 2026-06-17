@@ -1,0 +1,163 @@
+---
+sidebar_position: 12
+title: EODHD
+description: Stocks, forex, and crypto OHLCV through EODHD — API token required.
+---
+
+import EodhdConnectorExample from "@site/src/components/EodhdConnectorExample";
+
+# EODHD Connector
+
+Building **multi-asset** charts with deep end-of-day history across global exchanges? The EODHD connector wraps the [EODHD API](https://eodhd.com/financial-apis/) and implements the same `DataAdapter` contract as [Finnhub](./finnhub) and [Massive](./massive).
+
+<EodhdConnectorExample />
+
+Use the controls above to switch asset class, symbol, and timeframe. This docs demo routes requests through `/api/eodhd` so your API token stays on the server.
+
+:::tip Standalone demo
+Full-page version with sample code: [EODHD live demo](/eodhd-example).
+:::
+
+:::info API token required
+EODHD requires an **API token** in production. Store it in `EODHD_API_KEY` and run the adapter on your **server** or behind a proxy — never ship the token in a browser bundle. For local docs demos, the proxy falls back to the built-in `demo` key when `EODHD_API_KEY` is not set.
+:::
+
+:::caution Free tier vs intraday
+EODHD's **free** plan includes end-of-day OHLCV (about one year of history). **Intraday** (`1m`, `5m`, `1h`) requires a paid plan — the `demo` API token supports intraday for sample tickers only (`AAPL`, `TSLA`, `VTI`, `AMZN`, `EUR/USD`, `BTC-USD`).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Stocks** | US and global tickers (`AAPL` → `AAPL.US`) |
+| **Forex** | Major pairs (`EUR/USD` → `EURUSD.FOREX`) |
+| **Crypto** | Pairs like `BTC-USD` → `BTC-USD.CC` |
+| **EOD history** | `/api/eod/` with `period=d\|w\|m` |
+| **Intraday** | `/api/intraday/` at `1m`, `5m`, `1h` (paid / demo) |
+| **Live ticks** | `/api/real-time/` (15–20 min delay for stocks) + REST polling |
+
+Perfect for wealth apps, portfolio analytics, and global equity charts.
+
+## EODHD vs Finnhub / Massive / Twelve Data
+
+| | EODHD | [Finnhub](./finnhub) | [Massive](./massive) | [Twelve Data](./twelve-data) |
+| --- | --- | --- | --- | --- |
+| Symbol format | `AAPL.US`, `EURUSD.FOREX` | `AAPL`, `OANDA:EUR_USD` | `AAPL`, `C:EURUSD` | `EUR/USD` |
+| EOD depth | 150k+ tickers, decades US | Limited on free | Strong US focus | Multi-asset |
+| Intraday | `1m`/`5m`/`1h` (paid) | Broader on paid | Native aggs | Native |
+| Free tier | EOD only (~1 year) | Quotes; candles paid | Trial | `demo` key |
+| Best for | Global EOD + fundamentals path | Fundamentals-rich fintech | US multi-asset RT | Quick demo |
+
+## Licensing
+
+| Tier | Typical use |
+| --- | --- |
+| **Free** | Development, EOD bars (1 year) |
+| **Paid** | Intraday, real-time WebSocket, production display |
+
+Check [EODHD pricing](https://eodhd.com/pricing) before shipping to end users.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-eodhd
+```
+
+## Quick start
+
+```tsx
+import { createChart } from "@efixdata/exeria-chart";
+import { EodhdAdapter } from "@efixdata/connector-eodhd";
+
+const connector = new EodhdAdapter({
+  apiKey: process.env.EODHD_API_KEY!,
+});
+
+const chart = createChart({
+  container: document.getElementById("chart")!,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("AAPL", { interval: "1d", limit: 500 });
+await chart.loadData("EUR/USD", { interval: "1d", limit: 500 });
+await chart.loadData("BTC-USD", { interval: "1d", limit: 500 });
+
+chart.subscribeToUpdates("AAPL", (tick) => {
+  console.log(tick.price ?? tick.c);
+});
+```
+
+## Symbol formats
+
+| Asset | Input examples | EODHD symbol |
+| --- | --- | --- |
+| Stock | `AAPL`, `MSFT` | `AAPL.US`, `MSFT.US` |
+| Forex | `EUR/USD`, `EURUSD` | `EURUSD.FOREX` |
+| Crypto | `BTC-USD`, `BTC/USD` | `BTC-USD.CC` |
+
+## Supported intervals
+
+| Exeria | EODHD API |
+| --- | --- |
+| `1m`, `5m`, `1h` | Intraday (`interval=1m\|5m\|1h`) |
+| `1d`, `1w`, `1M` | End-of-day (`period=d\|w\|m`) |
+
+`15m`, `30m`, `2h`, and `4h` are **not** supported natively.
+
+## Configuration
+
+```ts
+const connector = new EodhdAdapter({
+  apiKey: process.env.EODHD_API_KEY!,
+  baseUrl: "https://eodhd.com/api",
+  defaultStockExchange: "US",
+  pollIntervalMs: 5000,
+  requestTimeout: 10000,
+  maxRetries: 3,
+  onError: (error) => console.error("EODHD error:", error),
+});
+```
+
+## Next.js API route (browser-safe pattern)
+
+```ts
+// app/api/market/ohlcv/route.ts
+import { EodhdAdapter } from "@efixdata/connector-eodhd";
+import { NextResponse } from "next/server";
+
+const connector = new EodhdAdapter({
+  apiKey: process.env.EODHD_API_KEY!,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") ?? "AAPL";
+  const interval = searchParams.get("interval") ?? "1d";
+  const limit = Number(searchParams.get("limit") ?? "500");
+
+  await connector.initialize({});
+  const candles = await connector.getHistoricalData(symbol, { interval, limit });
+
+  return NextResponse.json({ candles });
+}
+```
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Free EOD | ~1 year of daily history |
+| Intraday windows | 120d (`1m`), 600d (`5m`), 7200d (`1h`) per request |
+| Rate limits | Plan-dependent (100k calls/day on paid tiers) |
+| Browser | Use a backend proxy; do not expose `api_token` client-side |
+
+## What is next?
+
+- [Finnhub](./finnhub) — US stocks + forex + crypto with WebSocket trades
+- [Massive](./massive) — US stocks + forex + crypto aggregates
+- [Overview](./overview) — connector lifecycle
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — tutorial walkthrough
+- [Data Connectors catalog](/data-connectors) — compare providers

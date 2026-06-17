@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "feedId": "exeria-demo-usd-jpy",
+  "instrument": "USD/JPY",
+  "provider": "Exeria Demo News",
+  "generatedAt": "2026-06-12T12:00:00.000Z",
+  "coverage": {
+    "from": 1780063200000,
+    "to": 1781307900000
+  },
+  "events": [
+    {
+      "id": "usdjpy-mof-verbal-2026-06-01",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780297200000,
+      "source": {
+        "name": "Nikkei",
+        "url": "https://www.nikkei.com"
+      },
+      "title": "Japan MoF: watching FX moves closely",
+      "summary": "Verbal intervention warning caps yen weakness. USD/JPY pulls back from overnight highs in Tokyo morning trade.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["fx-policy", "intervention"],
+      "locale": "en",
+      "impact": [
+        { "horizon": "15m", "pips": -18.5, "direction": "down" },
+        { "horizon": "1h", "pips": -24.2, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdjpy-boj-hold-2026-06-02",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780416000000,
+      "source": {
+        "name": "Bank of Japan",
+        "url": "https://www.boj.or.jp"
+      },
+      "title": "BoJ keeps policy unchanged, cuts bond buying pace",
+      "summary": "No rate change but tapering signal surprises dovish consensus. Yen firms briefly before dollar reasserts.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["central-bank", "rates"],
+      "impact": [
+        { "horizon": "15m", "pips": -22.0, "direction": "down" },
+        { "horizon": "1h", "pips": -11.4, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdjpy-japan-cpi-soft-2026-06-03",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780466400000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Tokyo CPI cools more than expected",
+      "summary": "Inflation slowdown reduces pressure on BoJ to tighten. USD/JPY resumes grind higher through Asia.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 14.6, "direction": "up" },
+        { "horizon": "1h", "pips": 21.3, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdjpy-us-gdp-usd-bid-2026-06-05",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780648200000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "US data resilience lifts dollar vs yen",
+      "summary": "Strong US activity contrast lifts rate differential trades. Pair tags 160.00 psychological level.",
+      "sentiment": "positive",
+      "importance": "medium",
+      "categories": ["growth", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 11.2, "direction": "up" },
+        { "horizon": "1h", "pips": 16.8, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdjpy-us-cpi-hot-2026-06-05",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780698600000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Hot US CPI — USD/JPY extends rally",
+      "summary": "Inflation beat pushes Fed-cut bets out the curve. Dollar/yen breaks prior session high in thin liquidity.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["inflation", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 19.7, "direction": "up" },
+        { "horizon": "1h", "pips": 28.4, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdjpy-ueda-hawkish-2026-06-08",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780953300000,
+      "source": {
+        "name": "Nikkei",
+        "url": "https://www.nikkei.com"
+      },
+      "title": "Ueda: gradual normalization remains appropriate",
+      "summary": "BoJ governor sounds marginally hawkish on FX pass-through. Yen catches a short-covering bid into Tokyo fix.",
+      "sentiment": "negative",
+      "importance": "medium",
+      "categories": ["central-bank", "speech"],
+      "impact": [
+        { "horizon": "15m", "pips": -15.3, "direction": "down" },
+        { "horizon": "1h", "pips": -9.6, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdjpy-japan-wages-2026-06-09",
+      "instrument": "USD/JPY",
+      "releasedAt": 1780993800000,
+      "source": {
+        "name": "Bloomberg",
+        "url": "https://www.bloomberg.com"
+      },
+      "title": "Japan spring wage talks top 5% — yen supported",
+      "summary": "Strong wage settlement season fuels BoJ hike speculation. USD/JPY dips as real yield gap narrows.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["wages", "labour"],
+      "impact": [
+        { "horizon": "15m", "pips": -12.8, "direction": "down" },
+        { "horizon": "1h", "pips": -18.5, "direction": "down" }
+      ]
+    },
+    {
+      "id": "usdjpy-nfp-spike-2026-06-12",
+      "instrument": "USD/JPY",
+      "releasedAt": 1781234100000,
+      "source": {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      "title": "Blowout NFP — USD/JPY spikes toward 161",
+      "summary": "Dollar surge on payrolls beat overwhelms intervention rhetoric. MoF officials said to be on alert.",
+      "sentiment": "positive",
+      "importance": "high",
+      "categories": ["employment", "macro"],
+      "impact": [
+        { "horizon": "15m", "pips": 32.5, "direction": "up" },
+        { "horizon": "1h", "pips": 18.9, "direction": "up" }
+      ]
+    },
+    {
+      "id": "usdjpy-intervention-rumor-2026-06-12",
+      "instrument": "USD/JPY",
+      "releasedAt": 1781241300000,
+      "source": {
+        "name": "Kyodo",
+        "url": "https://english.kyodonews.net"
+      },
+      "title": "USD/JPY slides on intervention check chatter",
+      "summary": "Sharp pullback after unconfirmed reports of rate checks. Pair gives back chunk of NFP gains as Tokyo leans in.",
+      "sentiment": "negative",
+      "importance": "high",
+      "categories": ["fx-policy", "intervention"],
+      "impact": [
+        { "horizon": "15m", "pips": -48.2, "direction": "down" },
+        { "horizon": "1h", "pips": -35.6, "direction": "down" }
+      ]
+    }
+  ]
+}

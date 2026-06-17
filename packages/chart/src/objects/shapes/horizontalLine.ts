@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { isDrawingSnapEnabled } from "../../drawingWorkflow";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -190,7 +191,7 @@ function HorizontalLineObject(this: ShapeRuntime) {
     for (var i = 0; i < o.anchors.length; i++) {
       var index = renderer.getPointIndex(e._offset.offsetX, model);
       var nextValue;
-      if (o.sticky) {
+      if (isDrawingSnapEnabled(o, interactor)) {
         var candles = this.getCurrentCandles(index, model, seriesManager);
         nextValue = this.stickToCandleValue(yValue, candles, panel, renderer, fV);
       } else {

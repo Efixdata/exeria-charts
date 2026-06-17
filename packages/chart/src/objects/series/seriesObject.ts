@@ -1,4 +1,5 @@
 import WEBRCP from "../../WebRCP";
+import { resolveChartLocaleMessage } from "../../chartLocaleRuntime";
 import LIB from "../../utils/chartingCommons";
 import {
   between,
@@ -28,6 +29,34 @@ function getLinkedSeries(
   return seriesManager[object.dataLink] ?? null;
 }
 
+function parseLineFillColor(color: string): { r: number; g: number; b: number } {
+  if (color.startsWith("#")) {
+    const normalized =
+      color.length === 4
+        ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+        : color;
+    const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
+    if (match) {
+      return {
+        r: Number.parseInt(match[1], 16),
+        g: Number.parseInt(match[2], 16),
+        b: Number.parseInt(match[3], 16),
+      };
+    }
+  }
+
+  const match = color.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (match) {
+    return {
+      r: Number.parseInt(match[1], 10),
+      g: Number.parseInt(match[2], 10),
+      b: Number.parseInt(match[3], 10),
+    };
+  }
+
+  return { r: 41, g: 98, b: 255 };
+}
+
 function getSeriesLabel(labels: string[] | Record<string, string>, index: number, field: string) {
   return Array.isArray(labels) ? (labels[index] ?? field) : (labels[field] ?? field);
 }
@@ -38,6 +67,55 @@ function getSeriesPrecision(precisions: unknown, index: number, field: string) {
     return (precisions as Record<string, unknown>)[field];
   }
   return undefined;
+}
+
+function getSeriesSolidFillColor(object: LegacySeriesObject & { fillColor?: string }) {
+  if (typeof object.fillColor === "string") {
+    return object.fillColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("chartFill");
+}
+
+function getSeriesGradientFillColor(
+  object: LegacySeriesObject & { fillGradientColor?: string },
+) {
+  if (typeof object.fillGradientColor === "string") {
+    return object.fillGradientColor;
+  }
+
+  return WEBRCP.utils.colorManager.getColor("chartFillGradient", "chartLine");
+}
+
+function getSeriesCandleColors(
+  object: LegacySeriesObject & {
+    candleUpColor?: string;
+    candleDownColor?: string;
+    candleUpStrokeColor?: string;
+    candleDownStrokeColor?: string;
+  },
+) {
+  const colorManager = WEBRCP.utils.colorManager;
+
+  return {
+    up:
+      typeof object.candleUpColor === "string"
+        ? object.candleUpColor
+        : colorManager.getColor("chartGreen"),
+    down:
+      typeof object.candleDownColor === "string"
+        ? object.candleDownColor
+        : colorManager.getColor("chartRed"),
+    upStroke:
+      typeof object.candleUpStrokeColor === "string"
+        ? object.candleUpStrokeColor
+        : colorManager.getColor("chartGreenStroke"),
+    downStroke:
+      typeof object.candleDownStrokeColor === "string"
+        ? object.candleDownStrokeColor
+        : colorManager.getColor("chartRedStroke"),
+    neutral: colorManager.getColor("chartGray"),
+  };
 }
 
 const SERIES_RENDER_MODE_OPTIONS: SeriesMenuOption[] = [
@@ -98,22 +176,23 @@ var SeriesObject = function (this: SeriesRuntime) {
 
     if (model.periodWidth < 1) {
       switch (renderAs.toLowerCase()) {
+        case "ohlc":
+        case "bars":
+          return renderAs;
         case "histogram":
           return "Histogram";
-          break;
         case "volume histogram":
           return "Volume Histogram";
-          break;
         case "line and histogram":
           return "ChartShape";
-          break;
         case "band":
           return "Band";
-          break;
         default:
           return "Line";
       }
-    } else return renderAs;
+    }
+
+    return renderAs;
   };
 
   this.render = function (o, ctx, renderer, model, panel, seriesManager) {
@@ -131,8 +210,12 @@ var SeriesObject = function (this: SeriesRuntime) {
       return this.renderAsOHLC(o, ctx, renderer, model, panel, seriesManager);
     if (renderMode === "bars")
       return this.renderAsBars(o, ctx, renderer, model, panel, seriesManager);
-    if (renderMode === "line")
+    if (renderMode === "line") {
+      if (o.lineFillVisible) {
+        this.renderLineAreaFill(o, ctx, renderer, model, panel, seriesManager);
+      }
       return this.renderAsLine(o, ctx, renderer, model, panel, seriesManager);
+    }
     if (renderMode === "chartshape")
       return this.renderAsChartShape(o, ctx, renderer, model, panel, seriesManager);
     if (renderMode === "histogram")
@@ -194,14 +277,17 @@ var SeriesObject = function (this: SeriesRuntime) {
         return WEBRCP.utils.colorManager.getColor(color, color);
       },
       getTextColor: function (object) {
-        const color = object.color ?? WEBRCP.utils.colorManager.getColor("fontColor");
-        return WEBRCP.utils.getContrastColor(color);
+        const colorKey = typeof object.color === "string" ? object.color : "chartLine";
+        const resolvedColor = WEBRCP.utils.colorManager.getColor(colorKey, colorKey);
+        return WEBRCP.utils.getContrastColor(resolvedColor);
       },
-      getUpColor: function () {
-        return WEBRCP.utils.colorManager.getColor("chartGreenBackground");
+      getUpColor: function (object) {
+        const colors = getSeriesCandleColors(object);
+        return colors.up;
       },
-      getDownColor: function () {
-        return WEBRCP.utils.colorManager.getColor("chartRed");
+      getDownColor: function (object) {
+        const colors = getSeriesCandleColors(object);
+        return colors.down;
       },
     });
   };
@@ -286,6 +372,10 @@ var SeriesObject = function (this: SeriesRuntime) {
     var indexX = 0;
 
     const getColor = (i: number) => {
+      if (o.volumeColorMode === "single" && typeof o.color === "string" && o.color.length > 0) {
+        return o.color;
+      }
+
       const close = seriesManager[model.mainSeries].data[i]["c"];
       const open = seriesManager[model.mainSeries].data[i]["o"];
       if (close > open) return WEBRCP.utils.colorManager.getColor("chartGreen");
@@ -293,7 +383,8 @@ var SeriesObject = function (this: SeriesRuntime) {
       else return WEBRCP.utils.colorManager.getColor("chartRed");
     };
 
-    ctx.globalAlpha = 0.2;
+    ctx.globalAlpha =
+      typeof o.volumeOpacity === "number" ? Math.min(1, Math.max(0, o.volumeOpacity)) : 0.2;
     const maxHeight = Math.round(panel._height * 0.25);
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
@@ -351,13 +442,16 @@ var SeriesObject = function (this: SeriesRuntime) {
     var valueY = 0;
     var midX = 0;
 
-    const fill = o.color ?? WEBRCP.utils.colorManager.getColor("chartLine");
+    const fill =
+      typeof o.bandFillColor === "string"
+        ? o.bandFillColor
+        : (o.color ?? WEBRCP.utils.colorManager.getColor("chartLine"));
 
     ctx.fillStyle = fill;
     ctx.lineWidth = o.width;
     ctx.setLineDash(o.dash || []);
     ctx.beginPath();
-    ctx.globalAlpha = 0.3;
+    ctx.globalAlpha = typeof o.bandFillOpacity === "number" ? o.bandFillOpacity : 0.3;
 
     var fV = LIB.getReferenceValue(o, model, seriesManager);
 
@@ -678,6 +772,87 @@ var SeriesObject = function (this: SeriesRuntime) {
     return true;
   };
 
+  this.renderLineAreaFill = function (o, ctx, renderer, model, panel, seriesManager, forceField) {
+    const linkedSeries = getLinkedSeries(o, seriesManager);
+    const field = forceField || o.closeDataField || o.dataField;
+    if (!linkedSeries || !field) return;
+
+    var indexX = 0;
+    var valueY = 0;
+    var midX = 0;
+
+    ctx.save();
+
+    const baseY = panel._offset + panel._height;
+    const fillMode = o.lineFillMode === "gradient" ? "gradient" : "solid";
+
+    if (fillMode === "gradient") {
+      const color = getSeriesGradientFillColor(o);
+      const opacity =
+        typeof o.lineFillGradientOpacity === "number" ? o.lineFillGradientOpacity : 0.4;
+      const rgb = parseLineFillColor(color);
+      const gradient = ctx.createLinearGradient(0, panel._offset, 0, baseY);
+      gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`);
+      gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+      ctx.fillStyle = gradient;
+    } else {
+      ctx.fillStyle = getSeriesSolidFillColor(o);
+    }
+
+    ctx.beginPath();
+
+    var fV = LIB.getReferenceValue(o, model, seriesManager);
+    var start = model._leftIndex;
+    var end = model._rightIndex;
+    if (start > 0) start = this.getStartIndex(start, linkedSeries.data, field);
+    if (end < linkedSeries.data.length - 1) end = this.getEndIndex(end, linkedSeries.data, field);
+
+    var firstRender = true;
+    var firstX = 0;
+    var lastX = 0;
+
+    for (var i = start; i <= end; i++) {
+      if (i > linkedSeries.data.length - 1) continue;
+
+      const value = linkedSeries.data[i]?.[field];
+      if (typeof value !== "number") continue;
+
+      indexX = renderer.getIndexPoint(i, model);
+      valueY =
+        renderer.getYCoordinateForPrice(value, {
+          panelHeight: panel._height,
+          minValue: panel.vMin,
+          maxValue: panel.vMax,
+          valueAxisMode: panel.valueAxisMode,
+          fV,
+        }) + panel._offset;
+
+      if (model.periodWidth == 1) {
+        midX = indexX;
+      } else {
+        midX = indexX + model._midOffset;
+      }
+
+      if (firstRender) {
+        ctx.moveTo(midX, valueY);
+        firstRender = false;
+        firstX = midX;
+      } else {
+        ctx.lineTo(midX, valueY);
+      }
+      lastX = midX;
+    }
+
+    if (!firstRender) {
+      ctx.lineTo(lastX, baseY);
+      ctx.lineTo(firstX, baseY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  };
+
   this.renderAsOHLC = function (o, ctx, renderer, model, panel, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
     if (!linkedSeries) return true;
@@ -688,19 +863,22 @@ var SeriesObject = function (this: SeriesRuntime) {
     var openY = 0;
     var closeY = 0;
 
-    const redFillColor = WEBRCP.utils.colorManager.getColor("chartRed");
-    const greenFillColor = WEBRCP.utils.colorManager.getColor("chartGreen");
-    const grayFillColor = WEBRCP.utils.colorManager.getColor("chartGray");
+    const candleColors = getSeriesCandleColors(o);
+    const redFillColor = candleColors.down;
+    const greenFillColor = candleColors.up;
+    const grayFillColor = candleColors.neutral;
 
-    const redStrokeColor = WEBRCP.utils.colorManager.getColor("chartRedStroke");
-    const greenStrokeColor = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
-    const grayStrokeColor = WEBRCP.utils.colorManager.getColor("chartGray");
+    const redStrokeColor = candleColors.downStroke;
+    const greenStrokeColor = candleColors.upStroke;
+    const grayStrokeColor = candleColors.neutral;
 
     let color = redFillColor;
     let stroke = redStrokeColor;
 
     ctx.save();
     ctx.lineWidth = 1;
+
+    LIB.ensureInstrumentOhlcDataFields(o);
 
     let dfH = o.highDataField ? o.highDataField : o.dataField;
     let dfL = o.lowDataField ? o.lowDataField : o.dataField;
@@ -813,17 +991,20 @@ var SeriesObject = function (this: SeriesRuntime) {
     var openY = 0;
     var closeY = 0;
 
-    var red = WEBRCP.utils.colorManager.getColor("chartRed");
-    var green = WEBRCP.utils.colorManager.getColor("chartGreen");
-    var redStroke = WEBRCP.utils.colorManager.getColor("chartRedStroke");
-    var greenStroke = WEBRCP.utils.colorManager.getColor("chartGreenStroke");
+    const candleColors = getSeriesCandleColors(o);
+    var red = candleColors.down;
+    var green = candleColors.up;
+    var redStroke = candleColors.downStroke;
+    var greenStroke = candleColors.upStroke;
     var stroke = redStroke;
-    var grayStroke = WEBRCP.utils.colorManager.getColor("chartGray");
+    var grayStroke = candleColors.neutral;
     var rightX = 0;
     var midX = 0;
 
     ctx.save();
     ctx.lineWidth = 1;
+
+    LIB.ensureInstrumentOhlcDataFields(o);
 
     var dfH = o.highDataField ? o.highDataField : o.dataField;
     var dfL = o.lowDataField ? o.lowDataField : o.dataField;
@@ -965,7 +1146,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     ctx.save();
 
     ctx.strokeStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("chartStroke");
-    ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("chartFill");
+    ctx.fillStyle = WEBRCP.utils.colorManager.getColor("chartFill");
     ctx.lineWidth = o.width ? o.width : 1;
     ctx.beginPath();
 
@@ -1086,7 +1267,7 @@ var SeriesObject = function (this: SeriesRuntime) {
 
   this.updateExtremes = function (o, extremes, model, seriesManager) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
-    if (!linkedSeries || linkedSeries.data.length == 0) return;
+    if (!linkedSeries?.data?.length) return;
 
     if (this.getRenderMode(o, model) == "OHLC" || this.getRenderMode(o, model) == "Bars")
       return this.updateExtremesOHLC(o, extremes, model, seriesManager);
@@ -1097,20 +1278,11 @@ var SeriesObject = function (this: SeriesRuntime) {
     const linkedSeries = getLinkedSeries(o, seriesManager);
     if (!linkedSeries) return;
 
-    // var dfH = o.highDataField ? o.highDataField : o.dataField;
-    // var dfL = o.lowDataField ? o.lowDataField : o.dataField;
-    var dfH, dfL;
-    var dfO = o.openDataField ? o.openDataField : o.dataField;
-    var dfC = o.closeDataField ? o.closeDataField : o.dataField;
-    if (!dfO || !dfC) return;
+    LIB.ensureInstrumentOhlcDataFields(o);
 
-    if (dfO >= dfC) {
-      dfH = dfO;
-      dfL = dfC;
-    } else {
-      dfH = dfC;
-      dfL = dfO;
-    }
+    const dfH = o.highDataField ? o.highDataField : o.dataField;
+    const dfL = o.lowDataField ? o.lowDataField : o.dataField;
+    if (!dfH || !dfL) return;
 
     for (var i = model._leftIndex; i < model._rightIndex; i++) {
       if (i > linkedSeries.data.length - 1) return;
@@ -1173,7 +1345,7 @@ var SeriesObject = function (this: SeriesRuntime) {
     fields.forEach((field, fieldIndex) => {
       const label = getSeriesLabel(labels, fieldIndex, field);
       const value: SeriesTooltipData["values"][number] = {
-        label: WEBRCP.locale.fusion.getMessage(label, label),
+        label: resolveChartLocaleMessage(label, label),
         value: dataPoint[field],
       };
 

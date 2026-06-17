@@ -1,0 +1,209 @@
+---
+sidebar_position: 11
+title: Finnhub
+description: US stocks, forex, and crypto OHLCV through Finnhub — API token required.
+---
+
+import FinnhubConnectorExample from "@site/src/components/FinnhubConnectorExample";
+
+# Finnhub Connector
+
+Building **multi-asset** charts (US stocks, forex, crypto) with institutional-grade market data? The Finnhub connector wraps the [Finnhub API](https://finnhub.io/docs/api) and implements the same `DataAdapter` contract as [Twelve Data](./twelve-data) and [Massive](./massive).
+
+<FinnhubConnectorExample />
+
+Use the controls above to switch asset class, symbol, and timeframe. This docs demo routes requests through `/api/finnhub` so your API token stays on the server.
+
+:::tip Standalone demo
+Full-page version with sample code: [Finnhub live demo](/finnhub-example).
+:::
+
+:::info API token required
+Finnhub requires an **API token** in production. Store it in `FINNHUB_API_KEY` and run the adapter on your **server** or behind a proxy — never ship the token in a browser bundle. For local docs demos, add the key to `apps/docs/.env.local`.
+:::
+
+:::caution Free tier candle access
+Finnhub's **free** plan includes real-time **stock quotes** (`/quote`) but **not** `/stock/candle`, `/forex/candle`, or `/crypto/candle`. The docs proxy falls back to quote-derived demo candles when candle endpoints return access errors. For production OHLCV, subscribe to a [Finnhub market data plan](https://finnhub.io/pricing-stock-api-market-data).
+:::
+
+## What you get
+
+| Feature | Details |
+| --- | --- |
+| **Stocks** | US tickers (`AAPL`, `SPY`, `QQQ`) |
+| **Forex** | OANDA symbols (`OANDA:EUR_USD`; also accepts `EUR/USD`) |
+| **Crypto** | Exchange-prefixed (`BINANCE:BTCUSDT`) |
+| **History** | `*/candle` endpoints with parallel OHLCV arrays |
+| **Live ticks** | `/quote` (stocks) + WebSocket trades (`wss://ws.finnhub.io`) |
+
+Perfect for wealth apps, fintech dashboards, and multi-asset prototypes.
+
+## Finnhub vs Twelve Data / Massive
+
+| | Finnhub | [Twelve Data](./twelve-data) | [Massive](./massive) |
+| --- | --- | --- | --- |
+| Symbol format | `AAPL`, `OANDA:EUR_USD`, `BINANCE:BTCUSDT` | `EUR/USD`, `BTC/USD` | `AAPL`, `C:EURUSD`, `X:BTCUSD` |
+| Free tier | Quotes + fundamentals; candles need paid plan | `demo` key with candles | Trial with candles |
+| WebSocket | Single URL + token | Single URL + apikey | Per-market endpoints |
+| Best for | Fundamentals-rich fintech | Quick multi-asset demo | US stocks production |
+
+## Licensing
+
+| Tier | Typical use |
+| --- | --- |
+| **Free** | Development, quotes, company data |
+| **Paid** | Production OHLCV candles and external display |
+
+Check [Finnhub pricing](https://finnhub.io/pricing) before shipping to end users.
+
+## Install
+
+```bash
+npm install @efixdata/exeria-chart @efixdata/connector-finnhub
+```
+
+## Minimal example (Node.js)
+
+```ts
+import { createChart } from "@efixdata/exeria-chart";
+import { FinnhubAdapter } from "@efixdata/connector-finnhub";
+
+const connector = new FinnhubAdapter({
+  apiKey: process.env.FINNHUB_API_KEY!,
+});
+
+const chart = createChart({
+  container,
+  dataAdapter: connector,
+});
+
+chart.init();
+
+await chart.loadData("AAPL", {
+  interval: "1d",
+  limit: 500,
+});
+
+chart.subscribeToUpdates("AAPL", (tick) => {
+  console.log("Last price:", tick.price ?? tick.c);
+});
+```
+
+## Step by step
+
+### 1 — Get an API token
+
+Sign up at [finnhub.io](https://finnhub.io/), copy your API token, and store it securely:
+
+```bash
+export FINNHUB_API_KEY=your_token_here
+```
+
+### 2 — Create the connector
+
+```ts
+const connector = new FinnhubAdapter({
+  apiKey: process.env.FINNHUB_API_KEY!,
+});
+```
+
+### 3 — Attach to the chart
+
+```ts
+const chart = createChart({ container, dataAdapter: connector });
+chart.init();
+```
+
+### 4 — Load history
+
+```ts
+await chart.loadData("AAPL", {
+  interval: "1d",
+  limit: 500,
+});
+```
+
+| Option | Meaning |
+| --- | --- |
+| `interval` | `"1m"`, `"5m"`, `"1h"`, `"1d"`, `"1w"`, `"1M"` (mapped to Finnhub `resolution`) |
+| `limit` | Recent N candles (max 5000) |
+| `from` / `to` | Optional `Date` range (converted to Unix seconds) |
+
+### 5 — Go live
+
+```ts
+chart.subscribeToUpdates("AAPL");
+```
+
+Uses Finnhub WebSocket trade stream. Stocks update during US market hours; crypto (`BINANCE:BTCUSDT`) trades 24/7.
+
+### 6 — Clean up
+
+```ts
+chart.unsubscribeFromUpdates();
+await connector.disconnect();
+```
+
+## Symbol formats
+
+| Asset | Input examples | Finnhub symbol |
+| --- | --- | --- |
+| Stock | `AAPL`, `MSFT` | `AAPL` |
+| Forex | `EUR/USD`, `EURUSD` | `OANDA:EUR_USD` |
+| Crypto | `BTCUSDT`, `BINANCE:BTCUSDT` | `BINANCE:BTCUSDT` |
+
+## Next.js API route (browser-safe pattern)
+
+```ts
+// app/api/market/ohlcv/route.ts
+import { FinnhubAdapter } from "@efixdata/connector-finnhub";
+import { NextResponse } from "next/server";
+
+const connector = new FinnhubAdapter({
+  apiKey: process.env.FINNHUB_API_KEY!,
+});
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const symbol = searchParams.get("symbol") ?? "AAPL";
+  const interval = searchParams.get("interval") ?? "1d";
+  const limit = Number(searchParams.get("limit") ?? "500");
+
+  await connector.initialize({});
+  const candles = await connector.getHistoricalData(symbol, { interval, limit });
+
+  return NextResponse.json({ candles });
+}
+```
+
+## Configuration
+
+```ts
+const connector = new FinnhubAdapter({
+  apiKey: process.env.FINNHUB_API_KEY!,
+  baseUrl: "https://finnhub.io/api/v1",
+  defaultForexExchange: "OANDA",
+  defaultCryptoExchange: "BINANCE",
+  pollIntervalMs: 3000,
+  requestTimeout: 10000,
+  maxRetries: 3,
+  onError: (error) => console.error("Finnhub error:", error),
+});
+```
+
+## Limits to know
+
+| Topic | Limit |
+| --- | --- |
+| Rate limits | 60 calls/min on free tier |
+| `no_data` | Narrow the date range; intraday free history is limited |
+| Candle access | Requires paid market data subscription |
+| Browser | Use a backend proxy; do not expose `apiKey` client-side |
+
+## What is next?
+
+- [Massive](./massive) — US stocks + forex + crypto with trial candles
+- [Twelve Data](./twelve-data) — multi-asset with public `demo` key
+- [Overview](./overview) — connector lifecycle
+- [Connect with a Data Connector](../tutorials/connect-with-data-connector) — tutorial walkthrough
+- [Data Connectors catalog](/data-connectors) — compare providers

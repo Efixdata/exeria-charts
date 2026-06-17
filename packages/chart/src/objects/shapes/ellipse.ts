@@ -13,6 +13,7 @@ import {
   shapeStageUpDelegate,
 } from "./_delegates";
 import type { LegacyShapeObject, LegacyShapePoint } from "../../objectRuntimeBases";
+import { resolveShapeOpacity } from "../../shapeStyle";
 import type { ShapeHitArgs, ShapeRenderArgs, ShapeRuntime } from "./_sharedTypes";
 
 function EllipseObject(this: ShapeRuntime) {
@@ -40,15 +41,18 @@ function EllipseObject(this: ShapeRuntime) {
       2 * Math.PI
     );
 
+    const opacity = resolveShapeOpacity(o);
+    const fillColor = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
     if (o.fillBg == true) {
-      ctx.fillStyle = o.color ? o.color : WEBRCP.utils.colorManager.getColor("defaultToolColor");
-      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = fillColor;
+      ctx.globalAlpha = opacity * 0.2;
       ctx.fill();
     }
 
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = opacity;
     ctx.closePath();
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.restore();
   };
 

@@ -1,0 +1,544 @@
+.wrapper {
+  --playground-nav-height: 72px;
+  --playground-section-gap: 24px;
+  --playground-inline-padding: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--playground-nav-height) var(--playground-inline-padding) 120px;
+  color: var(--doc-text);
+}
+
+.hero {
+  padding-top: var(--playground-section-gap);
+  margin-bottom: var(--playground-section-gap);
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.lead {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--doc-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.workspace {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 72px;
+}
+
+.controlsPanel {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--doc-border);
+  border-radius: var(--doc-radius-lg);
+  background: var(--doc-surface);
+}
+
+.steps {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepRow {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+}
+
+.stepRowInline {
+  padding: 8px 0;
+}
+
+.stepRow + .stepRow {
+  border-top: 1px solid var(--doc-border);
+}
+
+.stepNumber {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--doc-text);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--doc-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.stepBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stepHeader {
+  display: grid;
+  gap: 8px;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.stepText {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.presetRow,
+.variantRow,
+.scopeTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.presetButton,
+.presetButtonActive,
+.variantButton,
+.variantButtonActive,
+.scopeTab,
+.scopeTabActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--doc-font-chip, 0.8rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.presetButton,
+.variantButton,
+.scopeTab {
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface-elevated);
+  color: var(--doc-text);
+}
+
+.presetButton:hover,
+.variantButton:hover,
+.scopeTab:hover {
+  transform: translateY(-1px);
+}
+
+.presetButtonActive,
+.variantButtonActive,
+.scopeTabActive {
+  border: 1px solid transparent;
+  background: var(--doc-text);
+  color: var(--doc-bg);
+}
+
+.presetButton:focus-visible,
+.presetButtonActive:focus-visible,
+.variantButton:focus-visible,
+.variantButtonActive:focus-visible,
+.scopeTab:focus-visible,
+.scopeTabActive:focus-visible,
+.exampleCard:focus-visible,
+.exampleCardActive:focus-visible,
+.pickerTrigger:focus-visible,
+.pickerTriggerOpen:focus-visible,
+.pickerOption:focus-visible,
+.pickerOptionActive:focus-visible,
+.colorValue:focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 2px;
+}
+
+.presetSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--doc-text) 20%, transparent);
+}
+
+.customizePanel {
+  display: grid;
+  gap: 8px;
+}
+
+.colorEditor {
+  --playground-control-height: 40px;
+  display: grid;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--doc-border);
+  border-radius: 14px;
+  background: var(--doc-surface-elevated);
+}
+
+.colorEditorLabel {
+  font-size: var(--doc-font-chip, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--doc-text-secondary);
+}
+
+.colorEditorRow {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pickerRootInline {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--picker-width, 20ch);
+}
+
+@media (min-width: 860px) {
+  .stepRowInline {
+    align-items: center;
+  }
+
+  .stepRowInline .stepHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stepRowInline .stepTitle {
+    flex-shrink: 0;
+  }
+
+  .stepRowInline .presetRow,
+  .stepRowInline .variantRow,
+  .stepRowInline .scopeTabs {
+    flex: 0 1 auto;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .stepRowInline .stepBody:has(.customizePanel) {
+    gap: 6px;
+  }
+
+  .colorEditor {
+    padding: 8px 12px;
+  }
+}
+
+.selectLabel {
+  font-size: var(--doc-font-chip, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--doc-text-secondary);
+}
+
+.pickerRoot {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+.pickerTrigger,
+.pickerTriggerOpen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--playground-control-height, 40px);
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.colorEditor .pickerRoot,
+.colorEditor .pickerRootInline {
+  --playground-control-height: 40px;
+  max-width: 100%;
+}
+
+.colorEditorRow .pickerRootInline {
+  width: var(--picker-width, 20ch);
+}
+
+.pickerTrigger {
+  border: 1px solid var(--doc-border);
+  background: var(--doc-bg);
+  color: var(--doc-text);
+}
+
+.pickerTrigger:hover {
+  border-color: color-mix(in srgb, var(--doc-text) 35%, var(--doc-border));
+}
+
+.pickerTriggerOpen {
+  border: 1px solid var(--doc-text);
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-text) 12%, transparent);
+}
+
+.pickerValue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickerChevron {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--doc-text-secondary);
+  border-bottom: 2px solid var(--doc-text-secondary);
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.pickerMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  max-height: 240px;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--doc-border);
+  border-radius: 14px;
+  background: var(--doc-surface-elevated);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.pickerOption,
+.pickerOptionActive {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pickerOption {
+  background: transparent;
+  color: var(--doc-text);
+}
+
+.pickerOption:hover {
+  background: color-mix(in srgb, var(--doc-text) 8%, transparent);
+}
+
+.pickerOptionActive {
+  background: var(--doc-text);
+  color: var(--doc-bg);
+  font-weight: 600;
+}
+
+.colorInputs {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: var(--playground-control-height, 40px);
+}
+
+.colorPicker {
+  box-sizing: border-box;
+  display: block;
+  flex-shrink: 0;
+  width: var(--playground-control-height, 40px);
+  height: var(--playground-control-height, 40px);
+  padding: 0;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.colorValue {
+  box-sizing: border-box;
+  width: 10ch;
+  min-width: 10ch;
+  max-width: 10ch;
+  height: var(--playground-control-height, 40px);
+  padding: 0 10px;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  background: var(--doc-bg);
+  color: var(--doc-text);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.controlHint {
+  margin: 0;
+  color: var(--doc-text-secondary);
+  font-size: var(--doc-font-chip, 0.8rem);
+  line-height: 1.4;
+}
+
+.chartSection {
+  width: 100%;
+  scroll-margin-top: 88px;
+}
+
+.chartPreview {
+  width: 100%;
+}
+
+.chartStack {
+  position: relative;
+  width: 100%;
+}
+
+.examplesSection {
+  display: grid;
+  gap: 24px;
+}
+
+.examplesHeader {
+  text-align: center;
+}
+
+.examplesTitle {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.examplesLead {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--doc-text-secondary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.examplesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.exampleCard,
+.exampleCardActive {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 18px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.exampleCard {
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface);
+  color: var(--doc-text);
+}
+
+.exampleCard:hover {
+  transform: translateY(-2px);
+}
+
+.exampleCardActive {
+  border: 1px solid var(--doc-accent);
+  background: var(--doc-surface-elevated);
+  color: var(--doc-text);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--doc-accent) 35%, transparent);
+}
+
+.exampleImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.exampleTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+@media (max-width: 996px) {
+  .wrapper {
+    --playground-section-gap: 20px;
+  }
+
+  .examplesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .wrapper {
+    --playground-section-gap: 16px;
+    --playground-inline-padding: 20px;
+  }
+
+  .colorEditorRow {
+    flex-wrap: wrap;
+  }
+
+  .controlsPanel {
+    padding: 14px;
+  }
+
+  .stepRow {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .stepNumber {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+
+  .examplesGrid {
+    grid-template-columns: 1fr;
+  }
+}
