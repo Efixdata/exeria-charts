@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Netlify Forms</title>
+  </head>
+  <body>
+  <!--
+    Hidden form so Netlify can detect fields at build time.
+    The live form is rendered by the React contact page.
+  -->
+  <form name="exeria-contact" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="firstName" />
+    <input type="text" name="lastName" />
+    <input type="email" name="email" />
+    <input type="tel" name="phone" />
+    <input type="text" name="company" />
+    <input type="text" name="jobTitle" />
+    <input type="url" name="companyWebsite" />
+    <input type="text" name="country" />
+    <input type="checkbox" name="interestCommercialLicense" />
+    <input type="checkbox" name="interestConsulting" />
+    <input type="checkbox" name="interestDevelopment" />
+    <input type="checkbox" name="interestEnterprise" />
+    <input type="checkbox" name="interestDataConnectors" />
+    <input type="checkbox" name="interestOther" />
+    <select name="licenseModel">
+      <option value="open-source-agpl">Open source (AGPL)</option>
+      <option value="closed-source">Closed-source product</option>
+      <option value="evaluating">Evaluating options</option>
+      <option value="not-sure">Not sure yet</option>
+    </select>
+    <select name="productType">
+      <option value="saas">SaaS</option>
+      <option value="trading">Trading or brokerage UI</option>
+      <option value="analytics">Analytics dashboard</option>
+      <option value="mobile">Mobile app</option>
+      <option value="embedded">Embedded / white-label</option>
+      <option value="internal">Internal tool</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="text" name="productTypeOther" />
+    <textarea name="projectDescription"></textarea>
+    <select name="timeline">
+      <option value="asap">ASAP</option>
+      <option value="1-3-months">1–3 months</option>
+      <option value="3-6-months">3–6 months</option>
+      <option value="6-plus-months">6+ months</option>
+      <option value="exploring">Just exploring</option>
+    </select>
+    <select name="teamSize">
+      <option value="solo">Solo / freelancer</option>
+      <option value="2-10">2–10</option>
+      <option value="11-50">11–50</option>
+      <option value="51-200">51–200</option>
+      <option value="200-plus">200+</option>
+    </select>
+    <input type="text" name="referralSource" />
+    <textarea name="additionalNotes"></textarea>
+    <input type="text" name="bot-field" />
+  </form>
+  </body>
+</html>
