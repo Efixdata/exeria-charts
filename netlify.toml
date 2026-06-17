@@ -1,0 +1,6 @@
+[build]
+  command = "npm run build -- --filter=docs"
+  publish = "apps/docs/build"
+
+[build.environment]
+  NODE_VERSION = "20"
