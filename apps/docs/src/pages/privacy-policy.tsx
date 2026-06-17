@@ -3,7 +3,7 @@ import Link from "@docusaurus/Link";
 import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./privacy-policy.module.css";
 
-const CONTACT_PATH = "/docs/guides/licensing#commercial-license";
+import { CONTACT_PATH } from "@site/src/constants/contact";
 
 export default function PrivacyPolicyPage(): JSX.Element {
   return (
@@ -37,10 +37,9 @@ export default function PrivacyPolicyPage(): JSX.Element {
           <h2>1. Who is responsible for your data?</h2>
           <p>
             The data controller for exeria.dev is <strong>Efix Data Sp. z o. o.</strong>, the
-            company behind Exeria Charts. For privacy-related questions or requests, contact us
-            through our{" "}
-            <Link to={CONTACT_PATH}>commercial licensing contact</Link> and include
-            &ldquo;Privacy&rdquo; in the subject line.
+            company behind Exeria Charts.             For privacy-related questions or requests, use our{" "}
+            <Link to={CONTACT_PATH}>contact form</Link> and include
+            &ldquo;Privacy&rdquo; in your message.
           </p>
 
           <h2>2. What this site is</h2>
@@ -80,20 +79,29 @@ export default function PrivacyPolicyPage(): JSX.Element {
 
           <h2>3.3 Forms and inquiries</h2>
           <p>
-            The <Link to="/data-connectors">Data Connectors</Link> page includes a request form
-            where you may enter a provider name, work email, and optional notes.
+            The <Link to="/contact">Contact</Link> page includes an inquiry form for commercial
+            licensing, consulting, development services, and enterprise rollout. When you submit it,
+            we receive the information you provide (such as your name, company, role, project
+            details, and work email) through our hosting provider&apos;s form service so we can
+            respond to your request.
           </p>
           <p>
-            <strong>At present, this form does not transmit your email or notes to Exeria
-            servers.</strong> Submitting the form shows an on-page confirmation and may trigger a
-            limited analytics event. If you want us to review an integration request, please
-            contact us through the{" "}
-            <Link to={CONTACT_PATH}>licensing contact path</Link>.
+            The <Link to="/data-connectors">Data Connectors</Link> page includes a separate request
+            form where you may enter a provider name, work email, and optional notes.
+          </p>
+          <p>
+            <strong>
+              The Data Connectors request form does not yet transmit your email or notes to Exeria
+              servers.
+            </strong>{" "}
+            Submitting that form shows an on-page confirmation and may trigger a limited analytics
+            event. For connector or licensing requests, please use the{" "}
+            <Link to={CONTACT_PATH}>contact form</Link>.
           </p>
           <p>
             If you contact us for commercial licensing, support, or partnerships, we process the
-            information you choose to send (such as your name, company, and email) to respond to
-            your inquiry and manage our business relationship.
+            information you choose to send to respond to your inquiry and manage our business
+            relationship.
           </p>
 
           <h2>3.4 Client-side storage</h2>
@@ -186,6 +194,10 @@ export default function PrivacyPolicyPage(): JSX.Element {
               <a href="https://www.npmjs.com/org/efixdata">npm</a> — package distribution,
             </li>
             <li>
+              <a href="https://www.netlify.com/privacy/">Netlify</a> — form submissions and site
+              hosting,
+            </li>
+            <li>
               market-data and exchange APIs used by live demos and connector examples,
             </li>
             <li>
@@ -221,7 +233,7 @@ export default function PrivacyPolicyPage(): JSX.Element {
           </p>
           <p>
             To exercise these rights, contact us via the{" "}
-            <Link to={CONTACT_PATH}>licensing contact path</Link>. You may also lodge a complaint
+            <Link to={CONTACT_PATH}>contact form</Link>. You may also lodge a complaint
             with your local supervisory authority; in Poland, this is the President of the Personal
             Data Protection Office (UODO).
           </p>
