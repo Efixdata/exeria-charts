@@ -1,6 +1,10 @@
 # Exeria Charts
 
+🏆 **Winner of the Benzinga Fintech Awards**
+
 Source-available financial charting libraries for self-hosted web applications, trading surfaces, and data-rich dashboards.
+
+**[🚀 Try the Live Playground](https://exeria.dev/playground)** • **[📚 Read Documentation](https://exeria.dev/docs/getting-started/vanilla)** • **[💻 View Data Connectors](https://exeria.dev/data-connectors)**
 
 This repository contains a core chart runtime, a React UI wrapper, a documentation site, and internal playground apps used to validate the public package surface.
 
