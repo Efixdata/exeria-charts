@@ -322,7 +322,7 @@ const chart = new Chart({
 
 // Load data
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe?.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 1000,
 });
 

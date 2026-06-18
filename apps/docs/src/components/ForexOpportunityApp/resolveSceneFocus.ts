@@ -3,6 +3,7 @@ import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import type {
   ArbChartSceneFocus,
   ArbSceneAnchor,
+  ArbScenePriceField,
 } from "@efixdata/exeria-chart";
 import { PIP_SIZE } from "./constants";
 
@@ -63,13 +64,17 @@ function resolveAnchorBarIndex(
 
 function readPriceField(
   candle: Candle,
-  field: "o" | "h" | "l" | "c" | "v",
+  field: ArbScenePriceField,
   offsetPips: number | undefined,
   pipSize: number,
-): number {
+): number | null {
   const base = candle[field];
+  if (typeof base !== "number" || !Number.isFinite(base)) {
+    return null;
+  }
+
   const pipOffset = offsetPips ?? 0;
-  return (base ?? 0) + pipSize * pipOffset;
+  return base + pipSize * pipOffset;
 }
 
 export function resolveSceneAnchor(
@@ -87,11 +92,16 @@ export function resolveSceneAnchor(
 
   const priceField = anchor.priceField ?? "c";
   const pipSize = resolvePipSize(candles);
+  const value = readPriceField(candle, priceField, anchor.valueOffsetPips, pipSize);
+
+  if (value === null) {
+    return null;
+  }
 
   return {
     stamp: candle.stamp,
     offset: 0,
-    value: readPriceField(candle, priceField, anchor.valueOffsetPips, pipSize),
+    value,
     _index: barIndex,
   };
 }

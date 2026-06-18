@@ -134,7 +134,7 @@ export default function BybitConnectorExample() {
       try {
         if (chartRef.current) {
           await chartRef.current.loadData(selectedSymbol, {
-            interval: activeTimeframe?.interval,
+            interval: activeTimeframe?.interval ?? "1d",
             limit: 1000,
           });
 
@@ -309,7 +309,7 @@ const chart = createChart({
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe?.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 1000,
 });
 

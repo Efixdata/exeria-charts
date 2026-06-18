@@ -211,7 +211,7 @@ export default function MassiveConnectorExample() {
         await adapterRef.current.initialize({});
 
         await chartRef.current?.loadData(selectedSymbol, {
-          interval: activeTimeframe?.interval,
+          interval: activeTimeframe?.interval ?? "1d",
           limit: 500,
         });
 
@@ -384,7 +384,7 @@ const chart = createChart({ container, dataAdapter: connector });
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe?.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 500,
 });
 

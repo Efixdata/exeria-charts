@@ -133,7 +133,7 @@ export default function CoingeckoConnectorExample() {
       try {
         if (chartRef.current) {
           await chartRef.current.loadData(selectedCoin, {
-            interval: activeTimeframe?.interval,
+            interval: activeTimeframe?.interval ?? "1d",
             limit: 90,
           });
 
@@ -308,7 +308,7 @@ const chart = createChart({
 chart.init();
 
 await chart.loadData("${selectedCoin}", {
-  interval: "${activeTimeframe?.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 90,
 });
 
