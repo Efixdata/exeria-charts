@@ -84,11 +84,6 @@ const config: Config = {
           label: "Docs",
         },
         {
-          to: "/features",
-          label: "Features",
-          position: "left",
-        },
-        {
           to: "/#case-studies",
           label: "Case studies",
           position: "left",

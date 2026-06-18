@@ -579,6 +579,8 @@ html[data-theme="dark"] .filterButton {
   color: #c9d1d9;
   cursor: pointer;
   transition: border-color 0.15s ease;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .installCommand:hover {
@@ -592,6 +594,8 @@ html[data-theme="dark"] .filterButton {
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.9rem;
   line-height: 1.4;
+  min-width: 0;
+  display: block;
 }
 
 .installCopyIcon {
@@ -633,6 +637,8 @@ html[data-theme="dark"] .filterButton {
   color: var(--doc-code-text);
   font-family: var(--ifm-font-family-monospace);
   font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .licenseLink {
@@ -816,23 +822,34 @@ html[data-theme="dark"] .filterButton {
 
 @media (max-width: 768px) {
   .catalogBand {
-    padding: 40px 0 72px;
+    padding: 0 0 72px;
+    border-top: none;
   }
 
   .catalogBandInner {
-    width: min(1200px, calc(100% - 32px));
+    width: 100%;
+  }
+
+  .catalogIntro {
+    padding: 24px 16px 0;
   }
 
   .catalogExplorerToolbar {
-    padding: 20px;
+    padding: 20px 16px;
   }
 
   .catalogExplorerMeta {
-    padding: 10px 20px;
+    padding: 10px 16px;
+  }
+
+  .catalogExplorer {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 
   .catalogGrid {
-    padding: 0 20px 20px;
+    padding: 20px 16px 20px;
   }
 
   .connectorCard,
@@ -840,7 +857,7 @@ html[data-theme="dark"] .filterButton {
   .licenseCard,
   .eulaPanel,
   .ctaPanel {
-    padding: 24px;
+    padding: 20px;
   }
 
   .cardTopRow {
@@ -893,5 +910,13 @@ html[data-theme="dark"] .filterButton {
   .filterButton {
     flex: 1 1 auto;
     text-align: center;
+  }
+  
+  .installCommand {
+    padding: 12px 14px;
+  }
+  
+  .installCommandText {
+    font-size: 0.8rem;
   }
 }

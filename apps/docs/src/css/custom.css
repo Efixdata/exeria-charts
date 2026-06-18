@@ -122,6 +122,7 @@ html {
 html,
 body {
   background: var(--doc-bg);
+  overflow-x: hidden;
 }
 
 body {
