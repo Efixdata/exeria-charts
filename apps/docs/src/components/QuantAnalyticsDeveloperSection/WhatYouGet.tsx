@@ -49,7 +49,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/scripts/strategies/overview">
+          <Link className={styles.whatLink || ""} to="/docs/scripts/strategies/overview">
             Built-in strategies →
           </Link>
         </article>
@@ -76,7 +76,7 @@ export default function WhatYouGet() {
               </li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/tutorials/add-an-indicator">
+          <Link className={styles.whatLink || ""} to="/docs/tutorials/add-an-indicator">
             Add an indicator tutorial →
           </Link>
         </article>

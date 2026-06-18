@@ -98,7 +98,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
     const definition = props.chart.getIndicatorEditConfig(props.editScriptId);
     if (definition) {
-      const scriptType = props.chart.getScripts()?.[definition.key]?.type;
+      const scriptType = definition.key ? props.chart.getScripts()?.[definition.key]?.type : undefined;
       if (scriptType === "functions") {
         setActiveTab("functions");
       } else if (scriptType === "strategies") {

@@ -297,7 +297,7 @@ export default function PlaygroundDeveloperSection({
 
           <div className={styles.nextGrid}>
             {NEXT_STEPS.map((item) => (
-              <Link key={item.to} to={item.to} className={styles.nextLink}>
+              <Link key={item.to} to={item.to} className={styles.nextLink ?? ""}>
                 <span className={styles.nextLinkTitle}>{item.title}</span>
                 <span className={styles.nextLinkText}>{item.text}</span>
               </Link>

@@ -3,7 +3,7 @@ import styles from "./docChartEmbed.module.css";
 
 export type DocChartEmbedProps = {
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
   style?: CSSProperties;
   minHeight?: number;
   height?: number | string;

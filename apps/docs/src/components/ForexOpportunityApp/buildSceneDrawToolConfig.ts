@@ -49,14 +49,14 @@ export function buildSceneDrawToolConfig(
   const base: DrawToolConfig = {
     id: drawing.id,
     type: drawing.type,
-    color: drawing.color,
-    text: drawing.text,
-    fontSize: drawing.fontSize,
-    fillBg: drawing.fillBg,
     editable: drawing.editable ?? false,
     anchors,
     width: 2,
   };
+  if (drawing.color !== undefined) base.color = drawing.color;
+  if (drawing.text !== undefined) base.text = drawing.text;
+  if (drawing.fontSize !== undefined) base.fontSize = drawing.fontSize;
+  if (drawing.fillBg !== undefined) base.fillBg = drawing.fillBg;
 
   switch (drawing.type) {
     case "fibonLines":

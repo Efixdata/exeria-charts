@@ -42,7 +42,7 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
           chart.setMainDrawMode("OHLC");
 
           const ema = structuredClone(chart.getScripts().EMA);
-          ema.inputs.PERIODS.value = 21;
+          if (ema?.inputs?.PERIODS) ema.inputs.PERIODS.value = 21;
           chart.addScript("EMA", ema);
           chart.addScript("RSI");
           drawPreviewOverlays(chart, candles);
@@ -63,15 +63,15 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
             color: "#5cc8ff",
             anchors: [
               {
-                stamp: candles[Math.floor(candles.length * 0.25)].stamp,
+                stamp: candles[Math.floor(candles.length * 0.25)]?.stamp ?? 0,
                 offset: 0,
-                value: candles[Math.floor(candles.length * 0.25)].h,
+                value: candles[Math.floor(candles.length * 0.25)]?.h ?? 0,
                 _index: 0,
               },
               {
-                stamp: candles[Math.floor(candles.length * 0.55)].stamp,
+                stamp: candles[Math.floor(candles.length * 0.55)]?.stamp ?? 0,
                 offset: 0,
-                value: candles[Math.floor(candles.length * 0.55)].l,
+                value: candles[Math.floor(candles.length * 0.55)]?.l ?? 0,
                 _index: 0,
               },
             ],
@@ -107,7 +107,7 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
         applyScene: async (chart) => {
           chart.setMainDrawMode("Line");
           const ema = structuredClone(chart.getScripts().EMA);
-          ema.inputs.PERIODS.value = 50;
+          if (ema?.inputs?.PERIODS) ema.inputs.PERIODS.value = 50;
           chart.addScript("EMA", ema);
         },
       };

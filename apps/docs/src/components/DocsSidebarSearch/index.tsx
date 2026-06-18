@@ -5,15 +5,12 @@ import "./docsSearch.css";
 import styles from "./styles.module.css";
 
 export default function DocsSidebarSearch(): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div
-      className={clsx(styles.root, isOpen && styles.open)}
+      className={clsx(styles.root)}
       data-docs-sidebar-search=""
-      data-search-active={isOpen ? "true" : "false"}
     >
-      <SearchBar handleSearchBarToggle={setIsOpen} />
+      <SearchBar />
     </div>
   );
 }

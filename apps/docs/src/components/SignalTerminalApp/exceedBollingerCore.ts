@@ -101,7 +101,7 @@ export function findLastExceedBollingerSignal(candles: Candle[]): ExceedBollinge
   const { upper, lower } = computeBollingerBands(closes);
 
   for (let index = candles.length - 1; index >= BBAND_PERIODS - 1; index -= 1) {
-    const side = detectExceedBollingerSide(closes[index]!, upper[index], lower[index]);
+    const side = detectExceedBollingerSide(closes[index]!, upper[index] ?? null, lower[index] ?? null);
     if (!side) {
       continue;
     }

@@ -131,7 +131,7 @@ export default function GettingStartedDemo({
         padded={variant === "react"}
       >
         {variant === "react" && ChartUI ? (
-          <ChartUI chart={chart} theme={docsChartUiTheme ?? undefined}>
+          <ChartUI chart={chart} {...(docsChartUiTheme ? { theme: docsChartUiTheme } : {})}>
             {canvas}
           </ChartUI>
         ) : (

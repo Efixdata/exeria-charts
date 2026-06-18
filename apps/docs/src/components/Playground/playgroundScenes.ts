@@ -1,5 +1,6 @@
 import type { ArbSignalRecord, Candle, ChartInstance } from "@efixdata/exeria-chart";
-import { docsInterval, previewCandles } from "@site/src/components/chartExampleData";
+import { docsInterval, docsExampleDatasets } from "@site/src/components/chartExampleData";
+const previewCandles = docsExampleDatasets.trend.candles;
 import { getStarterProjectScene } from "@site/src/data/starterProjectScenes";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
 import { removeChartOverlay } from "../CryptoTerminalApp/chartCompareOverlay";
@@ -238,12 +239,14 @@ async function wireEquityToCross(chart: ChartInstance): Promise<void> {
   });
 
   const equity = getScriptClone(chart, "EQUITY");
-  equity.inputs.STRATEGY.value = getSeriesReference(chart, "CrossValue");
-  equity.inputs.PRICE.value = getSeriesReference(chart, "c");
-  equity.inputs.SPREAD.value = 0;
-  equity.inputs.COMMISION.value = 0;
-  equity.inputs.INITEQ.value = 0;
-  equity.inputs.LOTSIZE.value = 100_000;
+  if (equity && equity.inputs) {
+    if (equity.inputs.STRATEGY) equity.inputs.STRATEGY.value = getSeriesReference(chart, "CrossValue");
+    if (equity.inputs.PRICE) equity.inputs.PRICE.value = getSeriesReference(chart, "c");
+    if (equity.inputs.SPREAD) equity.inputs.SPREAD.value = 0;
+    if (equity.inputs.COMMISION) equity.inputs.COMMISION.value = 0;
+    if (equity.inputs.INITEQ) equity.inputs.INITEQ.value = 0;
+    if (equity.inputs.LOTSIZE) equity.inputs.LOTSIZE.value = 100_000;
+  }
   await chart.addScript("EQUITY", equity);
 }
 
@@ -268,14 +271,16 @@ export async function applyFxSignalLineScene(chart: ChartInstance): Promise<void
   chart.setAutoScale(true);
 
   const sma = getScriptClone(chart, "SMA");
-  sma.inputs.PERIODS.value = 14;
+  if (sma?.inputs?.PERIODS) sma.inputs.PERIODS.value = 14;
   await chart.addScript("SMA", sma);
 
   const cross = getScriptClone(chart, "CROSS");
-  cross.inputs.LINE.value = getSeriesReference(chart, "c");
-  cross.inputs.SIGNAL.value = getSeriesReference(chart, "SMAValue");
-  cross.inputs.ONDN.value = "Sell";
-  cross.inputs.ONUP.value = "Buy";
+  if (cross?.inputs) {
+    if (cross.inputs.LINE) cross.inputs.LINE.value = getSeriesReference(chart, "c");
+    if (cross.inputs.SIGNAL) cross.inputs.SIGNAL.value = getSeriesReference(chart, "SMAValue");
+    if (cross.inputs.ONDN) cross.inputs.ONDN.value = "Sell";
+    if (cross.inputs.ONUP) cross.inputs.ONUP.value = "Buy";
+  }
   await chart.addScript("CROSS", cross);
 
   setStrategyVisibility(chart, "CROSS", true);
@@ -317,8 +322,10 @@ export async function applyNewsRsiScene(chart: ChartInstance): Promise<void> {
   await setupNewsChart(chart, records, theme, "1m");
 
   const rsi = structuredClone(chart.getScripts().RSI);
-  rsi.pane = "new";
-  await chart.addScript("RSI", rsi);
+  if (rsi) {
+    rsi.pane = "new";
+    await chart.addScript("RSI", rsi);
+  }
 
   await chart.recalculateScripts?.({ rerender: true });
   alignPlaygroundChartToEnd(chart);

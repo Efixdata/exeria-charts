@@ -638,7 +638,7 @@ const definitions: Record<DrawingPresetKey, DrawingPresetDefinition> = {
         return {
           stamp: candle.stamp,
           offset: 0,
-          value: candle.l + span * heightRatios[index],
+          value: candle.l + span * (heightRatios[index] ?? 0),
           _index: 0,
         };
       });
@@ -1163,7 +1163,7 @@ export default function DrawingToolShowcase(props: DrawingToolShowcaseProps) {
     return nextVisiblePresets.filter((presetKey, index, presetKeys) => presetKeys.indexOf(presetKey) === index);
   }, [props.visiblePresets]);
 
-  const fallbackPreset = visiblePresets[0] ?? defaultVisiblePresets[0];
+  const fallbackPreset = visiblePresets[0] ?? defaultVisiblePresets[0] ?? ("trendLine" as DrawingPresetKey);
   const resolvedInitialPreset =
     props.initialPreset && visiblePresets.includes(props.initialPreset)
       ? props.initialPreset

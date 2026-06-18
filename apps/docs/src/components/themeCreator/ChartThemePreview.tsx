@@ -29,18 +29,18 @@ type ChartThemePreviewProps = {
   uiColorsByVariant: VariantPalette<UiColorKey>;
   themeVariant: ThemeVariant;
   /** When set, applies the full Chart Settings preset template (step 1). */
-  presetId?: string;
-  usePresetTemplate?: boolean;
+  presetId?: string | undefined;
+  usePresetTemplate?: boolean | undefined;
   /** When this key changes, `onChartReady` runs again on the existing chart instance. */
-  sceneApplyKey?: string | null;
-  onChartReady?: ChartSceneAction;
+  sceneApplyKey?: string | null | undefined;
+  onChartReady?: ChartSceneAction | undefined;
   /** Fires when the live chart instance mounts or is destroyed. */
-  onChartInstance?: (chart: ChartInstance | null) => void;
+  onChartInstance?: ((chart: ChartInstance | null) => void) | undefined;
   minHeight?: number;
-  aspectRatio?: string;
+  aspectRatio?: string | undefined;
   /** When true, sizing is controlled by `className` CSS (no inline height/aspect-ratio). */
   fluidSize?: boolean;
-  className?: string;
+  className?: string | undefined;
 };
 
 export default function ChartThemePreview({

@@ -115,31 +115,32 @@ describe("EMA period wiring", () => {
   it("fusion engine calculates EMA(28) when model stores flat scalar PERIODS", () => {
     const closes = buildSampleCloses();
     const engine = new FUSION.engine() as InstanceType<typeof FUSION.engine>;
-    const mainSeriesId = FUSION.uniqueId();
+    const mainSeriesId = String(FUSION.uniqueId());
 
-    engine.model.instrumentsSeries = [
-      {
-        seriesId: mainSeriesId,
-        title: "TEST",
-        labels: ["O", "H", "L", "C", "V"],
-        fields: ["o", "h", "l", "c", "v"],
-        data: closes.map((c, index) => ({
-          o: c,
-          h: c + 0.5,
-          l: c - 0.5,
-          c,
-          v: 1,
-          stamp: index,
-        })),
-        instrument: {
-          id: "TEST",
-          symbol: "TEST",
-          tradable: true,
-        },
+    const mainSeries = {
+      seriesId: mainSeriesId,
+      title: "TEST",
+      labels: ["O", "H", "L", "C", "V"],
+      fields: ["o", "h", "l", "c", "v"],
+      interval: { value: 1, unit: "d", symbol: "1d", milis: 86400000 },
+      data: closes.map((c, index) => ({
+        o: c,
+        h: c + 0.5,
+        l: c - 0.5,
+        c,
+        v: 1,
+        stamp: index,
+      })),
+      instrument: {
+        id: "TEST",
+        symbol: "TEST",
+        tradable: true,
       },
-    ];
+    };
+
+    engine.model.instrumentsSeries = [mainSeries];
     engine.model.mainSeries = mainSeriesId;
-    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0];
+    engine.seriesManager[mainSeriesId] = mainSeries;
 
     const emaConfig: RuntimeScriptConfig = {
       key: "EMA",
@@ -161,7 +162,7 @@ describe("EMA period wiring", () => {
     expect(emaScript?.PERIODS).toBe(28);
 
     const emaSeriesId = emaScript?.outputs?.EMA as string;
-    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row) => row.EMA) ?? [];
+    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row: Record<string, number>) => row.EMA) ?? [];
     const expected = calculateEma(closes, 28);
 
     expect(plotted[plotted.length - 1]).toBeCloseTo(expected[expected.length - 1]!, 8);
@@ -174,31 +175,32 @@ describe("EMA period wiring", () => {
   it("fusion engine calculates EMA(28) when model stores nested PERIODS object", () => {
     const closes = buildSampleCloses();
     const engine = new FUSION.engine() as InstanceType<typeof FUSION.engine>;
-    const mainSeriesId = FUSION.uniqueId();
+    const mainSeriesId = String(FUSION.uniqueId());
 
-    engine.model.instrumentsSeries = [
-      {
-        seriesId: mainSeriesId,
-        title: "TEST",
-        labels: ["O", "H", "L", "C", "V"],
-        fields: ["o", "h", "l", "c", "v"],
-        data: closes.map((c, index) => ({
-          o: c,
-          h: c + 0.5,
-          l: c - 0.5,
-          c,
-          v: 1,
-          stamp: index,
-        })),
-        instrument: {
-          id: "TEST",
-          symbol: "TEST",
-          tradable: true,
-        },
+    const mainSeries = {
+      seriesId: mainSeriesId,
+      title: "TEST",
+      labels: ["O", "H", "L", "C", "V"],
+      fields: ["o", "h", "l", "c", "v"],
+      interval: { value: 1, unit: "d", symbol: "1d", milis: 86400000 },
+      data: closes.map((c, index) => ({
+        o: c,
+        h: c + 0.5,
+        l: c - 0.5,
+        c,
+        v: 1,
+        stamp: index,
+      })),
+      instrument: {
+        id: "TEST",
+        symbol: "TEST",
+        tradable: true,
       },
-    ];
+    };
+
+    engine.model.instrumentsSeries = [mainSeries];
     engine.model.mainSeries = mainSeriesId;
-    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0];
+    engine.seriesManager[mainSeriesId] = mainSeries;
 
     const emaConfig: RuntimeScriptConfig = {
       key: "EMA",
@@ -220,7 +222,7 @@ describe("EMA period wiring", () => {
     expect(emaScript?.PERIODS).toBe(28);
 
     const emaSeriesId = emaScript?.outputs?.EMA as string;
-    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row) => row.EMA) ?? [];
+    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row: Record<string, number>) => row.EMA) ?? [];
     const expected = calculateEma(closes, 28);
 
     expect(plotted[plotted.length - 1]).toBeCloseTo(expected[expected.length - 1]!, 8);

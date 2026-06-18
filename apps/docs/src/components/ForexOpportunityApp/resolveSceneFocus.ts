@@ -67,8 +67,12 @@ function readPriceField(
   field: ArbScenePriceField,
   offsetPips: number | undefined,
   pipSize: number,
-): number {
+): number | null {
   const base = candle[field];
+  if (typeof base !== "number" || !Number.isFinite(base)) {
+    return null;
+  }
+
   const pipOffset = offsetPips ?? 0;
   return base + pipSize * pipOffset;
 }
@@ -88,11 +92,16 @@ export function resolveSceneAnchor(
 
   const priceField = anchor.priceField ?? "c";
   const pipSize = resolvePipSize(candles);
+  const value = readPriceField(candle, priceField, anchor.valueOffsetPips, pipSize);
+
+  if (value === null) {
+    return null;
+  }
 
   return {
     stamp: candle.stamp,
     offset: 0,
-    value: readPriceField(candle, priceField, anchor.valueOffsetPips, pipSize),
+    value,
     _index: barIndex,
   };
 }

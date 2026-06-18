@@ -101,7 +101,7 @@ function expandCandlesToCount(candles: Candle[], targetCount: number): Candle[] 
         h: Math.max(open, close, day.h),
         l: Math.min(open, close, day.l),
         c: close,
-        v: day.v / targetCount,
+        v: (day.v ?? 0) / targetCount,
       });
     }
 
@@ -127,7 +127,7 @@ function expandCandlesToCount(candles: Candle[], targetCount: number): Candle[] 
       h: Math.max(open, close, lower.h, upper.h),
       l: Math.min(open, close, lower.l, upper.l),
       c: close,
-      v: (lower.v + upper.v) / 2 / targetCount,
+      v: ((lower.v ?? 0) + (upper.v ?? 0)) / 2 / targetCount,
     });
   }
 

@@ -26,11 +26,11 @@ function buildSmoothLinePath(coords: Array<{ x: number; y: number }>) {
     return "";
   }
 
-  let path = `M ${coords[0].x.toFixed(2)} ${coords[0].y.toFixed(2)}`;
+  let path = `M ${coords[0]!.x.toFixed(2)} ${coords[0]!.y.toFixed(2)}`;
 
   for (let index = 1; index < coords.length; index += 1) {
-    const previous = coords[index - 1];
-    const current = coords[index];
+    const previous = coords[index - 1]!;
+    const current = coords[index]!;
     const midX = (previous.x + current.x) / 2;
     path += ` C ${midX.toFixed(2)} ${previous.y.toFixed(2)}, ${midX.toFixed(2)} ${current.y.toFixed(2)}, ${current.x.toFixed(2)} ${current.y.toFixed(2)}`;
   }
@@ -43,8 +43,8 @@ function buildAreaPath(linePath: string, coords: Array<{ x: number; y: number }>
     return "";
   }
 
-  const last = coords[coords.length - 1];
-  const first = coords[0];
+  const last = coords[coords.length - 1]!;
+  const first = coords[0]!;
   return `${linePath} L ${last.x.toFixed(2)} ${height} L ${first.x.toFixed(2)} ${height} Z`;
 }
 

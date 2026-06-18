@@ -269,7 +269,7 @@ export default function Playground() {
                           label="Chart element"
                           value={selectedChartKey}
                           options={chartPickerOptions}
-                          onChange={setSelectedChartKey}
+                          onChange={(val) => setSelectedChartKey(val as ChartColorKey)}
                         />
 
                         <ColorFieldInput
@@ -295,7 +295,7 @@ export default function Playground() {
                           label="UI element"
                           value={selectedUiKey}
                           options={uiPickerOptions}
-                          onChange={setSelectedUiKey}
+                          onChange={(val) => setSelectedUiKey(val as UiColorKey)}
                         />
 
                         <ColorFieldInput

@@ -43,7 +43,7 @@ export default function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
         <button type="button" className={styles.primaryButton} onClick={onDismiss}>
           Explore radar
         </button>
-        <Link className={styles.ghostButton} to="/starters/forex-platforms">
+        <Link className={styles.ghostButton ?? ""} to="/starters/forex-platforms">
           Download starter
         </Link>
       </div>

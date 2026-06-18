@@ -31,9 +31,9 @@ type CryptoTerminalChartHostProps = {
   onPriceTick: (price: number, timestamp: number) => void;
   onCandleCount: (count: number) => void;
   onLoadingChange: (loading: boolean) => void;
-  onError: (message: string | null) => void;
-  onChartReady: (chart: ChartInstance | null) => void;
-  onChartClickPrice?: (price: number) => void;
+  onError?: ((message: string | null) => void) | undefined;
+  onChartReady?: ((chart: ChartInstance | null) => void) | undefined;
+  onChartClickPrice?: ((price: number) => void) | undefined;
   compareSymbol?: string | null;
   compareLabel?: string;
 };
@@ -48,7 +48,7 @@ function getMainCandles(chart: ChartInstance): Candle[] {
 
   for (const key in seriesManager) {
     const series = seriesManager[key];
-    if (Array.isArray(series.data) && series.data.length > candles.length) {
+    if (series && Array.isArray(series.data) && series.data.length > candles.length) {
       candles = series.data as Candle[];
     }
   }
@@ -84,7 +84,7 @@ function CryptoTerminalChartHost({
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<{
     chart: ChartInstance | null;
     children: ReactNode;
-    theme?: ChartUITheme;
+    theme?: ChartUITheme | undefined;
   }> | null>(null);
   const [chartReady, setChartReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -117,7 +117,7 @@ function CryptoTerminalChartHost({
   }, [loading, onLoadingChange]);
 
   useEffect(() => {
-    onError(error);
+    if (onError && error !== null) onError(error);
   }, [error, onError]);
 
   useEffect(() => {
@@ -125,11 +125,11 @@ function CryptoTerminalChartHost({
 
     loadChartUI()
       .then((ChartUI) => {
-        if (!disposed) {
+        if (!disposed && ChartUI) {
           setChartUIComponent(() => ChartUI as ComponentType<{
             chart: ChartInstance | null;
             children: ReactNode;
-            theme?: ChartUITheme;
+            theme?: ChartUITheme | undefined;
           }>);
         }
       })
@@ -436,7 +436,7 @@ function CryptoTerminalChartHost({
       {loading ? <div className={styles.chartLoading}>Loading market data…</div> : null}
       {error ? <div className={styles.chartError}>{error}</div> : null}
       {ChartUI ? (
-        <ChartUI chart={chart} theme={chartUiTheme ?? undefined}>
+        <ChartUI chart={chart} {...(chartUiTheme ? { theme: chartUiTheme } : {})}>
           {chartCanvas}
         </ChartUI>
       ) : (

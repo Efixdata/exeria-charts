@@ -6,7 +6,7 @@ import styles from "./cryptoTerminalApp.module.css";
 type AlertsPanelProps = {
   alerts: PriceAlert[];
   alertPrice: string;
-  livePrice?: number;
+  livePrice?: number | undefined;
   selectedSymbol: string;
   onAlertPriceChange: (value: string) => void;
   onAddAlert: () => void;

@@ -162,7 +162,7 @@ export default function QuantAnalyticsApp() {
     >
       <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
-          <Link className={styles.backLink} to="/starters/quant-analytics">
+          <Link className={styles.backLink ?? ""} to="/starters/quant-analytics">
             <span className={styles.backLinkFull}>← Back to starter</span>
             <span className={styles.backLinkShort}>← Back</span>
           </Link>

@@ -74,11 +74,11 @@ function asConditionalSeries(reference: string) {
 
 async function addMovingAveragePair(chart: ChartInstance) {
   const ema = getScriptClone(chart, "EMA");
-  ema.inputs.PERIODS.value = 12;
+  if(ema.inputs?.PERIODS) ema.inputs.PERIODS.value = 12;
   await chart.addScript("EMA", ema);
 
   const sma = getScriptClone(chart, "SMA");
-  sma.inputs.PERIODS.value = 34;
+  if(sma.inputs?.PERIODS) sma.inputs.PERIODS.value = 34;
   await chart.addScript("SMA", sma);
 
   await waitForFrame();
@@ -101,10 +101,10 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       const { emaRef, smaRef } = await addMovingAveragePair(chart);
 
       const cross = getScriptClone(chart, "CROSS");
-      cross.inputs.LINE.value = emaRef;
-      cross.inputs.SIGNAL.value = smaRef;
-      cross.inputs.ONDN.value = "Buy";
-      cross.inputs.ONUP.value = "Sell";
+      if(cross.inputs?.LINE) cross.inputs.LINE.value = emaRef;
+      if(cross.inputs?.SIGNAL) cross.inputs.SIGNAL.value = smaRef;
+      if(cross.inputs?.ONDN) cross.inputs.ONDN.value = "Buy";
+      if(cross.inputs?.ONUP) cross.inputs.ONUP.value = "Sell";
 
       await chart.addScript("CROSS", cross);
     },
@@ -120,16 +120,16 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       const { emaRef, smaRef } = await addMovingAveragePair(chart);
 
       const cross = getScriptClone(chart, "CROSS");
-      cross.inputs.LINE.value = emaRef;
-      cross.inputs.SIGNAL.value = smaRef;
+      if(cross.inputs?.LINE) cross.inputs.LINE.value = emaRef;
+      if(cross.inputs?.SIGNAL) cross.inputs.SIGNAL.value = smaRef;
       await chart.addScript("CROSS", cross);
 
       await waitForFrame();
 
       const position = getScriptClone(chart, "POSITION");
-      position.inputs.STRATEGY.value = getSeriesReference(chart, "CrossValue");
-      position.inputs.WEIGHT.value = 1;
-      position.inputs.MULTIPLIER.value = { type: "double", value: 1 };
+      if(position.inputs?.STRATEGY) position.inputs.STRATEGY.value = getSeriesReference(chart, "CrossValue");
+      if(position.inputs?.WEIGHT) position.inputs.WEIGHT.value = 1;
+      if(position.inputs?.MULTIPLIER) position.inputs.MULTIPLIER.value = { type: "double", value: 1 };
 
       await chart.addScript("POSITION", position);
     },
@@ -143,15 +143,15 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
     codeHint: 'DISPLACE.DSERIES = "seriesId:EMA"',
     async apply(chart) {
       const ema = getScriptClone(chart, "EMA");
-      ema.inputs.PERIODS.value = 21;
+      if(ema.inputs?.PERIODS) ema.inputs.PERIODS.value = 21;
       await chart.addScript("EMA", ema);
 
       await waitForFrame();
 
       const displace = getScriptClone(chart, "DISPLACE");
-      displace.inputs.DSERIES.value = getSeriesReference(chart, "EMA");
-      displace.inputs.PERIODS.value = 18;
-      displace.inputs.VALUE.value = 0;
+      if(displace.inputs?.DSERIES) displace.inputs.DSERIES.value = getSeriesReference(chart, "EMA");
+      if(displace.inputs?.PERIODS) displace.inputs.PERIODS.value = 18;
+      if(displace.inputs?.VALUE) displace.inputs.VALUE.value = 0;
 
       await chart.addScript("DISPLACE", displace);
     },
@@ -167,11 +167,17 @@ const definitions: Record<WiringPresetKey, WiringPresetDefinition> = {
       const { emaRef, smaRef } = await addMovingAveragePair(chart);
 
       const ifScript = getScriptClone(chart, "IF");
-      ifScript.inputs.VAL_A.value = asConditionalSeries(emaRef);
-      ifScript.inputs.VAL_B.value = asConditionalSeries(smaRef);
-      ifScript.inputs.VAL_X.value = { type: "double", value: 1 };
-      ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
-      ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
+      if(ifScript.inputs?.VAL_A) ifScript.inputs.VAL_A.value = asConditionalSeries(emaRef);
+      if(ifScript.inputs?.VAL_B) ifScript.inputs.VAL_B.value = asConditionalSeries(smaRef);
+      if (ifScript.inputs?.VAL_X) {
+        ifScript.inputs.VAL_X.value = { type: "double", value: 1 };
+      }
+      if (ifScript.inputs?.VAL_Y) {
+        ifScript.inputs.VAL_Y.value = { type: "double", value: 0 };
+      }
+      if (ifScript.inputs?.VAL_Z) {
+        ifScript.inputs.VAL_Z.value = { type: "double", value: -1 };
+      }
 
       await chart.addScript("IF", ifScript);
     },

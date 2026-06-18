@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { Shape } from "../../Objects2";
 import { PriceTagObject } from "./priceTag";
+import type { ShapeRuntime } from "./_sharedTypes";
 
 describe("priceTag OHLC snap", () => {
   const shapeBase = new Shape();
   PriceTagObject.prototype = shapeBase;
-  const shape = new PriceTagObject() as InstanceType<typeof Shape> & {
+  const shape = new (PriceTagObject as unknown as new () => ShapeRuntime)() as unknown as InstanceType<typeof Shape> & {
     stageDown: (...args: unknown[]) => { selected: number; anchors: unknown[] };
   };
 
@@ -65,11 +66,9 @@ describe("priceTag OHLC snap", () => {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
-        valueAxisMode: panel.valueAxisMode,
-        fV: 20480,
       }) + panel._offset;
 
-    const staging = {
+    const staging: Record<string, any> = {
       type: "priceTag",
       sticky: true,
       anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],
@@ -126,7 +125,7 @@ describe("priceTag OHLC snap", () => {
       },
     };
 
-    const staging = {
+    const staging: Record<string, any> = {
       type: "priceTag",
       sticky: true,
       anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],

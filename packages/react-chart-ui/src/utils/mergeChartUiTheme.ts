@@ -30,9 +30,10 @@ function mergeToolbarSection(
     return merged;
   }
 
+  const buttons = mergeButtons(base?.buttons, patch?.buttons);
   return {
     ...merged,
-    buttons: mergeButtons(base?.buttons, patch?.buttons),
+    ...(buttons !== undefined ? { buttons } : {}),
   };
 }
 
@@ -45,9 +46,10 @@ function mergeSubMenuSection(
     return merged;
   }
 
+  const buttons = mergeButtons(base?.buttons, patch?.buttons);
   return {
     ...merged,
-    buttons: mergeButtons(base?.buttons, patch?.buttons),
+    ...(buttons !== undefined ? { buttons } : {}),
   };
 }
 
@@ -60,9 +62,10 @@ function mergeRadioButtonSection(
     return merged;
   }
 
+  const buttons = mergeButtons(base?.buttons, patch?.buttons);
   return {
     ...merged,
-    buttons: mergeButtons(base?.buttons, patch?.buttons),
+    ...(buttons !== undefined ? { buttons } : {}),
   };
 }
 
@@ -78,17 +81,27 @@ export function mergeChartUiTheme(
     return patch;
   }
 
+  const border = mergeSection(base.border, patch.border);
+  const buttons = mergeButtons(base.buttons, patch.buttons);
+  const radioButton = mergeRadioButtonSection(base.radioButton, patch.radioButton);
+  const toolbar = mergeToolbarSection(base.toolbar, patch.toolbar);
+  const subMenu = mergeSubMenuSection(base.subMenu, patch.subMenu);
+  const splitButton = mergeSection(base.splitButton, patch.splitButton);
+  const dialog = mergeSection(base.dialog, patch.dialog);
+  const inputs = mergeSection(base.inputs, patch.inputs);
+  const scrollBar = mergeSection(base.scrollBar, patch.scrollBar);
+
   return {
     ...base,
     ...patch,
-    border: mergeSection(base.border, patch.border),
-    buttons: mergeButtons(base.buttons, patch.buttons),
-    radioButton: mergeRadioButtonSection(base.radioButton, patch.radioButton),
-    toolbar: mergeToolbarSection(base.toolbar, patch.toolbar),
-    subMenu: mergeSubMenuSection(base.subMenu, patch.subMenu),
-    splitButton: mergeSection(base.splitButton, patch.splitButton),
-    dialog: mergeSection(base.dialog, patch.dialog),
-    inputs: mergeSection(base.inputs, patch.inputs),
-    scrollBar: mergeSection(base.scrollBar, patch.scrollBar),
+    ...(border !== undefined ? { border } : {}),
+    ...(buttons !== undefined ? { buttons } : {}),
+    ...(radioButton !== undefined ? { radioButton } : {}),
+    ...(toolbar !== undefined ? { toolbar } : {}),
+    ...(subMenu !== undefined ? { subMenu } : {}),
+    ...(splitButton !== undefined ? { splitButton } : {}),
+    ...(dialog !== undefined ? { dialog } : {}),
+    ...(inputs !== undefined ? { inputs } : {}),
+    ...(scrollBar !== undefined ? { scrollBar } : {}),
   };
 }

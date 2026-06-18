@@ -52,9 +52,9 @@ export class BinanceAdapter implements DataAdapter {
     const klines = await this.apiClient.getKlines({
       symbol: symbol.toUpperCase(),
       interval: binanceInterval,
-      startTime: options.from?.getTime(),
-      endTime: options.to?.getTime(),
-      limit: options.limit,
+      ...(options.from !== undefined ? { startTime: options.from.getTime() } : {}),
+      ...(options.to !== undefined ? { endTime: options.to.getTime() } : {}),
+      ...(options.limit !== undefined ? { limit: options.limit } : {}),
     });
 
     return klines.map((kline) => ({
@@ -84,6 +84,10 @@ export class BinanceAdapter implements DataAdapter {
     }
 
     const kline = klines[0];
+    if (!kline) {
+      throw new Error(`No price data found for symbol: ${symbol}`);
+    }
+
     const tick: Tick = {
       stamp: kline.closeTime,
       c: parseFloat(kline.close),

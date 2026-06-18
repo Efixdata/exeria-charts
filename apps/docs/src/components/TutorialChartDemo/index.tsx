@@ -136,7 +136,6 @@ export default function TutorialChartDemo({ scene, caption, height = 380 }: Tuto
           ...(preset?.theme
             ? {
                 theme: buildSimpleChartTheme(preset.theme, preset.themeVariant ?? "dark"),
-                themeVariant: preset.themeVariant,
               }
             : getDocsChartCreateOptions()),
         });

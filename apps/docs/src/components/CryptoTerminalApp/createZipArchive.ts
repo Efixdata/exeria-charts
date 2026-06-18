@@ -96,7 +96,7 @@ export function createZipBlob(entries: ZipEntry[]): Blob {
   writeUint32LE(endView, 16, offset);
   writeUint16LE(endView, 20, 0);
 
-  return new Blob([...chunks, ...centralDirectory, endRecord], { type: "application/zip" });
+  return new Blob([...chunks, ...centralDirectory, endRecord] as BlobPart[], { type: "application/zip" });
 }
 
 export function downloadBlob(blob: Blob, filename: string) {

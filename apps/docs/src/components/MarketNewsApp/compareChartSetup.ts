@@ -63,7 +63,7 @@ function styleMainSeries(runtime: ChartRuntime, seriesId: string, color: string)
     return;
   }
 
-  for (const object of mainPanel.objects) {
+  for (const object of mainPanel.objects as any[]) {
     if (object.dataLink === seriesId) {
       object.color = color;
       object.strokeStyle = color;
@@ -98,16 +98,16 @@ async function applyStaticForexOverlay(
     fusion: { fullSynchronization(): void };
   };
 
-  if (!overlayRuntime.model.instrumentsSeries.some((entry) => entry.seriesId === seriesId)) {
+  if (!overlayRuntime.model.instrumentsSeries.some((entry: any) => entry.seriesId === seriesId)) {
     overlayRuntime.model.instrumentsSeries.push({
       seriesId,
       title: pair.label,
       labels: ["O", "H", "L", "C", "V", "I"],
       fields: ["o", "h", "l", "c", "v", "i"],
       instrument: { symbol, description: pair.label },
-    });
+    } as any);
 
-    if (mainPanel && !mainPanel.objects.some((object) => object.dataLink === seriesId)) {
+    if (mainPanel && !mainPanel.objects.some((object: any) => object.dataLink === seriesId)) {
       mainPanel.objects.push({
         id: seriesId,
         type: "SeriesObject",
@@ -126,7 +126,7 @@ async function applyStaticForexOverlay(
         dataField: "c",
         strokeStyle: lineColor,
         hidden: false,
-      });
+      } as any);
     }
   }
 

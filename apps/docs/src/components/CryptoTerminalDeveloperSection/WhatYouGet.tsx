@@ -49,7 +49,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/data-connectors/binance">
+          <Link className={styles.whatLink || ""} to="/docs/data-connectors/binance">
             How Binance data works →
           </Link>
         </article>
@@ -76,7 +76,7 @@ export default function WhatYouGet() {
               </li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/tutorials/trade-from-chart">
+          <Link className={styles.whatLink || ""} to="/docs/tutorials/trade-from-chart">
             Trade from chart tutorial →
           </Link>
         </article>

@@ -65,9 +65,13 @@ function buildNewsFeedIndicatorProto(
 
   const markers = newsMarkerColors(variant);
   const proto = structuredClone(template);
-  proto.inputs.MARKER_SIZE.value = markers.size;
-  proto.inputs.MARKER_SHAPE.value = "Circle";
-  proto.plotters = proto.plotters?.map((plotter) => ({
+  if (proto.inputs?.MARKER_SIZE) {
+    proto.inputs.MARKER_SIZE.value = markers.size;
+  }
+  if (proto.inputs?.MARKER_SHAPE) {
+    proto.inputs.MARKER_SHAPE.value = "Circle";
+  }
+  const plotters = proto.plotters?.map((plotter: Record<string, unknown>) => ({
     ...plotter,
     buyColor: markers.buy,
     sellColor: markers.sell,
@@ -76,6 +80,9 @@ function buildNewsFeedIndicatorProto(
     width: markers.size,
     renderLegend: false,
   }));
+  if (plotters) {
+    proto.plotters = plotters;
+  }
 
   return proto;
 }
@@ -178,7 +185,7 @@ function applyNewsLineGradient(chart: ChartInstance, lineColor: string, emphasiz
 
   chart.applyChartAppearanceSettings({
     ...appearance,
-    background: appearance.background,
+    backgroundColor: appearance.backgroundColor ?? "#ffffff",
     chartLineColor: lineColor,
     chartFillGradientColor: lineColor,
     chartLineFillVisible: true,

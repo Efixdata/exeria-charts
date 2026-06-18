@@ -1,4 +1,4 @@
-import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
+import type { Candle, ChartInstance, Interval } from "@efixdata/exeria-chart";
 import type { FintechAsset, FintechPeriodId } from "./constants";
 import {
   buildCanonicalStamps,
@@ -325,15 +325,15 @@ function applyFintechChartChrome(chart: ChartInstance, themeVariant: FintechThem
 
   chart.applyChartAppearanceSettings({
     ...appearance,
-    background: chrome.background,
+    backgroundColor: chrome.background,
     gridVisible: false,
     gridMode: "none",
     lastPriceLineVisible: false,
     lastPriceLabelVisible: true,
     chartLineFillVisible: true,
     chartLineFillMode: "gradient",
-    axisText: chrome.axisText,
-    crosshair: chrome.crosshair,
+    axisTextColor: chrome.axisText,
+    crosshairColor: chrome.crosshair,
   });
 
   runtime.model.timeAxisHeight = 0;
@@ -494,7 +494,7 @@ function upsertOverlay(
   seriesId: string,
   asset: FintechAsset,
   candles: Candle[],
-  chartInterval: unknown,
+  chartInterval: Interval,
   marketId: FintechMarketId,
 ): void {
   const instrument = createInstrument(asset.symbol, asset.label, marketId);
@@ -673,7 +673,7 @@ export async function setupFintechSingleAssetChart(
   const appearance = chart.getChartAppearanceSettings();
   chart.applyChartAppearanceSettings({
     ...appearance,
-    background: chrome.background,
+    backgroundColor: chrome.background,
     gridVisible: false,
     gridMode: "none",
     chartLineColor: asset.color,
@@ -683,7 +683,7 @@ export async function setupFintechSingleAssetChart(
     chartLineFillVisible: true,
     chartLineFillMode: "gradient",
     chartFillGradientOpacity: 0.32,
-    axisText: chrome.axisText,
+    axisTextColor: chrome.axisText,
   });
 
   runtime.model.timeAxisHeight = 0;

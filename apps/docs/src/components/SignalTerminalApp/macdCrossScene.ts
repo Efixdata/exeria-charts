@@ -13,8 +13,10 @@ export async function applyMacdCrossScene(chart: ChartInstance): Promise<void> {
   const macdSignalRef = getSeriesReference(chart, "MACDSignal");
 
   const cross = getScriptClone(chart, "CROSS");
-  cross.inputs.LINE.value = macdLineRef;
-  cross.inputs.SIGNAL.value = macdSignalRef;
+  if (cross?.inputs) {
+    if (cross.inputs.LINE) cross.inputs.LINE.value = macdLineRef;
+    if (cross.inputs.SIGNAL) cross.inputs.SIGNAL.value = macdSignalRef;
+  }
   await chart.addScript("CROSS", cross);
 
   hideScriptLegends(chart);

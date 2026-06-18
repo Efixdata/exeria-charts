@@ -16,16 +16,16 @@ const toColorInputValue = (value: string) => {
 export interface ColorFieldInputProps {
   value: string;
   onChange: (value: string) => void;
-  className?: string;
-  style?: CSSProperties;
-  swatchClassName?: string;
-  hexClassName?: string;
-  swatchStyle?: CSSProperties;
-  hexStyle?: CSSProperties;
+  className?: string | undefined;
+  style?: CSSProperties | undefined;
+  swatchClassName?: string | undefined;
+  hexClassName?: string | undefined;
+  swatchStyle?: CSSProperties | undefined;
+  hexStyle?: CSSProperties | undefined;
   swatchAriaLabel: string;
-  hexAriaLabel?: string;
-  maxLength?: number;
-  uppercaseOnPick?: boolean;
+  hexAriaLabel?: string | undefined;
+  maxLength?: number | undefined;
+  uppercaseOnPick?: boolean | undefined;
 }
 
 export function ColorFieldInput({
@@ -49,7 +49,7 @@ export function ColorFieldInput({
   const isPickerOpenRef = useRef(false);
 
   useEffect(() => {
-    const dismissPicker = (event: MouseEvent | TouchEvent) => {
+    const dismissPicker = (event: Event) => {
       const colorInput = colorInputRef.current;
       if (!colorInput) {
         return;

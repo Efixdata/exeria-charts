@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { Shape } from "../../Objects2";
 import { BrushObject } from "./brush";
+import type { ShapeRuntime } from "./_sharedTypes";
 
 describe("brush staging clicks", () => {
   const shapeBase = new Shape();
   BrushObject.prototype = shapeBase;
-  const brush = new BrushObject() as InstanceType<typeof Shape> & {
+  const brush = new (BrushObject as unknown as new () => ShapeRuntime)() as unknown as InstanceType<typeof Shape> & {
     stageDown: (...args: unknown[]) => { selected: number; anchors: unknown[] };
     stageUp: (...args: unknown[]) => boolean;
   };

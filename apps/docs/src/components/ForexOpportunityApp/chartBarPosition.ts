@@ -7,6 +7,15 @@ type ChartViewportHost = ChartInstance & {
     _midOffset: number;
     _width: number;
     mainSeries?: string;
+    endMargin?: number;
+    panels?: {
+      main?: boolean;
+      valueAxisMode?: string;
+      vMin?: number;
+      vMax?: number;
+      _height?: number;
+      _offset?: number;
+    }[];
   };
   renderer?: {
     getIndexPoint: (index: number, model: ChartViewportHost["model"]) => number;
@@ -98,7 +107,6 @@ export function resolveBarScreenPosition(
       panelHeight: panel._height,
       minValue: panel.vMin,
       maxValue: panel.vMax,
-      valueAxisMode: panel.valueAxisMode,
     }) + panel._offset;
 
   if (!Number.isFinite(indexX) || !Number.isFinite(y)) {
@@ -157,7 +165,7 @@ export function resolveNewsCalloutPosition(
     return null;
   }
 
-  const plotPosition = resolveBarScreenPosition(chart, barIndex, low);
+  const plotPosition = resolveBarScreenPosition(chart, barIndex, low!);
   if (!plotPosition) {
     return null;
   }
@@ -241,7 +249,7 @@ export function fitChartSeriesToPlotWidth(chart: ChartInstance): boolean {
 }
 
 export function scrollChartToEnd(chart: ChartInstance): void {
-  const host = chart as ChartScrollHost;
+  const host = chart as ChartViewportHost & ChartScrollHost;
 
   const scroll = () => {
     host.fit();
