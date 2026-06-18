@@ -17,7 +17,8 @@
 }
 
 .hero {
-  padding: 200px 0 100px;
+  padding-top: 200px;
+  padding-bottom: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,7 +56,7 @@
 }
 
 .section {
-  padding: 120px 0 0;
+  padding-top: 120px;
   scroll-margin-top: 88px;
 }
 
@@ -89,7 +90,8 @@
   }
 
   .hero {
-    padding: 140px 0 60px;
+    padding-top: 140px;
+    padding-bottom: 60px;
   }
 
   .heroCompact {

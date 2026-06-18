@@ -2,12 +2,22 @@
   flex: 1;
   background: var(--doc-bg);
   color: var(--doc-text);
-  padding: 2rem 1.5rem 4rem;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
 }
 
 .container {
-  width: min(1200px, calc(100% - 48px));
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
+  padding-inline: 24px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-inline: 20px;
+  }
 }
 
 .container h1 {

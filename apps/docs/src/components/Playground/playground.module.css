@@ -541,4 +541,17 @@
   .examplesGrid {
     grid-template-columns: 1fr;
   }
+  
+  .chartSection {
+    height: 520px;
+  }
+  
+  .chartPreview {
+    height: 100%;
+    aspect-ratio: auto !important;
+  }
+
+  .chartStack {
+    height: 100%;
+  }
 }

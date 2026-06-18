@@ -38,6 +38,8 @@
   border: 1px solid var(--doc-border);
   border-radius: 16px;
   background: var(--doc-bg);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .stepHeading {
@@ -200,6 +202,8 @@
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .chartSummary {
@@ -258,6 +262,38 @@
 @media (max-width: 640px) {
   .section {
     padding: 22px 16px 26px;
+    overflow-x: hidden;
+  }
+
+  .stepHeading {
+    grid-template-columns: 1fr;
+  }
+
+  .stepNumber {
+    margin-bottom: -4px;
+  }
+
+  .installRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .installCode {
+    width: 100%;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .copyButtonPrimary, .copyButton {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .codeHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .nextGrid {

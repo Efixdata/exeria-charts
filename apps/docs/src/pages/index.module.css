@@ -67,6 +67,7 @@ html[data-theme="dark"] .heroVideo {
   color: var(--doc-text-secondary);
   cursor: pointer;
   transition: color 0.2s ease;
+  max-width: 100%;
 }
 
 .commandBox:hover {
@@ -75,6 +76,10 @@ html[data-theme="dark"] .heroVideo {
 
 .commandText {
   color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .commandIcon {
@@ -407,7 +412,8 @@ html[data-theme="light"] .pricingCta.pricingCtaOutlined:hover {
 
 @media (max-width: 768px) {
   .hero {
-    padding: 140px 0 60px;
+    padding-top: 140px;
+    padding-bottom: 60px;
   }
 
   .title {

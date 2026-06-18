@@ -119,9 +119,61 @@ html[data-theme="dark"] .drawer {
   z-index: 260;
 }
 
-.links {
+.scrollableContent {
   flex: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.docsSidebarSection {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--doc-border);
+}
+
+.docsSidebarSection ul {
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.docsSidebarSection li {
+  margin-bottom: 4px;
+}
+
+/* Base styles for Docusaurus sidebar links inside our menu */
+.docsSidebarSection :global(.menu__list) {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+}
+.docsSidebarSection :global(.menu__list .menu__list) {
+  padding-left: 1rem;
+  margin-top: 4px;
+}
+.docsSidebarSection :global(.menu__link) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--doc-radius-sm);
+  color: var(--doc-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.docsSidebarSection :global(.menu__link:hover) {
+  color: var(--doc-text);
+  background: var(--doc-surface);
+}
+.docsSidebarSection :global(.menu__link--active) {
+  color: var(--doc-accent);
+  background: var(--doc-accent-muted-bg);
+}
+
+.links {
   padding: 12px;
   display: flex;
   flex-direction: column;

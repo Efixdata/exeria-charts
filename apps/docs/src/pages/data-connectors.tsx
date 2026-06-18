@@ -56,7 +56,7 @@ function InstallCommand({ command }: { command: string }): JSX.Element {
 
   return (
     <button type="button" className={styles.installCommand} onClick={copy} title="Copy install command">
-      <code className={styles.installCommandText}>{command}</code>
+      <span className={styles.installCommandText}>{command}</span>
       <CopyIcon />
     </button>
   );
