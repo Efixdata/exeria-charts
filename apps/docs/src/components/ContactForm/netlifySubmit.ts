@@ -1,14 +1,12 @@
-const FORM_NAME = "exeria-contact";
-
 export function encodeNetlifyFormBody(data: Record<string, string>): string {
   return Object.keys(data)
     .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key] ?? "")}`)
     .join("&");
 }
 
-export async function submitNetlifyForm(data: Record<string, string>): Promise<void> {
+export async function submitNetlifyForm(formName: string, data: Record<string, string>): Promise<void> {
   const body = encodeNetlifyFormBody({
-    "form-name": FORM_NAME,
+    "form-name": formName,
     ...data,
   });
 

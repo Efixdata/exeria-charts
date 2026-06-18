@@ -23,7 +23,7 @@ export default function RequestConnectorForm(): JSX.Element {
     setSubmitting(true);
 
     try {
-      await submitNetlifyForm({
+      await submitNetlifyForm("connector-request", {
         provider: form.provider.trim(),
         email: form.email.trim(),
         notes: form.notes.trim(),

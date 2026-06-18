@@ -176,7 +176,7 @@ export default function ContactForm(): JSX.Element {
     setSubmitting(true);
 
     try {
-      await submitNetlifyForm(buildSubmissionPayload(form));
+      await submitNetlifyForm("exeria-contact", buildSubmissionPayload(form));
       trackMarketingEvent("contact_form_submit", {
         licenseModel: form.licenseModel,
         productType: form.productType,
