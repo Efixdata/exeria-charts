@@ -28,7 +28,7 @@ export default function StrategyPresetBar({
               .filter(Boolean)
               .join(" ")}
             onClick={() => onSelect(preset.id)}
-            title={preset.hint}
+            title={(preset as any).hint}
           >
             {preset.label}
           </button>

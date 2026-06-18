@@ -97,7 +97,7 @@ export default function ScreenerSignalsDeveloperSection() {
               >
                 Blank Vite template
               </a>
-              <Link className={styles.actionButton} to="/starters/screener-signals/app">
+              <Link className={styles.actionButton ?? ""} to="/starters/screener-signals/app">
                 Open live screener
               </Link>
               <button type="button" className={styles.actionButton} onClick={() => void handleCopy()}>

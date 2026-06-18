@@ -165,7 +165,7 @@ export default function FinnhubConnectorExample() {
       disposed = true;
 
       try {
-        chartRef.current?.unsubscribeFromUpdates?.();
+        (chartRef.current as any)?.unsubscribeFromUpdates?.();
       } catch (e) {
         console.error("Error unsubscribing chart updates:", e);
       }
@@ -212,7 +212,7 @@ export default function FinnhubConnectorExample() {
         await adapterRef.current.initialize({});
 
         await chartRef.current?.loadData(selectedSymbol, {
-          interval: activeTimeframe.interval,
+          interval: activeTimeframe?.interval,
           limit: 500,
         });
 
@@ -412,7 +412,7 @@ const chart = createChart({ container, dataAdapter: connector });
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe.interval}",
+  interval: "${activeTimeframe?.interval}",
   limit: 500,
 });
 

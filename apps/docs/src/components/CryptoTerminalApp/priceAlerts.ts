@@ -6,8 +6,8 @@ export type PriceAlert = {
   price: number;
   direction: AlertDirection;
   createdAt: number;
-  triggeredAt?: number;
-  lineId?: string | number;
+  triggeredAt?: number | undefined;
+  lineId?: string | number | undefined;
 };
 
 export function checkAlertCrossing(

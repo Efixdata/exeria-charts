@@ -301,6 +301,8 @@ function deriveLightUiColors(uiColors: UiColorState): UiColorState {
     text: "#162133",
     mutedText: "#5D718B",
     divider: mixColors(uiColors.divider, "#D7E0EB", 0.48),
+    inputSurface: mixColors(uiColors.inputSurface, "#FFFFFF", 0.8),
+    inputBorder: mixColors(uiColors.inputBorder, "#D7E0EB", 0.6),
   };
 }
 
@@ -423,8 +425,6 @@ export function buildSimpleChartTheme(
     grid: colors.grid,
     candleUp: colors.candleUp,
     candleDown: colors.candleDown,
-    candleUpStroke: colors.candleUp,
-    candleDownStroke: colors.candleDown,
     crosshair: colors.crosshair ?? colors.accent ?? colors.candleUp,
     tool: colors.tool ?? colors.accent ?? "#5cc8ff",
     ...deriveCandleStrokeColors(

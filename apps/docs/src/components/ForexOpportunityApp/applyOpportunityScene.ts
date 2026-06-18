@@ -30,9 +30,9 @@ const sceneDrawingIds: Array<string | number> = [];
 let baseSceneApplied = false;
 
 export type ApplySceneResult = {
-  focusBarIndex?: number;
-  signalHit?: StrategySignalHit | null;
-  arbSnapshot?: ArbSnapshot | null;
+  focusBarIndex?: number | undefined;
+  signalHit?: StrategySignalHit | null | undefined;
+  arbSnapshot?: ArbSnapshot | null | undefined;
 };
 
 function collectSceneId(result: string | number | void): void {
@@ -64,15 +64,19 @@ export async function applyForexBaseScene(
   chart.setMainDrawMode("OHLC");
 
   const ema = structuredClone(chart.getScripts().EMA);
-  ema.inputs.PERIODS.value = 21;
+  if (ema?.inputs?.PERIODS) {
+    ema.inputs.PERIODS.value = 21;
+  }
   await chart.addScript("EMA", ema);
 
   await chart.addScript("MACD");
   const macdLineRef = getSeriesReference(chart, "MACDLine");
   const macdSignalRef = getSeriesReference(chart, "MACDSignal");
   const cross = getScriptClone(chart, "CROSS");
-  cross.inputs.LINE.value = macdLineRef;
-  cross.inputs.SIGNAL.value = macdSignalRef;
+  if (cross?.inputs?.LINE && cross?.inputs?.SIGNAL) {
+    cross.inputs.LINE.value = macdLineRef;
+    cross.inputs.SIGNAL.value = macdSignalRef;
+  }
   await chart.addScript("CROSS", cross);
 
   await chart.addScript("BBAND");
@@ -80,10 +84,12 @@ export async function applyForexBaseScene(
   const upperRef = getSeriesReference(chart, "BBUpper");
   const lowerRef = getSeriesReference(chart, "BBLower");
   const exceed = getScriptClone(chart, "EXCEED");
-  exceed.inputs.UPPER.value = upperRef;
-  exceed.inputs.LOWER.value = lowerRef;
-  exceed.inputs.HIGH.value = closeRef;
-  exceed.inputs.LOW.value = closeRef;
+  if (exceed?.inputs?.UPPER && exceed?.inputs?.LOWER && exceed?.inputs?.HIGH && exceed?.inputs?.LOW) {
+    exceed.inputs.UPPER.value = upperRef;
+    exceed.inputs.LOWER.value = lowerRef;
+    exceed.inputs.HIGH.value = closeRef;
+    exceed.inputs.LOW.value = closeRef;
+  }
   await chart.addScript("EXCEED", exceed);
 
   await applyForexNewsFeedIndicator(chart);
@@ -253,13 +259,13 @@ export async function applyOpportunityScene(
   let focusBarIndex: number | undefined;
   let arbSnapshot: ArbSnapshot | null = null;
 
-  switch (opportunity.sceneKind) {
+  switch (opportunity.category) {
     case "arb": {
       if (opportunity.id === "arb-triangular") {
         arbSnapshot = await applyTriangularArbOverlay(chart, options.timeframeId);
         applyArbTag(chart, candles, arbSnapshot?.edgePips ?? 2.1);
-      } else if (opportunity.overlaySymbol) {
-        await applyCorrelationOverlay(chart, opportunity.overlaySymbol, options.timeframeId);
+      } else if (opportunity.chartScene.overlays?.[0]?.symbol) {
+        await applyCorrelationOverlay(chart, opportunity.chartScene.overlays[0].symbol, options.timeframeId);
         applyArbTag(chart, candles, 1.6);
       }
       focusBarIndex = Math.floor(candles.length * 0.6);
@@ -279,7 +285,7 @@ export async function applyOpportunityScene(
       }
       break;
     }
-    case "news":
+    case "event":
       focusBarIndex = undefined;
       break;
     default:

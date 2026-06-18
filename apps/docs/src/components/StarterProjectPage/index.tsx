@@ -63,7 +63,7 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
                     "Full-screen workspace with live data, multi-panel layout, and copy-paste source."}
                 </p>
               </div>
-              <Link className={styles.liveAppButton} to={project.liveAppPath}>
+              <Link className={styles.liveAppButton ?? ""} to={project.liveAppPath}>
                 {projectId === "fintech-integration"
                   ? "Open demo"
                   : projectId === "forex-platforms"

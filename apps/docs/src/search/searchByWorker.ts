@@ -18,7 +18,7 @@ function getRemoteWorker(): Promise<Comlink.Remote<SearchWorkerApi>> {
       const Remote = Comlink.wrap<SearchWorkerApi>(
         new Worker(new URL("./worker.js", import.meta.url)),
       );
-      return await new Remote();
+      return Remote as unknown as Comlink.Remote<SearchWorkerApi>;
     })();
   }
 

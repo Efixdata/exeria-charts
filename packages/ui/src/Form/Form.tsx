@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 
 interface FormProps {
-  children?: JSX.Element | JSX.Element[];
+  children?: React.ReactNode;
   style?: React.CSSProperties | undefined;
   onSubmit: React.FormEventHandler<HTMLFormElement> | undefined;
 }

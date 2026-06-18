@@ -108,12 +108,12 @@ describe("showMobileContextMenu", () => {
 
     expect(isMobileContextMenuOpen()).toBe(true);
 
-    pointerDownHandlers[0]?.({ target: body } as Event);
+    pointerDownHandlers[0]?.({ target: body } as unknown as Event);
     expect(isMobileContextMenuOpen()).toBe(true);
 
     vi.advanceTimersByTime(400);
 
-    pointerDownHandlers[0]?.({ target: body } as Event);
+    pointerDownHandlers[0]?.({ target: body } as unknown as Event);
     expect(isMobileContextMenuOpen()).toBe(false);
   });
 });

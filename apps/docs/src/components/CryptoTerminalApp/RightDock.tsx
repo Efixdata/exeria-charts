@@ -34,7 +34,7 @@ type RightDockProps = {
   onClosePosition: (positionId: string) => void;
   alerts: PriceAlert[];
   alertPrice: string;
-  livePrice?: number;
+  livePrice?: number | undefined;
   selectedSymbol: string;
   onAlertPriceChange: (value: string) => void;
   onAddAlert: () => void;

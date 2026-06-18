@@ -3,7 +3,6 @@ import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import type {
   ArbChartSceneFocus,
   ArbSceneAnchor,
-  ArbScenePriceField,
 } from "@efixdata/exeria-chart";
 import { PIP_SIZE } from "./constants";
 
@@ -64,13 +63,13 @@ function resolveAnchorBarIndex(
 
 function readPriceField(
   candle: Candle,
-  field: ArbScenePriceField,
+  field: "o" | "h" | "l" | "c" | "v",
   offsetPips: number | undefined,
   pipSize: number,
 ): number {
   const base = candle[field];
   const pipOffset = offsetPips ?? 0;
-  return base + pipSize * pipOffset;
+  return (base ?? 0) + pipSize * pipOffset;
 }
 
 export function resolveSceneAnchor(

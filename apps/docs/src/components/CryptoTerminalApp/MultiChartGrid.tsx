@@ -12,8 +12,8 @@ type MultiChartGridProps = {
   onPrimaryPriceTick: (price: number, timestamp: number) => void;
   onCandleCount: (count: number) => void;
   onLoadingChange: (loading: boolean) => void;
-  onChartReady: (chart: ChartInstance | null) => void;
-  onChartClickPrice: (price: number) => void;
+  onChartReady?: ((chart: ChartInstance | null) => void) | undefined;
+  onChartClickPrice?: ((price: number) => void) | undefined;
   showClickHint: boolean;
 };
 
@@ -41,11 +41,8 @@ export default function MultiChartGrid({
           onPriceTick={onPrimaryPriceTick}
           onCandleCount={onCandleCount}
           onLoadingChange={onLoadingChange}
-          onError={() => undefined}
           onChartReady={onChartReady}
           onChartClickPrice={onChartClickPrice}
-          showClickHint={showClickHint}
-          isPrimary
         />
       </div>
       <div className={styles.chartPane}>
@@ -57,9 +54,7 @@ export default function MultiChartGrid({
           onPriceTick={() => undefined}
           onCandleCount={() => undefined}
           onLoadingChange={() => undefined}
-          onError={() => undefined}
-          showClickHint={false}
-          isPrimary={false}
+          onChartReady={() => undefined}
         />
       </div>
     </div>

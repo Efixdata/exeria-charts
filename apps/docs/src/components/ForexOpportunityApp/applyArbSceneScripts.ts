@@ -86,13 +86,13 @@ function applyScriptInputs(proto: ScriptDefinition, inputs?: Record<string, unkn
 function wireCrossScript(chart: ChartInstance, context: ScriptContext): ScriptDefinition {
   const cross = getScriptClone(chart, "CROSS");
 
-  if (context.macd) {
+  if (context.macd && cross.inputs?.LINE && cross.inputs?.SIGNAL) {
     cross.inputs.LINE.value = getSeriesReference(chart, "MACDLine");
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "MACDSignal");
-  } else if (context.ema) {
+  } else if (context.ema && cross.inputs?.LINE && cross.inputs?.SIGNAL) {
     cross.inputs.LINE.value = getSeriesReference(chart, "c");
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "EMA");
-  } else if (context.sma) {
+  } else if (context.sma && cross.inputs?.LINE && cross.inputs?.SIGNAL) {
     cross.inputs.LINE.value = getSeriesReference(chart, "c");
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "SMAValue");
   }
@@ -103,10 +103,12 @@ function wireCrossScript(chart: ChartInstance, context: ScriptContext): ScriptDe
 function wireExceedScript(chart: ChartInstance): ScriptDefinition {
   const exceed = getScriptClone(chart, "EXCEED");
   const closeRef = getSeriesReference(chart, "c");
-  exceed.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
-  exceed.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
-  exceed.inputs.HIGH.value = closeRef;
-  exceed.inputs.LOW.value = closeRef;
+  if (exceed?.inputs?.UPPER && exceed?.inputs?.LOWER && exceed?.inputs?.HIGH && exceed?.inputs?.LOW) {
+    exceed.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
+    exceed.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
+    exceed.inputs.HIGH.value = closeRef;
+    exceed.inputs.LOW.value = closeRef;
+  }
   return exceed;
 }
 

@@ -77,7 +77,7 @@ export default function SignalTerminalApp() {
     <div className={styles.shell} style={TERMINAL_UI_FONT_VARS}>
       <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
-          <Link className={styles.backLink} to="/starters/screener-signals">
+          <Link className={styles.backLink ?? ""} to="/starters/screener-signals">
             ← Back
           </Link>
           <strong className={styles.brandTitle}>Signal Screener</strong>

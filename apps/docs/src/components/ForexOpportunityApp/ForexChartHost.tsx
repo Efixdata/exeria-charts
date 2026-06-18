@@ -72,7 +72,7 @@ function ForexChartHost({
   onError,
   containerRef: externalContainerRef,
 }: ForexChartHostProps) {
-  const internalContainerRef = useRef<HTMLDivElement | null>(null);
+  const internalContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = externalContainerRef ?? internalContainerRef;
   const chartRef = useRef<ChartInstance | null>(null);
   const adapterRef = useRef<ForexStaticDataAdapter | null>(null);
@@ -84,7 +84,7 @@ function ForexChartHost({
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<{
     chart: ChartInstance | null;
     children: ReactNode;
-    theme?: ChartUITheme;
+    theme?: ChartUITheme | undefined;
   }> | null>(null);
   const [chartReady, setChartReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -129,7 +129,7 @@ function ForexChartHost({
           setChartUIComponent(() => ChartUI as ComponentType<{
             chart: ChartInstance | null;
             children: ReactNode;
-            theme?: ChartUITheme;
+            theme?: ChartUITheme | undefined;
           }>);
         }
       })
@@ -330,11 +330,11 @@ function ForexChartHost({
       ) : null}
       {error ? <div className={styles.chartError}>{error}</div> : null}
       {ChartUI ? (
-        <ChartUI chart={chart} theme={chartUiTheme ?? undefined}>
-          <div ref={containerRef} className={styles.chartCanvas} />
+        <ChartUI chart={chart} {...(chartUiTheme ? { theme: chartUiTheme } : {})}>
+          <div ref={containerRef as React.RefObject<HTMLDivElement>} className={styles.chartCanvas} />
         </ChartUI>
       ) : (
-        <div ref={containerRef} className={styles.chartCanvas} />
+        <div ref={containerRef as React.RefObject<HTMLDivElement>} className={styles.chartCanvas} />
       )}
     </div>
   );

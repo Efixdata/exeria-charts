@@ -11,21 +11,21 @@ export type ChartTradeLine = {
   id: string;
   type: string;
   price: number;
-  limitPrice?: number;
-  stopPrice?: number;
+  limitPrice?: number | undefined;
+  stopPrice?: number | undefined;
   title: string;
   operation: "BUY" | "SELL";
-  parentId?: string | null;
-  modifyAllowed?: boolean;
-  relatedAllowed?: boolean;
+  parentId?: string | null | undefined;
+  modifyAllowed?: boolean | undefined;
+  relatedAllowed?: boolean | undefined;
   modified?: boolean;
-  stop?: boolean;
+  stop?: boolean | undefined;
   object: {
     id: string;
     price: number;
-    limitPrice?: number;
-    stopPrice?: number;
-    classification?: string;
+    limitPrice?: number | undefined;
+    stopPrice?: number | undefined;
+    classification?: string | undefined;
     instrument: ChartTradeInstrument;
     [key: string]: unknown;
   };
@@ -51,8 +51,8 @@ export type ChartTradeHostOptions = {
   doDeleteOrderCallback?: (payload: { id?: string }) => void;
   doModifyOrderCallback?: (payload: {
     id?: string;
-    limitPrice?: number;
-    stopPrice?: number;
+    limitPrice?: number | undefined;
+    stopPrice?: number | undefined;
     price?: number;
   }) => void;
   doAddRelatedOrder?: (payload: {

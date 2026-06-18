@@ -100,7 +100,7 @@ export default function MarketNewsDeveloperSection() {
               <button type="button" className={styles.actionButton} onClick={() => void handleCopy()}>
                 {copied ? "Copied" : "Copy snippet"}
               </button>
-              <Link className={styles.actionButton} to="/starters/market-news/app">
+              <Link className={styles.actionButton ?? ""} to="/starters/market-news/app">
                 Open live article
               </Link>
             </div>

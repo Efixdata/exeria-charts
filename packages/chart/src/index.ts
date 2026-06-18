@@ -2,6 +2,7 @@ import Chart from "./Chart";
 import type { ChartInstance, ChartOptions } from "./types";
 
 export * from "./types";
+export type { ChartPanelObject } from "./internal-types/objects";
 export * from "./dataAdapter";
 export { intervalFromSymbol, milisFromIntervalSymbol } from "./intervalFromSymbol";
 export {
@@ -66,7 +67,13 @@ export type {
 } from "./newsFeedTypes";
 export type {
   ArbChartScene,
+  ArbChartSceneFocus,
+  ArbChartSceneOverlay,
+  ArbChartSceneScript,
   ArbMetrics,
+  ArbSceneAnchor,
+  ArbScenePriceField,
+  ArbSceneDrawing,
   ArbSignalBundle,
   ArbSignalCategory,
   ArbSignalQuery,

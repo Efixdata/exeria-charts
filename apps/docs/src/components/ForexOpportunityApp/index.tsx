@@ -394,7 +394,7 @@ export default function ForexOpportunityApp() {
     >
       <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
-          <Link className={styles.backLink} to="/starters/forex-platforms">
+          <Link className={styles.backLink ?? ""} to="/starters/forex-platforms">
             ← Back
           </Link>
           <strong className={styles.brandTitle}>FX Opportunity Radar</strong>

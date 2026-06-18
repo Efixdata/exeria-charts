@@ -62,8 +62,10 @@ function InstallCommand({ command }: { command: string }): JSX.Element {
   );
 }
 
-function getConnectorStatusChipClass(status: DataConnectorEntry["status"]): string {
-  return status === "available" ? styles.chipStatusAvailable : styles.chipStatusComingSoon;
+function getConnectorStatusChipClass(status: DataConnectorEntry["status"] | undefined): string {
+  return status === "available"
+    ? (styles.chipStatusAvailable ?? "")
+    : (styles.chipStatusComingSoon ?? "");
 }
 
 function ConnectorBadges({ connector }: { connector: DataConnectorEntry }): JSX.Element {
@@ -357,7 +359,7 @@ export default function DataConnectorsPage(): JSX.Element {
       return;
     }
     if (!filteredConnectors.some((connector) => connector.id === activeConnectorId)) {
-      setActiveConnectorId(filteredConnectors[0].id);
+      setActiveConnectorId(filteredConnectors[0]?.id ?? "none");
     }
   }, [filteredConnectors, activeConnectorId]);
 
@@ -517,9 +519,9 @@ export default function DataConnectorsPage(): JSX.Element {
 
           <div className={styles.integrationPanel} data-testid="integration-snippet">
             <p className={styles.integrationCaption}>
-              Example: <strong>{activeConnector.providerName}</strong> connector
+              Example: <strong>{activeConnector?.providerName}</strong> connector
             </p>
-            <pre>{getConnectorIntegrationSnippet(activeConnector)}</pre>
+            <pre>{activeConnector ? getConnectorIntegrationSnippet(activeConnector as any) : ""}</pre>
           </div>
         </section>
 

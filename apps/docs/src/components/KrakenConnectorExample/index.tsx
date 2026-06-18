@@ -111,7 +111,7 @@ export default function KrakenConnectorExample() {
       }
 
       try {
-        chartRef.current?.unsubscribeFromUpdates?.();
+        (chartRef.current as any)?.unsubscribeFromUpdates?.();
       } catch (e) {
         console.error("Error unsubscribing chart updates:", e);
       }
@@ -137,7 +137,7 @@ export default function KrakenConnectorExample() {
       try {
         if (chartRef.current) {
           await chartRef.current.loadData(selectedSymbol, {
-            interval: activeTimeframe.interval,
+            interval: activeTimeframe?.interval,
             limit: 500,
           });
 
@@ -145,8 +145,8 @@ export default function KrakenConnectorExample() {
           let count = 0;
           for (const key in seriesManager) {
             const series = seriesManager[key];
-            if (Array.isArray(series.data) && series.data.length > count) {
-              count = series.data.length;
+            if (Array.isArray(series?.data) && series?.data.length > count) {
+              count = series?.data.length;
             }
           }
           setCandles(count);
@@ -312,7 +312,7 @@ const chart = createChart({
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe.interval}",
+  interval: "${activeTimeframe?.interval}",
   limit: 500,
 });
 

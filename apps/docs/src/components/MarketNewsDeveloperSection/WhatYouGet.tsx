@@ -48,7 +48,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/getting-started/vanilla">
+          <Link className={styles.whatLink || ""} to="/docs/getting-started/vanilla">
             Vanilla quickstart →
           </Link>
         </article>
@@ -62,7 +62,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/starters/market-news/app">
+          <Link className={styles.whatLink || ""} to="/starters/market-news/app">
             Open live article →
           </Link>
         </article>
@@ -78,7 +78,7 @@ export default function WhatYouGet() {
               </li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/chart-usage/multi-instrument-charts">
+          <Link className={styles.whatLink || ""} to="/docs/chart-usage/multi-instrument-charts">
             Multi-instrument charts →
           </Link>
         </article>

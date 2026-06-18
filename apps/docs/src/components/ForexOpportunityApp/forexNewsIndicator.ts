@@ -51,9 +51,11 @@ export async function applyForexNewsFeedIndicator(chart: ChartInstance): Promise
   }
 
   const proto = structuredClone(template);
-  proto.inputs.MARKER_SIZE.value = 6;
-  proto.inputs.MARKER_SHAPE.value = "Circle";
-  proto.plotters = proto.plotters?.map((plotter) => ({
+  if (proto?.inputs?.MARKER_SIZE && proto?.inputs?.MARKER_SHAPE) {
+    proto.inputs.MARKER_SIZE.value = 6;
+    proto.inputs.MARKER_SHAPE.value = "Circle";
+  }
+  proto.plotters = (proto.plotters as any[])?.map((plotter: any) => ({
     ...plotter,
     buyColor: "#22c55e",
     sellColor: "#ef4444",

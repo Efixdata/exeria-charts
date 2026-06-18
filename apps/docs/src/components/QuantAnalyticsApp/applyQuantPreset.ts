@@ -34,19 +34,19 @@ function applyQuantMainLineChart(chart: ChartInstance): void {
 function wireExceedToBbands(chart: ChartInstance): ScriptDefinition {
   const exceed = getScriptClone(chart, "EXCEED");
   const closeRef = getSeriesReference(chart, "c");
-  exceed.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
-  exceed.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
-  exceed.inputs.HIGH.value = closeRef;
-  exceed.inputs.LOW.value = closeRef;
+  if(exceed.inputs?.UPPER) exceed.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
+  if(exceed.inputs?.LOWER) exceed.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
+  if(exceed.inputs?.HIGH) exceed.inputs.HIGH.value = closeRef;
+  if(exceed.inputs?.LOW) exceed.inputs.LOW.value = closeRef;
   return exceed;
 }
 
 function wireReboundToBbands(chart: ChartInstance): ScriptDefinition {
   const rebound = getScriptClone(chart, "REBOUND");
   const closeRef = getSeriesReference(chart, "c");
-  rebound.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
-  rebound.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
-  rebound.inputs.VALUE.value = closeRef;
+  if(rebound.inputs?.UPPER) rebound.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
+  if(rebound.inputs?.LOWER) rebound.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
+  if(rebound.inputs?.VALUE) rebound.inputs.VALUE.value = closeRef;
   return rebound;
 }
 
@@ -54,8 +54,8 @@ async function wireEquity(chart: ChartInstance, strategyField: string): Promise<
   await waitForFrame();
 
   const equity = getScriptClone(chart, "EQUITY");
-  equity.inputs.STRATEGY.value = getSeriesReference(chart, strategyField);
-  equity.inputs.PRICE.value = getSeriesReference(chart, "c");
+  if(equity.inputs?.STRATEGY) equity.inputs.STRATEGY.value = getSeriesReference(chart, strategyField);
+  if(equity.inputs?.PRICE) equity.inputs.PRICE.value = getSeriesReference(chart, "c");
   await chart.addScript("EQUITY", equity);
 }
 
@@ -66,12 +66,12 @@ async function wireEquityToJoinScript(
   await waitForFrame();
 
   const equity = getScriptClone(chart, "EQUITY");
-  equity.inputs.STRATEGY.value = getScriptSeriesReference(chart, joinScriptId, "Join");
-  equity.inputs.PRICE.value = getSeriesReference(chart, "c");
-  equity.inputs.SPREAD.value = 0;
-  equity.inputs.COMMISION.value = 0;
-  equity.inputs.INITEQ.value = 0;
-  equity.inputs.LOTSIZE.value = 100_000;
+  if(equity.inputs?.STRATEGY) equity.inputs.STRATEGY.value = getScriptSeriesReference(chart, joinScriptId, "Join");
+  if(equity.inputs?.PRICE) equity.inputs.PRICE.value = getSeriesReference(chart, "c");
+  if(equity.inputs?.SPREAD) equity.inputs.SPREAD.value = 0;
+  if(equity.inputs?.COMMISION) equity.inputs.COMMISION.value = 0;
+  if(equity.inputs?.INITEQ) equity.inputs.INITEQ.value = 0;
+  if(equity.inputs?.LOTSIZE) equity.inputs.LOTSIZE.value = 100_000;
   await chart.addScript("EQUITY", equity);
 }
 
@@ -103,11 +103,11 @@ async function applyWmaEmaCompositePreset(chart: ChartInstance): Promise<void> {
   const closeRef = getSeriesReference(chart, "c");
 
   const wma = styleQuantOverlayIndicator(getScriptClone(chart, "WMA"), "#e65100", "WMA 14");
-  wma.inputs.PERIODS.value = 14;
+  if(wma.inputs?.PERIODS) wma.inputs.PERIODS.value = 14;
   const wmaId = await addQuantScript(chart, "WMA", wma);
 
   const ema = styleQuantOverlayIndicator(getScriptClone(chart, "EMA"), "#7c4dff", "EMA 28");
-  ema.inputs.PERIODS.value = 28;
+  if(ema.inputs?.PERIODS) ema.inputs.PERIODS.value = 28;
   const emaId = await addQuantScript(chart, "EMA", ema);
 
   await waitForFrame();
@@ -116,47 +116,53 @@ async function applyWmaEmaCompositePreset(chart: ChartInstance): Promise<void> {
   const wmaRef = getScriptSeriesReference(chart, wmaId, "WMAValue");
 
   const greaterLessBuy = getScriptClone(chart, "GREATERLESS");
-  greaterLessBuy.inputs.LINE1.value = closeRef;
-  greaterLessBuy.inputs.LINE2.value = emaRef;
-  greaterLessBuy.inputs.CHOICE.value = "greater than";
-  greaterLessBuy.inputs.RT.value = "Buy";
+  if(greaterLessBuy.inputs?.LINE1) greaterLessBuy.inputs.LINE1.value = closeRef;
+  if(greaterLessBuy.inputs?.LINE2) greaterLessBuy.inputs.LINE2.value = emaRef;
+  if(greaterLessBuy.inputs?.CHOICE) greaterLessBuy.inputs.CHOICE.value = "greater than";
+  if(greaterLessBuy.inputs?.RT) greaterLessBuy.inputs.RT.value = "Buy";
   greaterLessBuy.pane = "new";
   const greaterLessBuyId = await addQuantScript(chart, "GREATERLESS", greaterLessBuy);
   const greaterLessPaneId = getScriptPaneId(chart, greaterLessBuyId);
 
   const greaterLessSell = getScriptClone(chart, "GREATERLESS");
-  greaterLessSell.inputs.LINE1.value = closeRef;
-  greaterLessSell.inputs.LINE2.value = emaRef;
-  greaterLessSell.inputs.CHOICE.value = "less than";
-  greaterLessSell.inputs.RT.value = "Sell";
+  if(greaterLessSell.inputs?.LINE1) greaterLessSell.inputs.LINE1.value = closeRef;
+  if(greaterLessSell.inputs?.LINE2) greaterLessSell.inputs.LINE2.value = emaRef;
+  if(greaterLessSell.inputs?.CHOICE) greaterLessSell.inputs.CHOICE.value = "less than";
+  if(greaterLessSell.inputs?.RT) greaterLessSell.inputs.RT.value = "Sell";
   greaterLessSell.pane = greaterLessPaneId;
   const greaterLessSellId = await addQuantScript(chart, "GREATERLESS", greaterLessSell);
 
   const cross = getScriptClone(chart, "CROSS");
-  cross.inputs.LINE.value = closeRef;
-  cross.inputs.SIGNAL.value = wmaRef;
-  cross.inputs.ONDN.value = "Sell";
-  cross.inputs.ONUP.value = "Buy";
+  if(cross.inputs?.LINE) cross.inputs.LINE.value = closeRef;
+  if(cross.inputs?.SIGNAL) cross.inputs.SIGNAL.value = wmaRef;
+  if (cross.inputs?.ONDN) {
+    cross.inputs.ONDN.value = "Sell";
+  }
+  if (cross.inputs?.ONUP) {
+    cross.inputs.ONUP.value = "Buy";
+  }
   cross.pane = "new";
   const crossId = await addQuantScript(chart, "CROSS", cross);
 
   const doubleCheckBuy = getScriptClone(chart, "DOUBLECHECK");
-  doubleCheckBuy.inputs.FIRST.value = getScriptSeriesReference(chart, greaterLessBuyId, "GreaterLess");
-  doubleCheckBuy.inputs.SECOND.value = getScriptSeriesReference(chart, crossId, "CrossValue");
+  if(doubleCheckBuy.inputs?.FIRST) doubleCheckBuy.inputs.FIRST.value = getScriptSeriesReference(chart, greaterLessBuyId, "GreaterLess");
+  if(doubleCheckBuy.inputs?.SECOND) doubleCheckBuy.inputs.SECOND.value = getScriptSeriesReference(chart, crossId, "CrossValue");
   const doubleCheckBuyId = await addQuantScript(chart, "DOUBLECHECK", doubleCheckBuy);
 
   const doubleCheckSell = getScriptClone(chart, "DOUBLECHECK");
-  doubleCheckSell.inputs.FIRST.value = getScriptSeriesReference(
-    chart,
-    greaterLessSellId,
-    "GreaterLess",
-  );
-  doubleCheckSell.inputs.SECOND.value = getScriptSeriesReference(chart, crossId, "CrossValue");
+  if (doubleCheckSell.inputs?.FIRST) {
+    doubleCheckSell.inputs.FIRST.value = getScriptSeriesReference(
+      chart,
+      greaterLessSellId,
+      "GreaterLess",
+    );
+  }
+  if(doubleCheckSell.inputs?.SECOND) doubleCheckSell.inputs.SECOND.value = getScriptSeriesReference(chart, crossId, "CrossValue");
   const doubleCheckSellId = await addQuantScript(chart, "DOUBLECHECK", doubleCheckSell);
 
   const join = getScriptClone(chart, "JOIN");
-  join.inputs.FIRST.value = getScriptSeriesReference(chart, doubleCheckBuyId, "Double");
-  join.inputs.SECOND.value = getScriptSeriesReference(chart, doubleCheckSellId, "Double");
+  if(join.inputs?.FIRST) join.inputs.FIRST.value = getScriptSeriesReference(chart, doubleCheckBuyId, "Double");
+  if(join.inputs?.SECOND) join.inputs.SECOND.value = getScriptSeriesReference(chart, doubleCheckSellId, "Double");
   const joinId = await addQuantScript(chart, "JOIN", join);
 
   setStrategyVisibility(chart, "JOIN", true);
@@ -192,7 +198,7 @@ export async function applyQuantPreset(
     }
     case "slowBandReversion": {
       const bband = getScriptClone(chart, "BBAND");
-      bband.inputs.PERIODS.value = 20;
+      if(bband.inputs?.PERIODS) bband.inputs.PERIODS.value = 20;
       await chart.addScript("BBAND", bband);
 
       await waitForFrame();

@@ -11,7 +11,7 @@ type WatchlistPanelProps = {
   selectedSymbol: string;
   stats: Record<string, WatchlistStat>;
   sparklines: SparklineSeriesMap;
-  livePrice?: number;
+  livePrice?: number | undefined;
   onSelect: (symbolId: string) => void;
 };
 
