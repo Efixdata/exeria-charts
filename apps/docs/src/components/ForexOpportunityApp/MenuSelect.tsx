@@ -13,7 +13,7 @@ type MenuSelectProps<T extends string> = {
   value: T;
   options: MenuSelectOption<T>[];
   onChange: (value: T) => void;
-  className?: string;
+  className?: string | undefined;
 };
 
 export default function MenuSelect<T extends string>({

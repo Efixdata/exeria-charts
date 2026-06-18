@@ -9,17 +9,17 @@ import {
 
 export async function applySmaCrossScene(chart: ChartInstance): Promise<void> {
   const sma = getScriptClone(chart, "SMA");
-  sma.inputs.PERIODS.value = SMA_CROSS_PERIOD;
+  if(sma?.inputs?.PERIODS) sma.inputs.PERIODS.value = SMA_CROSS_PERIOD;
   await chart.addScript("SMA", sma);
 
   const closeRef = getSeriesReference(chart, "c");
   const smaRef = getSeriesReference(chart, "SMAValue");
 
   const cross = getScriptClone(chart, "CROSS");
-  cross.inputs.LINE.value = closeRef;
-  cross.inputs.SIGNAL.value = smaRef;
-  cross.inputs.ONDN.value = "Sell";
-  cross.inputs.ONUP.value = "Buy";
+  if(cross?.inputs?.LINE) cross.inputs.LINE.value = closeRef;
+  if(cross?.inputs?.SIGNAL) cross.inputs.SIGNAL.value = smaRef;
+  if(cross?.inputs?.ONDN) cross.inputs.ONDN.value = "Sell";
+  if(cross?.inputs?.ONUP) cross.inputs.ONUP.value = "Buy";
   await chart.addScript("CROSS", cross);
 
   hideScriptLegends(chart);

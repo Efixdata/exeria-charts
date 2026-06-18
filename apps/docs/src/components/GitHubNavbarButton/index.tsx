@@ -7,7 +7,7 @@ const GITHUB_URL = "https://github.com/Efixdata/exeria-charts";
 type GitHubNavbarButtonProps = {
   compact?: boolean;
   fullWidth?: boolean;
-  className?: string;
+  className?: string | undefined;
 };
 
 function GitHubIcon(): JSX.Element {

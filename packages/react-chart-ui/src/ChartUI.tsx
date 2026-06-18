@@ -28,17 +28,17 @@ import { DrawingEditListener } from "./components/TopMenu/DrawingEdit/DrawingEdi
 
 interface ChartUIProps {
   chart: NullableChartInstance;
-  children?: JSX.Element | JSX.Element[];
-  leftMenuWidth?: number;
-  topMenuHeight?: number;
-  loading?: boolean;
+  children?: React.ReactNode;
+  leftMenuWidth?: number | undefined;
+  topMenuHeight?: number | undefined;
+  loading?: boolean | undefined;
   onIntervalChange?: (symbol: string) => void;
-  theme?: ChartUITheme;
-  shareConfig?: ShareConfig;
+  theme?: ChartUITheme | undefined;
+  shareConfig?: ShareConfig | undefined;
   /** Compact toolbar density; `minimal` hides secondary groups (e.g. indicators) on narrow layouts. */
-  mobileLayout?: ChartUIMobileLayout;
+  mobileLayout?: ChartUIMobileLayout | undefined;
   /** Viewport width (px) at which compact layout activates. Defaults to UI toolbar breakpoint (600). */
-  compactBreakpoint?: number;
+  compactBreakpoint?: number | undefined;
 }
 
 const Container = styled.div`

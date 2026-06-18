@@ -358,7 +358,7 @@ const mergePlottersForDialog = (
         dash: Array.isArray(plotter.dash)
           ? [...plotter.dash]
           : Array.isArray(templatePlotter?.dash)
-            ? [...templatePlotter.dash]
+            ? [...(templatePlotter?.dash || [])]
             : [],
         bandFillColor: normalizeHexColor(fillColor),
         bandFillOpacity:
@@ -431,7 +431,7 @@ const mergePlottersForDialog = (
         dash: Array.isArray(plotter.dash)
           ? [...plotter.dash]
           : Array.isArray(templatePlotter?.dash)
-            ? [...templatePlotter.dash]
+            ? [...(templatePlotter?.dash || [])]
             : [],
         lineFillVisible:
           typeof plotter.lineFillVisible === "boolean"

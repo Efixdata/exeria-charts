@@ -36,7 +36,7 @@ function getMainCandles(chart: ChartInstance): Candle[] {
 
   for (const key in seriesManager) {
     const series = seriesManager[key];
-    if (Array.isArray(series.data) && series.data.length > candles.length) {
+    if (series && Array.isArray(series.data) && series.data.length > candles.length) {
       candles = series.data as Candle[];
     }
   }
@@ -65,7 +65,7 @@ function SignalTerminalChartHost({
   const [ChartUIComponent, setChartUIComponent] = useState<ComponentType<{
     chart: ChartInstance | null;
     children: ReactNode;
-    theme?: ChartUITheme;
+    theme?: ChartUITheme | undefined;
   }> | null>(null);
   const [chartReady, setChartReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -104,7 +104,7 @@ function SignalTerminalChartHost({
           setChartUIComponent(() => ChartUI as ComponentType<{
             chart: ChartInstance | null;
             children: ReactNode;
-            theme?: ChartUITheme;
+            theme?: ChartUITheme | undefined;
           }>);
         }
       })
@@ -286,7 +286,7 @@ function SignalTerminalChartHost({
       {loading ? <div className={styles.chartLoading}>Loading market data…</div> : null}
       {error ? <div className={styles.chartError}>{error}</div> : null}
       {ChartUI ? (
-        <ChartUI chart={chart} theme={chartUiTheme ?? undefined}>
+        <ChartUI chart={chart} {...(chartUiTheme ? { theme: chartUiTheme } : {})}>
           {chartCanvas}
         </ChartUI>
       ) : (

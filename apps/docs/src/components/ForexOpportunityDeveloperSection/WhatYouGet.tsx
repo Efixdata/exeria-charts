@@ -49,7 +49,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/tutorials/chart-with-your-data">
+          <Link className={styles.whatLink || ""} to="/docs/tutorials/chart-with-your-data">
             Load your own data →
           </Link>
         </article>
@@ -76,7 +76,7 @@ export default function WhatYouGet() {
               </li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/data-connectors/kraken">
+          <Link className={styles.whatLink || ""} to="/docs/data-connectors/kraken">
             Kraken connector →
           </Link>
         </article>

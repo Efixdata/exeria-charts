@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChartInstance } from "@efixdata/exeria-chart";
-import { KucoinAdapter } from "../../../../../packages/adapter-kucoin/src";
+import { ProxyKucoinAdapter } from "@site/src/lib/proxyKucoinAdapter";
 import styles from "../BinanceConnectorExample/index.module.css";
 import DocChartEmbed, { docChartEmbedStyles } from "../DocChartEmbed";
 import showcaseStyles from "../docsShowcase.module.css";
@@ -51,7 +51,7 @@ export default function KucoinConnectorExample() {
 
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ChartInstance | null>(null);
-  const adapterRef = useRef<KucoinAdapter | null>(null);
+  const adapterRef = useRef<ProxyKucoinAdapter | null>(null);
   const activeTimeframe =
     TIMEFRAMES.find((tf) => tf.id === selectedTimeframe) ?? DEFAULT_TIMEFRAME;
   
@@ -71,7 +71,7 @@ export default function KucoinConnectorExample() {
           return;
         }
 
-        adapterRef.current = new KucoinAdapter({ pageDelayMs: 300 });
+        adapterRef.current = new ProxyKucoinAdapter();
 
         const chart = chartModule.createChart({
           container: chartContainerRef.current,
@@ -111,7 +111,7 @@ export default function KucoinConnectorExample() {
       }
 
       try {
-        chartRef.current?.unsubscribeFromUpdates?.();
+        (chartRef.current as any)?.unsubscribeFromUpdates?.();
       } catch (e) {
         console.error("Error unsubscribing chart updates:", e);
       }
@@ -137,7 +137,7 @@ export default function KucoinConnectorExample() {
       try {
         if (chartRef.current) {
           await chartRef.current.loadData(selectedSymbol, {
-            interval: activeTimeframe.interval,
+            interval: activeTimeframe?.interval ?? "1d",
             limit: 500,
           });
 
@@ -145,8 +145,8 @@ export default function KucoinConnectorExample() {
           let count = 0;
           for (const key in seriesManager) {
             const series = seriesManager[key];
-            if (Array.isArray(series.data) && series.data.length > count) {
-              count = series.data.length;
+            if (Array.isArray(series?.data) && series?.data.length > count) {
+              count = series?.data.length;
             }
           }
           setCandles(count);
@@ -312,7 +312,7 @@ const chart = createChart({
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 500,
 });
 

@@ -103,7 +103,7 @@ export default function BinanceConnectorExample() {
     return () => {
       disposed = true;
       try {
-        chartRef.current?.unsubscribeFromUpdates?.();
+        (chartRef.current as any)?.unsubscribeFromUpdates?.();
       } catch (e) {
         console.error("Error unsubscribing chart updates:", e);
       }
@@ -142,7 +142,7 @@ export default function BinanceConnectorExample() {
         if (chartRef.current) {
           try {
             await chartRef.current.loadData(selectedSymbol, {
-              interval: activeTimeframe.interval,
+              interval: activeTimeframe?.interval ?? "1d",
               limit: 1000,
             });
 
@@ -150,8 +150,8 @@ export default function BinanceConnectorExample() {
             let count = 0;
             for (const key in seriesManager) {
               const series = seriesManager[key];
-              if (Array.isArray(series.data) && series.data.length > count) {
-                count = series.data.length;
+              if (Array.isArray(series?.data) && series?.data.length > count) {
+                count = series?.data.length;
               }
             }
             setCandles(count);
@@ -322,7 +322,7 @@ const chart = new Chart({
 
 // Load data
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 1000,
 });
 

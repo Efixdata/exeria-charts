@@ -5,8 +5,13 @@
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "@site/*": ["./*"],
+      "@theme/*": ["./.docusaurus/theme-fallback/*"]
+    }
   },
   "include": ["src", "docs", "docusaurus.config.ts", "sidebars.ts"],
-  "exclude": ["build", ".docusaurus", "node_modules"],
+  "exclude": ["build", ".docusaurus", "node_modules"]
 }

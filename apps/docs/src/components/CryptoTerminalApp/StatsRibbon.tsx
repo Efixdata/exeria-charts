@@ -3,15 +3,15 @@ import styles from "./cryptoTerminalApp.module.css";
 
 type StatsRibbonProps = {
   pair: string;
-  price?: number;
-  bid?: number;
-  ask?: number;
-  changePercent?: number;
-  high24h?: number;
-  low24h?: number;
-  volumeQuote?: number;
-  spreadBps?: number;
-  loading?: boolean;
+  price?: number | undefined;
+  bid?: number | undefined;
+  ask?: number | undefined;
+  changePercent?: number | undefined;
+  high24h?: number | undefined;
+  low24h?: number | undefined;
+  volumeQuote?: number | undefined;
+  spreadBps?: number | undefined;
+  loading?: boolean | undefined;
 };
 
 export default function StatsRibbon({

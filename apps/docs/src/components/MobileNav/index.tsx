@@ -134,7 +134,7 @@ function MobileNavClient(): JSX.Element {
 
               <nav className={styles.links} aria-label="Mobile navigation">
                 {links.map((link) => (
-                  <Link key={link.href} to={link.href} className={styles.link} onClick={close}>
+                  <Link key={link.href} to={link.href} className={styles.link ?? ""} onClick={close}>
                     {link.label}
                   </Link>
                 ))}

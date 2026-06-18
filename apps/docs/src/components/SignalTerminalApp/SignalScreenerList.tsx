@@ -67,7 +67,7 @@ export default function SignalScreenerList({
                     </span>
                     <div className={styles.signalLiveBlock}>
                       <span className={styles.signalLiveLabel}>Live</span>
-                      <MarketPriceTicker price={marketPrice} />
+                      <MarketPriceTicker price={marketPrice ?? 0} />
                     </div>
                   </div>
 
@@ -97,7 +97,7 @@ export default function SignalScreenerList({
                   <SignalMiniChart
                     key={signal.symbol}
                     signal={signal}
-                    marketPrice={marketPrice}
+                    marketPrice={marketPrice ?? 0}
                   />
                 </span>
                 </div>
@@ -107,7 +107,7 @@ export default function SignalScreenerList({
             {expanded ? (
               <SignalDetailExpand
                 signal={signal}
-                marketPrice={marketPrice}
+                marketPrice={marketPrice ?? 0}
                 timeframeId={timeframeId}
                 onPriceTick={(price, ts) => onPriceTick(signal.symbol, price, ts)}
               />

@@ -24,7 +24,9 @@ export async function applyCryptoTerminalScene(
 
   if (!hasScript(chart, "EMA")) {
     const ema = structuredClone(chart.getScripts().EMA);
-    ema.inputs.PERIODS.value = 21;
+    if (ema && ema.inputs?.PERIODS) {
+      ema.inputs.PERIODS.value = 21;
+    }
     await chart.addScript("EMA", ema);
   }
 

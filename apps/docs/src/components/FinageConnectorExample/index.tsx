@@ -146,7 +146,7 @@ export default function FinageConnectorExample() {
       disposed = true;
 
       try {
-        chartRef.current?.unsubscribeFromUpdates?.();
+        (chartRef.current as any)?.unsubscribeFromUpdates?.();
       } catch (e) {
         console.error("Error unsubscribing chart updates:", e);
       }
@@ -192,7 +192,7 @@ export default function FinageConnectorExample() {
         await adapterRef.current.initialize({});
 
         await chartRef.current?.loadData(selectedSymbol, {
-          interval: activeTimeframe.interval,
+          interval: activeTimeframe?.interval ?? "1d",
           limit: 500,
         });
 
@@ -201,8 +201,8 @@ export default function FinageConnectorExample() {
         if (seriesManager) {
           for (const key in seriesManager) {
             const series = seriesManager[key];
-            if (Array.isArray(series.data) && series.data.length > count) {
-              count = series.data.length;
+            if (Array.isArray(series?.data) && series?.data.length > count) {
+              count = series?.data.length;
             }
           }
         }
@@ -373,7 +373,7 @@ const chart = createChart({ container, dataAdapter: connector });
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe.interval}",
+  interval: "${activeTimeframe?.interval ?? '1d'}",
   limit: 500,
 });
 

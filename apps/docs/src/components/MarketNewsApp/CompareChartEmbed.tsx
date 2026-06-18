@@ -162,7 +162,7 @@ export default function CompareChartEmbed({ periodId, onPeriodChange }: CompareC
             </button>
           ))}
         </div>
-        <Link className={styles.chartCodeLink} to="/starters/market-news#market-news-developer">
+        <Link className={styles.chartCodeLink ?? ""} to="/starters/market-news#market-news-developer">
           View embed code
         </Link>
       </div>

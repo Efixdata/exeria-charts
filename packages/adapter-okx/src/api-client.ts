@@ -55,8 +55,8 @@ export class OkxApiClient {
         instId,
         bar,
         limit: pageLimit,
-        after,
-        before,
+        ...(after !== undefined ? { after } : {}),
+        ...(before !== undefined ? { before } : {}),
       });
 
       if (page.length === 0) {

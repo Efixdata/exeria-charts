@@ -53,7 +53,7 @@ export class KrakenApiClient {
       const page = await this.fetchOhlcPage({
         pair: restPair,
         interval,
-        since,
+        ...(since !== undefined ? { since } : {}),
       });
 
       if (page.candles.length === 0) {

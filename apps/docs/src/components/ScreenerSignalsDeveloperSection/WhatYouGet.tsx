@@ -48,7 +48,7 @@ export default function WhatYouGet() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/data-connectors/binance">
+          <Link className={styles.whatLink || ""} to="/docs/data-connectors/binance">
             How Binance data works →
           </Link>
         </article>
@@ -75,7 +75,7 @@ export default function WhatYouGet() {
               </li>
             ))}
           </ul>
-          <Link className={styles.whatLink} to="/docs/tutorials/live-data-stream">
+          <Link className={styles.whatLink || ""} to="/docs/tutorials/live-data-stream">
             Live data stream tutorial →
           </Link>
         </article>
