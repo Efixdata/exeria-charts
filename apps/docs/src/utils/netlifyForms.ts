@@ -1,10 +1,17 @@
+export const NETLIFY_FORMS = {
+  CONTACT: "exeria-contact",
+  CONNECTOR_REQUEST: "connector-request",
+} as const;
+
+export type NetlifyFormName = typeof NETLIFY_FORMS[keyof typeof NETLIFY_FORMS];
+
 export function encodeNetlifyFormBody(data: Record<string, string>): string {
   return Object.keys(data)
     .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key] ?? "")}`)
     .join("&");
 }
 
-export async function submitNetlifyForm(formName: string, data: Record<string, string>): Promise<void> {
+export async function submitNetlifyForm(formName: NetlifyFormName, data: Record<string, string>): Promise<void> {
   const body = encodeNetlifyFormBody({
     "form-name": formName,
     ...data,
