@@ -1,11 +1,6 @@
 "use client";
 
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import { useEffect, useMemo, useState } from "react";
 import type { ChartInstance } from "@efixdata/exeria-chart";
 import { docsInterval } from "@site/src/components/chartExampleData";

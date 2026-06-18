@@ -1,8 +1,4 @@
-// @ts-ignore
-import _Head from "@docusaurus/Head";
-
-let Head = _Head as any;
-
+import Head from "@docusaurus/Head";
 import QuantAnalyticsApp from "@site/src/components/QuantAnalyticsApp";
 import "../../../../../../packages/react-chart-ui/src/fonts.css";
 

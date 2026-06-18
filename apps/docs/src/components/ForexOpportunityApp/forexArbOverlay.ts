@@ -1,7 +1,4 @@
 import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
 import type { ArbChartSceneOverlay } from "@efixdata/exeria-chart";
 import { removeChartOverlay } from "../CryptoTerminalApp/chartCompareOverlay";
 import { PIP_SIZE } from "./constants";

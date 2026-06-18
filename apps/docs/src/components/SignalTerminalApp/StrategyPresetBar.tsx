@@ -28,9 +28,6 @@ export default function StrategyPresetBar({
               .filter(Boolean)
               .join(" ")}
             onClick={() => onSelect(preset.id)}
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
             title={preset.hint}
           >
             {preset.label}

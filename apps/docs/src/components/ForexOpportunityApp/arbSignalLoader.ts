@@ -1,10 +1,6 @@
 import type {
-    // @ts-ignore
   ArbSceneAnchor,
-    // @ts-ignore
-    // @ts-ignore
   ArbSignalRecord,
-    // @ts-ignore
   ArbChartSceneFocus,
   ArbSignalQuery,
   ArbSignalBundle,

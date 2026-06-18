@@ -68,14 +68,10 @@ export function ColorFieldInput({
       isPickerOpenRef.current = false;
     };
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     document.addEventListener("mousedown", dismissPicker, true);
     document.addEventListener("touchstart", dismissPicker, true);
 
     return () => {
-    // @ts-ignore
       document.removeEventListener("mousedown", dismissPicker, true);
       document.removeEventListener("touchstart", dismissPicker, true);
     };

@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@theme/Layout";
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import clsx from "clsx";
 import RequestConnectorForm from "@site/src/components/RequestConnectorForm";
 import {
@@ -67,9 +63,6 @@ function InstallCommand({ command }: { command: string }): JSX.Element {
 }
 
 function getConnectorStatusChipClass(status: DataConnectorEntry["status"]): string {
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
   return status === "available" ? styles.chipStatusAvailable : styles.chipStatusComingSoon;
 }
 
@@ -364,7 +357,6 @@ export default function DataConnectorsPage(): JSX.Element {
       return;
     }
     if (!filteredConnectors.some((connector) => connector.id === activeConnectorId)) {
-    // @ts-ignore
       setActiveConnectorId(filteredConnectors[0].id);
     }
   }, [filteredConnectors, activeConnectorId]);
@@ -517,24 +509,17 @@ export default function DataConnectorsPage(): JSX.Element {
         <section className={layoutStyles.section}>
           <div className={layoutStyles.sectionHeader}>
             <h2>Typical integration flow</h2>
-    // @ts-ignore
             <p>
               Data Connectors expose a small surface—fetch historical bars, subscribe to live updates,
-    // @ts-ignore
               normalize symbols—so your chart code stays provider-agnostic.
             </p>
           </div>
-    // @ts-ignore
 
           <div className={styles.integrationPanel} data-testid="integration-snippet">
-    // @ts-ignore
             <p className={styles.integrationCaption}>
-    // @ts-ignore
-              Example: <strong>{activeConnector?.providerName}</strong> connector
+              Example: <strong>{activeConnector.providerName}</strong> connector
             </p>
-    // @ts-ignore
-    // @ts-ignore
-            <pre>{getConnectorIntegrationSnippet(activeConnector!)}</pre>
+            <pre>{getConnectorIntegrationSnippet(activeConnector)}</pre>
           </div>
         </section>
 

@@ -131,9 +131,6 @@ export default function GettingStartedDemo({
         padded={variant === "react"}
       >
         {variant === "react" && ChartUI ? (
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
           <ChartUI chart={chart} theme={docsChartUiTheme ?? undefined}>
             {canvas}
           </ChartUI>

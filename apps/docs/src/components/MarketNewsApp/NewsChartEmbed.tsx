@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import type { Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { applyChartSettingsPreset } from "../themeCreator/applyChartSettingsPreset";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";

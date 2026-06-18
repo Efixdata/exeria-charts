@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 import Layout from "@theme/Layout";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import type { StarterProject } from "@site/src/data/starterProjects";
 import { getStarterProjectById } from "@site/src/data/starterProjects";
 import StarterProjectDemo from "../StarterProjectDemo";
@@ -21,7 +16,6 @@ export default function StarterProjectPage({ projectId, children }: StarterProje
 
   if (!project) {
     return (
-    // @ts-ignore
       <Layout title="Starter not found">
         <main className={styles.page}>
           <div className={styles.container}>

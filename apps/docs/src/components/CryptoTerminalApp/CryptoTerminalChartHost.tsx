@@ -48,13 +48,7 @@ function getMainCandles(chart: ChartInstance): Candle[] {
 
   for (const key in seriesManager) {
     const series = seriesManager[key];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     if (Array.isArray(series.data) && series.data.length > candles.length) {
-    // @ts-ignore
       candles = series.data as Candle[];
     }
   }
@@ -437,14 +431,11 @@ function CryptoTerminalChartHost({
 
   const ChartUI = ChartUIComponent;
 
-    // @ts-ignore
   return (
     <div className={styles.chartFrame} data-tour="chart">
-    // @ts-ignore
       {loading ? <div className={styles.chartLoading}>Loading market data…</div> : null}
       {error ? <div className={styles.chartError}>{error}</div> : null}
       {ChartUI ? (
-    // @ts-ignore
         <ChartUI chart={chart} theme={chartUiTheme ?? undefined}>
           {chartCanvas}
         </ChartUI>

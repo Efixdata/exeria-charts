@@ -49,7 +49,6 @@ export class BinanceAdapter implements DataAdapter {
     this.currentSymbol = symbol;
     this.currentInterval = binanceInterval;
 
-    // @ts-ignore
     const klines = await this.apiClient.getKlines({
       symbol: symbol.toUpperCase(),
       interval: binanceInterval,
@@ -86,13 +85,9 @@ export class BinanceAdapter implements DataAdapter {
 
     const kline = klines[0];
     const tick: Tick = {
-    // @ts-ignore
       stamp: kline.closeTime,
-    // @ts-ignore
       c: parseFloat(kline.close),
-    // @ts-ignore
       price: parseFloat(kline.close),
-    // @ts-ignore
       v: parseFloat(kline.volume),
     };
 

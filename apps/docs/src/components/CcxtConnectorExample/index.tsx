@@ -170,14 +170,7 @@ export default function CcxtConnectorExample() {
         if (seriesManager) {
           for (const key in seriesManager) {
             const series = seriesManager[key];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
             if (Array.isArray(series.data) && series.data.length > count) {
-    // @ts-ignore
               count = series.data.length;
             }
           }
@@ -363,7 +356,7 @@ const chart = createChart({ container, dataAdapter: connector });
 chart.init();
 
 await chart.loadData("${selectedSymbol}", {
-  interval: "${activeTimeframe?.interval}",
+  interval: "${activeTimeframe.interval}",
   limit: 500,
 });
 

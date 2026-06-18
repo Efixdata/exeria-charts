@@ -118,9 +118,6 @@ function buildBracketOrderLine(order: SimulatedOrder): ChartTradeLine {
     parentId: order.parentId ?? null,
     modifyAllowed: true,
     stop: isStop,
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     object: {
       id: order.id,
       price: order.price,

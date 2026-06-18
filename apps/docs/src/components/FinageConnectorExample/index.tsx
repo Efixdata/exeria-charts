@@ -201,13 +201,7 @@ export default function FinageConnectorExample() {
         if (seriesManager) {
           for (const key in seriesManager) {
             const series = seriesManager[key];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
             if (Array.isArray(series.data) && series.data.length > count) {
-    // @ts-ignore
               count = series.data.length;
             }
           }

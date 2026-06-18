@@ -26,37 +26,17 @@ function buildSmoothLinePath(coords: Array<{ x: number; y: number }>) {
     return "";
   }
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
   let path = `M ${coords[0].x.toFixed(2)} ${coords[0].y.toFixed(2)}`;
 
-    // @ts-ignore
   for (let index = 1; index < coords.length; index += 1) {
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     const previous = coords[index - 1];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     const current = coords[index];
-    // @ts-ignore
-    // @ts-ignore
     const midX = (previous.x + current.x) / 2;
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     path += ` C ${midX.toFixed(2)} ${previous.y.toFixed(2)}, ${midX.toFixed(2)} ${current.y.toFixed(2)}, ${current.x.toFixed(2)} ${current.y.toFixed(2)}`;
   }
 
   return path;
 }
-    // @ts-ignore
-    // @ts-ignore
 
 function buildAreaPath(linePath: string, coords: Array<{ x: number; y: number }>, height: number) {
   if (!linePath || coords.length < 2) {
@@ -65,8 +45,6 @@ function buildAreaPath(linePath: string, coords: Array<{ x: number; y: number }>
 
   const last = coords[coords.length - 1];
   const first = coords[0];
-    // @ts-ignore
-    // @ts-ignore
   return `${linePath} L ${last.x.toFixed(2)} ${height} L ${first.x.toFixed(2)} ${height} Z`;
 }
 

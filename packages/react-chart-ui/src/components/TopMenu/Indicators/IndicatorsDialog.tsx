@@ -98,7 +98,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
 
     const definition = props.chart.getIndicatorEditConfig(props.editScriptId);
     if (definition) {
-      const scriptType = definition?.key ? props.chart.getScripts()?.[definition.key]?.type : undefined;
+      const scriptType = props.chart.getScripts()?.[definition.key]?.type;
       if (scriptType === "functions") {
         setActiveTab("functions");
       } else if (scriptType === "strategies") {
@@ -140,7 +140,7 @@ export const IndicatorsDialog = (props: IndicatorsDialogProps) => {
           <div className={layoutStyles.emptyState}>{t("noResults", "NO RESULTS")}</div>
         ) : (
           <div className={layoutStyles.catalogListInner}>
-            <ListItemsWrapper>{listItems as any}</ListItemsWrapper>
+            <ListItemsWrapper>{listItems}</ListItemsWrapper>
           </div>
         )}
       </div>

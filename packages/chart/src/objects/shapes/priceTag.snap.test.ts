@@ -5,7 +5,7 @@ import { PriceTagObject } from "./priceTag";
 describe("priceTag OHLC snap", () => {
   const shapeBase = new Shape();
   PriceTagObject.prototype = shapeBase;
-  const shape = new (PriceTagObject as any)() as InstanceType<typeof Shape> & {
+  const shape = new PriceTagObject() as InstanceType<typeof Shape> & {
     stageDown: (...args: unknown[]) => { selected: number; anchors: unknown[] };
   };
 
@@ -65,9 +65,11 @@ describe("priceTag OHLC snap", () => {
         panelHeight: panel._height,
         minValue: panel.vMin,
         maxValue: panel.vMax,
+        valueAxisMode: panel.valueAxisMode,
+        fV: 20480,
       }) + panel._offset;
 
-    const staging: any = {
+    const staging = {
       type: "priceTag",
       sticky: true,
       anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],
@@ -124,7 +126,7 @@ describe("priceTag OHLC snap", () => {
       },
     };
 
-    const staging: any = {
+    const staging = {
       type: "priceTag",
       sticky: true,
       anchors: [{ stamp: 0, offset: 0, value: 0, _index: 0 }],

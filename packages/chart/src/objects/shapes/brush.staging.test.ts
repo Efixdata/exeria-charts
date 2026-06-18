@@ -5,7 +5,7 @@ import { BrushObject } from "./brush";
 describe("brush staging clicks", () => {
   const shapeBase = new Shape();
   BrushObject.prototype = shapeBase;
-  const brush = new (BrushObject as any)() as InstanceType<typeof Shape> & {
+  const brush = new BrushObject() as InstanceType<typeof Shape> & {
     stageDown: (...args: unknown[]) => { selected: number; anchors: unknown[] };
     stageUp: (...args: unknown[]) => boolean;
   };

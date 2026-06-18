@@ -1,9 +1,5 @@
 import Layout from "@theme/Layout";
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import ContactForm from "@site/src/components/ContactForm";
 import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./contact.module.css";
@@ -40,7 +36,6 @@ export default function ContactPage(): JSX.Element {
           </div>
         </section>
 
-    // @ts-ignore
         <section className={`${layoutStyles.section} ${styles.formSection}`}>
           <ContactForm />
           <p className={styles.licensingNote}>

@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import { setInstrumentSeriesLastPriceVisibility } from "./chartSettings";
 import type { ChartRuntimeObject } from "./internal-types/objects";
 
-import type { CoreChartPanel } from "./internal-types/chart";
-
 type MockPlotter = ChartRuntimeObject & {
   priceTag?: boolean;
   priceLine?: boolean;
@@ -24,19 +22,11 @@ function createInstrumentChart(plotters: Array<{ seriesId: string; priceTag?: bo
       instrumentsSeries: plotters.map((plotter) => ({ seriesId: plotter.seriesId })),
       panels: [
         {
-          id: "main",
-          basis: 100,
-          valueAxisMode: "auto",
-          vMax: 0,
-          vMin: 0,
-          fV: 1,
-          digits: 4,
-          locked: false,
           main: true,
           hGrid: true,
           vGrid: true,
           objects,
-        } as unknown as CoreChartPanel,
+        },
       ],
       scripts: [],
     },
@@ -56,8 +46,7 @@ describe("setInstrumentSeriesLastPriceVisibility", () => {
       { seriesId: "GBPUSD", priceTag: true, priceLine: true },
     ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setInstrumentSeriesLastPriceVisibility(chart as any, {
+    setInstrumentSeriesLastPriceVisibility(chart, {
       priceTag: false,
       priceLine: false,
     });
@@ -74,8 +63,7 @@ describe("setInstrumentSeriesLastPriceVisibility", () => {
       { seriesId: "GBPUSD", priceTag: true, priceLine: false },
     ]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setInstrumentSeriesLastPriceVisibility(chart as any, { priceTag: false });
+    setInstrumentSeriesLastPriceVisibility(chart, { priceTag: false });
 
     for (const object of chart.model.panels[0]!.objects) {
       expect(object.priceTag).toBe(false);

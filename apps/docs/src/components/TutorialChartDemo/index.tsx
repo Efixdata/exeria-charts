@@ -131,9 +131,6 @@ export default function TutorialChartDemo({ scene, caption, height = 380 }: Tuto
         }
 
         const preset = themePresets[scene];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
         const chart = chartModule.createChart({
           container,
           ...(preset?.theme

@@ -50,7 +50,6 @@ export class KrakenApiClient {
         : undefined;
 
     while (collected.length < targetLimit) {
-    // @ts-ignore
       const page = await this.fetchOhlcPage({
         pair: restPair,
         interval,

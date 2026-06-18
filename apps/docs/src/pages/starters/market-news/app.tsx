@@ -1,8 +1,4 @@
-// @ts-ignore
-import _Head from "@docusaurus/Head";
-
-let Head = _Head as any;
-
+import Head from "@docusaurus/Head";
 import MarketNewsApp from "@site/src/components/MarketNewsApp";
 import "../../../../../../packages/react-chart-ui/src/fonts.css";
 

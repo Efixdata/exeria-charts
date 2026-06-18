@@ -358,7 +358,7 @@ const mergePlottersForDialog = (
         dash: Array.isArray(plotter.dash)
           ? [...plotter.dash]
           : Array.isArray(templatePlotter?.dash)
-            ? [...templatePlotter!.dash]
+            ? [...templatePlotter.dash]
             : [],
         bandFillColor: normalizeHexColor(fillColor),
         bandFillOpacity:
@@ -431,7 +431,7 @@ const mergePlottersForDialog = (
         dash: Array.isArray(plotter.dash)
           ? [...plotter.dash]
           : Array.isArray(templatePlotter?.dash)
-            ? [...templatePlotter!.dash]
+            ? [...templatePlotter.dash]
             : [],
         lineFillVisible:
           typeof plotter.lineFillVisible === "boolean"
@@ -736,7 +736,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     if (type === "functions") {
       const item = props.chart
         .getChartFunctionSettings?.()
-        ?.find((entry: any) => entry.scriptId === scriptId);
+        ?.find((entry) => entry.scriptId === scriptId);
 
       return {
         visible: item?.visible ?? true,
@@ -748,7 +748,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     if (type === "strategies") {
       const item = props.chart
         .getChartStrategySettings?.()
-        ?.find((entry: any) => entry.scriptId === scriptId);
+        ?.find((entry) => entry.scriptId === scriptId);
 
       return {
         visible: item?.visible ?? true,
@@ -759,7 +759,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
     const item = props.chart
       .getChartIndicatorSettings?.()
-      ?.find((entry: any) => entry.scriptId === scriptId);
+      ?.find((entry) => entry.scriptId === scriptId);
 
     return {
       visible: item?.visible ?? true,
@@ -820,7 +820,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
   );
 
   const renderParameterInputs = () => {
-    const inputs: JSX.Element[] = [];
+    const inputs: (JSX.Element | null)[] = [];
     const inputConfig = config.inputs || {};
 
     for (const key in inputConfig) {
@@ -830,13 +830,10 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
         continue;
       }
 
-      const renderedInput = renderInput(input, key);
-      if (renderedInput !== null) {
-        inputs.push(renderedInput);
-      }
+      inputs.push(renderInput(input, key));
     }
 
-    return inputs;
+    return inputs.filter((input): input is JSX.Element => input !== null);
   };
 
   const onInputChange = (key: string, value: any) => {
@@ -1612,7 +1609,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     props.chart.setChartIndicatorLocked?.(scriptId, settings.locked);
   };
 
-  const renderLayerControls = (): JSX.Element | null => {
+  const renderLayerControls = () => {
     const supportsScale = scriptType !== "strategies";
     const scriptId = config.id;
 
@@ -1721,7 +1718,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
     );
   };
 
-  const renderDialogBody = (): JSX.Element | null => {
+  const renderDialogBody = () => {
     const parameterInputs = renderParameterInputs();
     const hasParameters = parameterInputs.length > 0;
     const hasAppearanceFields =
@@ -1746,11 +1743,11 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
             onIndicatorAdd();
           }}
         >
-          {hasParameters && parameterInputs.length > 0 ? (
+          {hasParameters ? (
             <DialogSection title={t("indicator_settings_parameters", "Parameters")}>
               <div className={dialogSectionStyles.fieldStack}>{parameterInputs}</div>
             </DialogSection>
-          ) : <></>}
+          ) : null}
 
           {showAppearanceSection ? (
             <DialogSection title={t("drawing_settings_appearance", "Appearance")}>
@@ -1762,12 +1759,12 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
                   {renderStrategyArrowColorInputs()}
                   {renderNewsMarkerColorInputs()}
                 </div>
-              ) : <></>}
-              {renderPanelSelector() ?? <></>}
+              ) : null}
+              {renderPanelSelector()}
             </DialogSection>
-          ) : <></>}
+          ) : null}
 
-          {renderLayerControls() ?? <></>}
+          {renderLayerControls()}
         </Form>
       </div>
     );
@@ -1918,7 +1915,7 @@ export const IndicatorSettingsDialog = (props: IndicatorSettingsDialogProps) => 
 
         <DialogBody style={dialogFormBodyStyle}>
           <div className={layoutStyles.scrollArea} style={dialogThemeVars}>
-          {renderDialogBody() ?? <></>}
+            {renderDialogBody()}
           </div>
         </DialogBody>
         <div className={layoutStyles.dialogPrimaryFooter}>

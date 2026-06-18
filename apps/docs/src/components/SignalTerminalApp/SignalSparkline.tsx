@@ -38,48 +38,22 @@ export default function SignalSparkline({
 
     const sy = pad + (H - pad * 2) * (1 - (signalPrice - min) / range);
 
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     let path = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
     if (smooth) {
-    // @ts-ignore
       for (let i = 1; i < coords.length; i += 1) {
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
         const prev = coords[i - 1];
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
         const cur = coords[i];
-    // @ts-ignore
-    // @ts-ignore
         const midX = (prev.x + cur.x) / 2;
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
         path += ` C ${midX.toFixed(1)} ${prev.y.toFixed(1)}, ${midX.toFixed(1)} ${cur.y.toFixed(1)}, ${cur.x.toFixed(1)} ${cur.y.toFixed(1)}`;
       }
-    // @ts-ignore
-    // @ts-ignore
     } else {
       for (let i = 1; i < coords.length; i += 1) {
-    // @ts-ignore
-    // @ts-ignore
         path += ` L ${coords[i].x.toFixed(1)} ${coords[i].y.toFixed(1)}`;
       }
     }
 
     const last = coords[coords.length - 1];
     const first = coords[0];
-    // @ts-ignore
-    // @ts-ignore
     const area = `${path} L ${last.x.toFixed(1)} ${H} L ${first.x.toFixed(1)} ${H} Z`;
 
     return { linePath: path, signalY: sy, areaPath: area };

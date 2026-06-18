@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import type { Candle, ChartInstance } from "@efixdata/exeria-chart";
 import { installBenignResizeObserverErrorSuppression } from "@site/src/utils/suppressBenignResizeObserverErrors";
 import { TERMINAL_UI_FONT_VARS } from "../CryptoTerminalApp/terminalTypography";
@@ -162,7 +157,6 @@ export default function QuantAnalyticsApp() {
     <div
       className={[styles.shell, layoutTheme === "light" ? styles.shellLight : undefined]
         .filter(Boolean)
-    // @ts-ignore
         .join(" ")}
       style={TERMINAL_UI_FONT_VARS}
     >

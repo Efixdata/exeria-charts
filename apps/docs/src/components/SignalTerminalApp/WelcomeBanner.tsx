@@ -1,6 +1,3 @@
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
 import { TRY_THESE_STEPS } from "./constants";
 import styles from "./signalTerminalApp.module.css";
 

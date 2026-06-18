@@ -1,6 +1,3 @@
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
 import { TRUST_PILLS } from "./constants";
 import styles from "./signalTerminalApp.module.css";
 

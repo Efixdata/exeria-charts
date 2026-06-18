@@ -1,12 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import {
   GITHUB_VITE_REACT_TEMPLATE_URL,
   STACKBLITZ_STARTER_URL,

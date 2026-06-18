@@ -1,10 +1,5 @@
 import { FormEvent, useState } from "react";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import { trackMarketingEvent } from "@site/src/utils/marketingAnalytics";
 import { submitNetlifyForm, NETLIFY_FORMS } from "@site/src/utils/netlifyForms";
 import styles from "./styles.module.css";

@@ -34,7 +34,6 @@ export default function NavbarMobilePrimaryMenu(): JSX.Element {
           <span className={styles.footerLabel}>Theme</span>
           <NavbarColorModeToggle className={styles.footerThemeToggle ?? ""} />
         </div>
-        {/* @ts-ignore */}
         <GitHubNavbarButton className={styles.footerGithub} fullWidth />
       </div>
     </div>

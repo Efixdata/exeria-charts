@@ -1,5 +1,3 @@
-    // @ts-ignore
-    // @ts-ignore
 import type { ArbChartSceneScript, ChartInstance, ScriptDefinition } from "@efixdata/exeria-chart";
 import { pruneEmptyPanels } from "../CryptoTerminalApp/chartScene";
 import { ensureChartPointerMode } from "../SignalTerminalApp/chartPanInteraction";
@@ -87,53 +85,27 @@ function applyScriptInputs(proto: ScriptDefinition, inputs?: Record<string, unkn
 
 function wireCrossScript(chart: ChartInstance, context: ScriptContext): ScriptDefinition {
   const cross = getScriptClone(chart, "CROSS");
-    // @ts-ignore
 
-    // @ts-ignore
-    // @ts-ignore
   if (context.macd) {
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     cross.inputs.LINE.value = getSeriesReference(chart, "MACDLine");
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "MACDSignal");
   } else if (context.ema) {
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     cross.inputs.LINE.value = getSeriesReference(chart, "c");
-    // @ts-ignore
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "EMA");
-    // @ts-ignore
   } else if (context.sma) {
-    // @ts-ignore
-    // @ts-ignore
     cross.inputs.LINE.value = getSeriesReference(chart, "c");
-    // @ts-ignore
     cross.inputs.SIGNAL.value = getSeriesReference(chart, "SMAValue");
   }
-    // @ts-ignore
 
-    // @ts-ignore
   return cross;
-    // @ts-ignore
 }
-    // @ts-ignore
 
 function wireExceedScript(chart: ChartInstance): ScriptDefinition {
   const exceed = getScriptClone(chart, "EXCEED");
   const closeRef = getSeriesReference(chart, "c");
-    // @ts-ignore
   exceed.inputs.UPPER.value = getSeriesReference(chart, "BBUpper");
-    // @ts-ignore
   exceed.inputs.LOWER.value = getSeriesReference(chart, "BBLower");
-    // @ts-ignore
   exceed.inputs.HIGH.value = closeRef;
-    // @ts-ignore
   exceed.inputs.LOW.value = closeRef;
   return exceed;
 }

@@ -42,11 +42,6 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
           chart.setMainDrawMode("OHLC");
 
           const ema = structuredClone(chart.getScripts().EMA);
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
           ema.inputs.PERIODS.value = 21;
           chart.addScript("EMA", ema);
           chart.addScript("RSI");
@@ -64,29 +59,18 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
           chart.addScript("EMA");
           drawPreviewOverlays(chart, candles);
           chart.toolDrawer.drawTool({
-    // @ts-ignore
             type: "fibonLines",
             color: "#5cc8ff",
-    // @ts-ignore
-    // @ts-ignore
             anchors: [
               {
-    // @ts-ignore
-    // @ts-ignore
                 stamp: candles[Math.floor(candles.length * 0.25)].stamp,
-    // @ts-ignore
                 offset: 0,
-    // @ts-ignore
-    // @ts-ignore
                 value: candles[Math.floor(candles.length * 0.25)].h,
                 _index: 0,
-    // @ts-ignore
               },
               {
-    // @ts-ignore
                 stamp: candles[Math.floor(candles.length * 0.55)].stamp,
                 offset: 0,
-    // @ts-ignore
                 value: candles[Math.floor(candles.length * 0.55)].l,
                 _index: 0,
               },
@@ -111,23 +95,18 @@ export function getStarterProjectScene(projectId: StarterProject["id"]): Starter
         applyScene: async (chart) => {
           chart.addScript("RSI");
           chart.addScript("MACD");
-    // @ts-ignore
           // CROSS defaults wire to MACDLine / MACDSignal — MACD must exist first.
           chart.addScript("CROSS");
         },
       };
     case "market-news":
       return {
-    // @ts-ignore
-    // @ts-ignore
         presetId: "onyx",
         themeVariant: "light",
         candles: trendCandles.slice(-120),
         applyScene: async (chart) => {
           chart.setMainDrawMode("Line");
           const ema = structuredClone(chart.getScripts().EMA);
-    // @ts-ignore
-    // @ts-ignore
           ema.inputs.PERIODS.value = 50;
           chart.addScript("EMA", ema);
         },

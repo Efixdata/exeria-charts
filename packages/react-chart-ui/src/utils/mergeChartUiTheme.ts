@@ -30,7 +30,6 @@ function mergeToolbarSection(
     return merged;
   }
 
-    // @ts-ignore
   return {
     ...merged,
     buttons: mergeButtons(base?.buttons, patch?.buttons),
@@ -46,7 +45,6 @@ function mergeSubMenuSection(
     return merged;
   }
 
-    // @ts-ignore
   return {
     ...merged,
     buttons: mergeButtons(base?.buttons, patch?.buttons),
@@ -62,7 +60,6 @@ function mergeRadioButtonSection(
     return merged;
   }
 
-    // @ts-ignore
   return {
     ...merged,
     buttons: mergeButtons(base?.buttons, patch?.buttons),
@@ -81,7 +78,6 @@ export function mergeChartUiTheme(
     return patch;
   }
 
-    // @ts-ignore
   return {
     ...base,
     ...patch,

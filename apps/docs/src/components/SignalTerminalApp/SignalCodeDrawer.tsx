@@ -1,10 +1,5 @@
 import { useMemo, useState } from "react";
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import { STACKBLITZ_STARTER_URL } from "../CryptoTerminalApp/integrationMapData";
 import {
   RUN_LOCALLY_STEPS,
@@ -114,7 +109,6 @@ export default function SignalCodeDrawer({
           <code>{snippets[activeTab]}</code>
         </pre>
 
-    // @ts-ignore
         <h3 className={styles.runHeading}>Run locally</h3>
         <pre className={styles.runSteps}>{RUN_LOCALLY_STEPS}</pre>
 

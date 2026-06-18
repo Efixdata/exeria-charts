@@ -42,9 +42,6 @@ type ChartPanelLike = {
 
 function getMainChartPanel(chart: ChartInstance): ChartPanelLike | null {
   const host = chart as ChartViewportHost;
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
   const fromModel = host.model?.panels?.find((panel) => panel.main === true);
   if (fromModel) {
     return fromModel as ChartPanelLike;
@@ -99,11 +96,8 @@ export function resolveBarScreenPosition(
   const y =
     renderer.getYCoordinateForPrice(price, {
       panelHeight: panel._height,
-    // @ts-ignore
       minValue: panel.vMin,
-    // @ts-ignore
       maxValue: panel.vMax,
-    // @ts-ignore
       valueAxisMode: panel.valueAxisMode,
     }) + panel._offset;
 
@@ -159,13 +153,10 @@ export function resolveNewsCalloutPosition(
   const candles = getMainSeriesCandles(chart);
   const low = candles[barIndex]?.l;
 
-    // @ts-ignore
   if (!isReasonableForexPrice(low ?? NaN)) {
     return null;
-    // @ts-ignore
   }
 
-    // @ts-ignore
   const plotPosition = resolveBarScreenPosition(chart, barIndex, low);
   if (!plotPosition) {
     return null;
@@ -243,7 +234,6 @@ export function fitChartSeriesToPlotWidth(chart: ChartInstance): boolean {
   }
 
   host.model._width = canvasWidth;
-    // @ts-ignore
   host.model.endMargin = 0;
   host.model.periodWidth = Math.max(0.01, plotWidth / dataLength);
   host.model.viewportLeft = 0;
@@ -254,16 +244,13 @@ export function scrollChartToEnd(chart: ChartInstance): void {
   const host = chart as ChartScrollHost;
 
   const scroll = () => {
-    // @ts-ignore
     host.fit();
 
     const candles = getMainSeriesCandles(chart);
-    // @ts-ignore
     const dataLength = candles.length;
     const { plotWidth } = resolvePlotWidth(chart);
 
     if (dataLength > 0 && plotWidth > 0) {
-    // @ts-ignore
       const dataWidth = host.model.periodWidth * dataLength;
       if (dataWidth < plotWidth) {
         fitChartSeriesToPlotWidth(chart);

@@ -1,13 +1,8 @@
 import type { Candle } from "@efixdata/exeria-chart";
 import { resolveNewsBarIndex } from "./resolveNewsBarIndex";
 import type {
-    // @ts-ignore
-    // @ts-ignore
   ArbChartSceneFocus,
-    // @ts-ignore
-    // @ts-ignore
   ArbSceneAnchor,
-    // @ts-ignore
   ArbScenePriceField,
 } from "@efixdata/exeria-chart";
 import { PIP_SIZE } from "./constants";
@@ -70,14 +65,11 @@ function resolveAnchorBarIndex(
 function readPriceField(
   candle: Candle,
   field: ArbScenePriceField,
-    // @ts-ignore
   offsetPips: number | undefined,
   pipSize: number,
-    // @ts-ignore
 ): number {
   const base = candle[field];
   const pipOffset = offsetPips ?? 0;
-    // @ts-ignore
   return base + pipSize * pipOffset;
 }
 

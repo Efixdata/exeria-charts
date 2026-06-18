@@ -318,14 +318,10 @@ function QuantChartHost({
       ) : null}
       {error ? <div className={styles.chartError}>{error}</div> : null}
       {ChartUI ? (
-    // @ts-ignore
-    // @ts-ignore
         <ChartUI chart={chart} theme={chartUiTheme ?? undefined}>
-          {/* @ts-ignore */}
           <div ref={containerRef} className={styles.chartCanvas} />
         </ChartUI>
       ) : (
-    // @ts-ignore
         <div ref={containerRef} className={styles.chartCanvas} />
       )}
     </div>

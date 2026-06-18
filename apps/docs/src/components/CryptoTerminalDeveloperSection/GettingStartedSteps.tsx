@@ -1,9 +1,4 @@
-// @ts-ignore
-// @ts-ignore
-import _Link from "@docusaurus/Link";
-
-let Link = _Link as any;
-
+import Link from "@docusaurus/Link";
 import styles from "./cryptoTerminalDeveloperSection.module.css";
 
 const STEPS = [

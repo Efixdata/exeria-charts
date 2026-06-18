@@ -499,7 +499,6 @@ export default function CryptoTerminalApp() {
       editable: true,
     });
 
-    // @ts-ignore
     const alert: PriceAlert = {
       id: alertId,
       symbol: selectedSymbol,
@@ -624,7 +623,6 @@ export default function CryptoTerminalApp() {
         </div>
       </header>
 
-      {/* @ts-ignore */}
       <StatsRibbon
         pair={activePair?.pair ?? selectedSymbol}
         price={priceState?.price}
@@ -739,7 +737,6 @@ export default function CryptoTerminalApp() {
             .filter(Boolean)
             .join(" ")}
         >
-          {/* @ts-ignore */}
           <WatchlistPanel
             symbols={WATCHLIST_SYMBOLS}
             selectedSymbol={selectedSymbol}
@@ -783,7 +780,6 @@ export default function CryptoTerminalApp() {
             .filter(Boolean)
             .join(" ")}
         >
-          {/* @ts-ignore */}
           <RightDock
             activeTab={rightTab}
             onTabChange={setRightTab}

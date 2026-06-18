@@ -325,9 +325,6 @@ function applyFintechChartChrome(chart: ChartInstance, themeVariant: FintechThem
 
   chart.applyChartAppearanceSettings({
     ...appearance,
-    // @ts-ignore
-    // @ts-ignore
-    // @ts-ignore
     background: chrome.background,
     gridVisible: false,
     gridMode: "none",
@@ -525,11 +522,8 @@ function upsertOverlay(
     seriesId,
     title: asset.label,
     labels: ["O", "H", "L", "C", "V", "I"],
-    // @ts-ignore
     fields: ["o", "h", "l", "c", "v", "i"],
-    // @ts-ignore
     instrument,
-    // @ts-ignore
     interval: chartInterval,
     data: candles,
   };
@@ -675,13 +669,10 @@ export async function setupFintechSingleAssetChart(
 
   hideChartVolume(chart);
 
-    // @ts-ignore
   const chrome = chartChromeColors(themeVariant);
   const appearance = chart.getChartAppearanceSettings();
-    // @ts-ignore
   chart.applyChartAppearanceSettings({
     ...appearance,
-    // @ts-ignore
     background: chrome.background,
     gridVisible: false,
     gridMode: "none",
