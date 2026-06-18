@@ -1,10 +1,16 @@
-import Link from "@docusaurus/Link";
+// @ts-ignore
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import styles from "./marketNewsApp.module.css";
 
 export default function DemoBanner() {
   return (
     <div className={styles.demoBanner}>
       <div className={styles.demoBannerInner}>
+    // @ts-ignore
         <span>
           <strong>Exeria demo</strong> · Interactive Market News — embeddable charts inside a
           financial article

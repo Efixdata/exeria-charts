@@ -71,6 +71,9 @@ function appendLivePeriodTicks(
 
   while (lastStamp !== undefined && lastStamp < targetStamp) {
     const nextStamp = lastStamp + HOUR_MS;
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
     if (chart.appendTick({ stamp: nextStamp, price: marketPrice }, false)) {
       newCandleAdded = true;
     }

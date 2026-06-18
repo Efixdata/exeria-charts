@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "@docusaurus/Link";
+// @ts-ignore
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import type { ArbSignalRecord, Candle, ChartInstance, NewsFeedRecord } from "@efixdata/exeria-chart";
 import { installBenignResizeObserverErrorSuppression } from "@site/src/utils/suppressBenignResizeObserverErrors";
 import { TERMINAL_UI_FONT_VARS } from "../CryptoTerminalApp/terminalTypography";

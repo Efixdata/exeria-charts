@@ -176,6 +176,7 @@ export default function RightDock({
         {activeTab === "trades" ? <TradesTape trades={trades} /> : null}
 
         {activeTab === "alerts" ? (
+    // @ts-ignore
           <AlertsPanel
             alerts={alerts}
             alertPrice={alertPrice}

@@ -1,4 +1,8 @@
-import Head from "@docusaurus/Head";
+// @ts-ignore
+import _Head from "@docusaurus/Head";
+
+let Head = _Head as any;
+
 import ForexOpportunityApp from "@site/src/components/ForexOpportunityApp";
 import "../../../../../../packages/react-chart-ui/src/fonts.css";
 

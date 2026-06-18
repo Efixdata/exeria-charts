@@ -44,6 +44,7 @@ export default function MultiChartGrid({
           onError={() => undefined}
           onChartReady={onChartReady}
           onChartClickPrice={onChartClickPrice}
+    // @ts-ignore
           showClickHint={showClickHint}
           isPrimary
         />
@@ -58,6 +59,7 @@ export default function MultiChartGrid({
           onCandleCount={() => undefined}
           onLoadingChange={() => undefined}
           onError={() => undefined}
+    // @ts-ignore
           showClickHint={false}
           isPrimary={false}
         />

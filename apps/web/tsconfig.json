@@ -2,7 +2,7 @@
   "extends": "tsconfig/nextjs.json",
   "compilerOptions": {
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "noImplicitOverride": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

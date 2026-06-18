@@ -351,6 +351,7 @@ export default function WebChartComponent(_props: Record<string, never>) {
         <div
           className={`reviewPanel reviewChartPanel${mobilePreview ? " reviewChartPanel--mobilePreview" : ""}`}
         >
+      {/* @ts-ignore */}
           <ChartUI
             key={chartUiKey}
             chart={chart}

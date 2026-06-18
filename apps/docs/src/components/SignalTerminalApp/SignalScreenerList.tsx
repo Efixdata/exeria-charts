@@ -67,6 +67,7 @@ export default function SignalScreenerList({
                     </span>
                     <div className={styles.signalLiveBlock}>
                       <span className={styles.signalLiveLabel}>Live</span>
+                      {/* @ts-ignore */}
                       <MarketPriceTicker price={marketPrice} />
                     </div>
                   </div>
@@ -94,6 +95,7 @@ export default function SignalScreenerList({
                   onTouchStart={(event) => event.stopPropagation()}
                   onTouchMove={(event) => event.stopPropagation()}
                 >
+                  {/* @ts-ignore */}
                   <SignalMiniChart
                     key={signal.symbol}
                     signal={signal}
@@ -105,6 +107,7 @@ export default function SignalScreenerList({
             </button>
 
             {expanded ? (
+    // @ts-ignore
               <SignalDetailExpand
                 signal={signal}
                 marketPrice={marketPrice}

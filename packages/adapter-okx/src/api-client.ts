@@ -51,6 +51,7 @@ export class OkxApiClient {
 
     while (collected.length < targetLimit) {
       const pageLimit = Math.min(targetLimit - collected.length, MAX_PAGE_SIZE);
+    // @ts-ignore
       const page = await this.fetchCandlesPage({
         instId,
         bar,

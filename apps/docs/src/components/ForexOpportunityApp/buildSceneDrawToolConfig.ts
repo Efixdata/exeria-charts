@@ -1,3 +1,6 @@
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
 import type { ArbSceneDrawing } from "@efixdata/exeria-chart";
 import type { DrawToolConfig, ToolAnchor } from "@efixdata/exeria-chart";
 

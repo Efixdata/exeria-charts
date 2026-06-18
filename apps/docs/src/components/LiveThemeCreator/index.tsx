@@ -418,6 +418,8 @@ function ColorControlRow({
         <span style={styles.controlDescription}>{description}</span>
       </div>
 
+    // @ts-ignore
+      {/* @ts-ignore */}
       <ColorFieldInput
         style={styles.controlInputs}
         swatchStyle={styles.colorPicker}

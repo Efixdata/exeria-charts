@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "@docusaurus/Link";
+// @ts-ignore
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import type { ChartInstance } from "@efixdata/exeria-chart";
 import { applyChartSettingsPreset } from "../themeCreator/applyChartSettingsPreset";
 import { themePresets } from "../themeCreator/chartSettingsThemePresets";

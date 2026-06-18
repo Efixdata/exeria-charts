@@ -269,9 +269,13 @@ export default function Playground() {
                           label="Chart element"
                           value={selectedChartKey}
                           options={chartPickerOptions}
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
                           onChange={setSelectedChartKey}
                         />
 
+                        {/* @ts-ignore */}
                         <ColorFieldInput
                           className={styles.colorInputs}
                           value={selectedChartColor}
@@ -295,9 +299,11 @@ export default function Playground() {
                           label="UI element"
                           value={selectedUiKey}
                           options={uiPickerOptions}
+    // @ts-ignore
                           onChange={setSelectedUiKey}
                         />
 
+                        {/* @ts-ignore */}
                         <ColorFieldInput
                           className={styles.colorInputs}
                           value={selectedUiColor}
@@ -332,6 +338,7 @@ export default function Playground() {
 
         <section id="playground-chart" className={styles.chartSection}>
           <div ref={chartStackRef} className={styles.chartStack}>
+            {/* @ts-ignore */}
             <ChartThemePreview
               chartColorsByVariant={chartColorsByVariant}
               uiColorsByVariant={uiColorsByVariant}

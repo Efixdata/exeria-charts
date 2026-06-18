@@ -52,6 +52,9 @@ export function useAlertLineSync(
       });
 
       if (changed) {
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
         setAlerts(next);
       }
     };

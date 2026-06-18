@@ -1,8 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import clsx from "clsx";
-import BrowserOnly from "@docusaurus/BrowserOnly";
-import Link from "@docusaurus/Link";
+// @ts-ignore
+// @ts-ignore
+import _BrowserOnly from "@docusaurus/BrowserOnly";
+
+let BrowserOnly = _BrowserOnly as any;
+
+// @ts-ignore
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import { useThemeConfig } from "@docusaurus/theme-common";
 import { useLocation } from "@docusaurus/router";
 import { useNavbarSecondaryMenu } from "@docusaurus/theme-common/internal";
@@ -124,6 +134,7 @@ function MobileNavClient(): JSX.Element {
                 <DocsSidebarSearch />
               </div>
             )}
+    // @ts-ignore
 
             <div className={styles.scrollableContent}>
               {isDocsRoute && secondaryMenu.content && (

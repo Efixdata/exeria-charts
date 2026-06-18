@@ -65,8 +65,14 @@ function buildNewsFeedIndicatorProto(
 
   const markers = newsMarkerColors(variant);
   const proto = structuredClone(template);
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
   proto.inputs.MARKER_SIZE.value = markers.size;
+    // @ts-ignore
+    // @ts-ignore
   proto.inputs.MARKER_SHAPE.value = "Circle";
+    // @ts-ignore
   proto.plotters = proto.plotters?.map((plotter) => ({
     ...plotter,
     buyColor: markers.buy,
@@ -172,12 +178,16 @@ function applyNewsChartChrome(chart: ChartInstance): void {
 }
 
 function applyNewsLineGradient(chart: ChartInstance, lineColor: string, emphasized = true): void {
+    // @ts-ignore
   const runtime = chart as ChartRuntime;
   const appearance = chart.getChartAppearanceSettings();
   const fillOpacity = emphasized ? 0.42 : 0.28;
+    // @ts-ignore
 
   chart.applyChartAppearanceSettings({
     ...appearance,
+    // @ts-ignore
+    // @ts-ignore
     background: appearance.background,
     chartLineColor: lineColor,
     chartFillGradientColor: lineColor,

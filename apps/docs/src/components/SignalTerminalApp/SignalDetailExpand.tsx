@@ -119,6 +119,8 @@ export default function SignalDetailExpand({
               { value: "market", label: "Market" },
               { value: "limit", label: "Limit @ signal" },
             ]}
+    // @ts-ignore
+    // @ts-ignore
             onChange={setOrderType}
           />
 

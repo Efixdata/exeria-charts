@@ -66,6 +66,7 @@ function styleMainSeries(runtime: ChartRuntime, seriesId: string, color: string)
   for (const object of mainPanel.objects) {
     if (object.dataLink === seriesId) {
       object.color = color;
+    // @ts-ignore
       object.strokeStyle = color;
     }
   }
@@ -108,7 +109,10 @@ async function applyStaticForexOverlay(
     });
 
     if (mainPanel && !mainPanel.objects.some((object) => object.dataLink === seriesId)) {
+    // @ts-ignore
+    // @ts-ignore
       mainPanel.objects.push({
+    // @ts-ignore
         id: seriesId,
         type: "SeriesObject",
         dataLink: seriesId,

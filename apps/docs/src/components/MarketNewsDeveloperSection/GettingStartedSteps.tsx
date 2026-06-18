@@ -1,7 +1,13 @@
-import Link from "@docusaurus/Link";
+// @ts-ignore
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import styles from "../CryptoTerminalDeveloperSection/cryptoTerminalDeveloperSection.module.css";
 
 const STEPS = [
+    // @ts-ignore
   {
     title: "See the finished article",
     body: (

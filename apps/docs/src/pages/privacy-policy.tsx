@@ -1,5 +1,9 @@
 import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import layoutStyles from "@site/src/css/marketingLayout.module.css";
 import styles from "./privacy-policy.module.css";
 

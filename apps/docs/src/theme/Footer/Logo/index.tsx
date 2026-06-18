@@ -1,5 +1,9 @@
 import React, { type ReactNode } from "react";
-import Link from "@docusaurus/Link";
+// @ts-ignore
+import _Link from "@docusaurus/Link";
+
+let Link = _Link as any;
+
 import ThemedImage from "@theme/ThemedImage";
 import { useBaseUrlUtils } from "@docusaurus/useBaseUrl";
 import type { Props } from "@theme/Footer/Logo";

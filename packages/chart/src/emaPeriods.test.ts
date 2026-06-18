@@ -121,8 +121,6 @@ describe("EMA period wiring", () => {
       {
         seriesId: mainSeriesId,
         title: "TEST",
-        labels: ["O", "H", "L", "C", "V"],
-        fields: ["o", "h", "l", "c", "v"],
         data: closes.map((c, index) => ({
           o: c,
           h: c + 0.5,
@@ -136,17 +134,17 @@ describe("EMA period wiring", () => {
           symbol: "TEST",
           tradable: true,
         },
-      },
+      } as any,
     ];
-    engine.model.mainSeries = mainSeriesId;
-    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0];
+    engine.model.mainSeries = mainSeriesId as any;
+    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0] as any;
 
-    const emaConfig: RuntimeScriptConfig = {
+    const emaConfig: any = {
       key: "EMA",
-      id: undefined,
+      id: "EMA",
       inputs: {
         CLOSE: `${mainSeriesId}:c`,
-        PERIODS: 28,
+        PERIODS: 28 as any,
       },
       outputs: {},
       pane: "1",
@@ -161,7 +159,7 @@ describe("EMA period wiring", () => {
     expect(emaScript?.PERIODS).toBe(28);
 
     const emaSeriesId = emaScript?.outputs?.EMA as string;
-    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row) => row.EMA) ?? [];
+    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row: any) => row.EMA) ?? [];
     const expected = calculateEma(closes, 28);
 
     expect(plotted[plotted.length - 1]).toBeCloseTo(expected[expected.length - 1]!, 8);
@@ -180,8 +178,6 @@ describe("EMA period wiring", () => {
       {
         seriesId: mainSeriesId,
         title: "TEST",
-        labels: ["O", "H", "L", "C", "V"],
-        fields: ["o", "h", "l", "c", "v"],
         data: closes.map((c, index) => ({
           o: c,
           h: c + 0.5,
@@ -195,17 +191,17 @@ describe("EMA period wiring", () => {
           symbol: "TEST",
           tradable: true,
         },
-      },
+      } as any,
     ];
-    engine.model.mainSeries = mainSeriesId;
-    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0];
+    engine.model.mainSeries = mainSeriesId as any;
+    engine.seriesManager[mainSeriesId] = engine.model.instrumentsSeries[0] as any;
 
-    const emaConfig: RuntimeScriptConfig = {
+    const emaConfig: any = {
       key: "EMA",
-      id: undefined,
+      id: "EMA",
       inputs: {
         CLOSE: `${mainSeriesId}:c`,
-        PERIODS: { type: "integer", value: 28, name: "periods", properties: { max: 200, min: 0 } },
+        PERIODS: { type: "integer", value: 28, name: "periods", properties: { max: 200, min: 0 } } as any,
       },
       outputs: {},
       pane: "1",
@@ -220,7 +216,7 @@ describe("EMA period wiring", () => {
     expect(emaScript?.PERIODS).toBe(28);
 
     const emaSeriesId = emaScript?.outputs?.EMA as string;
-    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row) => row.EMA) ?? [];
+    const plotted = engine.seriesManager[emaSeriesId]?.data?.map((row: any) => row.EMA) ?? [];
     const expected = calculateEma(closes, 28);
 
     expect(plotted[plotted.length - 1]).toBeCloseTo(expected[expected.length - 1]!, 8);

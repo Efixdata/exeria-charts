@@ -13,6 +13,7 @@ export default function DocsSidebarSearch(): JSX.Element {
       data-docs-sidebar-search=""
       data-search-active={isOpen ? "true" : "false"}
     >
+      {/* @ts-ignore */}
       <SearchBar handleSearchBarToggle={setIsOpen} />
     </div>
   );

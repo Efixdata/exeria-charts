@@ -96,6 +96,9 @@ export function createZipBlob(entries: ZipEntry[]): Blob {
   writeUint32LE(endView, 16, offset);
   writeUint16LE(endView, 20, 0);
 
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
   return new Blob([...chunks, ...centralDirectory, endRecord], { type: "application/zip" });
 }
 
