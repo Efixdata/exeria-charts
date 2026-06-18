@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import Link from "@docusaurus/Link";
 import { trackMarketingEvent } from "@site/src/utils/marketingAnalytics";
-import { submitNetlifyForm } from "./netlifySubmit";
+import { submitNetlifyForm, NETLIFY_FORMS } from "@site/src/utils/netlifyForms";
 import styles from "./styles.module.css";
 
 type InterestKey =
@@ -176,7 +176,7 @@ export default function ContactForm(): JSX.Element {
     setSubmitting(true);
 
     try {
-      await submitNetlifyForm("exeria-contact", buildSubmissionPayload(form));
+      await submitNetlifyForm(NETLIFY_FORMS.CONTACT, buildSubmissionPayload(form));
       trackMarketingEvent("contact_form_submit", {
         licenseModel: form.licenseModel,
         productType: form.productType,

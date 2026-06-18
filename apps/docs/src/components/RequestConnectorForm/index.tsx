@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import Link from "@docusaurus/Link";
 import { trackMarketingEvent } from "@site/src/utils/marketingAnalytics";
-import { submitNetlifyForm } from "../ContactForm/netlifySubmit";
+import { submitNetlifyForm, NETLIFY_FORMS } from "@site/src/utils/netlifyForms";
 import styles from "./styles.module.css";
 
 import { CONTACT_PATH } from "@site/src/constants/contact";
@@ -23,7 +23,7 @@ export default function RequestConnectorForm(): JSX.Element {
     setSubmitting(true);
 
     try {
-      await submitNetlifyForm("connector-request", {
+      await submitNetlifyForm(NETLIFY_FORMS.CONNECTOR_REQUEST, {
         provider: form.provider.trim(),
         email: form.email.trim(),
         notes: form.notes.trim(),
