@@ -5,6 +5,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 import Link from "@docusaurus/Link";
 import { useThemeConfig } from "@docusaurus/theme-common";
 import { useLocation } from "@docusaurus/router";
+import { useNavbarSecondaryMenu } from "@docusaurus/theme-common/internal";
 import NavbarColorModeToggle from "@theme/Navbar/ColorModeToggle";
 import GitHubNavbarButton from "@site/src/components/GitHubNavbarButton";
 import DocsSidebarSearch from "@site/src/components/DocsSidebarSearch";
@@ -55,6 +56,7 @@ function MobileNavClient(): JSX.Element {
   const links = useNavLinks();
   const location = useLocation();
   const isDocsRoute = location.pathname.startsWith("/docs");
+  const secondaryMenu = useNavbarSecondaryMenu();
 
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((open) => !open), []);
@@ -123,13 +125,21 @@ function MobileNavClient(): JSX.Element {
               </div>
             )}
 
-            <nav className={styles.links} aria-label="Mobile navigation">
-              {links.map((link) => (
-                <Link key={link.href} to={link.href} className={styles.link} onClick={close}>
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <div className={styles.scrollableContent}>
+              {isDocsRoute && secondaryMenu.content && (
+                <div className={styles.docsSidebarSection}>
+                  {secondaryMenu.content}
+                </div>
+              )}
+
+              <nav className={styles.links} aria-label="Mobile navigation">
+                {links.map((link) => (
+                  <Link key={link.href} to={link.href} className={styles.link} onClick={close}>
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
 
             <footer className={styles.footer}>
               <div className={styles.footerRow}>

@@ -84,6 +84,20 @@ html[data-theme="dark"] .fieldTextarea {
   text-align: center;
 }
 
+.honeypot {
+  display: none;
+}
+
+.error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--doc-radius-sm);
+  border: 1px solid var(--doc-danger-border);
+  background: var(--doc-danger-bg);
+  color: var(--doc-text);
+  font-size: 0.95rem;
+}
+
 @media (max-width: 768px) {
   .fieldGrid {
     grid-template-columns: 1fr;
