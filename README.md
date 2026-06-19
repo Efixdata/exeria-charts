@@ -1,163 +1,131 @@
-# Exeria Charts
+<p align="center">
+  <!-- W tym miejscu podmień 'src' na bezpośredni link do pliku .mp4 z Twojej strony exeria.dev -->
+  <video src="https://exeria.dev/video/Exeriachartsok.mp4" width="100%" controls autoplay loop muted></video>
+</p>
 
-🏆 **Winner of the Benzinga Fintech Awards**
+<h1 align="center">Exeria Charts</h1>
 
-Source-available financial charting libraries for self-hosted web applications, trading surfaces, and data-rich dashboards.
+<p align="center">
+  <b>Source-available, high-performance financial charting libraries for self-hosted web applications, trading platforms, and data-rich dashboards.</b>
+</p>
 
-**[🚀 Try the Live Playground](https://exeria.dev/playground)** • **[📚 Read Documentation](https://exeria.dev/docs/getting-started/vanilla)** • **[💻 View Data Connectors](https://exeria.dev/data-connectors)**
+<p align="center">
+  <a href="https://exeria.dev/playground">🚀 Live Playground</a> •
+  <a href="https://exeria.dev/docs/getting-started/vanilla">📚 Documentation</a> •
+  <a href="https://exeria.dev/data-connectors">💻 Data Connectors</a>
+</p>
 
-This repository contains a core chart runtime, a React UI wrapper, a documentation site, and internal playground apps used to validate the public package surface.
+<p align="center">
+  <a href="https://www.npmjs.com/package/@efixdata/exeria-chart"><img src="https://img.shields.io/npm/v/@efixdata/exeria-chart?style=flat-square&color=blue" alt="NPM Version" /></a>
+  <a href="https://github.com/efixdata/exeria-charts/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-green?style=flat-square" alt="License" /></a>
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome" />
+  <img src="https://img.shields.io/badge/award-Benzinga_Fintech_Awards-gold?style=flat-square" alt="Winner of the Benzinga Fintech Awards" />
+</p>
 
-## Why Exeria Charts
+---
 
-- Render directly inside your application instead of embedding an iframe.
-- Ship candlestick, line, bar, and histogram views from the same runtime.
-- Update charts with candle batches or real-time ticks.
-- Layer drawing tools, indicators, and UI controls on top of the core runtime.
-- Keep the integration self-hosted and themeable inside your own product shell.
+## ✨ Why Exeria Charts?
 
-## Packages
+Building a trading interface shouldn't require compromising on performance or user experience. Exeria Charts gives you the power of professional-grade financial charts, directly inside your application.
 
-### Core (AGPL-3.0-or-later)
+- ⚡️ **Native Integration**: Render directly inside your app (Canvas/WebGL) instead of relying on sluggish `<iframe>` embeds.
+- 📊 **Versatile Views**: Ship candlestick, line, bar, and histogram views using a single, unified runtime.
+- ⏱ **Real-time Ready**: Seamlessly update charts with historical candle batches or stream real-time ticks with sub-millisecond latency.
+- 🎨 **Fully Customizable**: Layer drawing tools, technical indicators, and UI controls perfectly themed to match your product shell.
+- 🔒 **Self-Hosted & Secure**: Keep your users' data secure by hosting the runtime entirely within your own infrastructure.
 
-| Package | Purpose |
-| --- | --- |
-| `@efixdata/exeria-chart` | Core chart runtime for vanilla JavaScript or framework-managed integrations |
-| `@efixdata/exeria-chart-ui-react` | React toolbar and menu layer for teams that want prebuilt chart controls |
+## 📦 Ecosystem
 
-### Data connectors — free (MIT)
+Exeria provides a robust ecosystem tailored to both framework-agnostic developers and React teams.
 
-| Package | Data source |
-| --- | --- |
-| `@efixdata/connector-binance` | Binance spot |
-| `@efixdata/connector-bybit` | Bybit |
-| `@efixdata/connector-okx` | OKX |
-| `@efixdata/connector-kraken` | Kraken |
-| `@efixdata/connector-kucoin` | KuCoin |
-| `@efixdata/connector-coinbase` | Coinbase |
-| `@efixdata/connector-gate` | Gate.io |
-| `@efixdata/connector-ccxt` | CCXT (multi-exchange) |
-| `@efixdata/connector-coingecko` | CoinGecko |
+### Core Libraries
 
-### Data connectors — paid vendor (EULA, source-available)
+| Package | Purpose | License |
+| --- | --- | --- |
+| [`@efixdata/exeria-chart`](packages/chart) | Core chart runtime for vanilla JS or framework-managed integrations | AGPL-3.0 |
+| [`@efixdata/exeria-chart-ui-react`](packages/react-chart-ui) | React toolbar & menu layer with prebuilt chart controls | AGPL-3.0 |
 
-| Package | Data source |
-| --- | --- |
-| `@efixdata/connector-twelve-data` | Twelve Data |
-| `@efixdata/connector-finage` | Finage |
-| `@efixdata/connector-finnhub` | Finnhub |
-| `@efixdata/connector-eodhd` | EODHD |
-| `@efixdata/connector-massive` | Massive |
+### Data Connectors
 
-Install a connector alongside the core chart:
+Connect to your favorite exchanges out-of-the-box.
+
+**Free & Open Source (MIT)**:  
+`@efixdata/connector-binance`, `@efixdata/connector-bybit`, `@efixdata/connector-okx`, `@efixdata/connector-kraken`, `@efixdata/connector-kucoin`, `@efixdata/connector-coinbase`, `@efixdata/connector-gate`, `@efixdata/connector-ccxt`, `@efixdata/connector-coingecko`.
+
+**Premium Vendor Connectors (EULA, source-available)**:  
+`@efixdata/connector-twelve-data`, `@efixdata/connector-finage`, `@efixdata/connector-finnhub`, `@efixdata/connector-eodhd`, `@efixdata/connector-massive`.
+
+## 🚀 Quick Start
+
+### 1. Installation
+
+Install the core runtime and a data connector:
 
 ```bash
 npm install @efixdata/exeria-chart @efixdata/connector-binance
 ```
+*(Optional: Add `@efixdata/exeria-chart-ui-react` for the React UI layer)*
 
-Publishing workflow and pre-release checks: [`PUBLISHING.md`](PUBLISHING.md).
-
-## Quickstart
-
-Install the core runtime:
-
-```bash
-npm install @efixdata/exeria-chart
-```
-
-Mount a chart with the public package API:
+### 2. Basic Setup (Vanilla JS/TS)
 
 ```ts
 import { createChart, type Candle, type Interval } from "@efixdata/exeria-chart";
 
+// 1. Prepare your data
 const candles: Candle[] = [
-	{ stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
-	{ stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
+  { stamp: 1715472000000, o: 101.2, h: 103.1, l: 100.9, c: 102.8, v: 3200 },
+  { stamp: 1715475600000, o: 102.8, h: 104.2, l: 102.1, c: 103.9, v: 2950 },
 ];
 
-const interval: Interval = {
-	symbol: "1h",
-	milis: 60 * 60 * 1000,
-};
+const interval: Interval = { symbol: "1h", milis: 60 * 60 * 1000 };
 
+// 2. Initialize the chart
 const container = document.getElementById("chart-root");
-
-if (!container) {
-	throw new Error("Missing chart container");
-}
+if (!container) throw new Error("Missing chart container");
 
 const chart = createChart({ container });
 
+// 3. Mount and render
 await chart.setMainSeriesData(candles, interval);
 chart.init();
 ```
 
-If you want the React UI layer as well:
+## 📖 Documentation & Resources
+
+- [**Full Documentation Site**](https://exeria.dev/docs/getting-started/vanilla) - Guides, API references, and advanced use cases.
+- [**Public API Highlights**](https://exeria.dev/docs/api) - `init()`, `destroy()`, `setMainSeriesData()`, `appendTick()`, and more.
+- [**Live Playground**](https://exeria.dev/playground) - Test themes, indicators, and real-time data integrations.
+
+## 🛠 Development
+
+Want to build Exeria locally or contribute? This repository is a monorepo powered by [Turbo](https://turbo.build/).
 
 ```bash
-npm install @efixdata/exeria-chart @efixdata/exeria-chart-ui-react
-```
-
-## Public API Highlights
-
-- Lifecycle: `init()`, `destroy()`
-- Data: `setMainSeriesData()`, `appendMainSeriesData()`, `appendTick()`, `appendTicks()`
-- View controls: `setMainDrawMode()`, `setValueAxisMode()`, `setAutoScale()`
-- Integrations: `subscribe()`, `onDownload()`
-
-## Documentation in This Repo
-
-- Docs site source: `apps/docs`
-- Core package guide: `packages/chart/README.md`
-- React wrapper guide: `packages/react-chart-ui/README.md`
-- License summary: `LICENSING.md`
-
-Run the docs site locally:
-
-```bash
+# Install dependencies
 npm install
+
+# Build all packages
+npm run build
+
+# Run local playground
+npm --prefix apps/web run dev
+
+# Run local docs site
 npm --prefix apps/docs run dev
 ```
 
-Run the chart playground locally:
+See our [`CONTRIBUTING.md`](CONTRIBUTING.md) for detailed guidelines.
 
-```bash
-npm --prefix apps/web run dev
-```
+## ⚖️ Licensing
 
-## Repository Layout
+Exeria Charts operates under a dual-license model to support both the open-source community and commercial platforms.
 
-- `packages/chart` contains the publishable core chart runtime.
-- `packages/react-chart-ui` contains the React UI wrapper.
-- `apps/docs` contains the Docusaurus documentation site.
-- `apps/web` contains a broader review playground used for theme and runtime validation.
+- **Open Source (AGPL-3.0-or-later)**: Use the core freely for projects that comply with the AGPL v3 (including source obligations for distributed or network-facing use).
+- **Commercial License**: Required for closed-source products. Purchasing a commercial license from Efix Data Sp. z o. o. removes the AGPL restrictions. [Contact us for startup-friendly pricing!](https://exeria.dev/pricing)
 
-## Development
+*Note: Data connectors have their own licenses (MIT for public exchanges, EULA for premium vendors).*
 
-Install workspace dependencies and use the root scripts:
+Please read [`LICENSE`](LICENSE), [`LICENSING.md`](LICENSING.md), and our [Licensing Guide](https://exeria.dev/docs/guides/licensing) carefully before shipping to production.
 
-```bash
-npm install
-npm run build
-npm run typecheck
-```
-
-For release-contract validation:
-
-```bash
-npm run verify:release
-npm run verify:starters
-```
-
-See [`PUBLISHING.md`](PUBLISHING.md) for npm publish steps.
-
-## Licensing
-
-The core packages are open source under the **GNU Affero General Public License v3.0 (AGPL v3)**.
-
-- Use the core for free when your product complies with AGPL (including source obligations for distributed or network-facing use).
-- **Closed-source products** require a **commercial license** from Efix Data Sp. z o. o.
-- **Plugins** (advanced indicators, drawing tools, data bridges) are licensed **per project** under separate terms.
-- **Startup-friendly pricing** is available for qualifying commercial licenses.
-
-Read `LICENSE`, `LICENSING.md`, and the [licensing guide](https://exeria.dev/docs/guides/licensing) before shipping to production.
+---
+<p align="center">Made with ❤️ by the Exeria Team.</p>
