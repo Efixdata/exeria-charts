@@ -1,7 +1,4 @@
-<p align="center">
-  <!-- W tym miejscu podmień 'src' na bezpośredni link do pliku .mp4 z Twojej strony exeria.dev -->
-  <video src="https://exeria.dev/video/Exeriachartsok.mp4" width="100%" controls autoplay loop muted></video>
-</p>
+<video src="https://github.com/user-attachments/assets/20d31b71-ad8c-4b09-aa13-21006d9e5f91" width="100%" controls autoplay loop muted></video>
 
 <h1 align="center">Exeria Charts</h1>
 
